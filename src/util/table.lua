@@ -1,9 +1,10 @@
 function table.merge(tbl, other, ...)
     tbl = tbl or {}
-
-    if other and #other > 0 then
-        for _, v in ipairs(other) do 
-            table.insert(tbl, v)
+    for k, v in pairs(other) do
+        if tbl[k] == nil then
+            tbl[k] = other[k]
+        elseif type(v) == 'table' then
+            tbl[k] = table.merge(tbl[k], v)
         end
     end
 
@@ -13,5 +14,6 @@ function table.merge(tbl, other, ...)
         
     return tbl
 end
+
 
 return table
