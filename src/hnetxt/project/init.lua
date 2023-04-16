@@ -1,14 +1,20 @@
 --[[
 functions:
-- in_project: checks whether the cwd is in a `.project` dir
 
 - Project:
-    TODO: 
-    - `create`: update the "project name to path" database
+    - static:
+        - TODO: in_project: checks whether the cwd is in a `.project` dir
+        - load_constants: loads the generic project constants
+        - get_config_path: get the path where a config would be in a given dir
+    - on object:
+        - TODO: root: returns the project root
+        - TODO: journal: returns the project journal
+        - TODO: config: returns the project config
+    - unclear:
+    - `create`:
+        - TODO: probably make into an `on object` method
+        - TODO: update the "project name to path" database (`register`)
 
-    - root: returns the project root
-    - journal: returns the project journal
-    - config: returns the project config
 
 --]]
 
@@ -26,9 +32,6 @@ function Project.load_constants()
     return lyaml.load(Path.read(Project.constants_path))
 end
 
-function Project.in_project()
-end
-
 function Project.get_config_path(dir)
     return Path.joinpath(dir or Path.cwd(), Project.load_constants().filename)
 end
@@ -37,6 +40,9 @@ function Project.create(args)
     args = table.default(args, {metadata = {start_date = os.date("%Y%m%d")}})
     config_path = Project.get_config_path(args.dir)
     Path.write(config_path, lyaml.dump({args.metadata}))
+end
+
+function Project.in_project()
 end
 
 return Project
