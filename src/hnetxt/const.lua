@@ -1,18 +1,18 @@
 local lyaml = require("lyaml")
-local Path = require("util.path")
-table = require("util.table")
+local Path = require("hneutil.path")
+table = require("hneutil.table")
 
 local constsDir = "/Users/hne/dotfiles/lex/yaml"
 
 function load(dir)
     local constants = {}
-    for _, path in ipairs(Path.listDir(dir)) do
+    for _, path in ipairs(Path.iterdir(dir)) do
         local subconstants = lyaml.load(Path.read(path))
 
         local stem = Path.stem(path)
 
         if stem == "init" then
-            constants = table.merge(subconstants, constants)
+            constants = table.default(subconstants, constants)
         else
             constants[stem] = subconstants
         end

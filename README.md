@@ -1,15 +1,22 @@
 This is intended to be the single location for code that deals with writing.
 
-=-----------------------------------------------------------
-= [architecture]()
-=-----------------------------------------------------------
+#-------------------------------------------------------------------------------
+# [todo]()
+#-------------------------------------------------------------------------------
+- set it up so that it can be:
+  - installed from nvim as a package
+  - run from the commandline
+
+#-------------------------------------------------------------------------------
+# [architecture]()
+#-------------------------------------------------------------------------------
 - `constants`: loads constants from `/dotfiles/lex/constants/*`
 - `project`:
   - `config`: loads the project file + mirrors
 
-=-----------------------------------------------------------
-= [cli]()
-=-----------------------------------------------------------
+----------------------------------------
+> [cli]()
+----------------------------------------
 - commands should:
   - by default: return the result 
   - support a `print` parameter to print the result
@@ -26,11 +33,13 @@ This is intended to be the single location for code that deals with writing.
 - `goals`: return the path to the current goals file (create if it doesn't exist)
   - [print]()
 
-
 =-----------------------------------------------------------
 = [existing]()
 =-----------------------------------------------------------
-`nvim/lua/lex`:
+
+----------------------------------------
+> [nvim/lua/ex]()
+----------------------------------------
 - `config`: loads the project file + mirrors
 ⨉ `constants`: loads constants from `/dotfiles/lex/constants/*`
 ✓ `opener`: 
@@ -45,7 +54,9 @@ This is intended to be the single location for code that deals with writing.
 - `move`
 - `sync`
 
-`hnetext.py` stuff:
+----------------------------------------
+> [hnetext.py]()
+----------------------------------------
 - cli:
   - `project`:
     - `start`: begin a project
