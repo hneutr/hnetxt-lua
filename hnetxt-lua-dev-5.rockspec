@@ -20,6 +20,9 @@ build = {
    modules = {
       ["hnetxt-lua"] = "src/hnetxt-lua/init.lua",
       ["hnetxt-lua.config"] = "src/hnetxt-lua/config.lua",
+      ["hnetxt-lua.project"] = "src/hnetxt-lua/project.lua",
+      ["hnetxt-lua.element"] = "src/hnetxt-lua/element/init.lua",
+      ["hnetxt-lua.element.link"] = "src/hnetxt-lua/element/link.lua",
       setup = "src/setup.lua"
    }
 }
