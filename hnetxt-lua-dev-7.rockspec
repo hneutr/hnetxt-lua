@@ -1,6 +1,6 @@
 rockspec_format = "3.0"
 package = "hnetxt-lua"
-version = "dev-5"
+version = "dev-7"
 source = {
    url = "git://github.com/hneutr/hnetxt-lua"
 }
@@ -20,9 +20,9 @@ build = {
    modules = {
       ["hnetxt-lua"] = "src/hnetxt-lua/init.lua",
       ["hnetxt-lua.config"] = "src/hnetxt-lua/config.lua",
-      ["hnetxt-lua.project"] = "src/hnetxt-lua/project.lua",
       ["hnetxt-lua.element"] = "src/hnetxt-lua/element/init.lua",
       ["hnetxt-lua.element.link"] = "src/hnetxt-lua/element/link.lua",
+      ["hnetxt-lua.project"] = "src/hnetxt-lua/project/init.lua",
       setup = "src/setup.lua"
    }
 }
