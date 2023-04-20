@@ -1,5 +1,4 @@
-local consts = require("hnetxt.const")
-local Project = require("hnetxt.project")
+local Project = require("hnetxt-lua.project")
 
 M = {}
 function M.run(args)
