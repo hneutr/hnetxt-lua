@@ -25,6 +25,7 @@ build = {
 
        ["hnetxt.project"] = "src/hnetxt/project/init.lua",
        ["hnetxt.const"] = "src/hnetxt/const.lua",
+       ["hnetxt.config"] = "src/hnetxt/config.lua",
        ["hnetxt.cli"] = "src/hnetxt/cli.lua",
    }
 }

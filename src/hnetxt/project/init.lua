@@ -18,22 +18,18 @@ functions:
 
 --]]
 
+local lyaml = require("lyaml")
 local Object = require("hneutil.object")
 local Path = require("hneutil.path")
-local lyaml = require("lyaml")
+local Config = require("hnetxt.config")
+
 table = require("hneutil.table")
 string = require("hneutil.string")
 
 local Project = Object:extend()
 
-Project.constants_path = Path.joinpath(Path.home(), ".config/hnetxt/constants/project.yaml")
-
-function Project.load_constants()
-    return lyaml.load(Path.read(Project.constants_path))
-end
-
 function Project.get_config_path(dir)
-    return Path.joinpath(dir or Path.cwd(), Project.load_constants().filename)
+    return Path.joinpath(dir or Path.cwd(), Config.get("project").filename)
 end
 
 function Project.create(args)

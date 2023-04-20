@@ -20,14 +20,6 @@ after_each(function()
     Path.rmdir(test_project_dir, true)
 end)
 
-
-
-describe("constants_path", function()
-    it("checks that the config gets loaded", function()
-        assert.are.same({filename = ".project"}, Project.load_constants())
-    end)
-end)
-
 describe("get_config_path", function()
     it("in dir", function()
         assert.are.same(Path.joinpath(test_project_dir, ".project"), Project.get_config_path(test_project_dir))
