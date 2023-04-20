@@ -19,7 +19,7 @@ dependencies = {
 build = {
    type = "builtin",
    modules = {
-      hnetxt = "src/hnetxt/init.lua",
+      hnetxt = "src/hnetxt-lua/init.lua",
       setup = "src/setup.lua"
    }
 }
