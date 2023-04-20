@@ -1,3 +1,3 @@
 return {
-    Link = require("hnetxt.element.link")
+    Link = require("hnetxt-lua.element.link")
 }

@@ -1,5 +1,5 @@
 return {
-    project = require("hnetxt.project"),
-    config = require("hnetxt.config"),
-    element = require("hnetxt.element"),
+    project = require("hnetxt-lua.project"),
+    config = require("hnetxt-lua.config"),
+    element = require("hnetxt-lua.element"),
 }
