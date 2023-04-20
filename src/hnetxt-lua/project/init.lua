@@ -4,7 +4,6 @@ functions:
 - Project:
     - static:
         - TODO: in_project: checks whether the cwd is in a `.project` dir
-        - load_constants: loads the generic project constants
         - get_config_path: get the path where a config would be in a given dir
     - on object:
         - TODO: root: returns the project root
@@ -21,7 +20,7 @@ functions:
 local lyaml = require("lyaml")
 local Object = require("hneutil.object")
 local Path = require("hneutil.path")
-local Config = require("hnetxt.config")
+local Config = require("hnetxt-lua.config")
 
 table = require("hneutil.table")
 string = require("hneutil.string")

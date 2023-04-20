@@ -1,7 +1,7 @@
 local Path = require("hneutil.path")
 local lyaml = require("lyaml")
 
-local Project = require("hnetxt.project")
+local Project = require("hnetxt-lua.project")
 
 
 

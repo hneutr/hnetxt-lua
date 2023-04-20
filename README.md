@@ -18,3 +18,9 @@ This is intended to be the single location for code that deals with writing.
     - `journal.lua`
   - `goals.lua`
   - `config.lua`: easy way to load hnetxt constants
+
+#-------------------------------------------------------------------------------
+# [differences from lex]()
+#-------------------------------------------------------------------------------
+- `Link.get_nearest`: takes a str and position (instead of getting them from the nvim buffer)
+- `Link.from_str`: takes a str (instead of getting it from the nvim buffer)
