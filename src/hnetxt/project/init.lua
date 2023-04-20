@@ -26,7 +26,7 @@ string = require("hneutil.string")
 
 local Project = Object:extend()
 
-Project.constants_path = Path.joinpath(Path.home(), ".config/hnetxt/project/constants.yaml")
+Project.constants_path = Path.joinpath(Path.home(), ".config/hnetxt/constants/project.yaml")
 
 function Project.load_constants()
     return lyaml.load(Path.read(Project.constants_path))
