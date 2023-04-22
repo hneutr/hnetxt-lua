@@ -3,7 +3,14 @@ This is intended to be the single location for code that deals with writing.
 #-------------------------------------------------------------------------------
 # [architecture]()
 #-------------------------------------------------------------------------------
-- `lua/hnetxt`
+- `hnetxt-lua`:
+  - `project`:
+    - `Project`
+    - `registry.lua`: records paths
+  - `config.lua`: easy way to load hnetxt constants
+
+TODO:
+- `hnetxt-lua`:
   - `element`
     - `link.lua`
     - `location.lua`
@@ -11,13 +18,12 @@ This is intended to be the single location for code that deals with writing.
     - `mark.lua`
     - `reference.lua`
     - `flag.lua`
-  - `project`
     - `init.lua`
+  - `project`:
     ~ `config`: loads the project file + mirrors
     - `mirror.lua`
     - `journal.lua`
   - `goals.lua`
-  - `config.lua`: easy way to load hnetxt constants
 
 #-------------------------------------------------------------------------------
 # [differences from lex]()
