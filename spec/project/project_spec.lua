@@ -24,6 +24,11 @@ before_each(function()
     Registry.config.data_dir = test_project_data_dir
 end)
 
+after_each(function()
+    Path.rmdir(test_project_data_dir, true)
+    Path.rmdir(test_project_dir, true)
+end)
+
 describe("get_metadata_path", function()
     it("in dir", function()
         assert.are.same(Path.joinpath(test_project_dir, ".project"), Project.get_metadata_path(test_project_dir))

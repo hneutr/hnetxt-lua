@@ -14,6 +14,10 @@ before_each(function()
     registry = Registry()
 end)
 
+after_each(function()
+    Path.rmdir(test_data_dir, true)
+end)
+
 describe("new", function()
     it("sets the path", function()
         local expected = Path.joinpath(test_data_dir, Config.get("project").registry_filename)
