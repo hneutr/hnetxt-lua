@@ -11,6 +11,7 @@ local Registry = Object:extend()
 Registry.config = Config.get("project")
 
 function Registry:new(args)
+    print(require("inspect")("hello"))
     print(require("inspect")(args))
     self = table.default(self, args or {})
     self.path = Path.joinpath(self.config.data_dir, self.config.registry_filename)
