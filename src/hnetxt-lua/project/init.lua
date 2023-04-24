@@ -26,12 +26,21 @@ local Registry = require("hnetxt-lua.project.registry")
 local Project = Object:extend()
 Project.config = Config.get("project")
 
-function Project:new(args)
-    self = table.default(self, args or {})
+-- function Project:new(args)
+--     self = table.default(self, args or {})
 
+--     self.registry = Registry()
+--     self.metadata = lyaml.load(Path.read(self.get_metadata_path(self.dir)))
+--     self.root = self.registry:get_entry(self.name)
+--     self.journal_dir = Path.joinpath(self.root, self.config.journal_dir)
+-- end
+
+function Project:new(name)
+    self.name = name
     self.registry = Registry()
-    self.metadata = lyaml.load(Path.read(self.get_metadata_path(self.dir)))
-    self.root = self.registry:get_entry(self.name)
+    self.root = self.registry:get_entry_dir(self.name)
+
+    self.metadata = lyaml.load(Path.read(self.get_metadata_path(self.root)))
     self.journal_dir = Path.joinpath(self.root, self.config.journal_dir)
 end
 
@@ -69,6 +78,17 @@ function Project.in_project(path)
     end
 
     return false
+end
+
+function Project.from_path(path)
+    path = path or Path.cwd()
+    local name = Registry():get_entry_name(path)
+
+    if name then
+        return Project(name)
+    end
+
+    return nil
 end
 
 function Project:get_journal_path(args)

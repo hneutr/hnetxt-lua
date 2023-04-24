@@ -34,7 +34,7 @@ function Registry:set_entry(name, path)
     self:set(registry)
 end
 
-function Registry:get_entry(name)
+function Registry:get_entry_dir(name)
     return self:get()[name]
 end
 
@@ -42,5 +42,14 @@ function Registry:remove_entry(name)
     self:set_entry(name, nil)
 end
 
+function Registry:get_entry_name(dir)
+    for name, path in pairs(self:get()) do
+        if dir == path or Path.is_relative_to(dir, path) then
+            return name
+        end
+    end
+
+    return nil
+end
 
 return Registry

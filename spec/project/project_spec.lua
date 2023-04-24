@@ -13,7 +13,7 @@ local project
 
 function get_project()
     Project.create(test_project_name, test_project_dir)
-    project = Project({name = test_project_name, dir = test_project_dir})
+    project = Project(test_project_name)
 end
 
 before_each(function()
@@ -48,7 +48,7 @@ describe("create", function()
 
         Project.create(test_project_name, test_project_dir)
         assert.are.same(expected, lyaml.load(Path.read(Project.get_metadata_path(test_project_dir))))
-        assert.are.same(test_project_dir, Registry():get_entry(test_project_name))
+        assert.are.same(test_project_dir, Registry():get_entry_dir(test_project_name))
     end)
 
     it("start date", function()
@@ -60,7 +60,7 @@ describe("create", function()
 
         Project.create(test_project_name, test_project_dir, {start_date = start_date})
         assert.are.same(expected, lyaml.load(Path.read(Project.get_metadata_path(test_project_dir))))
-        assert.are.same(test_project_dir, Registry():get_entry(test_project_name))
+        assert.are.same(test_project_dir, Registry():get_entry_dir(test_project_name))
     end)
 end)
 
@@ -81,6 +81,18 @@ describe("in_project", function()
         assert(Project.in_project(path))
     end)
 end)
+
+describe("from_path", function()
+    it("match", function()
+        get_project()
+        assert.are.same(project, Project.from_path(test_project_dir))
+    end)
+
+    it("no match", function()
+        assert.falsy(Project.from_path(test_project_dir))
+    end)
+end)
+
 
 describe("root", function()
     it("gets", function()
