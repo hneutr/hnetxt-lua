@@ -27,8 +27,6 @@ local Project = Object:extend()
 Project.config = Config.get("project")
 
 function Project:new(name)
-    print(require("inspect")("steve"))
-    print(require("inspect")(name))
     self.name = name
     self.registry = Registry()
     self.root = self.registry:get_entry_dir(self.name)
