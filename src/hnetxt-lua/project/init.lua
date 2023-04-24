@@ -26,15 +26,6 @@ local Registry = require("hnetxt-lua.project.registry")
 local Project = Object:extend()
 Project.config = Config.get("project")
 
--- function Project:new(args)
---     self = table.default(self, args or {})
-
---     self.registry = Registry()
---     self.metadata = lyaml.load(Path.read(self.get_metadata_path(self.dir)))
---     self.root = self.registry:get_entry(self.name)
---     self.journal_dir = Path.joinpath(self.root, self.config.journal_dir)
--- end
-
 function Project:new(name)
     self.name = name
     self.registry = Registry()
