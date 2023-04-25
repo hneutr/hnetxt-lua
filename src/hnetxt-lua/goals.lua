@@ -7,7 +7,7 @@ local M = {}
 M.config = Config.get("goals")
 M.config.template_file = Path.joinpath(M.config.dir, M.config.template_filename)
 
-function M:get_path(args)
+function M.get_path(args)
     args = table.default(args, {
         year = os.date("%Y"),
         month = os.date("%m"),
