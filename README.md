@@ -14,6 +14,7 @@ This is intended to be the single location for code that deals with writing.
     - `reference.lua`
     - `flag.lua`
   - `config.lua`: easy way to load hnetxt constants
+  - `goals.lua`
 
 TODO:
 - `hnetxt-lua`:
@@ -22,7 +23,6 @@ TODO:
   - `project`:
     ~ `config`: loads the project file + mirrors
     - `mirror.lua`
-  - `goals.lua`
 
 =-----------------------------------------------------------
 = [migrating nvim/lua/lex/config into hnetxt-lua]()
