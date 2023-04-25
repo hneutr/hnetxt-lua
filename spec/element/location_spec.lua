@@ -39,6 +39,20 @@ describe("str_has_label", function()
     end)
 end)
 
+describe("relative_to", function()
+    it("is relative to: changes path", function()
+        local location = Location({path = '/a/b/c'})
+        location:relative_to("/a/b")
+        assert.are.same("c", location.path)
+    end)
+
+    it("not relative to: doesn't change path", function()
+        local location = Location({path = '/a/b/c'})
+        location:relative_to("/x/y")
+        assert.are.same("/a/b/c", location.path)
+    end)
+end)
+
 describe("from_str", function()
     it("no text", function()
         assert.are.same(
@@ -123,37 +137,32 @@ describe("get_mark_locations", function()
 end)
 
 describe("get_all_locations", function()
-    it("multiple marks, multiple files", function()
+    local locations
+
+    before_each(function()
         local mark_a = Mark({label = 'a'})
         local mark_b = Mark({label = 'b'})
         Path.write(test_file, {tostring(mark_a), "not a mark"})
         Path.write(test_subfile, {"not a mark", tostring(mark_b)})
 
-        assert.are.same(
-            {
-                Location({path = test_file}),
-                Location({path = test_file, label = 'a'}),
-                Location({path = test_subfile}),
-                Location({path = test_subfile, label = 'b'})
-            },
-            Location.get_all_locations(test_dir)
-        )
+        locations = {
+            Location({path = test_file}),
+            Location({path = test_file, label = 'a'}),
+            Location({path = test_subfile}),
+            Location({path = test_subfile, label = 'b'})
+        }
     end)
 
-    it("multiple marks, multiple files; as_str", function()
-        local mark_a = Mark({label = 'a'})
-        local mark_b = Mark({label = 'b'})
-        Path.write(test_file, {tostring(mark_a), "not a mark"})
-        Path.write(test_subfile, {"not a mark", tostring(mark_b)})
+    it("default", function()
+        for i, location in ipairs(locations) do
+            location:relative_to(test_dir)
+            locations[i] = tostring(location)
+        end
 
-        assert.are.same(
-            {
-                tostring(Location({path = test_file})),
-                tostring(Location({path = test_file, label = 'a'})),
-                tostring(Location({path = test_subfile})),
-                tostring(Location({path = test_subfile, label = 'b'}))
-            },
-            Location.get_all_locations(test_dir, true)
-        )
+        assert.are.same(locations, Location.get_all_locations(test_dir))
+    end)
+
+    it("not as_str, not relative_to_dir", function()
+        assert.are.same(locations, Location.get_all_locations(test_dir, {as_str = false, relative_to_dir = false}))
     end)
 end)

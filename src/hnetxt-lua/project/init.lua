@@ -1,18 +1,3 @@
---[[
-notation:
-    `=` = static
-    `@` = attribute
-
-= in_project: checks whether the cwd is in a `.project` dir
-= get_metadata_path: get the path where a config would be in a given dir
-= create: makes a project, saving its metadata and inserting it into the registry
-
-- get_journal_path: returns the current journal file path
-
-@ root: the project directory
-@ metadata
-@ journal_dir: where the journals are
---]]
 local yaml = require("hneutil.yaml")
 local Object = require("hneutil.object")
 local Path = require("hneutil.path")

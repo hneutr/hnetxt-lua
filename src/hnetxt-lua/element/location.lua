@@ -6,7 +6,11 @@ local Path = require("hneutil.path")
 local Config = require("hnetxt-lua.config")
 
 --------------------------------------------------------------------------------
---                                  Location                                   
+--                                                                            --
+--                                                                            --
+--                                  Location                                  --
+--                                                                            --
+--                                                                            --
 --------------------------------------------------------------------------------
 -- format: path:text
 --------------------------------------------------------------------------------
@@ -36,6 +40,12 @@ end
 
 function Location.str_has_label(str)
     return str:find(Location.config.path_label_delimiter)
+end
+
+function Location:relative_to(dir)
+    if Path.is_relative_to(self.path, dir) then
+        self.path = Path.relative_to(self.path, dir)
+    end
 end
 
 function Location.from_str(str)
@@ -69,15 +79,23 @@ function Location.get_mark_locations(dir)
     return locations
 end
 
-function Location.get_all_locations(dir, as_str)
-    as_str = as_str or false
+function Location.get_all_locations(dir, args)
+    args = table.default(args, {as_str = true, relative_to_dir = true})
+
     local locations = table.list_extend(Location.get_file_locations(dir), Location.get_mark_locations(dir))
+
     table.sort(locations, function(a, b) return tostring(a):len() < tostring(b):len() end)
 
-    if as_str then
-        for i, location in ipairs(locations) do
-            locations[i] = tostring(location)
+    for i, location in ipairs(locations) do
+        if args.relative_to_dir then
+            location:relative_to(dir)
         end
+
+        if args.as_str then
+            location = tostring(location)
+        end
+        
+        locations[i] = location
     end
 
     return locations
