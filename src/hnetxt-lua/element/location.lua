@@ -83,34 +83,4 @@ function Location.get_all_locations(dir, as_str)
     return locations
 end
 
-
-
-
--- function Location.update(args)
---     args = table.default(args, {old_location = nil, new_location = nil})
-
---     local old = args.old_location:gsub('/', '\\/')
---     local new = args.new_location:gsub('/', '\\/')
-
---     local cursor = vim.api.nvim_win_get_cursor(0)
-
---     local cmd = "%s/\\](" .. old .. ")/\\](" .. new .. ")/g"
---     pcall(function() vim.cmd(cmd) return end)
---     vim.api.nvim_win_set_cursor(0, cursor)
--- end
-
-
-
--- function Location.goto(open_command, str)
---     local location = Location.from_str(str)
-
---     if location.path ~= Path.current_file() then
---         Path.open(location.path, open_command)
---     end
-
---     if location.text:len() > 0 then
---         Mark.goto(location.text)
---     end
--- end
-
 return Location

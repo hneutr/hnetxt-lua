@@ -33,7 +33,7 @@ describe("default_label", function()
     end)
 
     it("- label, - location.label, location.path.name == dir_file_stem", function()
-        local path = Path.joinpath("a/b", Config.get("directory_file").stem .. ".md")
+        local path = Path.joinpath("a/b", Config.get("directory_file").name)
         assert.equals("b", Reference.default_label("", Location({path = path})))
     end)
 end)

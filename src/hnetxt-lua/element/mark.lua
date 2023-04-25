@@ -35,7 +35,6 @@ function Mark.from_str(str)
     return Mark({label = label, before = before, after = after})
 end
 
-
 function Mark.str_is_a(str)
     if not Link.str_is_a(str) then
         return false
@@ -49,18 +48,5 @@ function Mark.str_is_a(str)
 
     return true
 end
-
--- function Mark.goto(str)
---     str = str or ulines.cursor.get()
---     for i, line in ipairs(ulines.get()) do
---         if line:len() > 0 then
---             if Mark.str_is_a(line) and Mark.from_str(line).text == str then
---                 vim.api.nvim_win_set_cursor(0, {i, 0})
---                 vim.cmd("normal zz")
---                 break
---             end
---         end
---     end
--- end
 
 return Mark
