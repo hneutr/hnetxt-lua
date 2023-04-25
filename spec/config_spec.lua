@@ -1,5 +1,5 @@
 local Path = require("hneutil.path")
-local lyaml = require("lyaml")
+local yaml = require("hneutil.yaml")
 
 local Config = require("hnetxt-lua.config")
 
@@ -8,8 +8,7 @@ describe("get", function()
         local config_name = "test_config"
         local content = {test = 1}
         local path = Path.joinpath(Config.constants_dir, config_name .. ".yaml")
-        Path.write(path, lyaml.dump({content}))
-
+        yaml.write(path, content)
         assert.are.same(content, Config.get(config_name))
         Path.unlink(path)
     end)

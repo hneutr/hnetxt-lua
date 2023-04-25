@@ -1,5 +1,5 @@
 local Path = require("hneutil.path")
-local lyaml = require("lyaml")
+local yaml = require("hneutil.yaml")
 
 local Project = require("hnetxt-lua.project")
 local Registry = require("hnetxt-lua.project.registry")
@@ -47,7 +47,7 @@ describe("create", function()
         }
 
         Project.create(test_project_name, test_project_dir)
-        assert.are.same(expected, lyaml.load(Path.read(Project.get_metadata_path(test_project_dir))))
+        assert.are.same(expected, yaml.read(Project.get_metadata_path(test_project_dir)))
         assert.are.same(test_project_dir, Registry():get_entry_dir(test_project_name))
     end)
 
@@ -59,7 +59,7 @@ describe("create", function()
         }
 
         Project.create(test_project_name, test_project_dir, {start_date = start_date})
-        assert.are.same(expected, lyaml.load(Path.read(Project.get_metadata_path(test_project_dir))))
+        assert.are.same(expected, yaml.read(Project.get_metadata_path(test_project_dir)))
         assert.are.same(test_project_dir, Registry():get_entry_dir(test_project_name))
     end)
 end)

@@ -1,7 +1,7 @@
 table = require("hneutil.table")
 string = require("hneutil.string")
 
-local lyaml = require("lyaml")
+local yaml = require("hneutil.yaml")
 local Object = require("hneutil.object")
 local Path = require("hneutil.path")
 
@@ -13,7 +13,7 @@ Config.constants_suffix = ".yaml"
 function Config.get(constants_type)
     local path = Path.joinpath(Config.constants_dir, constants_type)
     path = Path.with_suffix(path, Config.constants_suffix)
-    return lyaml.load(Path.read(path))
+    return yaml.read(path)
 end
 
 return Config

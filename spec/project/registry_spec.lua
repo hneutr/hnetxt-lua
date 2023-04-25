@@ -1,5 +1,5 @@
 local Path = require("hneutil.path")
-local lyaml = require("lyaml")
+local yaml = require("hneutil.yaml")
 
 local Registry = require("hnetxt-lua.project.registry")
 local Config = require("hnetxt-lua.config")
@@ -34,7 +34,7 @@ describe("get", function()
 
     it("returns if found", function()
         local expected = {test = true}
-        Path.write(registry.path, lyaml.dump({expected}))
+        yaml.write(registry.path, expected)
         assert.are.same(expected, registry:get())
     end)
 end)

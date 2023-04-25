@@ -1,4 +1,4 @@
-local lyaml = require("lyaml")
+local yaml = require("hneutil.yaml")
 local Object = require("hneutil.object")
 local Path = require("hneutil.path")
 
@@ -18,14 +18,14 @@ end
 function Registry:get()
     local registry = {}
     if Path.exists(self.path) then
-        registry = lyaml.load(Path.read(self.path))
+        registry = yaml.read(self.path)
     end
     return registry
 end
 
 function Registry:set(registry)
     registry = registry or {}
-    Path.write(self.path, lyaml.dump({registry}))
+    yaml.write(self.path, registry)
 end
 
 function Registry:set_entry(name, path)

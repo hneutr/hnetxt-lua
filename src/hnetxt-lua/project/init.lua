@@ -13,7 +13,7 @@ notation:
 @ metadata
 @ journal_dir: where the journals are
 --]]
-local lyaml = require("lyaml")
+local yaml = require("hneutil.yaml")
 local Object = require("hneutil.object")
 local Path = require("hneutil.path")
 
@@ -31,7 +31,7 @@ function Project:new(name)
     self.registry = Registry()
     self.root = self.registry:get_entry_dir(self.name)
 
-    self.metadata = lyaml.load(Path.read(self.get_metadata_path(self.root)))
+    self.metadata = yaml.read(self.get_metadata_path(self.root))
     self.journal_dir = Path.joinpath(self.root, self.config.journal_dir)
 end
 
@@ -49,7 +49,7 @@ function Project.create(name, dir, metadata)
 
     metadata.name = name
 
-    Path.write(Project.get_metadata_path(dir), lyaml.dump({metadata}))
+    yaml.write(Project.get_metadata_path(dir), metadata)
     Registry():set_entry(name, dir)
 end
 
