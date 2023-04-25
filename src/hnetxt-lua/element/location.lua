@@ -48,13 +48,18 @@ function Location:relative_to(dir)
     end
 end
 
-function Location.from_str(str)
+function Location.from_str(str, args)
+    args = table.default(args, {relative_to = ''})
     local path, label
 
     if Location.str_has_label(str) then
         path, label = str:match(Location.regex)
     else
         path = str
+    end
+
+    if args.relative_to:len() > 0 and not Path.is_relative_to(path, args.relative_to) then
+        path = Path.joinpath(args.relative_to, path)
     end
 
     return Location({path = path, label = label})

@@ -74,6 +74,13 @@ describe("from_str", function()
             Location.from_str("a/b:c: d")
         )
     end)
+
+    it("relative_to", function()
+        assert.are.same(
+            Location({path = "/a/b/c", label = "d"}),
+            Location.from_str("b/c:d", {relative_to = "/a"})
+        )
+    end)
 end)
 
 describe("get_file_locations", function()
