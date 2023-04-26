@@ -31,6 +31,7 @@ build = {
       ["hnetxt-lua.text.flag"] = "src/hnetxt-lua/text/flag.lua",
       ["hnetxt-lua.text.header"] = "src/hnetxt-lua/text/header.lua",
       ["hnetxt-lua.text.link"] = "src/hnetxt-lua/text/link.lua",
+      ["hnetxt-lua.text.list"] = "src/hnetxt-lua/text/list.lua",
       ["hnetxt-lua.text.location"] = "src/hnetxt-lua/text/location.lua",
       ["hnetxt-lua.text.mark"] = "src/hnetxt-lua/text/mark.lua",
       ["hnetxt-lua.text.reference"] = "src/hnetxt-lua/text/reference.lua",

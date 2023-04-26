@@ -3,14 +3,12 @@ string = require("hneutil.string")
 
 local Object = require("hneutil.object")
 local Config = require("hnetxt-lua.config")
--- local Color = require("hneutil-nvim.color")
 
 local Divider = require("hnetxt-lua.text.divider")
 
 local Header = Object:extend()
 Header.config = Config.get("header")
 Header.default_size = Header.config.default_size
--- Header.highlight_cmd = [[syn match KEY /^CONTENT_START\s/ contained]]
 
 function Header:new(args)
     self = table.default(self, args or {}, {size = Header.default_size, content = ''})
@@ -50,21 +48,6 @@ function Header:__tostring()
 
     return lines
 end
-
--- function Header:add_syntax_highlighting()
---     local highlight_key = self.size .. "HeaderStart" 
---     cmd = self.highlight_cmd:gsub("KEY", highlight_key)
---     cmd = cmd:gsub("CONTENT_START", self.content_start)
---     vim.cmd(cmd)
-
---     Color.set_highlight({name = highlight_key, val = {fg = self.divider.color}})
--- end
-
--- function Header.add_syntax_highlights()
---     for size, _ in pairs(Header.config.sizes) do
---         Header({size = size}):add_syntax_highlighting()
---     end
--- end
 
 function Header:line_is_start(index, lines)
     if #lines < index + 2 then
