@@ -1,6 +1,6 @@
 rockspec_format = "3.0"
 package = "hnetxt-lua"
-version = "dev-16"
+version = "dev-17"
 source = {
    url = "git://github.com/hneutr/hnetxt-lua"
 }
@@ -21,6 +21,7 @@ build = {
       ["hnetxt-lua"] = "src/hnetxt-lua/init.lua",
       ["hnetxt-lua.config"] = "src/hnetxt-lua/config.lua",
       ["hnetxt-lua.goals"] = "src/hnetxt-lua/goals.lua",
+      ["hnetxt-lua.parse.fold"] = "src/hnetxt-lua/parse/fold.lua",
       ["hnetxt-lua.project"] = "src/hnetxt-lua/project/init.lua",
       ["hnetxt-lua.project.mirror"] = "src/hnetxt-lua/project/mirror/init.lua",
       ["hnetxt-lua.project.mirror.config"] = "src/hnetxt-lua/project/mirror/config.lua",
