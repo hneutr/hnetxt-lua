@@ -7,6 +7,9 @@ This is intended to be the single location for code that deals with writing.
   - `project`:
     - `Project`
     - `registry.lua`: records paths
+    - `mirror`:
+      - `init.lua`
+      - `config.lua`
   - `element`:
     - `link.lua`
     - `location.lua`
@@ -18,19 +21,4 @@ This is intended to be the single location for code that deals with writing.
 
 TODO:
 - `hnetxt-lua`:
-  - `element`
-      > - `move`: location should handle the `movement` stuff
-  - `project`:
-    ~ `config`: loads the project file + mirrors
-    - `mirror.lua`
-
-=-----------------------------------------------------------
-= [migrating nvim/lua/lex/config into hnetxt-lua]()
-=-----------------------------------------------------------
-- references in:
-  - `ftplugin/markdown.lua`
-  - `lua/lex/mirror.lua`
-  - `lua/lex/config.lua`
-  - `lua/lex/index.lua`
-  - `lua/lex/move.lua`
-  - `lua/lex/sync.lua` also depends on it
+    > - `move`: location should handle the `movement` stuff

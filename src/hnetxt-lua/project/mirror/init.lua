@@ -6,21 +6,6 @@ local Object = require("hneutil.object")
 local Project = require("hnetxt-lua.project")
 local Config = require("hnetxt-lua.project.mirror.config")
 
---[[
-uses:
-- open(mirror type, open_command): looks at current file, finds the mirror of the given type
-- scratch_path: get a mirror of a particular type
-- move: finding mirrors
-
-- hnetxt-lua:
-     - get_origin
-     - find mirrors for a given file, also find their mirrors
- hnetxt-nvim:
-     - open(mirror type, open_command): uses the current file
-
-there should be a type of mirror for each category and for Source
-]]
-
 local Mirror = Object:extend()
 Mirror.type_configs = Config.load()
 
