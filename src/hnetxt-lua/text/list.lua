@@ -55,17 +55,17 @@ ListLine.defaults = {
     -- toggle = {to = 'bullet'},
     fold = false,
 }
-ListLine.style = {
-    sigil = {
-        pattern = [[^\s*STR\s]],
-        cmd = [[syn match KEY /PATTERN/ contained]],
-    },
-    text = {
-        pattern = [[start="SIGIL_PATTERN\+" end="$"]],
-        cmd = [[syn region KEY PATTERN containedin=ALL contains=SIGIL_KEY,mkdLink]],
-    },
-}
-ListLine.toggle_mapping_rhs = [[:lua require('hnetxt-nvim.text.list').Parser():toggle('MODE', 'NAME')<cr>]]
+-- ListLine.style = {
+--     sigil = {
+--         pattern = [[^\s*STR\s]],
+--         cmd = [[syn match KEY /PATTERN/ contained]],
+--     },
+--     text = {
+--         pattern = [[start="SIGIL_PATTERN\+" end="$"]],
+--         cmd = [[syn region KEY PATTERN containedin=ALL contains=SIGIL_KEY,mkdLink]],
+--     },
+-- }
+-- ListLine.toggle_mapping_rhs = [[:lua require('hnetxt-nvim.text.list').Parser():toggle('MODE', 'NAME')<cr>]]
 
 function ListLine:new(args)
     ListLine.super.new(self, args)
