@@ -1,6 +1,6 @@
 rockspec_format = "3.0"
 package = "hnetxt-lua"
-version = "dev-12"
+version = "dev-13"
 source = {
    url = "git://github.com/hneutr/hnetxt-lua"
 }
@@ -27,6 +27,7 @@ build = {
       ["hnetxt-lua.project.move"] = "src/hnetxt-lua/project/move/init.lua",
       ["hnetxt-lua.project.move.infer"] = "src/hnetxt-lua/project/move/infer.lua",
       ["hnetxt-lua.project.registry"] = "src/hnetxt-lua/project/registry.lua",
+      ["hnetxt-lua.text.divider"] = "src/hnetxt-lua/text/divider.lua",
       ["hnetxt-lua.text.flag"] = "src/hnetxt-lua/text/flag.lua",
       ["hnetxt-lua.text.link"] = "src/hnetxt-lua/text/link.lua",
       ["hnetxt-lua.text.location"] = "src/hnetxt-lua/text/location.lua",
