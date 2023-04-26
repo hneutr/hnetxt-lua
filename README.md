@@ -27,5 +27,4 @@ TODO:
 =-----------------------------------------------------------
 - implement Mark.find
 - move to `hnetxt-lua`:
-  - `hnetxt-nvim.text.list`
   - `hnetxt-nvim.ui.fold`
