@@ -4,8 +4,8 @@ io = require("hneutil.io")
 local Object = require("hneutil.object")
 local Path = require("hneutil.path")
 
-local Link = require("hnetxt-lua.element.link")
-local Location = require("hnetxt-lua.element.location")
+local Link = require("hnetxt-lua.text.link")
+local Location = require("hnetxt-lua.text.location")
 
 
 --------------------------------------------------------------------------------

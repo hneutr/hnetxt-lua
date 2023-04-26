@@ -1,9 +1,9 @@
 local Path = require("hneutil.path")
 
 local Config = require("hnetxt-lua.config")
-local Mark = require("hnetxt-lua.element.mark")
-local Reference = require("hnetxt-lua.element.reference")
-local Location = require("hnetxt-lua.element.location")
+local Mark = require("hnetxt-lua.text.mark")
+local Reference = require("hnetxt-lua.text.reference")
+local Location = require("hnetxt-lua.text.location")
 
 local test_dir = Path.joinpath(Path.tempdir(), "test-dir")
 local test_file = Path.joinpath(test_dir, "test-file.md")

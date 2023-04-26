@@ -10,7 +10,7 @@ This is intended to be the single location for code that deals with writing.
     - `mirror`:
       - `init.lua`
       - `config.lua`
-  - `element`:
+  - `text`:
     - `link.lua`
     - `location.lua`
     - `mark.lua`
@@ -32,5 +32,3 @@ TODO:
   - `hnetxt-nvim.text.list`
   - `hnetxt-nvim.ui.fold`
 
-
-- move `hnetxt-lua.element` to `hnetxt-lua.text`

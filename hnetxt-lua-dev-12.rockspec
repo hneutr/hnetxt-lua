@@ -1,6 +1,6 @@
 rockspec_format = "3.0"
 package = "hnetxt-lua"
-version = "dev-11"
+version = "dev-12"
 source = {
    url = "git://github.com/hneutr/hnetxt-lua"
 }
@@ -20,19 +20,18 @@ build = {
    modules = {
       ["hnetxt-lua"] = "src/hnetxt-lua/init.lua",
       ["hnetxt-lua.config"] = "src/hnetxt-lua/config.lua",
-      ["hnetxt-lua.element"] = "src/hnetxt-lua/element/init.lua",
-      ["hnetxt-lua.element.flag"] = "src/hnetxt-lua/element/flag.lua",
-      ["hnetxt-lua.element.link"] = "src/hnetxt-lua/element/link.lua",
-      ["hnetxt-lua.element.location"] = "src/hnetxt-lua/element/location.lua",
-      ["hnetxt-lua.element.mark"] = "src/hnetxt-lua/element/mark.lua",
-      ["hnetxt-lua.element.reference"] = "src/hnetxt-lua/element/reference.lua",
       ["hnetxt-lua.goals"] = "src/hnetxt-lua/goals.lua",
       ["hnetxt-lua.project"] = "src/hnetxt-lua/project/init.lua",
       ["hnetxt-lua.project.mirror"] = "src/hnetxt-lua/project/mirror/init.lua",
       ["hnetxt-lua.project.mirror.config"] = "src/hnetxt-lua/project/mirror/config.lua",
-      ["hnetxt-lua.project.registry"] = "src/hnetxt-lua/project/registry.lua",
       ["hnetxt-lua.project.move"] = "src/hnetxt-lua/project/move/init.lua",
       ["hnetxt-lua.project.move.infer"] = "src/hnetxt-lua/project/move/infer.lua",
+      ["hnetxt-lua.project.registry"] = "src/hnetxt-lua/project/registry.lua",
+      ["hnetxt-lua.text.flag"] = "src/hnetxt-lua/text/flag.lua",
+      ["hnetxt-lua.text.link"] = "src/hnetxt-lua/text/link.lua",
+      ["hnetxt-lua.text.location"] = "src/hnetxt-lua/text/location.lua",
+      ["hnetxt-lua.text.mark"] = "src/hnetxt-lua/text/mark.lua",
+      ["hnetxt-lua.text.reference"] = "src/hnetxt-lua/text/reference.lua",
       setup = "src/setup.lua"
    }
 }

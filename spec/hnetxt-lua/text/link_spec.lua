@@ -1,4 +1,4 @@
-local Link = require("hnetxt-lua.element.Link")
+local Link = require("hnetxt-lua.text.Link")
 
 describe("__tostring", function() 
     it("works", function()

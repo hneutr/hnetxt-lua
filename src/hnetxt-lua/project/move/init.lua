@@ -5,7 +5,7 @@ local Config = require("hnetxt-lua.config")
 -- local BufferLines = require("hneutil-nvim.buffer_lines")
 
 -- local Location = require("hnetxt-nvim.text.location")
--- local Reference = require("hnetxt-lua.element.reference")
+-- local Reference = require("hnetxt-lua.text.reference")
 
 
 local M = {}
