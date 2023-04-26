@@ -27,8 +27,6 @@ TODO:
 =-----------------------------------------------------------
 - implement Mark.find
 - move to `hnetxt-lua`:
-  - `hnetxt-nvim.text.divider`
   - `hnetxt-nvim.text.header`
   - `hnetxt-nvim.text.list`
   - `hnetxt-nvim.ui.fold`
-
