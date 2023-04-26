@@ -7,6 +7,7 @@ local Config = require("hnetxt-lua.config")
 
 local test_project_data_dir = Path.joinpath(Path.tempdir(), "test-project-data-dir")
 local test_project_dir = Path.joinpath(Path.tempdir(), "test-project")
+local test_project_file = Path.joinpath(test_project_dir, "test-file.md")
 local test_project_name = "test-project"
 
 local project
@@ -90,6 +91,22 @@ describe("from_path", function()
 
     it("no match", function()
         assert.falsy(Project.from_path(test_project_dir))
+    end)
+end)
+
+describe("root_from_path", function()
+    it("+", function()
+        get_project()
+        assert.are.same(test_project_dir, Project.root_from_path(test_project_dir))
+    end)
+
+    it("+: subfile", function()
+        get_project()
+        assert.are.same(test_project_dir, Project.root_from_path(test_project_file))
+    end)
+
+    it("-", function()
+        assert.falsy(Project.root_from_path(test_project_dir))
     end)
 end)
 

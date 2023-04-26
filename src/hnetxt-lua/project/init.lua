@@ -67,6 +67,13 @@ function Project.from_path(path)
     return nil
 end
 
+function Project.root_from_path(path)
+    path = path or Path.cwd()
+    local registry = Registry()
+    local name = registry:get_entry_name(path)
+    return registry:get_entry_dir(name)
+end
+
 function Project:get_journal_path(args)
     args = table.default(args, {
         year = os.date("%Y"),

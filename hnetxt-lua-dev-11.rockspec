@@ -1,6 +1,6 @@
 rockspec_format = "3.0"
 package = "hnetxt-lua"
-version = "dev-10"
+version = "dev-11"
 source = {
    url = "git://github.com/hneutr/hnetxt-lua"
 }
@@ -28,6 +28,8 @@ build = {
       ["hnetxt-lua.element.reference"] = "src/hnetxt-lua/element/reference.lua",
       ["hnetxt-lua.goals"] = "src/hnetxt-lua/goals.lua",
       ["hnetxt-lua.project"] = "src/hnetxt-lua/project/init.lua",
+      ["hnetxt-lua.project.mirror"] = "src/hnetxt-lua/project/mirror/init.lua",
+      ["hnetxt-lua.project.mirror.config"] = "src/hnetxt-lua/project/mirror/config.lua",
       ["hnetxt-lua.project.registry"] = "src/hnetxt-lua/project/registry.lua",
       setup = "src/setup.lua"
    }
