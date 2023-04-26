@@ -21,4 +21,16 @@ This is intended to be the single location for code that deals with writing.
 
 TODO:
 - `hnetxt-lua`:
-    > - `move`: location should handle the `movement` stuff
+
+=-----------------------------------------------------------
+= [movement stuff]()
+=-----------------------------------------------------------
+- implement Mark.find
+- move to `hnetxt-lua`:
+  - `hnetxt-nvim.text.divider`
+  - `hnetxt-nvim.text.header`
+  - `hnetxt-nvim.text.list`
+  - `hnetxt-nvim.ui.fold`
+
+
+- move `hnetxt-lua.element` to `hnetxt-lua.text`

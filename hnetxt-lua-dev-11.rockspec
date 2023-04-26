@@ -31,6 +31,8 @@ build = {
       ["hnetxt-lua.project.mirror"] = "src/hnetxt-lua/project/mirror/init.lua",
       ["hnetxt-lua.project.mirror.config"] = "src/hnetxt-lua/project/mirror/config.lua",
       ["hnetxt-lua.project.registry"] = "src/hnetxt-lua/project/registry.lua",
+      ["hnetxt-lua.project.move"] = "src/hnetxt-lua/project/move/init.lua",
+      ["hnetxt-lua.project.move.infer"] = "src/hnetxt-lua/project/move/infer.lua",
       setup = "src/setup.lua"
    }
 }
