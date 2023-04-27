@@ -2,19 +2,9 @@ local Object = require("hneutil.object")
 local Config = require("hnetxt-lua.config")
 local Path = require('hneutil.path')
 
-local DIR_FILE_NAME = Config.get("directory_file").name
-
 local Inferrer = Object:extend()
 Inferrer.dir_file_name = Config.get("directory_file").name
 Inferrer.suffix = '.md'
-
-function liberal_is_file(p)
-    return Path.suffix(p):len() > 0
-end
-
-function liberal_is_dir(p)
-    return Path.suffix(p):len() == 0
-end
 
 --------------------------------------------------------------------------------
 --                                  FileCase                                  --
@@ -23,7 +13,7 @@ local FileCase = Object:extend()
 FileCase.cases = {
     -- a.md → b.md? = b.md
     rename = {
-        check = function(a, b) return liberal_is_file(b) end,
+        check = function(a, b) return Path.is_file_like(b) end,
     },
     -- a.md → b = b/a.md
     move = {
@@ -32,7 +22,7 @@ FileCase.cases = {
     },
     -- a.md → a! = a/@.md
     to_dir = {
-        check = function(a, b) return liberal_is_dir(b) and not Path.exists(b) and Path.stem(a) == b end,
+        check = function(a, b) return Path.is_dir_like(b) and not Path.exists(b) and Path.stem(a) == b end,
         transform = function(a, b) return Path.joinpath(b, Inferrer.dir_file_name) end,
     },
 }
@@ -41,7 +31,7 @@ FileCase.defaults = {
     transform = function(a, b) return b end,
     remapper = function(a, b, map) return map end,
 }
-FileCase.path_check = liberal_is_file
+FileCase.path_check = Path.is_file_like
 
 function FileCase.mapper(a, b) return {[a] = b} end
 
@@ -78,7 +68,7 @@ local DirectoryCase = FileCase:extend()
 DirectoryCase.cases = {
     -- a → b! = b
     rename = {
-        check = function(a, b) return liberal_is_dir(b) and not Path.exists(b) end,
+        check = function(a, b) return Path.is_dir_like(b) and not Path.exists(b) end,
     },
     -- a → c = c/a
     move = {
@@ -104,7 +94,7 @@ DirectoryCase.cases = {
         end
     },
 }
-DirectoryCase.path_check = liberal_is_dir
+DirectoryCase.path_check = Path.is_dir_like
 
 function DirectoryCase.mapper(a, b)
     local map = {}
@@ -116,53 +106,6 @@ end
 
 -- TODO: also check for file:mark stuff!
 
---------------------------------------------------------------------------------
--- Inferrer
--- --------
---[[
-notation:
-    - `a.md`: there is a file named "a.md"
-    - `a`: there is a directory named "a"
-    - `a!`: a doesn't exist
-    - `a?`: exists or doesn't
-behaviors:
-    file →:
-        - a.md     → b.md?   = b.md   | rename
-        - a.md     → b       = b/a.md | move
-        - a.md     → a!      = a/@.md | to dir
-    dir →:
-        - a        → b!      = b      | rename
-        - a        → c       = c/a    | move
-        - a/b      → a       = a/*    | to files
-          a/b/@.md           = a/b.md
-          a/b/c.md           = a/c.md
-    mark → file:
-        - a.md:b   → c.md?   = c.md   | file:move + remove mark, append text
-    mark → dir:
-        - a.md:b   → c!      = c/@.md | file:to dir + remove mark, append text
-        - a.md:b   → c       = c/b.md | file:move + remove mark, append text
-    mark → mark:
-        - a.md:b   → c.md?:d = c.md:d | file:move + modify mark, append text
-    file → mark:
-        - a.md     → b.md?:a = b.md:a | file:move + create mark, append text + combine mirrors
-                                        maybe don't implement due to complexity
-
-
-add "mirrors" behavior:
-- default to "move"
-- have "file → mark" implement "combine"
-
-----------------------------------------
-
-for mark movement:
-- for source:
-    - get mark content: find header, continue to next header/divider of same or greater level
-- for target:
-    - rename mark
-
-- when moving a mark to a file: remove the header content
-
---]]
 --------------------------------------------------------------------------------
 function Inferrer:new(a, b)
     self.a = Path.resolve(a)
@@ -183,6 +126,4 @@ return {
     Inferrer = Inferrer,
     FileCase = FileCase,
     DirectoryCase = DirectoryCase,
-    liberal_is_file = liberal_is_file,
-    liberal_is_dir = liberal_is_dir,
 }

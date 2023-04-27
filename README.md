@@ -26,5 +26,10 @@ TODO:
 = [movement stuff]()
 =-----------------------------------------------------------
 - implement Mark.find
-- move to `hnetxt-lua`:
-  - `hnetxt-nvim.ui.fold`
+
+----------------------------------------
+
+Operation
+FileOperation
+DirOperation
+MarkOperation

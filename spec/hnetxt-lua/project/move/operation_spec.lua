@@ -1,0 +1,3 @@
+-- Operation.file_is_dir_file(p)
+-- Operation.dir_file(p)
+-- Operation.is_mark

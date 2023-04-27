@@ -22,6 +22,7 @@ build = {
       ["hnetxt-lua.config"] = "src/hnetxt-lua/config.lua",
       ["hnetxt-lua.goals"] = "src/hnetxt-lua/goals.lua",
       ["hnetxt-lua.parse.fold"] = "src/hnetxt-lua/parse/fold.lua",
+      ["hnetxt-lua.parse"] = "src/hnetxt-lua/parse/init.lua",
       ["hnetxt-lua.project"] = "src/hnetxt-lua/project/init.lua",
       ["hnetxt-lua.project.mirror"] = "src/hnetxt-lua/project/mirror/init.lua",
       ["hnetxt-lua.project.mirror.config"] = "src/hnetxt-lua/project/mirror/config.lua",
