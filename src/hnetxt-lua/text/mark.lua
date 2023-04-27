@@ -49,4 +49,17 @@ function Mark.str_is_a(str)
     return true
 end
 
+function Mark.find(label, lines)
+    for i, line in ipairs(lines) do
+        if line:len() > 0 then
+            if Mark.str_is_a(line) and Mark.from_str(line).label == label then
+                return i
+            end
+        end
+    end
+    return nil
+end
+
+
+
 return Mark

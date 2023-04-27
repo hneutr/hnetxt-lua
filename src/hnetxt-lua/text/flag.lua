@@ -94,8 +94,10 @@ function Flag.get_instances(flag_type, dir)
 
     local instances = {}
     for _, result in ipairs(io.command(command):splitlines()) do
-        local path, text = result:match("(.-)%.md%:(.*)")
-        instances[#instances + 1] = Flag.clean_flagged_path(path, dir) .. ": " .. Flag.clean_flagged_str(text)
+        if result:len() > 0 then
+            local path, text = result:match("(.-)%.md%:(.*)")
+            instances[#instances + 1] = Flag.clean_flagged_path(path, dir) .. ": " .. Flag.clean_flagged_str(text)
+        end
     end
 
     return instances

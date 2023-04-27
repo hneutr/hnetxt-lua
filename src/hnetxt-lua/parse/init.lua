@@ -12,23 +12,41 @@ function Parser:new(args)
 end
 
 function Parser:parse(lines)
-    local sections_by_level = {0 = {{}}}
-    for line_number, level in pairs(self.fold:get_line_levels(lines)) do
-        -- start a new section if last line number in section wasn't line_number - 1
-        for _level, _level_sections in pairs(sections_by_level) do
-            if level <= _level then
-                local _level_section = _level_sections[#_level_sections]
-                local section_size = #_level_section
-                if section_size == 0 or _level_section[section_size] + 1 == line_number then
-                    _level_section[section_size + 1] = line_number
-                else
-                    table.insert(sections_by_level[_level], {line_number})
+    local current_sections = {}
+    local all_sections = {}
+    local line_levels = self.fold:get_line_levels(lines)
+    for line_number, line_level in ipairs(line_levels) do
+        for level, section in pairs(current_sections) do
+            if level > line_level then
+                -- close higher fold levels
+                table.insert(all_sections[level], section)
+                current_sections[level] = nil
+
+            elseif level < line_level then
+                -- add the line to the lower fold levels
+                table.insert(current_sections[level], line_number)
+
+            else
+                if line_levels[line_number - 1] > level then
+                    -- close the previous fold at this level if it's not continuous
+                    table.insert(all_sections[level], current_sections[level])
+                    current_sections[level] = {}
                 end
+                table.insert(current_sections[level], line_number)
             end
+        end
+
+        if not current_sections[line_level] then
+            current_sections[line_level] = {line_number}
+            all_sections[line_level] = all_sections[line_level] or {}
         end
     end
 
-    return sections_by_level
+    for level, section in pairs(current_sections) do
+        table.insert(all_sections[level], section)
+    end
+
+    return all_sections
 end
 
 --function MarkOperation.remove_mark_content_from_file(args)

@@ -68,7 +68,9 @@ end
 function Location.get_file_locations(dir)
     local locations = {}
     for _, line in ipairs(io.command(Location.get_files_cmd .. dir):splitlines()) do
-        locations[#locations + 1] = Location({path = line})
+        if line:len() > 0 then
+            locations[#locations + 1] = Location({path = line})
+        end
     end
     return locations
 end
@@ -76,9 +78,11 @@ end
 function Location.get_mark_locations(dir)
     local locations = {}
     for _, line in pairs(io.command(Location.get_mark_locations_cmd .. dir):splitlines()) do
-        local path, mark_str = line:match("(.-):(.*)")
-        local mark = Mark.from_str(mark_str)
-        locations[#locations + 1] = Location({path = path, label = mark.label})
+        if line:len() > 0 then
+            local path, mark_str = line:match("(.-):(.*)")
+            local mark = Mark.from_str(mark_str)
+            locations[#locations + 1] = Location({path = path, label = mark.label})
+        end
     end
 
     return locations

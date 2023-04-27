@@ -37,3 +37,17 @@ describe("str_is_a", function()
         assert.falsy(Mark.str_is_a("[a](b)"))
     end)
 end)
+
+describe("find", function() 
+    it("-: not present", function()
+        assert.falsy(Mark.find("a", {}))
+    end)
+
+    it("+", function()
+        assert.are.same(3, Mark.find("a", {"a", "", "[a]()"}))
+    end)
+
+    it("+: multiple marks and refs", function()
+        assert.are.same(5, Mark.find("a", {"[a](b)", "c", "[d]()", "", "[a]()"}))
+    end)
+end)
