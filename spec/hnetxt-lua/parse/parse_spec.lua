@@ -1,22 +1,17 @@
 local stub = require('luassert.stub')
 local mock = require("luassert.mock")
 
+local Path = require("hneutil.path")
 local Parser = require("hnetxt-lua.parse")
 local Fold = require("hnetxt-lua.parse.fold")
 local List = require("hnetxt-lua.text.list")
+local Header = require("hnetxt-lua.text.header")
+local Divider = require("hnetxt-lua.text.divider")
 
--- before_each(function()
---     stub(List.Parser, "new")
-    
---     List.Parser.new.returns({})
--- end)
+local test_file_path = Path.joinpath(Path.tempdir(), "test-file.md")
+local other_test_file_path = Path.joinpath(Path.tempdir(), "test-file-2.md")
 
--- after_each(function()
---     mock.revert(Fold)
---     mock.revert(List.Parser)
--- end)
-
-describe("parse", function()
+describe("parse_line_levels", function()
     local parser = Parser()
     before_each(function()
         stub(Fold, "get_line_levels")
@@ -26,19 +21,17 @@ describe("parse", function()
         Fold.get_line_levels:revert()
     end)
 
-    it("assigns groups", function()
-        Fold.get_line_levels.returns({0, 1, 0, 1})
+    it("simple", function()
         assert.are.same(
             {
                 [0] = {{1, 2}, {3, 4}},
                 [1] = {{2}, {4}},
             },
-            parser:parse()
+            parser:parse_line_levels({line_levels = {0, 1, 0, 1}})
         )
     end)
 
-    it("assigns groups", function()
-        Fold.get_line_levels.returns({0, 1, 2, 2, 1, 3, 3})
+    it("more complex", function()
         assert.are.same(
             {
                 [0] = {{1, 2, 3, 4, 5, 6, 7}},
@@ -46,7 +39,264 @@ describe("parse", function()
                 [2] = {{3, 4}},
                 [3] = {{6, 7}},
             },
-            parser:parse()
+            parser:parse_line_levels({line_levels = {0, 1, 2, 2, 1, 3, 3}})
         )
+    end)
+
+    it("no fold levels", function()
+        assert.are.same(
+            {{1, 2}, {2}, {3, 4}, {4}},
+            parser:parse_line_levels({line_levels = ({0, 1, 0, 1}), by_fold_level = false})
+        )
+    end)
+
+end)
+
+describe("remove_initial_mark", function()
+    it("basic mark", function()
+        assert.are.same({"a", "", "b"}, Parser():remove_initial_mark("a", {"[a]()", "a", "", "b"}))
+    end)
+
+    it("header mark", function()
+        local lines = table.list_extend(tostring(Header({content = "[a]()"})), {"b", "c", "d"})
+        assert.are.same({"", "b", "c", "d"}, Parser():remove_initial_mark("a", lines))
+    end)
+end)
+
+describe("get_mark_content_line_index", function()
+    it("no mark", function()
+        local args = {mark_label = "x", lines = {"a", "", "[a]()"}}
+        assert.are.same(nil, Parser():get_mark_content_line_index(args))
+    end)
+
+    it("not in header", function()
+        local args = {mark_label = "a", lines = {"a", "", "[a]()"}}
+        assert.are.same(3, Parser():get_mark_content_line_index(args))
+    end)
+
+    it("in header: start", function()
+        local args = {mark_label = "a", lines = tostring(Header({content = "[a]()"})), index_type="start"}
+        assert.are.same(1, Parser():get_mark_content_line_index(args))
+    end)
+
+    it("in header: content", function()
+        local args = {mark_label = "a", lines = tostring(Header({content = "[a]()"})), index_type="content"}
+        assert.are.same(2, Parser():get_mark_content_line_index(args))
+    end)
+
+    it("in header: start", function()
+        local args = {mark_label = "a", lines = tostring(Header({content = "[a]()"})), index_type="end"}
+        assert.are.same(3, Parser():get_mark_content_line_index(args))
+    end)
+end)
+
+describe("separate_mark_content", function()
+    it("mark is missing", function()
+        local header = tostring(Header({content = "[a]()"}))
+        local header_content = {"- b", "- c"}
+        local after = table.list_extend({""}, tostring(Header()))
+        local lines = table.list_extend({}, header, header_content, after)
+        assert.are.same({lines, {}, {}}, Parser():separate_mark_content("x", lines))
+    end)
+
+    it("at start", function()
+        local header = tostring(Header({content = "[a]()"}))
+        local header_content = {"- b", "- c"}
+        local after = table.list_extend({""}, tostring(Header()))
+        local lines = table.list_extend({}, header, header_content, after)
+        local expected = {
+            {},
+            table.list_extend({}, header, header_content),
+            after
+        }
+        assert.are.same(expected, Parser():separate_mark_content("a", lines))
+    end)
+
+    it("at end", function()
+        local before = table.list_extend(tostring(Header({content = "[a]()"})), {"- x", "- y", "", ""})
+        local content = table.list_extend(
+            tostring(Header({content = "[b]()", size = "large"})),
+            {"123", "- y", ""},
+            tostring(Header({content = "subheader)"})),
+            {"hunter", "test", ""}
+        )
+        local lines = table.list_extend({}, before, content, {})
+        local expected = {before, content, {}}
+        assert.are.same(expected, Parser():separate_mark_content("b", lines))
+    end)
+
+    it("in middle", function()
+        local before = table.list_extend(
+            tostring(Header({content = "[a]()", size = "large"})),
+            {"- x", "- y", ""},
+            {""}
+        )
+        local content = table.list_extend(
+            tostring(Header({content = "[b]()", size = "medium"})),
+            {"123", "- y", ""},
+            tostring(Header({content = "subheader)"})),
+            {"hunter", "test"}
+        )
+
+        local after = table.list_extend(
+            {""},
+            tostring(Header({content = "[c]()", size = "medium"})),
+            {"more", "stuff"}
+        )
+
+        local lines = table.list_extend({}, before, content, after)
+        local expected = {before, content, after}
+        assert.are.same({before, content, after}, Parser():separate_mark_content("b", lines))
+    end)
+end)
+
+describe("remove_empty_lines", function()
+    it("!tail", function()
+        assert.are.same({"a", ""}, Parser.remove_empty_lines({"", "a", ""}, {tail = false}))
+    end)
+    it("!head", function()
+        assert.are.same({"", "a"}, Parser.remove_empty_lines({"", "a", ""}, {head = false}))
+    end)
+    it("both", function()
+        assert.are.same({"a"}, Parser.remove_empty_lines({"", "a", ""}))
+    end)
+end)
+
+describe("merge_line_sets", function()
+    it("works", function()
+        local sets = {
+            {"", "a", ""},
+            {"", "b"},
+            {"c", ""},
+        }
+        local expected = {"", "a", "", "b", "", "c", ""}
+        assert.are.same(expected, Parser.merge_line_sets(sets))
+    end)
+end)
+
+describe("remove_mark_content", function()
+    before_each(function()
+        Path.unlink(test_file_path)
+    end)
+
+    after_each(function()
+        Path.unlink(test_file_path)
+    end)
+
+    it("works", function()
+        local before = table.list_extend(
+            tostring(Header({content = "[a]()", size = "large"})),
+            {"- x", "- y", ""},
+            {""}
+        )
+        local content = table.list_extend(
+            tostring(Header({content = "[b]()", size = "medium"})),
+            {"123", "- y", ""},
+            tostring(Header({content = "subheader)"})),
+            {"hunter", "test"}
+        )
+
+        local padding = {""}
+
+        local after = table.list_extend(
+            tostring(Header({content = "[c]()", size = "medium"})),
+            {"more", "stuff"}
+        )
+
+        Path.write(test_file_path, table.list_extend({}, before, content, padding, after))
+
+        local location = Location({path = test_file_path, label = 'b'})
+
+        assert.are.same(content, Parser():remove_mark_content(location))
+        assert.are.same(Parser.merge_line_sets({before, after}), Path.readlines(test_file_path))
+    end)
+end)
+
+describe("add_mark_content", function()
+    local from_mark_location = Location({path = test_file_path, label = 'a'})
+    local to_mark_location = Location({path = other_test_file_path, label = 'b'})
+    local lines = {"- x", "- y", ""}
+    local new_content = table.list_extend(tostring(Header({content = "[a]()", size = "large"})), lines)
+
+    before_each(function()
+        Path.unlink(test_file_path)
+        Path.unlink(other_test_file_path)
+    end)
+
+    after_each(function()
+        Path.unlink(test_file_path)
+        Path.unlink(other_test_file_path)
+    end)
+
+    it("no file, !include_mark", function()
+        Parser():add_mark_content({
+            new_content = new_content,
+            from_mark_location = from_mark_location,
+            to_mark_location = to_mark_location,
+        })
+        assert.are.same(lines, Path.readlines(to_mark_location.path))
+    end)
+
+    it("no file, include_mark", function()
+        local expected = table.list_extend(
+            tostring(Header({content = "[b]()", size = "large"})),
+            lines
+        )
+
+        Parser():add_mark_content({
+            new_content = new_content,
+            from_mark_location = from_mark_location,
+            to_mark_location = to_mark_location,
+            include_mark = true
+        })
+        assert.are.same(expected, Path.readlines(to_mark_location.path))
+    end)
+
+    it("no existing mark content, include_mark", function()
+        local existing_file_content = {"a", "b", ""}
+        Path.write(to_mark_location.path, existing_file_content)
+
+        local expected = table.list_extend(
+            existing_file_content,
+            tostring(Header({content = "[b]()", size = "large"})),
+            lines
+        )
+
+        Parser():add_mark_content({
+            new_content = new_content,
+            from_mark_location = from_mark_location,
+            to_mark_location = to_mark_location,
+            include_mark = true
+        })
+        assert.are.same(expected, Path.readlines(to_mark_location.path))
+    end)
+
+    it("existing mark content, !include_mark", function()
+        local existing_file_content = table.list_extend(
+            {"a", "b", ""},
+            tostring(Header({content = "[b]()", size = "large"})),
+            {"1", "2", ""},
+            tostring(Header({content = "[c]()", size = "large"})),
+            {"z", "w", ""}
+        )
+
+        local expected = table.list_extend(
+            {"a", "b", ""},
+            tostring(Header({content = "[b]()", size = "large"})),
+            {"1", "2", ""},
+            lines,
+            tostring(Header({content = "[c]()", size = "large"})),
+            {"z", "w", ""}
+        )
+
+        Path.write(to_mark_location.path, existing_file_content)
+
+        Parser():add_mark_content({
+            new_content = new_content,
+            from_mark_location = from_mark_location,
+            to_mark_location = to_mark_location,
+            include_mark = false,
+        })
+        assert.are.same(expected, Path.readlines(to_mark_location.path))
     end)
 end)

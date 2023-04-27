@@ -104,8 +104,6 @@ function DirectoryCase.mapper(a, b)
     return map
 end
 
--- TODO: also check for file:mark stuff!
-
 --------------------------------------------------------------------------------
 function Inferrer:new(a, b)
     self.a = Path.resolve(a)
