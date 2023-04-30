@@ -177,11 +177,7 @@ describe("get_reference_locations", function()
         local ref = Reference({label = 'c', location = loc})
         Path.write(test_file, tostring(ref))
 
-        local expected = {}
-        expected[test_file] = {
-            ["1"] = {tostring(ref)},
-        }
-
+        local expected = {[test_file] = {["1"] = {tostring(ref)}}}
         assert.are.same(expected, Reference.get_reference_locations(test_dir))
     end)
 
@@ -193,11 +189,10 @@ describe("get_reference_locations", function()
 
         Path.write(test_file, {tostring(ref_1), "non-reference", tostring(ref_2)})
 
-        local expected = {}
-        expected[test_file] = {
+        local expected = {[test_file] = {
             ["1"] = {tostring(ref_1)},
             ["3"] = {tostring(ref_2)}
-        }
+        }}
 
         assert.are.same(expected, Reference.get_reference_locations(test_dir))
     end)
@@ -210,9 +205,7 @@ describe("get_reference_locations", function()
 
         Path.write(test_file, "1 " .. tostring(ref_1) .. " 2 " .. tostring(ref_2) .. " 3")
 
-        local expected = {}
-        expected[test_file] = {["1"] = {tostring(ref_1), tostring(ref_2)}}
-
+        local expected = {[test_file] = {["1"] = {tostring(ref_1), tostring(ref_2)}}}
         assert.are.same(expected, Reference.get_reference_locations(test_dir))
     end)
 
@@ -225,10 +218,10 @@ describe("get_reference_locations", function()
         Path.write(test_file, {tostring(ref_1), "not a reference"})
         Path.write(test_subfile, {"not a reference", tostring(ref_2)})
 
-        local expected = {}
-        expected[test_file] = {["1"] = {tostring(ref_1)}}
-        expected[test_subfile] = {["2"] = {tostring(ref_2)}}
-
+        local expected = {
+            [test_file] = {["1"] = {tostring(ref_1)}},
+            [test_subfile] = {["2"] = {tostring(ref_2)}},
+        }
         assert.are.same(expected, Reference.get_reference_locations(test_dir))
     end)
 
@@ -239,9 +232,10 @@ describe("get_reference_locations", function()
         Path.write(test_file, {tostring(ref_1), "not a reference"})
         Path.write(test_subfile, {"not a reference", tostring(ref_1)})
 
-        local expected = {}
-        expected[test_file] = {["1"] = {tostring(ref_1)}}
-        expected[test_subfile] = {["2"] = {tostring(ref_1)}}
+        local expected = {
+            [test_file] = {["1"] = {tostring(ref_1)}},
+            [test_subfile] = {["2"] = {tostring(ref_1)}},
+        }
 
         assert.are.same(expected, Reference.get_reference_locations(test_dir))
     end)

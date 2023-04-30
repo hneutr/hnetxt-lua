@@ -22,26 +22,15 @@ This is intended to be the single location for code that deals with writing.
 =-----------------------------------------------------------
 = [movement stuff]()
 =-----------------------------------------------------------
-- todo: finish up `hnetxt-lua.project.move.operation`
+- implement:
+- `hnetxt-lua.text.reference.get_referenced_locations`: format = location: file: line
+    - ([probably remove `hnetxt-lua.text.reference.get_reference_locations` which is only used by `lex.move`])
+- test actions:
+  - file:map_mirrors
+  - file:to mark:process
+  - dir:map_mirrors
+  - mark:process
 
-----------------------------------------
-TODO:
-- Operation:
-    - map_mirrors: test
-    - process: test
-    - update_references: implement
-    - file_is_dir_file: test
-    - dir_file: test
-    - evaluate: test
-    - applies: test
-- FileToMarkOperation:
-    - map_mirrors: test
-    - process: test
-    - update_references: implement
-- DirOperation:
-    - map_a_to_b: test (might already be done in `Inferrer`)
-    - case:
-        - to_files:
-            - map_a_to_b: text
-- MarkOperation:
-    - process: test
+- `hnetxt-lua.project.move.operation.init.lua`
+  - process: test
+  - update_references: implement

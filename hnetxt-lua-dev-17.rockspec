@@ -27,7 +27,6 @@ build = {
       ["hnetxt-lua.project.mirror"] = "src/hnetxt-lua/project/mirror/init.lua",
       ["hnetxt-lua.project.mirror.config"] = "src/hnetxt-lua/project/mirror/config.lua",
       ["hnetxt-lua.project.move"] = "src/hnetxt-lua/project/move/init.lua",
-      ["hnetxt-lua.project.move.infer"] = "src/hnetxt-lua/project/move/infer.lua",
       ["hnetxt-lua.project.registry"] = "src/hnetxt-lua/project/registry.lua",
       ["hnetxt-lua.text.divider"] = "src/hnetxt-lua/text/divider.lua",
       ["hnetxt-lua.text.flag"] = "src/hnetxt-lua/text/flag.lua",
@@ -37,6 +36,11 @@ build = {
       ["hnetxt-lua.text.location"] = "src/hnetxt-lua/text/location.lua",
       ["hnetxt-lua.text.mark"] = "src/hnetxt-lua/text/mark.lua",
       ["hnetxt-lua.text.reference"] = "src/hnetxt-lua/text/reference.lua",
+      ["hnetxt-lua.project.move.operation"] = "src/hnetxt-lua/project/move/operation/init.lua",
+      ["hnetxt-lua.project.move.operation.file"] = "src/hnetxt-lua/project/move/operation/file.lua",
+      ["hnetxt-lua.project.move.operation.dir"] = "src/hnetxt-lua/project/move/operation/dir.lua",
+      ["hnetxt-lua.project.move.operation.mark"] = "src/hnetxt-lua/project/move/operation/mark.lua",
+      ["hnetxt-lua.project.move.operator"] = "src/hnetxt-lua/project/move/operator.lua",
       setup = "src/setup.lua"
    }
 }
