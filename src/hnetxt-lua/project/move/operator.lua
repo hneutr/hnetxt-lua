@@ -2,6 +2,7 @@ local Object = require("hneutil.object")
 
 local Path = require("hneutil.path")
 
+local Project = require("hnetxt-lua.project")
 local Operation = require("hnetxt-lua.project.move.operation")
 local FileOperation = require("hnetxt-lua.project.move.operation.file")
 local DirOperation = require("hnetxt-lua.project.move.operation.dir")
@@ -79,10 +80,6 @@ M.actions = {
         },
     },
     mark = {
-        -- does:
-        -- - removes source:mark content from source
-        -- - appends source:mark content to target
-        -- - points source:mark references at target
         move = {check_target = Operation.is_mark},
         to_file = {check_target = Operation.could_be_file},
         to_dir = {
@@ -127,9 +124,10 @@ function M.get_action(source, target)
         local OperationClass = M.source_type_to_operation_class[operation_class_name]
         local actions = M.actions[operation_class_name]
 
-        for action, action_args in pairs(actions) do
-            if action_args.check_target(target, source) then
-                return OperationClass(action_args)
+        for action_name, action_args in pairs(actions) do
+            local action = table.default({}, action_args, OperationClass)
+            if action.check_target(target, source) then
+                return action
             end
         end
     end
@@ -138,7 +136,27 @@ function M.get_action(source, target)
 end
 
 function M.operate(source, target, args)
-    M.get_action(source, target):operate(source, target, args)
+    local action = M.get_action(source, target)
+
+    args = table.default(args, {process = false, update = true})
+
+    -- TODO: handle relative paths
+    local dir = args.dir or Project.root_from_path()
+
+    target = action.transform_target(target, source)
+    local map = action.map_source_to_target(source, target)
+
+    local mirrors_map = action.map_mirrors(map)
+
+    if args.process then
+        action.process(map, mirrors_map)
+    end
+
+    if args.update then
+        action.update_references(map, mirrors_map, dir)
+    end
+
+    return nil
 end
 
 return M

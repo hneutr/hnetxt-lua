@@ -8,7 +8,7 @@ local Operation = require("hnetxt-lua.project.move.operation")
 --------------------------------------------------------------------------------
 --                               MarkOperation                                --
 --------------------------------------------------------------------------------
-local MarkOperation = Operation:extend()
+local MarkOperation = table.default({}, Operation)
 
 MarkOperation.check_source = Operation.is_mark
 

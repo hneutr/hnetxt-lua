@@ -240,3 +240,205 @@ describe("get_reference_locations", function()
         assert.are.same(expected, Reference.get_reference_locations(test_dir))
     end)
 end)
+
+
+describe("get_referenced_locations", function() 
+    local loc_1 = Location({path = 'a/b', label = 'c'})
+    local loc_2 = Location({path = 'x/y/z', label = 'w'})
+    local ref_1 = Reference({label = 'c', location = loc_1})
+    local ref_2 = Reference({label = 'w', location = loc_2})
+
+    it("1 reference", function()
+        Path.write(test_file, tostring(ref_1))
+        assert.are.same(
+            {[tostring(loc_1)] = {[test_file] = {1}}},
+            Reference.get_referenced_locations(test_dir)
+        )
+    end)
+
+    it("2 references, 1 file", function()
+        Path.write(test_file, {tostring(ref_1), "non-reference", tostring(ref_2)})
+        assert.are.same(
+            {
+                [tostring(loc_1)] = {[test_file] = {1}},
+                [tostring(loc_2)] = {[test_file] = {3}},
+            },
+            Reference.get_referenced_locations(test_dir)
+        )
+    end)
+
+    it("2 references, 1 line", function()
+        Path.write(test_file, "1 " .. tostring(ref_1) .. " 2 " .. tostring(ref_2) .. " 3")
+        assert.are.same(
+            {
+                [tostring(loc_1)] = {[test_file] = {1}},
+                [tostring(loc_2)] = {[test_file] = {1}},
+            },
+            Reference.get_referenced_locations(test_dir)
+        )
+    end)
+
+    it("multiple references, multiple files", function()
+        Path.write(test_file, {tostring(ref_1), "not a reference"})
+        Path.write(test_subfile, {"not a reference", tostring(ref_2)})
+
+        assert.are.same(
+            {
+                [tostring(loc_1)] = {[test_file] = {1}},
+                [tostring(loc_2)] = {[test_subfile] = {2}},
+            },
+            Reference.get_referenced_locations(test_dir)
+        )
+    end)
+end)
+
+describe("update_location", function() 
+    it("mark", function()
+        local old_loc = Location({path = 'a/b', label = 'c'})
+        local new_loc = Location({path = 'x/y', label = 'z'})
+        local old_ref = Reference({label = 'ref', location = old_loc})
+        local new_ref = Reference({label = 'ref', location = new_loc})
+
+        Path.write(test_file, {tostring(old_ref), "content"})
+
+        assert.are.same(
+            {
+                {},
+                {[Path.joinpath(test_file)] = {tostring(new_ref), "content"}}
+            },
+            Reference.update_location(
+                tostring(old_loc),
+                tostring(new_loc),
+                Reference.get_referenced_locations(test_dir),
+                {}
+            )
+        )
+    end)
+
+    it("file", function()
+        local old_file_loc = Location({path = 'a/b'})
+        local new_file_loc = Location({path = 'x/y'})
+
+        local old_file_ref = Reference({label = 'file ref', location = old_file_loc})
+        local new_file_ref = Reference({label = 'file ref', location = new_file_loc})
+
+        local old_mark_loc = Location({path = 'a/b', label = 'c'})
+        local new_mark_loc = Location({path = 'x/y', label = 'c'})
+
+        local old_mark_ref = Reference({label = 'mark ref', location = old_mark_loc})
+        local new_mark_ref = Reference({label = 'mark ref', location = new_mark_loc})
+
+        Path.write(test_file, {tostring(old_file_ref), "content", tostring(old_mark_ref)})
+
+        assert.are.same(
+            {
+                {},
+                {[Path.joinpath(test_file)] = {tostring(new_file_ref), "content", tostring(new_mark_ref)}}
+            },
+            Reference.update_location(
+                tostring(old_file_loc),
+                tostring(new_file_loc),
+                Reference.get_referenced_locations(test_dir),
+                {}
+            )
+        )
+    end)
+end)
+
+describe("update", function() 
+    it("works", function()
+        local locs = {
+            files = {
+                {
+                    old = Location({path = 'a/b'}),
+                    new = Location({path = 'x/y'}),
+                },
+                {
+                    old = Location({path = 'g/h'}),
+                }
+            },
+            marks = {
+                {
+                    old = Location({path = 'a/b', label = 'c'}),
+                    new = Location({path = 'x/y', label = 'c'}),
+                },
+                {
+                    old = Location({path = 'g/h', label = 'i'}),
+                    new = Location({path = 'j/k', label = 'i'}),
+                }
+            }
+        }
+
+        local refs = {
+            files = {
+                {
+                    old = Reference({label = 'file ref', location = locs.files[1].old}),
+                    new = Reference({label = 'file ref', location = locs.files[1].new}),
+                },
+                {
+                    old = Reference({label = 'file ref', location = locs.files[2].old}),
+                },
+            },
+            marks = {
+                {
+                    old = Reference({label = 'mark 1 ref', location = locs.marks[1].old}),
+                    new = Reference({label = 'mark 1 ref', location = locs.marks[1].new}),
+                },
+                {
+                    old = Reference({label = 'mark 2 ref', location = locs.marks[2].old}),
+                    new = Reference({label = 'mark 2 ref', location = locs.marks[2].new}),
+                },
+            },
+        }
+
+        local content = {
+            [test_file] = {
+                old = {
+                    tostring(refs.files[1].old),
+                    "abc",
+                    tostring(refs.marks[1].old),
+                    "def",
+                    tostring(refs.files[2].old),
+                    "ghi",
+                    tostring(refs.marks[2].old),
+                },
+                new = {
+                    tostring(refs.files[1].new),
+                    "abc",
+                    tostring(refs.marks[1].new),
+                    "def",
+                    tostring(refs.files[2].old),
+                    "ghi",
+                    tostring(refs.marks[2].new),
+                }
+            },
+            [test_subfile] = {
+                old = {
+                    tostring(refs.files[2].old),
+                    "123",
+                    tostring(refs.marks[2].old),
+                },
+                new = {
+                    tostring(refs.files[2].old),
+                    "123",
+                    tostring(refs.marks[2].new),
+                }
+            }
+        }
+
+        for path, content_info in pairs(content) do
+            Path.write(path, content_info.old)
+        end
+
+        local location_changes = {
+            [tostring(locs.files[1].old)] = tostring(locs.files[1].new),
+            [tostring(locs.marks[2].old)] = tostring(locs.marks[2].new),
+        }
+
+        Reference.update_locations(location_changes, test_dir)
+
+        for path, content_info in pairs(content) do
+            assert.are.same(content_info.new, Path.readlines(path))
+        end
+    end)
+end)

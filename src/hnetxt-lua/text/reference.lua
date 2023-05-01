@@ -94,8 +94,6 @@ function Reference.get_reference_locations(dir)
     local references = {}
     for _, line in ipairs(io.command(Reference.get_references_cmd .. dir):splitlines()) do
         if line:len() > 0 then
-            local path, line_number, ref_str
-
             local path, line_number, ref_str = unpack(line:split(":", 2))
 
             references[path] = references[path] or {}
@@ -116,6 +114,107 @@ function Reference.get_reference_locations(dir)
     end
 
     return references
+end
+
+--------------------------------------------------------------------------------
+-- get_referenced_locations
+-- ------------------------
+-- returns table of referenced locations in format:
+-- {
+--      location = {
+--          file = {line_number_1, line_number_2}
+--      }
+-- }
+--------------------------------------------------------------------------------
+function Reference.get_referenced_locations(dir)
+    local references_by_location = {}
+    for _, line in ipairs(io.command(Reference.get_references_cmd .. dir):splitlines()) do
+        if line:len() > 0 then
+            local path, line_number, ref_str = unpack(line:split(":", 2))
+
+            if not Path.is_relative_to(path, dir) then
+                path = Path.joinpath(dir, path)
+            end
+
+            while Reference.str_is_a(ref_str) do
+                local reference = Reference.from_str(ref_str)
+                local location = tostring(reference.location)
+                local location_references = references_by_location[location] or {}
+
+                if not location_references[path] then
+                    location_references[path] = {}
+                end
+
+                table.insert(location_references[path], tonumber(line_number))
+                references_by_location[location] = location_references
+
+                ref_str = reference.after
+            end
+        end
+    end
+
+    return references_by_location
+end
+
+--------------------------------------------------------------------------------
+-- update
+-- ------
+-- takes a dict of location changes in format: {old = new}
+--
+-- for each location change, updates references to those locations:
+--      - if `old` is a mark (ie old.label:len() > 0) then:
+--          - point old references → new
+--      - if `old` is a file (ie old.label:len() == 0):
+--          - point old references → new
+--          - point references to marks in old → new
+--------------------------------------------------------------------------------
+function Reference.update_locations(location_changes, dir)
+    local old_locations = table.keys(location_changes)
+
+    -- sort from longest to shortest so that file updates don't "clobber" mark updates
+    table.sort(old_locations, function(a, b) return a:len() > b:len() end)
+
+    local content_updates = {}
+    local references_by_location = Reference.get_referenced_locations(dir)
+    for _, old_location in ipairs(old_locations) do
+        references_by_location, content_updates = unpack(Reference.update_location(
+            old_location,
+            location_changes[old_location],
+            references_by_location,
+            content_updates
+        ))
+    end
+
+    for path, content in pairs(content_updates) do
+        Path.write(path, content)
+    end
+end
+
+function Reference.update_location(old_location, new_location, references_by_location, content_updates)
+    local old_location_is_file = not Location.str_has_label(old_location)
+    for referenced_location, references in pairs(references_by_location) do
+        local update = old_location == referenced_location
+        update = update or (old_location_is_file and referenced_location:startswith(old_location)) 
+
+        if update then
+            for reference_path, reference_lines in pairs(references) do
+                if not content_updates[reference_path] then
+                    content_updates[reference_path] = Path.readlines(reference_path)
+                end
+
+                for _, reference_line in ipairs(reference_lines) do
+                    content_updates[reference_path][reference_line] = string.gsub(
+                        content_updates[reference_path][reference_line],
+                        old_location,
+                        new_location
+                    )
+                end
+            end
+            references_by_location[referenced_location] = nil
+        end
+    end
+
+    return {references_by_location, content_updates}
 end
 
 return Reference

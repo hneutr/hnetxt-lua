@@ -22,15 +22,11 @@ This is intended to be the single location for code that deals with writing.
 =-----------------------------------------------------------
 = [movement stuff]()
 =-----------------------------------------------------------
-- implement:
-- `hnetxt-lua.text.reference.get_referenced_locations`: format = location: file: line
-    - ([probably remove `hnetxt-lua.text.reference.get_reference_locations` which is only used by `lex.move`])
+- TODO: have `Operation:operate` handle relative paths
+- probably remove `hnetxt-lua.text.Reference.get_reference_locations` which is only used by `lex.move`
+- probably remove `hnetxt-lua.text.Location.update`
 - test actions:
   - file:map_mirrors
   - file:to mark:process
   - dir:map_mirrors
   - mark:process
-
-- `hnetxt-lua.project.move.operation.init.lua`
-  - process: test
-  - update_references: implement

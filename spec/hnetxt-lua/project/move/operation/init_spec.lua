@@ -48,33 +48,6 @@ describe("map_mirrors", function()
     end)
 end)
 
-describe("process", function()
-    before_each(function()
-        stub(Path, 'rename')
-    end)
-
-    it("works", function()
-        Operation.process({a = 'b'}, {c = 'd'})
-
-        assert.stub(Path.rename).was_called_with('a', 'b')
-        assert.stub(Path.rename).was_called_with('c', 'd')
-    end)
-end)
-
-describe("process", function()
-    before_each(function()
-        stub(Path, 'rename')
-    end)
-
-    it("works", function()
-        Operation.process({a = 'b'}, {c = 'd'})
-
-        assert.stub(Path.rename).was_called_with('a', 'b')
-        assert.stub(Path.rename).was_called_with('c', 'd')
-    end)
-end)
-
-
 describe("could_be_file", function()
     it("+", function()
         assert(Operation.could_be_file("a.md"))

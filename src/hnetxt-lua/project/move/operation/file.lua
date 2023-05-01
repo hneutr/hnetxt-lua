@@ -8,7 +8,7 @@ local Operation = require('hnetxt-lua.project.move.operation')
 --------------------------------------------------------------------------------
 --                               FileOperation                                --
 --------------------------------------------------------------------------------
-local FileOperation = Operation:extend()
+local FileOperation = table.default({}, Operation)
 FileOperation.check_source = Path.is_file
 
 function FileOperation.process(map, mirrors_map)

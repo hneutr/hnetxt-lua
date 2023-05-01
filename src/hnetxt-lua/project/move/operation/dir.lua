@@ -5,7 +5,7 @@ local Operation = require("hnetxt-lua.project.move.operation")
 --------------------------------------------------------------------------------
 --                                DirOperation                                --
 --------------------------------------------------------------------------------
-local DirOperation = Operation:extend()
+local DirOperation = table.default({}, Operation)
 DirOperation.check_source = Path.is_dir
 
 function DirOperation.map_source_to_target(source, target)
