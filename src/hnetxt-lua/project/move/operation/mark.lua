@@ -8,14 +8,14 @@ local Operation = require("hnetxt-lua.project.move.operation")
 --------------------------------------------------------------------------------
 --                               MarkOperation                                --
 --------------------------------------------------------------------------------
-local MarkOperation = table.default({}, Operation)
+local M = table.default({}, Operation)
 
-MarkOperation.check_source = Operation.is_mark
+M.check_source = Operation.is_mark
 
-function MarkOperation.map_mirrors() return {} end
+function M.map_mirrors() return {} end
 
 -- this moves source:mark to target (or target:mark, if there is one)
-function MarkOperation.process(map)
+function M.process(map)
     if include_mark == nil then
         include_mark = true
     end
@@ -35,9 +35,9 @@ function MarkOperation.process(map)
     end
 end
 
-MarkOperation.to_dir_file = {}
-function MarkOperation.to_dir_file.transform_target(target, source)
+M.to_dir_file = {}
+function M.to_dir_file.transform_target(target, source)
     return Path.joinpath(target, Location.from_str(source).label .. '.md')
 end
 
-return MarkOperation
+return M

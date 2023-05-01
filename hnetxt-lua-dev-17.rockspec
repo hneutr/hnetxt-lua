@@ -26,7 +26,6 @@ build = {
       ["hnetxt-lua.project"] = "src/hnetxt-lua/project/init.lua",
       ["hnetxt-lua.project.mirror"] = "src/hnetxt-lua/project/mirror/init.lua",
       ["hnetxt-lua.project.mirror.config"] = "src/hnetxt-lua/project/mirror/config.lua",
-      ["hnetxt-lua.project.move"] = "src/hnetxt-lua/project/move/init.lua",
       ["hnetxt-lua.project.registry"] = "src/hnetxt-lua/project/registry.lua",
       ["hnetxt-lua.text.divider"] = "src/hnetxt-lua/text/divider.lua",
       ["hnetxt-lua.text.flag"] = "src/hnetxt-lua/text/flag.lua",

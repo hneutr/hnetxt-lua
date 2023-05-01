@@ -1,7 +1,13 @@
 table = require("hneutil.table")
+
 local Path = require("hneutil.path")
 local Header = require("hnetxt-lua.text.header")
 local Parser = require("hnetxt-lua.parse")
+local Project = require("hnetxt-lua.project")
+local Mirror = require("hnetxt-lua.project.mirror")
+local Operator = require("hnetxt-lua.project.move.operator")
+
+local MarkOperation = require("hnetxt-lua.project.move.operation.mark")
 
 local test_dir = Path.joinpath(Path.tempdir(), "test-dir")
 local test_file_one = Path.joinpath(test_dir, "test-file-1.md")
@@ -9,13 +15,14 @@ local test_file_two = Path.joinpath(test_dir, "test-file-2.md")
 
 before_each(function()
     Path.rmdir(test_dir, true)
+    stub(Project, 'root_from_path')
+    Project.root_from_path.returns(test_dir)
 end)
 
 after_each(function()
     Path.rmdir(test_dir, true)
+    Project.root_from_path:revert()
 end)
-
-local MarkOperation = require("hnetxt-lua.project.move.operation.mark")
 
 describe("to_dir_file.transform_target", function()
     it("works", function()
@@ -115,5 +122,57 @@ describe("process", function()
             }),
             Path.readlines(test_file_two)
         )
+    end)
+end)
+
+describe("end to end", function()
+    it("move", function()
+        local a_path = Path.joinpath(test_dir, "a.md")
+        local b_path = Path.joinpath(test_dir, "b.md")
+
+        local c_path = Path.joinpath(test_dir, "c.md")
+
+        local mark_content = {"mark content"}
+
+        local a_content_old = table.list_extend(
+            {"pre"},
+            tostring(Header({content = "[x]()"})),
+            mark_content,
+            tostring(Header({content = "[y]()"})),
+            {"post"}
+        )
+
+        local a_content_new = table.list_extend(
+            {"pre", ""},
+            tostring(Header({content = "[y]()"})),
+            {"post"}
+        )
+
+        local b_content_old = table.list_extend(
+            {"abcd"},
+            tostring(Header({content = "[b mark]()"})),
+            {"after"}
+        )
+
+        local b_content_new = table.list_extend(
+            {"abcd"},
+            tostring(Header({content = "[b mark]()"})),
+            {"after", ""},
+            tostring(Header({content = "[y]()", size="large"})),
+            mark_content
+        )
+
+        local c_content_old = {"[ref to a:x](a.md:x)"}
+        local c_content_new = {"[ref to a:x](b.md:y)"}
+
+        Path.write(a_path, a_content_old)
+        Path.write(b_path, b_content_old)
+        Path.write(c_path, c_content_old)
+
+        Operator.operate(a_path .. ":x", b_path .. ":y", {process = true, update = true, dir = test_dir})
+
+        assert.are.same(a_content_new, Path.readlines(a_path))
+        assert.are.same(b_content_new, Path.readlines(b_path))
+        assert.are.same(c_content_new, Path.readlines(c_path))
     end)
 end)

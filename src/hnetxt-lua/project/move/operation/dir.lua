@@ -5,10 +5,10 @@ local Operation = require("hnetxt-lua.project.move.operation")
 --------------------------------------------------------------------------------
 --                                DirOperation                                --
 --------------------------------------------------------------------------------
-local DirOperation = table.default({}, Operation)
-DirOperation.check_source = Path.is_dir
+local M = table.default({}, Operation)
+M.check_source = Path.is_dir
 
-function DirOperation.map_source_to_target(source, target)
+function M.map_source_to_target(source, target)
     -- makes a map path of paths in a relative to b
     local map = {}
     for _, subsource in ipairs(Path.iterdir(source)) do
@@ -17,7 +17,7 @@ function DirOperation.map_source_to_target(source, target)
     return map
 end
 
-function DirOperation.process(map, mirrors_map)
+function M.process(map, mirrors_map)
     map = table.default({}, map or {}, mirrors_map or {})
 
     local dirs = {}
@@ -34,9 +34,9 @@ function DirOperation.process(map, mirrors_map)
     end
 end
 
-DirOperation.to_files = {}
-function DirOperation.to_files.map_source_to_target(source, target)
-    local map = DirOperation.map_source_to_target(source, target)
+M.to_files = {}
+function M.to_files.map_source_to_target(source, target)
+    local map = M.map_source_to_target(source, target)
     local source_dir_file = Operation.dir_file_of(source)
     local target_dir_file = map[source_dir_file]
 
@@ -47,4 +47,4 @@ function DirOperation.to_files.map_source_to_target(source, target)
     return map
 end
 
-return DirOperation
+return M

@@ -22,6 +22,11 @@ function M.map_mirrors(map)
     for source, target in pairs(map) do
         mirrors_map = table.default(mirrors_map, Mirror.find_updates(source, target))
     end
+
+    for source, target in pairs(map) do
+        mirrors_map[source] = nil
+    end
+
     return mirrors_map
 end
 function M.process(map, mirrors_map) end
@@ -61,42 +66,5 @@ end
 function M.make_parent_of(p1, p2)
     return Path.joinpath(p1, Path.name(p2))
 end
-
--- function M:new(args)
---     for k, v in pairs(args or {}) do
---         self[k] = v
---     end
--- end
-
--- function M:applies(source, target)
---     return self.check_source(source, target) and self.check_target(target, source)
--- end
-
--- function M:operate(source, target, args)
---     args = table.default(args, {process = false, update = true})
-
---     -- TODO: handle relative paths
---     local dir = args.dir or Project.root_from_path()
-
---     target = self.transform_target(target, source)
---     local map = self.map_source_to_target(source, target)
-
---     -- print(require("inspect")("map"))
---     -- print(require("inspect")(map))
---     -- print(require("inspect")(self))
---     print(require("inspect")(self.map_mirrors))
---     print(require("inspect")(self.map_mirrors(map)))
---     local mirrors_map = self.map_mirrors(map)
-
---     if args.process then
---         self.process(map, mirrors_map)
---     end
-
---     if args.update then
---         self.update_references(map, mirrors_map, dir)
---     end
-
---     return nil
--- end
 
 return M

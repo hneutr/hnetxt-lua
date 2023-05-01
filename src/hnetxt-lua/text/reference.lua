@@ -169,7 +169,18 @@ end
 --          - point references to marks in old → new
 --------------------------------------------------------------------------------
 function Reference.update_locations(location_changes, dir)
-    local old_locations = table.keys(location_changes)
+    local relative_location_changes = {}
+    for k, v in pairs(location_changes or {}) do
+        if Path.is_relative_to(k, dir) then
+            k = Path.relative_to(k, dir)
+        end
+        if Path.is_relative_to(v, dir) then
+            v = Path.relative_to(v, dir)
+        end
+
+        relative_location_changes[k] = v
+    end
+    local old_locations = table.keys(relative_location_changes)
 
     -- sort from longest to shortest so that file updates don't "clobber" mark updates
     table.sort(old_locations, function(a, b) return a:len() > b:len() end)
@@ -179,7 +190,7 @@ function Reference.update_locations(location_changes, dir)
     for _, old_location in ipairs(old_locations) do
         references_by_location, content_updates = unpack(Reference.update_location(
             old_location,
-            location_changes[old_location],
+            relative_location_changes[old_location],
             references_by_location,
             content_updates
         ))

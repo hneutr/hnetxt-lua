@@ -10,6 +10,11 @@ This is intended to be the single location for code that deals with writing.
     - `mirror`:
       - `init.lua`
       - `config.lua`
+    - `operator.lua`
+    - `operation`:
+        - `file.lua`
+        - `dir.lua`
+        - `mark.lua`
   - `text`:
     - `link.lua`
     - `location.lua`
@@ -24,9 +29,3 @@ This is intended to be the single location for code that deals with writing.
 =-----------------------------------------------------------
 - TODO: have `Operation:operate` handle relative paths
 - probably remove `hnetxt-lua.text.Reference.get_reference_locations` which is only used by `lex.move`
-- probably remove `hnetxt-lua.text.Location.update`
-- test actions:
-  - file:map_mirrors
-  - file:to mark:process
-  - dir:map_mirrors
-  - mark:process

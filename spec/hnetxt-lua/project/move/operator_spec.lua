@@ -78,10 +78,7 @@ local function run_action_test(spec, subtest_name)
 
             local action = Operator.get_action(source, target)
 
-            assert.are.same(
-                OperationClass(Operator.actions[spec.operation_class][spec.action]),
-                action
-            )
+            assert.are.same(spec.action, action.action_name)
 
             target = action.transform_target(target, source)
 

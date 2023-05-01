@@ -1,3 +1,4 @@
+table = require("hneutil.table")
 local Object = require("hneutil.object")
 
 local Path = require("hneutil.path")
@@ -53,19 +54,15 @@ M.actions = {
             check_target = Path.is_dir,
             transform_target = Operation.make_parent_of,
         },
-        to_dir = {
+        ["to dir"] = {
             check_target = Operation.could_be_dir,
             transform_target = Operation.dir_file_of,
         },
-        to_mark = {
+        ["to mark"] = {
             check_target = Operation.is_mark,
             map_mirrors = FileOperation.to_mark.map_mirrors,
             process = FileOperation.to_mark.process,
             update_references = FileOperation.to_mark.update_references,
-            -- does:
-            -- - appends source content to target:mark content
-            -- - appends source mirrors to target mirrors
-            -- - points source references at target:mark
         },
     },
     dir = {
@@ -74,19 +71,19 @@ M.actions = {
             check_target = Operation.dir_is_not_parent_of,
             transform_target = Operation.make_parent_of,
         },
-        to_files = {
+        ["to files"] = {
             check_target = Operation.is_parent_of,
             map_source_to_target = DirOperation.to_files.map_source_to_target,
         },
     },
     mark = {
         move = {check_target = Operation.is_mark},
-        to_file = {check_target = Operation.could_be_file},
-        to_dir = {
+        ["to file"] = {check_target = Operation.could_be_file},
+        ["to dir"] = {
             check_target = Operation.could_be_dir,
             transform_target = Operation.dir_file_of,
         },
-        to_dir_file = {
+        ["to dir file"] = {
             check_target = Path.is_dir,
             transform_target = MarkOperation.to_dir_file.transform_target,
         },
@@ -125,7 +122,12 @@ function M.get_action(source, target)
         local actions = M.actions[operation_class_name]
 
         for action_name, action_args in pairs(actions) do
-            local action = table.default({}, action_args, OperationClass)
+            local action = table.default(
+                {action_name = action_name, operation_name = operation_name},
+                action_args,
+                OperationClass
+            )
+
             if action.check_target(target, source) then
                 return action
             end

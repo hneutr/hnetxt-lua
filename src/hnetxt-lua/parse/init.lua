@@ -97,14 +97,17 @@ function Parser:remove_initial_mark(mark_label, lines)
         index_type = 'end',
     })
 
-    local new_lines = {}
-    for i, line in ipairs(lines) do
-        if mark_end_index < i then
-            new_lines[#new_lines + 1] = line
+    if mark_end_index then
+        local new_lines = {}
+        for i, line in ipairs(lines) do
+            if mark_end_index < i then
+                new_lines[#new_lines + 1] = line
+            end
         end
+        lines = new_lines
     end
     
-    return new_lines
+    return lines
 end
 
 function Parser:separate_mark_content(mark_label, lines)

@@ -8,10 +8,10 @@ local Operation = require('hnetxt-lua.project.move.operation')
 --------------------------------------------------------------------------------
 --                               FileOperation                                --
 --------------------------------------------------------------------------------
-local FileOperation = table.default({}, Operation)
-FileOperation.check_source = Path.is_file
+local M = table.default({}, Operation)
+M.check_source = Path.is_file
 
-function FileOperation.process(map, mirrors_map)
+function M.process(map, mirrors_map)
     map = table.default({}, map or {}, mirrors_map or {})
 
     for source, target in pairs(map) do
@@ -20,8 +20,8 @@ function FileOperation.process(map, mirrors_map)
     end
 end
 
-FileOperation.to_mark = {}
-function FileOperation.to_mark.map_mirrors(map)
+M.to_mark = {}
+function M.to_mark.map_mirrors(map)
     -- point mirrors of the source to mirrors of the target (excluding the target's mark)
     local markless_map = {}
     for source, target in pairs(map) do
@@ -31,7 +31,7 @@ function FileOperation.to_mark.map_mirrors(map)
     return Operation.map_mirrors(markless_map)
 end
 
-function FileOperation.to_mark.process(map, mirrors_map)
+function M.to_mark.process(map, mirrors_map)
     local parser = Parser()
     for source, target in pairs(map) do
         parser:add_mark_content({
@@ -45,15 +45,17 @@ function FileOperation.to_mark.process(map, mirrors_map)
     end
 
     for source, target in pairs(mirrors_map) do
-        local line_sets = {Path.readlines(source)}
+        local line_sets = {}
 
         if Path.exists(target) then
-            line_sets[#line_sets + 1] = Path.readlines(target)
+            table.insert(line_sets, Path.readlines(target))
         end
+
+        table.insert(line_sets, Path.readlines(source))
 
         Path.write(target, Parser.merge_line_sets(line_sets))
         Path.unlink(source)
     end
 end
 
-return FileOperation
+return M
