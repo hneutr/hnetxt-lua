@@ -7,6 +7,7 @@ local Path = require("hneutil.path")
 local Config = require("hnetxt-lua.config")
 local Link = require("hnetxt-lua.text.link")
 local Location = require("hnetxt-lua.text.location")
+local Project = require("hnetxt-lua.project")
 
 
 
@@ -169,6 +170,7 @@ end
 --          - point references to marks in old → new
 --------------------------------------------------------------------------------
 function Reference.update_locations(location_changes, dir)
+    dir = dir or Project.root_from_path()
     local relative_location_changes = {}
     for k, v in pairs(location_changes or {}) do
         if Path.is_relative_to(k, dir) then
