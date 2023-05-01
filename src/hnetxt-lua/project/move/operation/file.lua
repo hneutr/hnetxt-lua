@@ -1,3 +1,4 @@
+table = require("hneutil.table")
 local Path = require('hneutil.path')
 
 local Parser = require("hnetxt-lua.parse")
