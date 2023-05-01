@@ -91,32 +91,6 @@ function Reference.get_referenced_mark_locations(dir)
     return locations_list
 end
 
-function Reference.get_reference_locations(dir)
-    local references = {}
-    for _, line in ipairs(io.command(Reference.get_references_cmd .. dir):splitlines()) do
-        if line:len() > 0 then
-            local path, line_number, ref_str = unpack(line:split(":", 2))
-
-            references[path] = references[path] or {}
-            local line_refs = references[path][line_number] or {}
-
-            while Reference.str_is_a(ref_str) do
-                local reference = Reference.from_str(ref_str)
-
-                if not table.list_contains(line_refs, tostring(reference)) then
-                    line_refs[#line_refs + 1] = tostring(reference)
-                end
-
-                ref_str = reference.after
-            end
-
-            references[path][line_number] = line_refs
-        end
-    end
-
-    return references
-end
-
 --------------------------------------------------------------------------------
 -- get_referenced_locations
 -- ------------------------

@@ -88,7 +88,7 @@ describe("end to end", function()
         local ref_content_new = {"text", "[ref to a](b/x.md)", "more text"}
         Path.write(ref_path, ref_content_old)
 
-        Operator.operate(dir_path_old, dir_path_new, {process = true, update = true, dir = test_dir})
+        Operator.operate(dir_path_old, dir_path_new)
 
         assert.falsy(Path.exists(dir_path_old))
 

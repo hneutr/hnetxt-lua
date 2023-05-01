@@ -142,23 +142,15 @@ function M.operate(source, target, args)
 
     args = table.default(args, {process = false, update = true})
 
-    -- TODO: handle relative paths
-    local dir = args.dir or Project.root_from_path()
+    local dir = Project.root_from_path(source)
 
     target = action.transform_target(target, source)
     local map = action.map_source_to_target(source, target)
 
     local mirrors_map = action.map_mirrors(map)
 
-    if args.process then
-        action.process(map, mirrors_map)
-    end
-
-    if args.update then
-        action.update_references(map, mirrors_map, dir)
-    end
-
-    return nil
+    action.process(map, mirrors_map)
+    action.update_references(map, mirrors_map, dir)
 end
 
 return M
