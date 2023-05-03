@@ -102,8 +102,18 @@ function Flag.get_instances(flag_type, dir, as_str)
             if as_str then
                 table.insert(instances, string.format("%s: %s", path, text))
             else
-                table.insert(instances, {path = path, text = text})
+                if not instances[path] then
+                    instances[path] = {}
+                end
+
+                table.insert(instances[path], text)
             end
+        end
+    end
+
+    if not as_str then
+        for path, flags in pairs(instances) do
+            table.sort(instances[path], function(a, b) return a < b end)
         end
     end
 

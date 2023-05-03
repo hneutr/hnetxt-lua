@@ -81,15 +81,17 @@ describe("get_instances", function()
         Path.write(test_file, {"a |?*|", "no flags", "bc |*?|"})
         Path.write(test_subfile, {"z |?|", "no flags", "x |*|"})
         local actual = Flag.get_instances("question", test_dir)
-        table.sort(actual, function(a, b) return a.path < b.path end)
+        table.sort(actual, function(a, b) return a < b end)
 
         local test_file_short = Path.with_suffix(Path.relative_to(test_file, test_dir), ''):removeprefix('/')
         local test_subfile_short = Path.with_suffix(Path.relative_to(test_subfile, test_dir), ''):removeprefix('/')
         assert.are.same(
             {
-                {path = test_file_short, text = 'a'},
-                {path = test_file_short, text = 'bc'},
-                {path = test_subfile_short, text = 'z'},
+                [test_file_short] = {'a', 'bc'},
+                [test_subfile_short] = {'z'},
+                -- {path = test_file_short, text = 'a'},
+                -- {path = test_file_short, text = 'bc'},
+                -- {path = test_subfile_short, text = 'z'},
             },
             actual
         )
