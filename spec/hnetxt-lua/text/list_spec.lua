@@ -8,7 +8,24 @@ TODO test:
     - get_class
 - Parser:
 --]]
+local Path = require("hneutil.path")
+
 local List = require("hnetxt-lua.text.list")
+
+local test_dir = Path.joinpath(Path.tempdir(), "test-dir")
+local test_file = Path.joinpath(test_dir, "test-file.md")
+local test_hidden_file = Path.joinpath(test_dir, ".test-file.md")
+
+local test_subdir = Path.joinpath(test_dir, "test-subdir")
+local test_subfile = Path.joinpath(test_subdir, "test-subfile.md")
+
+before_each(function()
+    Path.rmdir(test_dir, true)
+end)
+
+after_each(function()
+    Path.rmdir(test_dir, true)
+end)
 
 describe("Line", function()
     describe(":new", function() 
@@ -168,6 +185,24 @@ describe("Parser", function()
         
             expected = List.ListLine.get_class("question")({text="text", line_number = 1})
             assert.are.same(expected, parser:parse_line("? text", 1))
+        end)
+    end)
+
+    describe("get instances", function()
+        it("basics", function()
+            Path.write(test_file, {"- abc", "    - 123"})
+            Path.write(test_subfile, {"x", "y", "- beta"})
+            local actual = List.Parser.get_instances("bullet", test_dir)
+
+            local test_file_short = Path.with_suffix(Path.relative_to(test_file, test_dir), ''):removeprefix('/')
+            local test_subfile_short = Path.with_suffix(Path.relative_to(test_subfile, test_dir), ''):removeprefix('/')
+            assert.are.same(
+                {
+                    [test_file_short] = {{line_number = 1, text = 'abc'}, {line_number = 2, text = '123'}},
+                    [test_subfile_short] = {{line_number = 3, text = 'beta'}},
+                },
+                actual
+            )
         end)
     end)
 end)

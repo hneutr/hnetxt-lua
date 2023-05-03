@@ -1,5 +1,8 @@
 table = require("hneutil.table")
 string = require("hneutil.string")
+io = require("hneutil.io")
+local Path = require("hneutil.path")
+
 local Object = require("hneutil.object")
 local Config = require("hnetxt-lua.config")
 
@@ -157,6 +160,31 @@ function Parser:parse(raw_lines)
 
     return self.lines
 end
+
+function Parser.get_instances(list_type, dir)
+    local config = Config.get("list").types[list_type]
+    local regex_sigil = config.sigil_regex or config.sigil
+    local command = [[rg --no-heading --hidden --line-number "^\s*]] .. regex_sigil .. [[\s+" ]] .. dir
+
+    local ListClass = ListLine.get_class(list_type)
+    local instances = {}
+    for _, result in ipairs(io.command(command):splitlines()) do
+        if result:len() > 0 then
+            local path, line_number, text = result:match("(.-)%.md%:(%d+)%:%s*(.*)")
+            path = Path.relative_to(path, dir)
+            text = ListClass.get_if_str_is_a(text).text
+
+            if not instances[path] then
+                instances[path] = {}
+            end
+
+            table.insert(instances[path], {line_number = tonumber(line_number), text = text})
+        end
+    end
+
+    return instances
+end
+
 
 return {
     Line = Line,
