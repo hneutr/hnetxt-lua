@@ -78,7 +78,7 @@ function Flag.from_str(str)
     return Flag(args)
 end
 
-function Flag.get_instances(flag_type, dir)
+function Flag.get_instances(flag_type, dir, as_str)
     local other_flag_regexes =  {}
     for name, info in pairs(Flag.types) do
         if name ~= flag_type then
@@ -96,7 +96,14 @@ function Flag.get_instances(flag_type, dir)
     for _, result in ipairs(io.command(command):splitlines()) do
         if result:len() > 0 then
             local path, text = result:match("(.-)%.md%:(.*)")
-            instances[#instances + 1] = Flag.clean_flagged_path(path, dir) .. ": " .. Flag.clean_flagged_str(text)
+            path = Flag.clean_flagged_path(path, dir)
+            text = Flag.clean_flagged_str(text)
+
+            if as_str then
+                table.insert(instances, string.format("%s: %s", path, text))
+            else
+                table.insert(instances, {path = path, text = text})
+            end
         end
     end
 
@@ -112,8 +119,8 @@ function Flag.clean_flagged_path(path, dir)
         path = Path.parent(path)
     end
 
-    path = Path.name(path)
-    path = path:gsub("%-", " ")
+    path = Path.with_suffix(path, '')
+    path = path:removeprefix('/')
     return path
 end
 

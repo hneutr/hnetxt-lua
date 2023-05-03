@@ -7,6 +7,7 @@ local Location = require("hnetxt-lua.text.location")
 
 local test_dir = Path.joinpath(Path.tempdir(), "test-dir")
 local test_file = Path.joinpath(test_dir, "test-file.md")
+local hidden_test_file = Path.joinpath(test_dir, ".test-file.md")
 
 local test_subdir = Path.joinpath(test_dir, "test-subdir")
 local test_subfile = Path.joinpath(test_subdir, "test-subfile.md")
@@ -181,6 +182,14 @@ describe("get_referenced_locations", function()
         Path.write(test_file, tostring(ref_1))
         assert.are.same(
             {[tostring(loc_1)] = {[test_file] = {1}}},
+            Reference.get_referenced_locations(test_dir)
+        )
+    end)
+
+    it("1 reference in a hidden file", function()
+        Path.write(hidden_test_file, tostring(ref_1))
+        assert.are.same(
+            {[tostring(loc_1)] = {[hidden_test_file] = {1}}},
             Reference.get_referenced_locations(test_dir)
         )
     end)

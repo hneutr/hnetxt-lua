@@ -60,16 +60,36 @@ describe("from_str", function()
 end)
 
 describe("get_instances", function()
-    it("works", function()
+    it("as_str", function()
+        Path.write(test_file, {"a |?*|", "no flags", "bc |*?|"})
+        Path.write(test_subfile, {"z |?|", "no flags", "x |*|"})
+        local actual = Flag.get_instances("question", test_dir, true)
+        table.sort(actual, function(a, b) return a:len() < b:len() end)
+
+        local test_file_short = Path.with_suffix(Path.relative_to(test_file, test_dir), ''):removeprefix('/')
+        local test_subfile_short = Path.with_suffix(Path.relative_to(test_subfile, test_dir), ''):removeprefix('/')
+        assert.are.same(
+            {
+                test_file_short .. ": a",
+                test_file_short .. ": bc",
+                test_subfile_short .. ": z"
+            },
+            actual
+        )
+    end)
+    it("basics", function()
         Path.write(test_file, {"a |?*|", "no flags", "bc |*?|"})
         Path.write(test_subfile, {"z |?|", "no flags", "x |*|"})
         local actual = Flag.get_instances("question", test_dir)
-        table.sort(actual, function(a, b) return a:len() < b:len() end)
+        table.sort(actual, function(a, b) return a.path < b.path end)
+
+        local test_file_short = Path.with_suffix(Path.relative_to(test_file, test_dir), ''):removeprefix('/')
+        local test_subfile_short = Path.with_suffix(Path.relative_to(test_subfile, test_dir), ''):removeprefix('/')
         assert.are.same(
             {
-                "test file: a",
-                "test file: bc",
-                "test subfile: z"
+                {path = test_file_short, text = 'a'},
+                {path = test_file_short, text = 'bc'},
+                {path = test_subfile_short, text = 'z'},
             },
             actual
         )
@@ -82,11 +102,7 @@ describe("clean_flagged_path", function()
     end)
 
     it("handles dir_file_stem", function()
-        assert.are.same("b", Flag.clean_flagged_path("/a/b/@"))
-    end)
-
-    it("removes -", function()
-        assert.are.same("b c", Flag.clean_flagged_path("/a/b-c"))
+        assert.are.same("b", Flag.clean_flagged_path("/a/b/@", "/a"))
     end)
 end)
 
