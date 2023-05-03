@@ -164,7 +164,7 @@ end
 function Parser.get_instances(list_type, dir)
     local config = Config.get("list").types[list_type]
     local regex_sigil = config.sigil_regex or config.sigil
-    local command = [[rg --no-heading --hidden --line-number "^\s*]] .. regex_sigil .. [[\s+" ]] .. dir
+    local command = [[rg --no-heading --line-number "^\s*]] .. regex_sigil .. [[\s+" ]] .. dir
 
     local ListClass = ListLine.get_class(list_type)
     local instances = {}
