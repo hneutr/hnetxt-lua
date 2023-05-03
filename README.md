@@ -10,16 +10,17 @@ This is intended to be the single location for code that deals with writing.
     - `mirror`:
       - `init.lua`
       - `config.lua`
-    - `operator.lua`
-    - `operation`:
-        - `file.lua`
-        - `dir.lua`
-        - `mark.lua`
+    - `move`:
+        - `operator.lua`
+        - `operation`:
+            - `file.lua`
+            - `dir.lua`
+            - `mark.lua`
   - `text`:
     - `link.lua`
     - `location.lua`
     - `mark.lua`
     - `reference.lua`
     - `flag.lua`
-  - `config.lua`: easy way to load hnetxt constants
+  - `config.lua`
   - `goals.lua`

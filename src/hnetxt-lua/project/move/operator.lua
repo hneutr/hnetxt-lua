@@ -137,10 +137,8 @@ function M.get_action(source, target)
     return nil
 end
 
-function M.operate(source, target, args)
+function M.operate(source, target)
     local action = M.get_action(source, target)
-
-    args = table.default(args, {process = false, update = true})
 
     local dir = Project.root_from_path(source)
 

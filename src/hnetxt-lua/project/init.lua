@@ -17,7 +17,6 @@ function Project:new(name)
     self.root = self.registry:get_entry_dir(self.name)
 
     self.metadata = yaml.read(self.get_metadata_path(self.root))
-    self.journal_dir = Path.joinpath(self.root, self.config.journal_dir)
 end
 
 function Project.get_metadata_path(dir)
@@ -72,17 +71,6 @@ function Project.root_from_path(path)
     local registry = Registry()
     local name = registry:get_entry_name(path)
     return registry:get_entry_dir(name)
-end
-
-function Project:get_journal_path(args)
-    args = table.default(args, {
-        year = os.date("%Y"),
-        month = os.date("%m"),
-    })
-    
-    local filename = args.year .. args.month .. ".md"
-
-    return Path.joinpath(self.journal_dir, filename)
 end
 
 return Project
