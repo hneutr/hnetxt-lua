@@ -1,9 +1,9 @@
-local Path = require("hneutil.path")
+local Path = require("hl.path")
 
-local Config = require("hnetxt-lua.config")
-local Mark = require("hnetxt-lua.text.mark")
-local Reference = require("hnetxt-lua.text.reference")
-local Location = require("hnetxt-lua.text.location")
+local Config = require("htl.config")
+local Mark = require("htl.text.mark")
+local Reference = require("htl.text.reference")
+local Location = require("htl.text.location")
 
 local test_dir = Path.joinpath(Path.tempdir(), "test-dir")
 local test_file = Path.joinpath(test_dir, "test-file.md")

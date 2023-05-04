@@ -1,12 +1,12 @@
 local stub = require('luassert.stub')
 
-local Path = require('hneutil.path')
+local Path = require('hl.path')
 
-local Project = require("hnetxt-lua.project")
-local Mirror = require("hnetxt-lua.project.mirror")
-local Operator = require("hnetxt-lua.project.move.operator")
+local Project = require("htl.project")
+local Mirror = require("htl.project.mirror")
+local Operator = require("htl.project.move.operator")
 
-local DirOperation = require("hnetxt-lua.project.move.operation.dir")
+local DirOperation = require("htl.project.move.operation.dir")
 
 local test_dir = Path.joinpath(Path.tempdir(), "test-dir")
 

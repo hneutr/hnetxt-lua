@@ -1,9 +1,9 @@
-table = require("hneutil.table")
-string = require("hneutil.string")
+table = require("hl.table")
+string = require("hl.string")
 
-local yaml = require("hneutil.yaml")
-local Object = require("hneutil.object")
-local Path = require("hneutil.path")
+local yaml = require("hl.yaml")
+local Object = require("hl.object")
+local Path = require("hl.path")
 
 local Config = Object:extend()
 Config.constants_dir = Path.joinpath(Path.home(), ".config/hnetxt/constants")

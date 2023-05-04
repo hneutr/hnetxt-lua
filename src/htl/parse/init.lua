@@ -1,10 +1,10 @@
-table = require("hneutil.table")
-local Object = require("hneutil.object")
-local Path = require("hneutil.path")
+table = require("hl.table")
+local Object = require("hl.object")
+local Path = require("hl.path")
 
-local Fold = require("hnetxt-lua.parse.fold")
-local Mark = require("hnetxt-lua.text.mark")
-local Header = require("hnetxt-lua.text.header")
+local Fold = require("htl.parse.fold")
+local Mark = require("htl.text.mark")
+local Header = require("htl.text.header")
 
 local Parser = Object:extend()
 

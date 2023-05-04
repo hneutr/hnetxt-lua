@@ -1,12 +1,12 @@
 local stub = require('luassert.stub')
 local mock = require("luassert.mock")
 
-local Path = require("hneutil.path")
-local Parser = require("hnetxt-lua.parse")
-local Fold = require("hnetxt-lua.parse.fold")
-local List = require("hnetxt-lua.text.list")
-local Header = require("hnetxt-lua.text.header")
-local Divider = require("hnetxt-lua.text.divider")
+local Path = require("hl.path")
+local Parser = require("htl.parse")
+local Fold = require("htl.parse.fold")
+local List = require("htl.text.list")
+local Header = require("htl.text.header")
+local Divider = require("htl.text.divider")
 
 local test_file_path = Path.joinpath(Path.tempdir(), "test-file.md")
 local other_test_file_path = Path.joinpath(Path.tempdir(), "test-file-2.md")

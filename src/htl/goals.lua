@@ -1,6 +1,6 @@
-local Path = require("hneutil.path")
+local Path = require("hl.path")
 
-local config = require("hnetxt-lua.config").get("goals")
+local config = require("htl.config").get("goals")
 config.template_file = Path.joinpath(config.dir, config.template_filename)
 
 function get_path(args)

@@ -1,13 +1,13 @@
-table = require("hneutil.table")
-string = require("hneutil.string")
-io = require("hneutil.io")
-local Object = require("hneutil.object")
-local Path = require("hneutil.path")
+table = require("hl.table")
+string = require("hl.string")
+io = require("hl.io")
+local Object = require("hl.object")
+local Path = require("hl.path")
 
-local Config = require("hnetxt-lua.config")
-local Link = require("hnetxt-lua.text.link")
-local Location = require("hnetxt-lua.text.location")
-local Project = require("hnetxt-lua.project")
+local Config = require("htl.config")
+local Link = require("htl.text.link")
+local Location = require("htl.text.location")
+local Project = require("htl.project")
 
 
 

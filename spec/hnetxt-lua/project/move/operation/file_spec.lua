@@ -5,16 +5,16 @@ TODO:
 ]]
 local stub = require('luassert.stub')
 
-local Path = require('hneutil.path')
+local Path = require('hl.path')
 
-local Project = require("hnetxt-lua.project")
+local Project = require("htl.project")
 
-local Operation = require("hnetxt-lua.project.move.operation")
-local Operator = require("hnetxt-lua.project.move.operator")
-local FileOperation = require("hnetxt-lua.project.move.operation.file")
-local Mirror = require("hnetxt-lua.project.mirror")
-local Header = require("hnetxt-lua.text.header")
-local Parser = require("hnetxt-lua.parse")
+local Operation = require("htl.project.move.operation")
+local Operator = require("htl.project.move.operator")
+local FileOperation = require("htl.project.move.operation.file")
+local Mirror = require("htl.project.mirror")
+local Header = require("htl.text.header")
+local Parser = require("htl.parse")
 
 local test_dir = Path.joinpath(Path.tempdir(), "test-dir")
 

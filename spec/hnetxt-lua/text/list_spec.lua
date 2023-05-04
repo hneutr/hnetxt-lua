@@ -8,9 +8,9 @@ TODO test:
     - get_class
 - Parser:
 --]]
-local Path = require("hneutil.path")
+local Path = require("hl.path")
 
-local List = require("hnetxt-lua.text.list")
+local List = require("htl.text.list")
 
 local test_dir = Path.joinpath(Path.tempdir(), "test-dir")
 local test_file = Path.joinpath(test_dir, "test-file.md")

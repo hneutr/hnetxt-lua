@@ -1,11 +1,11 @@
-local yaml = require("hneutil.yaml")
-local Object = require("hneutil.object")
-local Path = require("hneutil.path")
+local yaml = require("hl.yaml")
+local Object = require("hl.object")
+local Path = require("hl.path")
 
-table = require("hneutil.table")
-string = require("hneutil.string")
+table = require("hl.table")
+string = require("hl.string")
 
-local Config = require("hnetxt-lua.config")
+local Config = require("htl.config")
 
 local Registry = Object:extend()
 Registry.config = Config.get("project")

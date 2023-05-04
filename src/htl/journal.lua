@@ -1,9 +1,9 @@
-table = require("hneutil.table")
+table = require("hl.table")
 
-local Path = require("hneutil.path")
+local Path = require("hl.path")
 
-local Config = require("hnetxt-lua.config")
-local Project = require("hnetxt-lua.project")
+local Config = require("htl.config")
+local Project = require("htl.project")
 
 local config = Config.get("journal")
 

@@ -1,10 +1,10 @@
-table = require("hneutil.table")
-local Path = require('hneutil.path')
+table = require("hl.table")
+local Path = require('hl.path')
 
-local Parser = require("hnetxt-lua.parse")
-local Location = require("hnetxt-lua.text.location")
+local Parser = require("htl.parse")
+local Location = require("htl.text.location")
 
-local Operation = require('hnetxt-lua.project.move.operation')
+local Operation = require('htl.project.move.operation')
 
 --------------------------------------------------------------------------------
 --                               FileOperation                                --

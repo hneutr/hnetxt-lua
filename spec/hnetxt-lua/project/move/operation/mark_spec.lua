@@ -1,13 +1,13 @@
-table = require("hneutil.table")
+table = require("hl.table")
 
-local Path = require("hneutil.path")
-local Header = require("hnetxt-lua.text.header")
-local Parser = require("hnetxt-lua.parse")
-local Project = require("hnetxt-lua.project")
-local Mirror = require("hnetxt-lua.project.mirror")
-local Operator = require("hnetxt-lua.project.move.operator")
+local Path = require("hl.path")
+local Header = require("htl.text.header")
+local Parser = require("htl.parse")
+local Project = require("htl.project")
+local Mirror = require("htl.project.mirror")
+local Operator = require("htl.project.move.operator")
 
-local MarkOperation = require("hnetxt-lua.project.move.operation.mark")
+local MarkOperation = require("htl.project.move.operation.mark")
 
 local test_dir = Path.joinpath(Path.tempdir(), "test-dir")
 local test_file_one = Path.joinpath(test_dir, "test-file-1.md")

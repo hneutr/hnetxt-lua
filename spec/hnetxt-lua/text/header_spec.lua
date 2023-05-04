@@ -1,5 +1,5 @@
-local Header = require("hnetxt-lua.text.header")
-local Divider = require("hnetxt-lua.text.divider")
+local Header = require("htl.text.header")
+local Divider = require("htl.text.divider")
 
 describe("__tostring", function()
     it("small", function()

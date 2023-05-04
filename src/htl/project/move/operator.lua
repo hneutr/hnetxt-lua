@@ -1,13 +1,13 @@
-table = require("hneutil.table")
-local Object = require("hneutil.object")
+table = require("hl.table")
+local Object = require("hl.object")
 
-local Path = require("hneutil.path")
+local Path = require("hl.path")
 
-local Project = require("hnetxt-lua.project")
-local Operation = require("hnetxt-lua.project.move.operation")
-local FileOperation = require("hnetxt-lua.project.move.operation.file")
-local DirOperation = require("hnetxt-lua.project.move.operation.dir")
-local MarkOperation = require("hnetxt-lua.project.move.operation.mark")
+local Project = require("htl.project")
+local Operation = require("htl.project.move.operation")
+local FileOperation = require("htl.project.move.operation.file")
+local DirOperation = require("htl.project.move.operation.dir")
+local MarkOperation = require("htl.project.move.operation.mark")
 
 local M = {}
 

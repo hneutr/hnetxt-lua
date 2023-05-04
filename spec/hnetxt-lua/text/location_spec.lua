@@ -1,6 +1,6 @@
-local Path = require("hneutil.path")
-local Location = require("hnetxt-lua.text.location")
-local Mark = require("hnetxt-lua.text.mark")
+local Path = require("hl.path")
+local Location = require("htl.text.location")
+local Mark = require("htl.text.mark")
 
 local test_dir = Path.joinpath(Path.tempdir(), "test-dir")
 local test_file = Path.joinpath(test_dir, "test-file.md")

@@ -1,4 +1,4 @@
-local Config = require("hnetxt-lua.project.mirror.config")
+local Config = require("htl.project.mirror.config")
 
 local raw_category_configs = {
     sources = {

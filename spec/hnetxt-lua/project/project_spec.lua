@@ -1,9 +1,9 @@
-local Path = require("hneutil.path")
-local yaml = require("hneutil.yaml")
+local Path = require("hl.path")
+local yaml = require("hl.yaml")
 
-local Project = require("hnetxt-lua.project")
-local Registry = require("hnetxt-lua.project.registry")
-local Config = require("hnetxt-lua.config")
+local Project = require("htl.project")
+local Registry = require("htl.project.registry")
+local Config = require("htl.config")
 
 local test_project_data_dir = Path.joinpath(Path.tempdir(), "test-project-data-dir")
 local test_project_dir = Path.joinpath(Path.tempdir(), "test-project")

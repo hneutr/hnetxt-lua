@@ -1,9 +1,9 @@
-local Path = require("hneutil.path")
+local Path = require("hl.path")
 
-local Location = require("hnetxt-lua.text.location")
-local Parser = require("hnetxt-lua.parse")
+local Location = require("htl.text.location")
+local Parser = require("htl.parse")
 
-local Operation = require("hnetxt-lua.project.move.operation")
+local Operation = require("htl.project.move.operation")
 
 --------------------------------------------------------------------------------
 --                               MarkOperation                                --

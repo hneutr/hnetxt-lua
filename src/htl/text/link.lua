@@ -1,5 +1,5 @@
-local Object = require("hneutil.object")
-table = require("hneutil.table")
+local Object = require("hl.object")
+table = require("hl.table")
 
 --------------------------------------------------------------------------------
 --                                    Link                                     

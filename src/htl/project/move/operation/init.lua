@@ -1,11 +1,11 @@
-local Object = require("hneutil.object")
-local Config = require("hnetxt-lua.config")
-local Path = require('hneutil.path')
+local Object = require("hl.object")
+local Path = require('hl.path')
+local Config = require("htl.config")
 
-local Project = require("hnetxt-lua.project")
-local Mirror = require("hnetxt-lua.project.mirror")
-local Location = require("hnetxt-lua.text.location")
-local Reference = require("hnetxt-lua.text.reference")
+local Project = require("htl.project")
+local Mirror = require("htl.project.mirror")
+local Location = require("htl.text.location")
+local Reference = require("htl.text.reference")
 
 --------------------------------------------------------------------------------
 --                                 Operation                                  --

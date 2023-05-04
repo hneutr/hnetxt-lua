@@ -1,7 +1,7 @@
-table = require("hneutil.table")
+table = require("hl.table")
 
-local Object = require("hneutil.object")
-local Config = require("hnetxt-lua.config")
+local Object = require("hl.object")
+local Config = require("htl.config")
 
 local Divider = Object:extend()
 Divider.config = Config.get("divider")

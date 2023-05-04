@@ -1,6 +1,6 @@
-local Path = require('hneutil.path')
+local Path = require('hl.path')
 
-local Operation = require("hnetxt-lua.project.move.operation")
+local Operation = require("htl.project.move.operation")
 
 --------------------------------------------------------------------------------
 --                                DirOperation                                --

@@ -1,5 +1,5 @@
-local Path = require("hneutil.path")
-local Flag = require("hnetxt-lua.text.flag")
+local Path = require("hl.path")
+local Flag = require("htl.text.flag")
 
 local test_dir = Path.joinpath(Path.tempdir(), "test-dir")
 local test_file = Path.joinpath(test_dir, "test-file.md")

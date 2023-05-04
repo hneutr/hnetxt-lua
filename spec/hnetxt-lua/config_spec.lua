@@ -1,7 +1,7 @@
-local Path = require("hneutil.path")
-local yaml = require("hneutil.yaml")
+local Path = require("hl.path")
+local yaml = require("hl.yaml")
 
-local Config = require("hnetxt-lua.config")
+local Config = require("htl.config")
 
 describe("get", function()
     it("reads the right thing", function()

@@ -1,6 +1,6 @@
-local Path = require("hneutil.path")
+local Path = require("hl.path")
 
-local Mark = require("hnetxt-lua.text.mark")
+local Mark = require("htl.text.mark")
 
 describe("__tostring", function() 
     it("+", function()

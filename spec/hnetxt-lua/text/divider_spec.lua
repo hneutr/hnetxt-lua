@@ -1,4 +1,4 @@
-local Divider = require("hnetxt-lua.text.divider")
+local Divider = require("htl.text.divider")
 
 local dividers = {
     small = "----------------------------------------",

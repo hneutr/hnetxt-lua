@@ -1,7 +1,7 @@
-table = require("hneutil.table")
-local Path = require("hneutil.path")
-local Mirror = require("hnetxt-lua.project.mirror")
-local Project = require("hnetxt-lua.project")
+table = require("hl.table")
+local Path = require("hl.path")
+local Mirror = require("htl.project.mirror")
+local Project = require("htl.project")
 
 local project_root_from_path
 

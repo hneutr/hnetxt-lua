@@ -1,8 +1,8 @@
-local Fold = require("hnetxt-lua.parse.fold")
+local Fold = require("htl.parse.fold")
 
-local Divider = require("hnetxt-lua.text.divider")
-local Header = require("hnetxt-lua.text.header")
-local List = require("hnetxt-lua.text.list")
+local Divider = require("htl.text.divider")
+local Header = require("htl.text.header")
+local List = require("htl.text.list")
 
 describe("barrier_starts_fold", function()
     it("-: start of header", function()

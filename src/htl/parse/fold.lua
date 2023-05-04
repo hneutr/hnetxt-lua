@@ -1,11 +1,11 @@
-table = require("hneutil.table")
-local Object = require("hneutil.object")
+table = require("hl.table")
+local Object = require("hl.object")
 
-local Config = require("hnetxt-lua.config")
+local Config = require("htl.config")
 
-local Header = require("hnetxt-lua.text.header")
-local Divider = require("hnetxt-lua.text.divider")
-local List = require("hnetxt-lua.text.list")
+local Header = require("htl.text.header")
+local Divider = require("htl.text.divider")
+local List = require("htl.text.list")
 
 local Fold = Object:extend()
 

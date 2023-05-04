@@ -1,6 +1,6 @@
-local Path = require("hneutil.path")
-local Goals = require("hnetxt-lua.goals")
-local Config = require("hnetxt-lua.config")
+local Path = require("hl.path")
+local Goals = require("htl.goals")
+local Config = require("htl.config")
 
 describe("get_path", function()
     it("gets", function()

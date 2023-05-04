@@ -1,7 +1,7 @@
-table = require("hneutil.table")
-local Path = require("hneutil.path")
+table = require("hl.table")
+local Path = require("hl.path")
 
-local Config = require("hnetxt-lua.config")
+local Config = require("htl.config")
 
 local M = {}
 

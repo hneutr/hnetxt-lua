@@ -1,10 +1,11 @@
-table = require("hneutil.table")
-string = require("hneutil.string")
+table = require("hl.table")
+string = require("hl.string")
 
-local Object = require("hneutil.object")
-local Config = require("hnetxt-lua.config")
+local Object = require("hl.object")
 
-local Divider = require("hnetxt-lua.text.divider")
+local Config = require("htl.config")
+
+local Divider = require("htl.text.divider")
 
 local Header = Object:extend()
 Header.config = Config.get("header")

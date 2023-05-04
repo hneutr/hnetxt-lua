@@ -6,10 +6,10 @@ TODO:
 ]]
 local stub = require('luassert.stub')
 
-local Path = require("hneutil.path")
-local Mirror = require("hnetxt-lua.project.mirror")
+local Path = require("hl.path")
+local Mirror = require("htl.project.mirror")
 
-local Operation = require("hnetxt-lua.project.move.operation")
+local Operation = require("htl.project.move.operation")
 
 local test_dir = Path.joinpath(Path.tempdir(), "test-dir")
 local test_file = Path.joinpath(test_dir, "test-file.md")

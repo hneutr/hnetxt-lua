@@ -1,12 +1,12 @@
 local stub = require('luassert.stub')
-local Path = require("hneutil.path")
-local yaml = require("hneutil.yaml")
+local Path = require("hl.path")
+local yaml = require("hl.yaml")
 
-local Registry = require("hnetxt-lua.project.registry")
-local Project = require("hnetxt-lua.project")
-local config = require("hnetxt-lua.config").get("journal")
+local Registry = require("htl.project.registry")
+local Project = require("htl.project")
+local config = require("htl.config").get("journal")
 
-local Journal = require("hnetxt-lua.journal")
+local Journal = require("htl.journal")
 
 describe("get_path", function()
     it("no project", function()

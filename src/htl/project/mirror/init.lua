@@ -1,10 +1,10 @@
-table = require("hneutil.table")
-string = require("hneutil.string")
-local Path = require("hneutil.path")
-local Object = require("hneutil.object")
+table = require("hl.table")
+string = require("hl.string")
+local Path = require("hl.path")
+local Object = require("hl.object")
 
-local Project = require("hnetxt-lua.project")
-local Config = require("hnetxt-lua.project.mirror.config")
+local Project = require("htl.project")
+local Config = require("htl.project.mirror.config")
 
 local Mirror = Object:extend()
 Mirror.type_configs = Config.load()
