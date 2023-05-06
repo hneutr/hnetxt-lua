@@ -40,8 +40,7 @@ build = {
       ["htl.text.list"] = "src/htl/text/list.lua",
       ["htl.text.location"] = "src/htl/text/location.lua",
       ["htl.text.mark"] = "src/htl/text/mark.lua",
-      ["htl.text.reference"] = "src/htl/text/reference.lua",
-      setup = "src/setup.lua"
+      ["htl.text.reference"] = "src/htl/text/reference.lua"
    }
 }
 test = {
