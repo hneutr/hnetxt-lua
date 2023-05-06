@@ -89,7 +89,7 @@ describe("get_file_locations", function()
         Path.touch(test_subfile)
 
         local actual = Location.get_file_locations(test_dir)
-        table.sort(actual, function(a, b) return a.path:len() < b.path:len() end)
+        table.sort(actual, function(a, b) return #a.path < #b.path end)
 
         assert.are.same(
             {
@@ -131,7 +131,7 @@ describe("get_mark_locations", function()
         Path.write(test_subfile, {"not a mark", tostring(mark_b)})
 
         local actual = Location.get_mark_locations(test_dir)
-        table.sort(actual, function(a, b) return a.path:len() < b.path:len() end)
+        table.sort(actual, function(a, b) return #a.path < #b.path end)
 
         assert.are.same(
             {

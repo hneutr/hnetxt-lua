@@ -49,7 +49,7 @@ end
 -- line's level
 --------------------------------------------------------------------------------
 function Fold:set_line_level(index, lines, line_levels)
-    if 1 < index and self:barrier_ends_fold(index, lines) and lines[index - 1]:len() == 0 then
+    if 1 < index and self:barrier_ends_fold(index, lines) and #lines[index - 1] == 0 then
         line_levels[#line_levels] = self.level_stack[#self.level_stack]
     end
 
@@ -86,7 +86,7 @@ function Fold:set_current_fold(index, lines)
 
     local list_line_ends_fold = self:list_line_ends_fold(index, lines)
     if list_line_ends_fold then
-        self:end_indent_fold(list_line_ends_fold.indent:len())
+        self:end_indent_fold(#list_line_ends_fold.indent)
     end
 end
 
@@ -109,7 +109,7 @@ end
 
 function Fold:list_line_ends_fold(index, lines)
     local list_line = List.Line.get_if_str_is_a(lines[index], index)
-    if list_line.indent:len() <= self.indent_stack[#self.indent_stack] then
+    if #list_line.indent <= self.indent_stack[#self.indent_stack] then
         return list_line
     end
 
@@ -162,7 +162,7 @@ function Fold:set_subsequent_fold(index, lines)
 
     local list_line_starts_fold = self:list_line_starts_fold(index, lines)
     if list_line_starts_fold then
-        self:start_indent_fold(list_line_starts_fold.indent:len())
+        self:start_indent_fold(#list_line_starts_fold.indent)
     end
 end
 

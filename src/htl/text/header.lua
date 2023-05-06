@@ -21,7 +21,7 @@ function Header:new(args)
     -- self.highlight_key = self.size .. "HeaderStart" 
 
     self.content_type = type(self.content)
-    self.has_input = self.content_type == 'string' and self.content:len() == 0
+    self.has_input = self.content_type == 'string' and #self.content == 0
 
     if self.content_type == 'string' then
         self.content_value = self.content
@@ -36,7 +36,7 @@ end
 function Header:__tostring()
     local content = self.content_start
 
-    if self.content_value:len() > 0 then
+    if #self.content_value > 0 then
         content = content .. " " .. self.content_value
     end
 

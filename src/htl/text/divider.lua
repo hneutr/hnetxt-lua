@@ -20,7 +20,7 @@ end
 
 function Divider:__tostring()
     local str = self.start_string
-    return str .. string.rep(self.fill_char, self.width - (str:len()))
+    return str .. string.rep(self.fill_char, self.width - (#str))
 end
 
 function Divider:line_is_a(index, lines)

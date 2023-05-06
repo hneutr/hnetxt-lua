@@ -42,7 +42,7 @@ function Mark.str_is_a(str)
 
     local before, label, location, after = str:match(Link.regex)
 
-    if location:len() > 0 then
+    if #location > 0 then
         return false
     end
 
@@ -51,7 +51,7 @@ end
 
 function Mark.find(label, lines)
     for i, line in ipairs(lines) do
-        if line:len() > 0 then
+        if #line > 0 then
             if Mark.str_is_a(line) and Mark.from_str(line).label == label then
                 return i
             end

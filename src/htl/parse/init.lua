@@ -178,7 +178,7 @@ function Parser:add_mark_content(args)
         before, content, after = unpack(self:separate_mark_content(to_mark_location.label, lines))
     end
 
-    if #content == 0 and args.include_mark and to_mark_location.label:len() > 0 then
+    if #content == 0 and args.include_mark and #to_mark_location.label > 0 then
         content = tostring(Header({size = 'large', content = tostring(Mark({label = to_mark_location.label}))}))
     end
 
@@ -187,7 +187,7 @@ end
 
 function Parser.remove_empty_lines(lines, args)
     args = table.default(args, {head = true, tail = true})
-    local fn = function(l) while #l > 0 and l[#l]:len() == 0 do l[#l] = nil end return l end
+    local fn = function(l) while #l > 0 and #l[#l] == 0 do l[#l] = nil end return l end
 
     local from = args.from
 

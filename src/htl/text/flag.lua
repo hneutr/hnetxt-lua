@@ -54,7 +54,7 @@ function Flag.str_is_a(str)
             partial_location = partial_location:gsub(info.regex_symbol, '')
         end
 
-        if partial_location:len() == 0 then
+        if #partial_location == 0 then
             return true
         end
     end
@@ -94,7 +94,7 @@ function Flag.get_instances(flag_type, dir, as_str)
 
     local instances = {}
     for _, result in ipairs(io.command(command):splitlines()) do
-        if result:len() > 0 then
+        if #result > 0 then
             local path, text = result:match("(.-)%.md%:(.*)")
             path = Flag.clean_flagged_path(path, dir)
             text = Flag.clean_flagged_str(text)

@@ -81,7 +81,7 @@ describe("get_instances", function()
         Path.write(test_file, {"a |?*|", "no flags", "bc |*?|"})
         Path.write(test_subfile, {"z |?|", "no flags", "x |*|"})
         local actual = Flag.get_instances("question", test_dir, true)
-        table.sort(actual, function(a, b) return a:len() < b:len() end)
+        table.sort(actual, function(a, b) return #a < #b end)
 
         local test_file_short = Path.with_suffix(Path.relative_to(test_file, test_dir), ''):removeprefix('/')
         local test_subfile_short = Path.with_suffix(Path.relative_to(test_subfile, test_dir), ''):removeprefix('/')

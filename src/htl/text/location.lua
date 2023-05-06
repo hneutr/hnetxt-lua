@@ -31,7 +31,7 @@ end
 function Location:__tostring()
     local str = self.path
 
-    if self.label:len() > 0 then
+    if #self.label > 0 then
         str = str .. self.config.path_label_delimiter .. self.label
     end
 
@@ -58,7 +58,7 @@ function Location.from_str(str, args)
         path = str
     end
 
-    if args.relative_to:len() > 0 and not Path.is_relative_to(path, args.relative_to) then
+    if #args.relative_to > 0 and not Path.is_relative_to(path, args.relative_to) then
         path = Path.joinpath(args.relative_to, path)
     end
 
@@ -68,7 +68,7 @@ end
 function Location.get_file_locations(dir)
     local locations = {}
     for _, line in ipairs(io.command(Location.get_files_cmd .. dir):splitlines()) do
-        if line:len() > 0 then
+        if #line > 0 then
             locations[#locations + 1] = Location({path = line})
         end
     end
@@ -78,7 +78,7 @@ end
 function Location.get_mark_locations(dir)
     local locations = {}
     for _, line in pairs(io.command(Location.get_mark_locations_cmd .. dir):splitlines()) do
-        if line:len() > 0 then
+        if #line > 0 then
             local path, mark_str = line:match("(.-):(.*)")
             local mark = Mark.from_str(mark_str)
             locations[#locations + 1] = Location({path = path, label = mark.label})
@@ -93,7 +93,7 @@ function Location.get_all_locations(dir, args)
 
     local locations = table.list_extend(Location.get_file_locations(dir), Location.get_mark_locations(dir))
 
-    table.sort(locations, function(a, b) return tostring(a):len() < tostring(b):len() end)
+    table.sort(locations, function(a, b) return #tostring(a) < #tostring(b) end)
 
     for i, location in ipairs(locations) do
         if args.relative_to_dir then

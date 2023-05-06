@@ -169,7 +169,7 @@ function Parser.get_instances(list_type, dir)
     local ListClass = ListLine.get_class(list_type)
     local instances = {}
     for _, result in ipairs(io.command(command):splitlines()) do
-        if result:len() > 0 then
+        if #result > 0 then
             local path, line_number, text = result:match("(.-)%.md%:(%d+)%:%s*(.*)")
             path = Path.relative_to(path, dir)
             text = ListClass.get_if_str_is_a(text).text

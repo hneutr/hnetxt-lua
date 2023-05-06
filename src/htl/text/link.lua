@@ -46,11 +46,11 @@ function Link.get_nearest(str, position)
         if Link.str_is_a(str) then
             local link = Link.from_str(str)
 
-            _start = _end + link.before:len()
+            _start = _end + #link.before
             start_to_link[_start] = link
             starts[#starts + 1] = _start
 
-            _end = _start + tostring(link):len() + 1
+            _end = _start + #tostring(link) + 1
             end_to_link[_end] = link
             ends[#ends + 1] = _end
 

@@ -36,8 +36,8 @@ function Reference:new(args)
 end
 
 function Reference.default_label(label, location)
-    if label:len() == 0 then
-        if location.label:len() > 0 then
+    if #label == 0 then
+        if #location.label > 0 then
             label = location.label
         else
             label = Path.stem(location.path)
@@ -73,7 +73,7 @@ function Reference.get_referenced_mark_locations(dir)
             local reference = Reference.from_str(line)
 
             if not reference.location.path:startswith("http") then
-                if reference.location.label:len() > 0 then
+                if #reference.location.label > 0 then
                     local location_str = tostring(reference.location)
 
                     if not locations[location_str] then
@@ -104,7 +104,7 @@ end
 function Reference.get_referenced_locations(dir)
     local references_by_location = {}
     for _, line in ipairs(io.command(Reference.get_references_cmd .. dir):splitlines()) do
-        if line:len() > 0 then
+        if #line > 0 then
             local path, line_number, ref_str = unpack(line:split(":", 2))
 
             if not Path.is_relative_to(path, dir) then
@@ -137,9 +137,9 @@ end
 -- takes a dict of location changes in format: {old = new}
 --
 -- for each location change, updates references to those locations:
---      - if `old` is a mark (ie old.label:len() > 0) then:
+--      - if `old` is a mark (ie #old.label > 0) then:
 --          - point old references → new
---      - if `old` is a file (ie old.label:len() == 0):
+--      - if `old` is a file (ie #old.label == 0):
 --          - point old references → new
 --          - point references to marks in old → new
 --------------------------------------------------------------------------------
@@ -159,7 +159,7 @@ function Reference.update_locations(location_changes, dir)
     local old_locations = table.keys(relative_location_changes)
 
     -- sort from longest to shortest so that file updates don't "clobber" mark updates
-    table.sort(old_locations, function(a, b) return a:len() > b:len() end)
+    table.sort(old_locations, function(a, b) return #a > #b end)
 
     local content_updates = {}
     local references_by_location = Reference.get_referenced_locations(dir)

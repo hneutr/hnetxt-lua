@@ -103,7 +103,7 @@ describe("get_referenced_mark_locations", function()
 
         Path.write(test_file, {tostring(ref_1), "non-reference", tostring(ref_2)})
         local actual = Reference.get_referenced_mark_locations(test_dir)
-        table.sort(actual, function(a, b) return a.path:len() < b.path:len() end)
+        table.sort(actual, function(a, b) return #a.path < #b.path end)
 
         assert.are.same(
             {
@@ -122,7 +122,7 @@ describe("get_referenced_mark_locations", function()
 
         Path.write(test_file, "1 " .. tostring(ref_1) .. " 2 " .. tostring(ref_2) .. " 3")
         local actual = Reference.get_referenced_mark_locations(test_dir)
-        table.sort(actual, function(a, b) return a.path:len() < b.path:len() end)
+        table.sort(actual, function(a, b) return #a.path < #b.path end)
 
         assert.are.same(
             {
@@ -143,7 +143,7 @@ describe("get_referenced_mark_locations", function()
         Path.write(test_subfile, {"not a reference", tostring(ref_2)})
 
         local actual = Reference.get_referenced_mark_locations(test_dir)
-        table.sort(actual, function(a, b) return a.path:len() < b.path:len() end)
+        table.sort(actual, function(a, b) return #a.path < #b.path end)
 
         assert.are.same(
             {
