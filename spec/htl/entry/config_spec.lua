@@ -59,7 +59,7 @@ describe("EntryConfig", function()
 end)
 
 describe("PromptEntryConfig", function()
-    local fields = {selected = false, date = {type = "date"}}
+    local fields = {pinned = false, date = {type = "date"}}
     local entries = {}
     describe("new", function()
         it("no response_dir, no response_entry", function()
@@ -269,7 +269,7 @@ describe("Config", function()
                     prompt_dir = "reflections/prompts",
                     fields = {
                         date = {type = 'date'},
-                        selected = {type = "bool", default = false},
+                        pinned = {type = "bool", default = false},
                     },
                 },
                 questions = {
@@ -286,7 +286,7 @@ describe("Config", function()
                     prompt_dir = "questions",
                     fields = {
                         date = {type = 'date'},
-                        selected = {type = "bool", default = false},
+                        pinned = {type = "bool", default = false},
                     },
                 }
             }

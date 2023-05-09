@@ -97,10 +97,10 @@ ResponseEntryConfig.keys = {
 }
 
 function ResponseEntryConfig:new(name, config, parent_fields)
-    config = table.default(config, {fields = {selected = false, date = {type = "date"}}})
+    config = table.default(config, {fields = {pinned = false, date = {type = "date"}}})
     self.super.new(self, name, config, parent_fields)
 
-    self.fields = {selected = self.fields.selected, date = self.fields.date}
+    self.fields = {pinned = self.fields.pinned, date = self.fields.date}
 
     self.prompt_dir = self.config.prompt_dir
 end
@@ -110,7 +110,7 @@ function ResponseEntryConfig.get_entry_config(prompt_dir)
         type = 'response',
         prompt_dir = prompt_dir,
         entries = {},
-        fields = {selected = false, date = {type = "date"}},
+        fields = {pinned = false, date = {type = "date"}},
     }
 end
 

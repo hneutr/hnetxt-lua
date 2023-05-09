@@ -184,7 +184,7 @@ describe("PromptSet", function()
     describe("response", function()
         it("all", function()
             Yaml.write_document(test_response_1_1, {a = 1}, {"b"})
-            Yaml.write_document(test_response_1_2, {selected = true}, {"c"})
+            Yaml.write_document(test_response_1_2, {pinned = true}, {"c"})
 
             local expected = {test_response_1_1, test_response_1_2}
             local actual = set_config.entry_sets['prompts']:response(test_prompt_1, true)
@@ -196,9 +196,9 @@ describe("PromptSet", function()
 
         it("!all", function()
             Yaml.write_document(test_response_1_1, {a = 1}, {"b"})
-            Yaml.write_document(test_response_1_2, {selected = true}, {"c"})
+            Yaml.write_document(test_response_1_2, {pinned = true}, {"c"})
 
-            assert.are.same(test_response_1_2, set_config.entry_sets['prompts']:response(test_prompt_1))
+            assert.are.same({test_response_1_2}, set_config.entry_sets['prompts']:response(test_prompt_1))
         end)
     end)
 
@@ -207,7 +207,7 @@ describe("PromptSet", function()
             local path = set_config.entry_sets['prompts']:respond(test_prompt_1)
             assert.are.same(test_response_1_2, path)
             assert.are.same(
-                {date = os.date("%Y%m%d"), selected = false},
+                {date = os.date("%Y%m%d"), pinned = false},
                 set_config.entry_sets['prompts/responses']:get_metadata(path)
             )
         end)
@@ -234,6 +234,13 @@ describe("ResponseSet", function()
                 set_config.entry_sets["prompts/responses"]:get_prompt_set()
             )
         end)
+    end)
+
+    describe("path", function()
+        it("works", function()
+
+        end)
+
     end)
 end)
 

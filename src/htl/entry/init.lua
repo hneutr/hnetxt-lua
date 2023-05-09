@@ -1,3 +1,21 @@
+--[[
+Current process:
+1. parse each entry's config
+2. take those configs and make EntrySets
+
+this is annoying because I have separated code for parsing an EntrySet config and for the EntrySet
+
+better way to do it:
+1. make a EntryConfig object
+2. parse each each entry's config and it the EntryConfig object. 
+    - have it add itself to the EntryConfig object
+    - have it add any subentries to the EntryConfig object too
+
+also TODO:
+- have set_metadata use the field type definition to add/remove items from lists
+
+--]]
+
 string = require("hl.string")
 local Path = require("hl.path")
 local Yaml = require("hl.yaml")
@@ -96,21 +114,20 @@ end
 
 function PromptSet:response(path, all)
     local responses = self:responses(path)
-    local selected_response
+    local pinned_responses = {}
 
     for _, response in ipairs(responses) do
         local metadata = self:get_metadata(response)
-        if metadata.selected then
-            selected_response = response
-            break
+        if metadata.pinned then
+            table.insert(pinned_responses, response)
         end
     end
 
-    if not selected_response or all then
+    if #pinned_responses == 0 or all then
         return responses
     end
 
-    return selected_response
+    return pinned_responses
 end
 
 function PromptSet:respond(path)
@@ -133,6 +150,17 @@ ResponseSet.iterdir_args = {recursive = true, dirs = false}
 
 function ResponseSet:get_prompt_set()
     return self.set_config.entry_sets[self.prompt_dir]
+end
+
+function ResponseSet:path(path, date)
+    date = date or os.date("%Y%m%d")
+
+    return Path.joinpath(
+        self.set_config.project_root,
+        self.name,
+        Path.stem(path),
+        date .. ".md"
+    )
 end
 
 --------------------------------------------------------------------------------
@@ -159,10 +187,10 @@ ListSet.iterdir_args = {recursive = true, dirs = false}
 -- function PromptEntry:respond(args)
 -- end
 
--- function ResponseEntry:select(args)
+-- function ResponseEntry:pin(args)
 -- end
 
--- function ResponseEntry:unselect(args)
+-- function ResponseEntry:unpin(args)
 -- end
 
 -- function ResponseEntry:paths(args)
