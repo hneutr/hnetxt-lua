@@ -1,5 +1,26 @@
 local Path = require("hl.path")
+local Fields = require("htl.project.notes.fields")
 local PromptEntry = require("htl.project.notes.entry.prompt")
+local ResponseEntry = require("htl.project.notes.entry.response")
+
+local key = "prompts"
+local response_key = Path.joinpath(key, "responses")
+
+local test_project_root = Path.joinpath(Path.tempdir(), "test-project-root")
+
+local test_prompt_dir = Path.joinpath(test_project_root, key)
+local test_prompt = Path.joinpath(test_prompt_dir, 'p1.md')
+
+local test_response_dir = Path.joinpath(test_project_root, response_key)
+local test_response = Path.joinpath(test_response_dir, 'p1', os.date("%Y%m%d") .. ".md")
+
+before_each(function()
+    Path.rmdir(test_project_root, true)
+end)
+
+after_each(function()
+    Path.rmdir(test_project_root, true)
+end)
 
 describe("get_response_key", function()
     it("nothing", function()
@@ -62,11 +83,25 @@ describe("response_entry_set", function()
     it("works", function()
         assert.are.same(
             "b",
-            PromptEntry(key, {response_key = "a"}, {a = "b"}, test_project_root):response_entry_set()
+            PromptEntry(key, {response_key = "a"}, {a = "b"}, test_project_root).response_entry_set
         )
     end)
 end)
 
+describe("respond", function()
+    it("works", function()
+        local response_config = ResponseEntry.get_entry(prompt_key)
+        response_config.fields = Fields.format(response_config.fields)
+        local response = ResponseEntry(response_key, response_config, {}, test_project_root)
+        local prompt = PromptEntry(key, {response_key = response_key}, {[response_key] = response}, test_project_root)
+
+        assert.are.same(test_response, prompt:respond(test_prompt))
+        assert.are.same(
+            {date = os.date("%Y%m%d"), pinned = false},
+            response:get_metadata(test_response)
+        )
+    end)
+end)
 -- describe("responses", function()
 --     it("works", function()
 --         local input_to_expected = {
@@ -100,16 +135,5 @@ end)
 --         Yaml.write_document(test_response_1_2, {pinned = true}, {"c"})
 
 --         assert.are.same({test_response_1_2}, set_config.entry_sets['prompts']:response(test_prompt_1))
---     end)
--- end)
-
--- describe("respond", function()
---     it("works", function()
---         local path = set_config.entry_sets['prompts']:respond(test_prompt_1)
---         assert.are.same(test_response_1_2, path)
---         assert.are.same(
---             {date = os.date("%Y%m%d"), pinned = false},
---             set_config.entry_sets['prompts/responses']:get_metadata(path)
---         )
 --     end)
 -- end)

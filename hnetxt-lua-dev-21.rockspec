@@ -41,23 +41,13 @@ build = {
       ["htl.text.location"] = "src/htl/text/location.lua",
       ["htl.text.mark"] = "src/htl/text/mark.lua",
       ["htl.text.reference"] = "src/htl/text/reference.lua",
-      -- outdated
-      ["htl.entry"] = "src/htl/entry/init.lua",
-      ["htl.entry.config"] = "src/htl/entry/config.lua",
-      ["htl.entry.field"] = "src/htl/entry/field.lua",
-      -- TESTING
-
       ["htl.project.notes"] = "src/htl/project/notes/init.lua",
-
       ["htl.project.notes.entries"] = "src/htl/project/notes/entries.lua",
-
       ["htl.project.notes.entry"] = "src/htl/project/notes/entry/init.lua",
       ["htl.project.notes.entry.response"] = "src/htl/project/notes/entry/response.lua",
       ["htl.project.notes.entry.prompt"] = "src/htl/project/notes/entry/prompt.lua",
       ["htl.project.notes.entry.list"] = "src/htl/project/notes/entry/list.lua",
-
       ["htl.project.notes.fields"] = "src/htl/project/notes/fields.lua",
-
       ["htl.project.notes.field"] = "src/htl/project/notes/field/init.lua",
       ["htl.project.notes.field.bool"] = "src/htl/project/notes/field/bool.lua",
       ["htl.project.notes.field.date"] = "src/htl/project/notes/field/date.lua",

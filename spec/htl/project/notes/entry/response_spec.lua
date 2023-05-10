@@ -69,7 +69,7 @@ describe("response_entry_set", function()
     it("works", function()
         assert.are.same(
             "b",
-            ResponseEntry(key, {prompt_key = "a"}, {a = "b"}, test_project_root):prompt_entry_set()
+            ResponseEntry(key, {prompt_key = "a"}, {a = "b"}, test_project_root).prompt_entry_set
         )
     end)
 end)

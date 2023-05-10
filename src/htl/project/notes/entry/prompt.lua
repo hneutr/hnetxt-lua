@@ -41,6 +41,11 @@ function PromptEntry.format(entries, key, entry)
     return entries
 end
 
+function PromptEntry:new(...)
+    self.super.new(self, ...)
+    self.response_entry_set = self.entry_sets[self.response_key]
+end
+
 function PromptEntry:reopen(path)
     self:set_metadata(path, {open = true})
 end
@@ -49,8 +54,10 @@ function PromptEntry:close(path)
     self:set_metadata(path, {open = false})
 end
 
-function PromptEntry:response_entry_set()
-    return self.entry_sets[self.response_key]
+function PromptEntry:respond(path)
+    path = self.response_entry_set:path(path)
+    self.response_entry_set:new_entry(path)
+    return path
 end
 
 -- function PromptEntry:responses(path)
@@ -82,18 +89,6 @@ end
 --     end
 
 --     return pinned_responses
--- end
-
--- function PromptEntry:respond(path)
---     local path = Path.joinpath(
---         self.set_config.project_root,
---         self.response_dir,
---         Path.stem(path),
---         os.date("%Y%m%d") .. ".md"
---     )
-
---     self.set_config.entry_sets[self.response_dir]:new_entry(path)
---     return path
 -- end
 
 return PromptEntry

@@ -15,8 +15,9 @@ function ResponseEntry.get_entry(prompt_key)
     }
 end
 
-function ResponseEntry:prompt_entry_set()
-    return self.entry_sets[self.prompt_key]
+function ResponseEntry:new(...)
+    self.super.new(self, ...)
+    self.prompt_entry_set = self.entry_sets[self.prompt_key]
 end
 
 function ResponseEntry:path(path, date)
