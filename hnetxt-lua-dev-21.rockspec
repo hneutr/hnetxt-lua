@@ -43,7 +43,16 @@ build = {
       ["htl.text.reference"] = "src/htl/text/reference.lua",
       ["htl.entry"] = "src/htl/entry/init.lua",
       ["htl.entry.config"] = "src/htl/entry/config.lua",
-      ["htl.entry.field"] = "src/htl/entry/field.lua"
+      ["htl.entry.field"] = "src/htl/entry/field.lua",
+      -- TESTING
+      ["htl.project.entry"] = "src/htl/project/entry/init.lua",
+      ["htl.project.entry.field"] = "src/htl/project/entry/field/init.lua",
+      ["htl.project.entry.field.bool"] = "src/htl/project/entry/field/bool.lua",
+      ["htl.project.entry.field.list"] = "src/htl/project/entry/field/list.lua",
+      ["htl.project.entry.field.date"] = "src/htl/project/entry/field/date.lua",
+      ["htl.project.entry.fields"] = "src/htl/project/entry/fields.lua",
+      ["htl.project.entry.registry"] = "src/htl/project/entry/registry.lua",
+      ["htl.project.entry.entries"] = "src/htl/project/entry/entries.lua",
    }
 }
 test = {

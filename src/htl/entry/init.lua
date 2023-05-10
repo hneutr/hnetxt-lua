@@ -11,10 +11,11 @@ better way to do it:
     - have it add itself to the EntryConfig object
     - have it add any subentries to the EntryConfig object too
 
-also TODO:
-- have set_metadata use the field type definition to add/remove items from lists
+TODO: have set_metadata use the field type definition to add/remove items from lists
+TODO: figure out how you're going to actually use Lists
 
 --]]
+
 
 string = require("hl.string")
 local Path = require("hl.path")
