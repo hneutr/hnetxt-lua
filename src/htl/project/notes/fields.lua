@@ -1,9 +1,7 @@
-local Object = require("hl.object")
-
-local Field = require("htl.project.entry.field")
-local BoolField = require("htl.project.entry.field.bool")
-local ListField = require("htl.project.entry.field.list")
-local DateField = require("htl.project.entry.field.date")
+local Field = require("htl.project.notes.field")
+local BoolField = require("htl.project.notes.field.bool")
+local ListField = require("htl.project.notes.field.list")
+local DateField = require("htl.project.notes.field.date")
 
 local Fields = {}
 
@@ -49,8 +47,8 @@ end
 
 function Fields.get(args_by_key)
     local fields = {}
-    for key, args in pairs(args_by_key) do
-        fields[field] = Fields.get_field_class(args)(key, args)
+    for key, args in pairs(args_by_key or {}) do
+        fields[key] = Fields.get_field_class(args)(key, args)
     end
     return fields
 end

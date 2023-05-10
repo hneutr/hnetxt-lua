@@ -1,7 +1,5 @@
-local stub = require('luassert.stub')
-
-local Fields = require("htl.project.entry.fields")
-local Field = require("htl.project.entry.field")
+local Fields = require("htl.project.notes.fields")
+local Field = require("htl.project.notes.field")
 
 local field_format
 

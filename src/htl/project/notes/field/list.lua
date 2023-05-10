@@ -1,4 +1,4 @@
-local Field = require("htl.project.entry.field")
+local Field = require("htl.project.notes.field")
 
 local ListField = Field:extend()
 ListField.type = 'list'

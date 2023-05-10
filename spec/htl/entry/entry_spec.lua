@@ -257,19 +257,3 @@ describe("ListSet", function()
         end)
     end)
 end)
-
--- describe("EntrySet")
-
--- describe("new", function()
---     it("works", function()
---         local metadata = {a = 1, b = 2}
---         local text = "test\ncontent"
-
---         Yaml.write_document(test_entry_path, metadata, text)
-
---         local entry = Entry(test_entry_path)
---         assert.are.same(test_entry_path, entry.path)
---         assert.are.same(metadata, entry.metadata)
---         assert.are.same(text, entry.text)
---     end)
--- end)

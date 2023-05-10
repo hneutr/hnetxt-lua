@@ -1,4 +1,4 @@
-local BoolField = require("htl.project.entry.field.bool")
+local BoolField = require("htl.project.notes.field.bool")
 
 describe("new", function()
     it("works", function()

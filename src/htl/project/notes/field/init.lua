@@ -13,7 +13,7 @@ function Field:new(key, args)
 end
 
 function Field:in_values(value)
-    return #self.values == 0 or table.list_contains(self.values, value)
+    return self.values == nil or #self.values == 0 or table.list_contains(self.values, value)
 end
 
 function Field:get(metadata)
