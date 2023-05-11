@@ -1,136 +1,42 @@
+local stub = require('luassert.stub')
+local Path = require("hl.path")
+
+local Project = require("htl.project")
+local Registry = require("htl.project.registry")
+local Config = require("htl.config")
+
 local Notes = require("htl.project.notes")
 
--- describe("add_entries", function()
---     local date = {type = "date"}
+local test_data_dir = Path.joinpath(Path.tempdir(), "test-project-data-dir")
+local test_project_config = table.default({data_dir = test_data_dir}, Config.get('project'))
+local test_project_dir = Path.joinpath(Path.tempdir(), "test-project")
+local test_project_name = "test-project"
+local registry
 
---     it("one entry", function()
---         local config = {type = 'entry', entries = {}}
---         local fields = {}
---         assert.are.same(
---             {a = {type = 'entry', fields = {date = date}}},
---             Config.thin_entries(Config.add_entries("a", config, fields))
---         )
---     end)
+-- function setup_project()
+--     registry = Registry()
+--     Project.create(test_project_name, test_project_dir)
+-- end
 
---     it("with subentry", function()
---         local b = {type = 'entry', entries = {}}
---         local a = {type = 'entry', entries = {b = b}}
---         local fields = {}
---         assert.are.same(
---             {
---                 a = {type = 'entry', fields = {date = date}},
---                 ["a/b"] = {type = 'entry', fields = {date = date}},
---             },
---             Config.thin_entries(Config.add_entries("a", a, fields))
---         )
---     end)
+-- before_each(function()
+--     Path.rmdir(test_data_dir, true)
+--     stub(Config, 'get')
+--     Config.get.on_call_with('project').returns(test_project_config)
 
---     it("with fields", function()
---         local b = {type = 'entry', entries = {}}
---         local a = {type = 'entry', entries = {b = b}, fields = {test1 = true}}
---         local fields = {test2 = false}
---         local out_fields = {
---             date = date,
---             test1 = {type = 'bool', default = true},
---             test2 = {type = 'bool', default = false},
---         }
---         assert.are.same(
---             {
---                 a = {type = 'entry', fields = out_fields},
---                 ["a/b"] = {type = 'entry', fields = out_fields},
---             },
---             Config.thin_entries(Config.add_entries("a", a, fields))
---         )
---     end)
+--     Registry.config = Config.get("project")
 -- end)
 
--- describe("get_project_entries", function()
---     it("works", function()
---         local topics = {"1, 2, 3"}
---         local questions = {type = "prompt", response_entry = "answers"}
---         local unknown = {type = 'list', fields = {"author", "work"}}
---         local prompts = {type = "prompt", response_dir = "../reflections"}
-
---         local project_config = {
---             fields = {topic = topics},
---             entries = {
---                 words = {
---                     entries = {"cool", unknown = unknown},
---                 },
---                 reflections = {
---                     fields = {'topic'},
---                     entries = {prompts = prompts},
---                 },
---                 questions = questions,
---             },
---         }
-
---         local expected = {
---             words = {
---                 type = "entry",
---                 fields = {
---                     date = {type = 'date'},
---                     topic = {type = "field", values = topics},
---                 },
---             },
---             ["words/cool"] = {
---                 type = "entry",
---                 fields = {
---                     date = {type = 'date'},
---                     topic = {type = "field", values = topics},
---                 },
---             },
---             ["words/unknown"] = {
---                 type = "list",
---                 fields = {
---                     date = {type = 'date'},
---                     topic = {type = "field", values = topics},
---                     author = {type = "field"},
---                     work = {type = "field"},
---                 },
---             },
---             reflections = {
---                 type = "entry",
---                 fields = {
---                     date = {type = 'date'},
---                     topic = {type = "field"},
---                 },
---             },
---             ["reflections/prompts"] = {
---                 type = "prompt",
---                 response_dir = "reflections/responses",
---                 fields = {
---                     date = {type = 'date'},
---                     topic = {type = "field"},
---                     open = {type = "bool", default = true},
---                 },
---             },
---             ["reflections/responses"] = {
---                 type = "response",
---                 prompt_dir = "reflections/prompts",
---                 fields = {
---                     date = {type = 'date'},
---                     pinned = {type = "bool", default = false},
---                 },
---             },
---             questions = {
---                 type = "prompt",
---                 response_dir = "questions/answers",
---                 fields = {
---                     date = {type = 'date'},
---                     topic = {type = "field", values = topics},
---                     open = {type = "bool", default = true},
---                 },
---             },
---             ["questions/answers"] = {
---                 type = "response",
---                 prompt_dir = "questions",
---                 fields = {
---                     date = {type = 'date'},
---                     pinned = {type = "bool", default = false},
---                 },
---             }
---         }
---         assert.are.same(expected, Config.get_project_entries(project_config))
---     end)
+-- after_each(function()
+--     Config.get:revert()
+--     Path.rmdir(test_data_dir, true)
+--     Registry.config = Config.get("project")
 -- end)
+
+describe("new from_project_name", function()
+    -- it("works", function()
+    --     local registry = Notes.from_project_name("on-writing")
+    --     print(require("inspect")(registry.entry_sets))
+    -- end)
+
+
+end)

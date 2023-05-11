@@ -6,9 +6,14 @@ local Entries = require("htl.project.notes.entries")
 
 local Registry = Object:extend()
 
+function Registry.from_project_name(name)
+    local project = Project(name)
+    return Registry(project.metadata.notes, project.root)
+end
+
 function Registry.from_path(path)
     local project = Project.from_path(path)
-    return Registry(project.metadata.entries, project.root)
+    return Registry(project.metadata.notes, project.root)
 end
 
 function Registry:new(config, root)
