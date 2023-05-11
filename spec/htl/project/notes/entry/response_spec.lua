@@ -1,5 +1,6 @@
 table = require("hl.table")
 local Path = require("hl.path")
+local Yaml = require("hl.yaml")
 
 local Fields = require("htl.project.notes.fields")
 local ResponseEntry = require("htl.project.notes.entry.response")
@@ -142,12 +143,56 @@ describe("prompt_for_path", function()
     end)
 end)
 
-describe("set_metadata", function()
-    it("moves entry", function()
+describe("move", function()
+    it("moves dated entry", function()
         setup_entry_sets()
 
-        local old_date = Path.stem(test_response_1_1)
         local old_response = test_response_1_1
+        local old_date = Path.stem(old_response)
+        local new_date = 19932001
+        local new_response = Path.with_stem(old_response, new_date)
+
+        response:new_entry(old_response, {date = old_date})
+
+        assert(Path.exists(old_response))
+        assert.are.same(old_date, response:get_metadata(old_response).date)
+        assert.falsy(Path.exists(new_response))
+
+        response:move(old_response, new_response)
+
+        assert.falsy(Path.exists(old_response))
+        assert.are.same(new_date, response:get_metadata(new_response).date)
+        assert(Path.exists(new_response))
+    end)
+
+    it("doesn't move non-date entry", function()
+        setup_entry_sets()
+
+        local old_response = Path.joinpath(test_response_1_dir, 'old-response.md')
+        local new_response = Path.with_stem(old_response, 'new-response')
+
+        local date = os.date("%Y%m%d")
+
+        Yaml.write_document(old_response, {date = date}, {""})
+
+        assert(Path.exists(old_response))
+        assert.are.same(date, response:get_metadata(old_response).date)
+        assert.falsy(Path.exists(new_response))
+
+        response:move(old_response, new_response)
+
+        assert.falsy(Path.exists(old_response))
+        assert.are.same(date, response:get_metadata(new_response).date)
+        assert(Path.exists(new_response))
+    end)
+end)
+
+describe("set_metadata", function()
+    it("moves date-named entry", function()
+        setup_entry_sets()
+
+        local old_response = test_response_1_1
+        local old_date = Path.stem(old_response)
         local new_date = "19932001"
         local new_response = Path.with_stem(old_response, new_date)
 
@@ -163,27 +208,23 @@ describe("set_metadata", function()
         assert.are.same(new_date, response:get_metadata(new_response).date)
         assert(Path.exists(new_response))
     end)
-end)
 
-describe("move", function()
-    it("works", function()
+    it("doesn't move a named file", function()
         setup_entry_sets()
 
-        local old_response = test_response_1_1
-        local old_date = Path.stem(old_response)
+        local response_path = Path.joinpath(test_response_1_dir, 'response.md')
+
+        local old_date = os.date("%Y%m%d")
         local new_date = "19932001"
-        local new_response = Path.with_stem(old_response, new_date)
 
-        response:new_entry(old_response, {date = old_date})
+        Yaml.write_document(response_path, {date = old_date}, {""})
 
-        assert(Path.exists(old_response))
-        assert.are.same(old_date, response:get_metadata(old_response).date)
-        assert.falsy(Path.exists(new_response))
+        assert(Path.exists(response_path))
+        assert.are.same(old_date, response:get_metadata(response_path).date)
 
-        response:move(old_response, new_response)
+        response:set_metadata(response_path, {date = new_date})
 
-        assert.falsy(Path.exists(old_response))
-        assert.are.same(new_date, response:get_metadata(new_response).date)
-        assert(Path.exists(new_response))
+        assert(Path.exists(response_path))
+        assert.are.same(new_date, response:get_metadata(response_path).date)
     end)
 end)

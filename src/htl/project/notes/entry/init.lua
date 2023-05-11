@@ -41,7 +41,7 @@ function Entry:paths()
 end
 
 function Entry:get_metadata(path)
-    return Yaml.read_document(path)[1]
+    return Yaml.read_document(path)[1] or {}
 end
 
 function Entry:path(path)

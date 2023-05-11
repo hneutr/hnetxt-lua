@@ -15,23 +15,35 @@ function ResponseEntry.get_entry(prompt_key)
     }
 end
 
-function ResponseEntry:set_metadata(path, map)
-    self.super.set_metadata(self, path, map)
+function ResponseEntry:set_metadata(path, metadata)
+    metadata = metadata or {}
 
-    if map.date then
-        self.super.move(self, path, Path.with_stem(path, map.date))
+    local new_date = metadata.date
+
+    if new_date then
+        local old_date = self:get_metadata(path).date
+
+        if Path.stem(path) == old_date then
+            local old_path = path
+            path = Path.with_stem(path, new_date)
+            Path.rename(old_path, path)
+        end
     end
+
+    self.super.set_metadata(self, path, metadata)
 end
 
 function ResponseEntry:move(source, target)
-    self.super.move(self, source, target)
-    local new_date = Path.stem(target)
+    local metadata = self:get_metadata(source)
+    local date = tostring(metadata.date)
+    
+    local new_date = tonumber(Path.stem(target))
 
-    local metadata = self:get_metadata(target)
-
-    if metadata.date ~= new_date then
-        self.super.set_metadata(self, target, {date = new_date})
+    if date == Path.stem(source) and new_date then
+        self.super.set_metadata(self, source, {date = new_date})
     end
+
+    Path.rename(source, target)
 end
 
 function ResponseEntry:prompt_entry_set()
