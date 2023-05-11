@@ -33,10 +33,10 @@ local registry
 -- end)
 
 describe("new from_project_name", function()
-    -- it("works", function()
-    --     local registry = Notes.from_project_name("on-writing")
-    --     print(require("inspect")(registry.entry_sets))
-    -- end)
+    it("works", function()
+        local registry = Notes.from_project_name("on-writing")
+        -- print(require("inspect")(registry.entry_sets))
+    end)
 
 
 end)

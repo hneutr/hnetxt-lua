@@ -17,11 +17,11 @@ function Registry.from_path(path)
 end
 
 function Registry:new(config, root)
-    self.config = Entries.format(config)
+    self.config = Entries.format_config(config)
     self.root = root
 
     self.entry_sets = {}
-    for key, entry_config in pairs(self.config.entries) do
+    for key, entry_config in pairs(self.config) do
         local EntryClass = Entries.get_class(entry_config)
         self.entry_sets[key] = EntryClass(key, entry_config, self.entry_sets, self.root)
     end

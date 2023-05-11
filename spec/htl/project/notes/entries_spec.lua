@@ -4,18 +4,6 @@ local Fields = require("htl.project.notes.fields")
 local Entries = require("htl.project.notes.entries")
 local DateField = require("htl.project.notes.field.date")
 
--- local fields_format
-
--- before_each(function()
---     fields_format = Fields.format
---     Fields.format = function(args) return args end
--- end)
-
--- after_each(function()
---     Fields.format = fields_format
--- end)
-
-
 describe("format", function()
     it("basics", function()
         local fields = {a = 1}
