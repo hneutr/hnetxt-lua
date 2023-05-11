@@ -37,10 +37,10 @@ describe("format", function()
     end)
 end)
 
-describe("find_items", function()
+describe("paths", function()
     it("works", function()
         local expected = {test_entry_1, test_entry_2}
-        local actual = Entry(key, {}, {}, test_project_root):items()
+        local actual = Entry(key, {}, {}, test_project_root):paths()
         table.sort(expected)
         table.sort(actual)
 

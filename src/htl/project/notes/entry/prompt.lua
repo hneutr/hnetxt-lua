@@ -41,9 +41,26 @@ function PromptEntry.format(entries, key, entry)
     return entries
 end
 
-function PromptEntry:new(...)
-    self.super.new(self, ...)
-    self.response_entry_set = self.entry_sets[self.response_key]
+function PromptEntry:move(source, target)
+    local response_entry_set = self:response_entry_set()
+    local responses_source = response_entry_set:response_dir_for_path(source)
+
+    Path.rename(source, target)
+
+    local responses_target = response_entry_set:response_dir_for_path(target)
+
+    Path.rename(responses_source, responses_target)
+end
+
+function PromptEntry:remove(path)
+    local response_entry_set = self:response_entry_set()
+
+    Path.rmdir(response_entry_set:response_dir_for_path(path), true)
+    Path.unlink(path)
+end
+
+function PromptEntry:response_entry_set()
+    return self.entry_sets[self.response_key]
 end
 
 function PromptEntry:reopen(path)
@@ -55,40 +72,39 @@ function PromptEntry:close(path)
 end
 
 function PromptEntry:respond(path)
-    path = self.response_entry_set:path(path)
-    self.response_entry_set:new_entry(path)
-    return path
+    return self:response_entry_set():new_entry(path)
 end
 
--- function PromptEntry:responses(path)
---     path = Path.joinpath(self.set_config.project_root, self.response_dir, Path.stem(path))
+function PromptEntry:responses(path)
+    local response_entry_set = self:response_entry_set()
+    local prompt_responses_dir = response_entry_set:response_dir_for_path(path)
 
---     local responses = {}
---     for _, response in ipairs(self:response_sets().items) do
---         if Path.parent(response) == path then
---             table.insert(responses, response)
---         end
---     end
+    local responses = {}
+    for _, response in ipairs(response_entry_set:paths()) do
+        if Path.parent(response) == prompt_responses_dir then
+            table.insert(responses, response)
+        end
+    end
 
---     return responses
--- end
+    return responses
+end
 
--- function PromptEntry:response(path, all)
---     local responses = self:responses(path)
---     local pinned_responses = {}
+function PromptEntry:response(path, all)
+    local responses = self:responses(path)
+    local pinned_responses = {}
 
---     for _, response in ipairs(responses) do
---         local metadata = self:get_metadata(response)
---         if metadata.pinned then
---             table.insert(pinned_responses, response)
---         end
---     end
+    for _, response in ipairs(responses) do
+        local metadata = self:get_metadata(response)
+        if metadata.pinned then
+            table.insert(pinned_responses, response)
+        end
+    end
 
---     if #pinned_responses == 0 or all then
---         return responses
---     end
+    if #pinned_responses == 0 or all then
+        return responses
+    end
 
---     return pinned_responses
--- end
+    return pinned_responses
+end
 
 return PromptEntry

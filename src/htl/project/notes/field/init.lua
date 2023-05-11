@@ -33,7 +33,7 @@ function Field:set_default(metadata)
 end
 
 function Field.format(key, raw)
-    local args = {key = key}
+    local args = {}
 
     if table.is_list(raw) then
         args.values = raw

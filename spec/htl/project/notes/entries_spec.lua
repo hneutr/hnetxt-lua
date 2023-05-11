@@ -2,6 +2,7 @@ local stub = require('luassert.stub')
 
 local Fields = require("htl.project.notes.fields")
 local Entries = require("htl.project.notes.entries")
+local DateField = require("htl.project.notes.field.date")
 
 -- local fields_format
 
@@ -96,7 +97,7 @@ describe("format_config", function()
             {
                 a = {
                     fields = {
-                        date = {key = 'date', values = {}},
+                        date = {default = DateField.default},
                     },
                 },
             },
@@ -117,27 +118,33 @@ describe("format_config", function()
                 a = {
                     type = 'prompt',
                     response_key = 'a/responses',
-                    fields = {date = {key = 'date', values = {}}, open = {key = 'open', default = true}}
+                    fields = {
+                        date = {default = DateField.default},
+                        open = {default = true},
+                    },
                 },
                 ["a/responses"] = {
                     type = 'response',
                     prompt_key = 'a',
                     fields = {
-                        date = {key = 'date', values = {}},
-                        pinned = {key = 'pinned', default = false},
+                        date = {default = DateField.default},
+                        pinned = {default = false},
                     },
                 },
                 b = {
                     type = 'prompt',
                     response_key = 'b/c',
-                    fields = {date = {key = 'date', values = {}}, open = {key = 'open', default = true}}
+                    fields = {
+                        date = {default = DateField.default},
+                        open = {default = true}
+                    },
                 },
                 ["b/c"] = {
                     type = 'response',
                     prompt_key = 'b',
                     fields = {
-                        date = {key = 'date', values = {}},
-                        pinned = {key = 'pinned', default = false},
+                        date = {default = DateField.default},
+                        pinned = {default = false},
                     },
                 },
             },

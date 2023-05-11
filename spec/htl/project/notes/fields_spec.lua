@@ -1,5 +1,6 @@
 local Fields = require("htl.project.notes.fields")
 local Field = require("htl.project.notes.field")
+local DateField = require("htl.project.notes.field.date")
 
 local field_format
 
@@ -15,7 +16,7 @@ end)
 describe("format", function()
     it("handles a list", function()
         assert.are.same(
-            {date = {}, a = {}, b = {}},
+            {date = DateField.default, a = {}, b = {}},
             Fields.format({'a', 'b'})
         )
     end)

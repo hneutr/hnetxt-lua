@@ -28,7 +28,15 @@ function Entry:new(key, config, entry_sets, root)
     self.entry_set_path = Path.joinpath(self.root, self.key)
 end
 
-function Entry:items()
+function Entry:move(source, target)
+    Path.rename(source, target)
+end
+
+function Entry:remove(path)
+    Path.unlink(path)
+end
+
+function Entry:paths()
     return Path.iterdir(self.entry_set_path, self.iterdir_args)
 end
 
@@ -41,6 +49,12 @@ function Entry:path(path)
 end
 
 function Entry:new_entry(path, metadata)
+    path = self:path(path, metadata)
+
+    if not path then
+        return
+    end
+
     metadata = metadata or {}
     for key, field in pairs(self.fields) do
         if metadata[key] then
@@ -50,7 +64,8 @@ function Entry:new_entry(path, metadata)
         field:set_default(metadata)
     end
 
-    return Yaml.write_document(path, metadata, {""})
+    Yaml.write_document(path, metadata, {""})
+    return path
 end
 
 function Entry:set_metadata(path, map)

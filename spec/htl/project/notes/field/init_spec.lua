@@ -61,15 +61,15 @@ end)
 
 describe("format", function()
     it("list", function()
-        assert.are.same({key = key, values = {1, 2, 3}}, Field.format(key, {1, 2, 3}))
+        assert.are.same({values = {1, 2, 3}}, Field.format(key, {1, 2, 3}))
     end)
 
     it("table", function()
-        assert.are.same({key = key, type = 'field'}, Field.format(key, {type = 'field'}))
+        assert.are.same({type = 'field'}, Field.format(key, {type = 'field'}))
     end)
 
     it("etc", function()
-        assert.are.same({key = key, default = "a"}, Field.format(key, "a"))
+        assert.are.same({default = "a"}, Field.format(key, "a"))
     end)
 end)
 

@@ -11,7 +11,11 @@ function DateField:new(key, args)
 end
 
 function DateField.is_of_type(args)
-    return args.key == DateField.type
+    return args.default == DateField.default
+end
+
+function DateField.default_config()
+    return {type = DateField.type}
 end
 
 return DateField

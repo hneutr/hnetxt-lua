@@ -18,6 +18,6 @@ describe("is_of_type", function()
     end)
 
     it("+", function()
-        assert(DateField.is_of_type({key = 'date'}))
+        assert(DateField.is_of_type({default = os.date('%Y%m%d')}))
     end)
 end)

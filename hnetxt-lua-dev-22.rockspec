@@ -1,6 +1,6 @@
 rockspec_format = "3.0"
 package = "hnetxt-lua"
-version = "dev-21"
+version = "dev-22"
 source = {
    url = "git://github.com/hneutr/hnetxt-lua"
 }
@@ -32,6 +32,17 @@ build = {
       ["htl.project.move.operation.file"] = "src/htl/project/move/operation/file.lua",
       ["htl.project.move.operation.mark"] = "src/htl/project/move/operation/mark.lua",
       ["htl.project.move.operator"] = "src/htl/project/move/operator.lua",
+      ["htl.project.notes"] = "src/htl/project/notes/init.lua",
+      ["htl.project.notes.entries"] = "src/htl/project/notes/entries.lua",
+      ["htl.project.notes.entry"] = "src/htl/project/notes/entry/init.lua",
+      ["htl.project.notes.entry.list"] = "src/htl/project/notes/entry/list.lua",
+      ["htl.project.notes.entry.prompt"] = "src/htl/project/notes/entry/prompt.lua",
+      ["htl.project.notes.entry.response"] = "src/htl/project/notes/entry/response.lua",
+      ["htl.project.notes.field"] = "src/htl/project/notes/field/init.lua",
+      ["htl.project.notes.field.bool"] = "src/htl/project/notes/field/bool.lua",
+      ["htl.project.notes.field.date"] = "src/htl/project/notes/field/date.lua",
+      ["htl.project.notes.field.list"] = "src/htl/project/notes/field/list.lua",
+      ["htl.project.notes.fields"] = "src/htl/project/notes/fields.lua",
       ["htl.project.registry"] = "src/htl/project/registry.lua",
       ["htl.text.divider"] = "src/htl/text/divider.lua",
       ["htl.text.flag"] = "src/htl/text/flag.lua",
@@ -40,18 +51,7 @@ build = {
       ["htl.text.list"] = "src/htl/text/list.lua",
       ["htl.text.location"] = "src/htl/text/location.lua",
       ["htl.text.mark"] = "src/htl/text/mark.lua",
-      ["htl.text.reference"] = "src/htl/text/reference.lua",
-      ["htl.project.notes"] = "src/htl/project/notes/init.lua",
-      ["htl.project.notes.entries"] = "src/htl/project/notes/entries.lua",
-      ["htl.project.notes.entry"] = "src/htl/project/notes/entry/init.lua",
-      ["htl.project.notes.entry.response"] = "src/htl/project/notes/entry/response.lua",
-      ["htl.project.notes.entry.prompt"] = "src/htl/project/notes/entry/prompt.lua",
-      ["htl.project.notes.entry.list"] = "src/htl/project/notes/entry/list.lua",
-      ["htl.project.notes.fields"] = "src/htl/project/notes/fields.lua",
-      ["htl.project.notes.field"] = "src/htl/project/notes/field/init.lua",
-      ["htl.project.notes.field.bool"] = "src/htl/project/notes/field/bool.lua",
-      ["htl.project.notes.field.date"] = "src/htl/project/notes/field/date.lua",
-      ["htl.project.notes.field.list"] = "src/htl/project/notes/field/list.lua",
+      ["htl.text.reference"] = "src/htl/text/reference.lua"
    }
 }
 test = {

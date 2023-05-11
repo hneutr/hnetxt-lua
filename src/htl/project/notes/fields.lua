@@ -35,7 +35,7 @@ function Fields.format(fields)
     if fields.date == false then
         fields.date = nil
     else
-        fields.date = {}
+        fields.date = DateField.default
     end
 
     for key, args in pairs(fields) do
