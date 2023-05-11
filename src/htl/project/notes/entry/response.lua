@@ -25,4 +25,12 @@ function ResponseEntry:path(path, date)
     return Path.joinpath(self.entry_set_path, Path.stem(path), date .. ".md")
 end
 
+function ResponseEntry:pin(path)
+    self:set_metadata(path, {pinned = true})
+end
+
+function ResponseEntry:unpin(path)
+    self:set_metadata(path, {pinned = false})
+end
+
 return ResponseEntry
