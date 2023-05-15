@@ -1,6 +1,6 @@
 rockspec_format = "3.0"
 package = "hnetxt-lua"
-version = "dev-24"
+version = "dev-25"
 source = {
    url = "git://github.com/hneutr/hnetxt-lua"
 }
