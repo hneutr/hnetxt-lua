@@ -1,6 +1,6 @@
 rockspec_format = "3.0"
 package = "hnetxt-lua"
-version = "dev-23"
+version = "dev-24"
 source = {
    url = "git://github.com/hneutr/hnetxt-lua"
 }
@@ -32,11 +32,6 @@ build = {
       ["htl.project"] = "src/htl/project/init.lua",
       ["htl.project.mirror"] = "src/htl/project/mirror/init.lua",
       ["htl.project.mirror.config"] = "src/htl/project/mirror/config.lua",
-      ["htl.project.move.operation"] = "src/htl/project/move/operation/init.lua",
-      ["htl.project.move.operation.dir"] = "src/htl/project/move/operation/dir.lua",
-      ["htl.project.move.operation.file"] = "src/htl/project/move/operation/file.lua",
-      ["htl.project.move.operation.mark"] = "src/htl/project/move/operation/mark.lua",
-      ["htl.project.move.operator"] = "src/htl/project/move/operator.lua",
       ["htl.project.notes"] = "src/htl/project/notes/init.lua",
       ["htl.project.notes.entries"] = "src/htl/project/notes/entries.lua",
       ["htl.project.notes.entry"] = "src/htl/project/notes/entry/init.lua",
