@@ -153,7 +153,7 @@ function M.remove(source)
     local dir = Project.root_from_path(source)
 
     -- local entries = operation.get_entries()
-    operation.remove(map, mirrors_map)
+    operation.remove(source)
 end
 
 return M
