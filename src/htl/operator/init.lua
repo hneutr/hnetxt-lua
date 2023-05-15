@@ -4,12 +4,18 @@ local Object = require("hl.object")
 local Path = require("hl.path")
 
 local Project = require("htl.project")
-local Operation = require("htl.project.move.operation")
-local FileOperation = require("htl.project.move.operation.file")
-local DirOperation = require("htl.project.move.operation.dir")
-local MarkOperation = require("htl.project.move.operation.mark")
+local Operation = require("htl.operator.operation")
+local FileOperation = require("htl.operator.operation.file")
+local DirOperation = require("htl.operator.operation.dir")
+local MarkOperation = require("htl.operator.operation.mark")
 
 local M = {}
+
+M.operation_classes = {
+    FileOperation,
+    DirOperation,
+    MarkOperation,
+}
 
 M.source_type_to_operation_class = {
     file = FileOperation,
@@ -20,7 +26,7 @@ M.source_type_to_operation_class = {
 --------------------------------------------------------------------------------
 --                                                                            --
 --                                                                            --
---                                  actions                                   --
+--                                 operations                                 --
 --                                                                            --
 --                                                                            --
 --------------------------------------------------------------------------------
@@ -47,8 +53,9 @@ M.source_type_to_operation_class = {
 --         - to dir:      a.md:b   → c!      = c/@.md
 --         - to dir file: a.md:b   → c       = c/b.md
 --------------------------------------------------------------------------------
-M.actions = {
+M.operations = {
     file = {
+        remove = {check_target = Operation.is_nil},
         rename = {check_target = Operation.could_be_file},
         move = {
             check_target = Path.is_dir,
@@ -61,11 +68,12 @@ M.actions = {
         ["to mark"] = {
             check_target = Operation.is_mark,
             map_mirrors = FileOperation.to_mark.map_mirrors,
-            process = FileOperation.to_mark.process,
+            move = FileOperation.to_mark.move,
             update_references = FileOperation.to_mark.update_references,
         },
     },
     dir = {
+        remove = {check_target = Operation.is_nil},
         rename = {check_target = Operation.could_be_dir},
         move = {
             check_target = Operation.dir_is_not_parent_of,
@@ -77,6 +85,7 @@ M.actions = {
         },
     },
     mark = {
+        remove = {check_target = Operation.is_nil},
         move = {check_target = Operation.is_mark},
         ["to file"] = {check_target = Operation.could_be_file},
         ["to dir"] = {
@@ -90,60 +99,61 @@ M.actions = {
     },
 }
 
-function M.get_operation_class_name(source)
-    for name, OperationClass in pairs(M.source_type_to_operation_class) do
+function M.get_operation_class(source)
+    for _, OperationClass in ipairs(M.operation_classes) do
         if OperationClass.check_source(source) then
-            return name
+            return OperationClass
         end
     end
-
-    return nil
 end
 
-function M.get_operation_class(source)
-    local name = M.get_operation_class_name(source)
-    if name then
-        return M.source_type_to_operation_class[name]
-    end
+function M.get_operation(source, target)
+    local OperationClass = M.get_operation_class(source)
 
-    return nil
-end
-
-function M.get_action(source, target)
-    local operation_class_name = M.get_operation_class_name(source)
-
-    if operation_class_name then
-        local OperationClass = M.source_type_to_operation_class[operation_class_name]
-        local actions = M.actions[operation_class_name]
-
-        for action_name, action_args in pairs(actions) do
-            local action = table.default(
-                {action_name = action_name, operation_name = operation_name},
-                action_args,
+    if target then
+        for operation_name, operation_args in pairs(M.operations[OperationClass.type]) do
+            local operation = table.default(
+                {operation_name = operation_name},
+                operation_args,
                 OperationClass
             )
 
-            if action.check_target(target, source) then
-                return action
+            if operation.check_target(target, source) then
+                return operation
             end
         end
+    else
+        return table.default(
+            {operation_name = 'remove'},
+            {},
+            OperationClass
+        )
     end
 
     return nil
 end
 
 function M.operate(source, target)
-    local action = M.get_action(source, target)
-
+    local operation = M.get_operation(source, target)
     local dir = Project.root_from_path(source)
 
-    target = action.transform_target(target, source)
-    local map = action.map_source_to_target(source, target)
+    target = operation.transform_target(target, source)
+    local map = operation.map_source_to_target(source, target)
 
-    local mirrors_map = action.map_mirrors(map)
+    -- local entries_map = operation.map_entries(map)
 
-    action.process(map, mirrors_map)
-    action.update_references(map, mirrors_map, dir)
+    local mirrors_map = operation.map_mirrors(map)
+
+    operation.move(map, mirrors_map)
+    operation.update_references(map, mirrors_map, dir)
+end
+
+function M.remove(source)
+    local OperationClass = M.get_operation_class(source)
+    local dir = Project.root_from_path(source)
+
+    -- local entries = operation.get_entries()
+    operation.remove(map, mirrors_map)
 end
 
 return M

@@ -125,7 +125,7 @@ end)
 describe("get_mirror_paths", function()
     it("+", function()
         local mirror = Mirror(source_meta_path, "meta")
-        local actual = mirror:get_mirror_paths()
+        local actual = mirror:get_mirror_paths(false)
         table.sort(actual, function(a, b) return #a < #b end)
 
         assert.are.same(
@@ -143,14 +143,14 @@ describe("get_mirror_paths", function()
         Path.exists = function(path) return path == source_meta_path end
 
         local mirror = Mirror(source_path, "source")
-        assert.are.same({source_meta_path}, mirror:get_mirror_paths(true))
+        assert.are.same({source_meta_path}, mirror:get_mirror_paths())
 
         Path.exists = path_exists
     end)
 
     it("no mirrors", function()
         local mirror = Mirror(scratch_path)
-        assert.are.same({}, mirror:get_mirror_paths())
+        assert.are.same({}, mirror:get_mirror_paths(false))
     end)
 end)
 
@@ -185,7 +185,7 @@ describe("get_all_mirrored_paths", function()
     end)
 
     it("+", function()
-        local actual = Mirror(source_path):get_all_mirrored_paths(false)
+        local actual = Mirror.get_all_mirrored_paths(source_path, false)
         table.sort(actual, function(a, b) return #a < #b end)
 
         assert.are.same(

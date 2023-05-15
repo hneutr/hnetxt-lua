@@ -45,6 +45,20 @@ function Fields.format(fields)
     return fields
 end
 
+function Fields.set_metadata(fields, metadata)
+    metadata = metadata or {}
+    for key, field in pairs(fields) do
+        field:set_default(metadata)
+
+        if metadata[key] then
+            fields[key]:set(metadata, metadata[key])
+        end
+    end
+
+    return metadata
+end
+
+
 function Fields.get(args_by_key)
     local fields = {}
     for key, args in pairs(args_by_key or {}) do

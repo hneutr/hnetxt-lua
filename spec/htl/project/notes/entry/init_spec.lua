@@ -18,7 +18,6 @@ local test_entry_subdir_file = Path.joinpath(test_entry_subdir, "sub.md")
 
 local test_entries = {test_entry_1, test_entry_2, test_file, test_entry_subdir_file}
 
-
 before_each(function()
     Path.rmdir(test_project_root, true)
     for _, p in ipairs(test_entries) do
@@ -67,22 +66,12 @@ describe("set_metadata", function()
         local config = {fields = Fields.format({"a", b = true, "c"})}
 
         local e = Entry(key, config, {}, test_project_root)
-        e:new_entry(test_entry_1, {c = 3})
-
-        e:set_metadata(test_entry_1, {a = 1, b = false})
+        e:new_entry(test_entry_1)
+        e:set_metadata(test_entry_1, {a = 1, b = false, c = 3})
 
         assert.are.same(
             {date = os.date("%Y%m%d"), a = 1, b = false, c = 3},
             e:get_metadata(test_entry_1)
-        )
-    end)
-end)
-
-describe("path", function()
-    it("works", function()
-        assert.are.same(
-            Path.joinpath(test_project_root, key, "abc.md"),
-            Entry(key, config, {}, test_project_root):path("abc")
         )
     end)
 end)

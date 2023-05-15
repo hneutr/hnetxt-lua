@@ -50,30 +50,6 @@ function ResponseEntry:prompt_entry_set()
     return self.entry_sets[self.prompt_key]
 end
 
-function ResponseEntry:path(p, metadata)
-    local prompt = self:prompt_for_path(p)
-
-    if Path.exists(prompt) then
-        local prompt_response_dir = self:response_dir_for_path(p)
-
-        if prompt_response_dir then
-            metadata = metadata or {}
-            date = metadata.date or os.date("%Y%m%d")
-            return Path.joinpath(prompt_response_dir, date .. ".md")
-        end
-    end
-
-    return nil
-end
-
-function ResponseEntry:pin(path)
-    self:set_metadata(path, {pinned = true})
-end
-
-function ResponseEntry:unpin(path)
-    self:set_metadata(path, {pinned = false})
-end
-
 function ResponseEntry:response_dir_for_path(p)
     local prompt_entry_set = self:prompt_entry_set()
     local p = self:prompt_for_path(p)

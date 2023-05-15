@@ -27,7 +27,7 @@ function Field:set(metadata, value)
 end
 
 function Field:set_default(metadata)
-    if not self:get(metadata) then
+    if self:get(metadata) == nil then
         self:set(metadata, self.default)
     end
 end

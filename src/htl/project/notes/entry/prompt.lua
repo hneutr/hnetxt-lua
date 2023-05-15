@@ -63,16 +63,10 @@ function PromptEntry:response_entry_set()
     return self.entry_sets[self.response_key]
 end
 
-function PromptEntry:reopen(path)
-    self:set_metadata(path, {open = true})
-end
-
-function PromptEntry:close(path)
-    self:set_metadata(path, {open = false})
-end
-
 function PromptEntry:respond(path)
-    return self:response_entry_set():new_entry(path)
+    local response_entry_set = self:response_entry_set()
+    local path = Path.joinpath(response_entry_set:response_dir_for_path(path), os.date("%Y%m%d") .. ".md")
+    response_entry_set:new_entry(path)
 end
 
 function PromptEntry:responses(path)

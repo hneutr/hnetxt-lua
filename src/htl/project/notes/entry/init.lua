@@ -40,45 +40,33 @@ function Entry:paths()
     return Path.iterdir(self.entry_set_path, self.iterdir_args)
 end
 
-function Entry:get_metadata(path)
-    return Yaml.read_document(path)[1] or {}
-end
+function Entry:read(path)
+    local metadata, content = {}, {""}
 
-function Entry:path(path)
-    return Path.joinpath(self.entry_set_path, Path.stem(path) .. ".md")
-end
-
-function Entry:new_entry(path, metadata)
-    path = self:path(path, metadata)
-
-    if not path then
-        return
-    end
-
-    metadata = metadata or {}
-    for key, field in pairs(self.fields) do
-        if metadata[key] then
-            field:set(metadata, metadata[key])
-        end
-
-        field:set_default(metadata)
-    end
-
-    Yaml.write_document(path, metadata, {""})
-    return path
-end
-
-function Entry:set_metadata(path, map)
-    local metadata, content = {}, {}
     if Path.exists(path) then
         metadata, content = unpack(Yaml.read_document(path))
     end
 
-    for key, value in pairs(map) do
-        self.fields[key]:set(metadata, value)
-    end
+    return {metadata, content}
+end
 
+function Entry:write(path, metadata, content)
     Yaml.write_document(path, metadata, content)
+end
+
+function Entry:new_entry(path, metadata)
+    self:write(path, Fields.set_metadata(self.fields, metadata), {""})
+end
+
+function Entry:get_metadata(path)
+    return self:read(path)[1]
+end
+
+function Entry:set_metadata(path, new_metadata)
+    local metadata, content = unpack(self:read(path))
+
+    metadata = Fields.set_metadata(self.fields, table.default(new_metadata, metadata))
+    self:write(path, metadata, content)
 end
 
 return Entry

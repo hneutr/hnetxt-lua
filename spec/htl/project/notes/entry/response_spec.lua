@@ -97,13 +97,6 @@ describe("response_entry_set", function()
     end)
 end)
 
-describe("path", function()
-    it("works", function()
-        setup_entry_sets()
-        assert.are.same(test_response_1_2, response:path(test_prompt_1))
-    end)
-end)
-
 describe("response_dir_for_path", function()
     local prompt = PromptEntry(prompt_key, {}, {}, test_project_root)
     local response = ResponseEntry(key, {prompt_key = prompt_key}, {[prompt_key] = prompt}, test_project_root)
@@ -173,7 +166,7 @@ describe("move", function()
 
         local date = os.date("%Y%m%d")
 
-        Yaml.write_document(old_response, {date = date}, {""})
+        response:new_entry(old_response)
 
         assert(Path.exists(old_response))
         assert.are.same(date, response:get_metadata(old_response).date)
@@ -217,7 +210,7 @@ describe("set_metadata", function()
         local old_date = os.date("%Y%m%d")
         local new_date = "19932001"
 
-        Yaml.write_document(response_path, {date = old_date}, {""})
+        response:new_entry(response_path, {date = old_date})
 
         assert(Path.exists(response_path))
         assert.are.same(old_date, response:get_metadata(response_path).date)

@@ -40,6 +40,10 @@ function Mirror:get_mirror_path(type_name)
 end
 
 function Mirror:get_mirror_paths(existing_only)
+    if existing_only == nil then
+        existing_only = true
+    end
+
     local paths = {}
     for _, type_name in ipairs(self.mirror_types) do
         local path = self:get_mirror_path(type_name)
@@ -54,13 +58,13 @@ function Mirror:get_mirror_paths(existing_only)
     return paths
 end
 
-function Mirror:get_all_mirrored_paths(existing_only)
+function Mirror.get_all_mirrored_paths(path, existing_only)
     if existing_only == nil then
         existing_only = true
     end
 
     local paths = {}
-    local to_check = {self.path}
+    local to_check = {path}
     while #to_check > 0 do
         local path = table.remove(to_check, #to_check)
         to_check = table.list_extend(to_check, Mirror(path):get_mirror_paths(existing_only))
