@@ -149,7 +149,7 @@ function M.operate(source, target)
 end
 
 function M.remove(source)
-    local OperationClass = M.get_operation_class(source)
+    local operation = M.get_operation_class(source)
     local dir = Project.root_from_path(source)
 
     -- local entries = operation.get_entries()
