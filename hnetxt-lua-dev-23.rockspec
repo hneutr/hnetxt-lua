@@ -1,6 +1,6 @@
 rockspec_format = "3.0"
 package = "hnetxt-lua"
-version = "dev-22"
+version = "dev-23"
 source = {
    url = "git://github.com/hneutr/hnetxt-lua"
 }
@@ -22,11 +22,21 @@ build = {
       ["htl.config"] = "src/htl/config.lua",
       ["htl.goals"] = "src/htl/goals.lua",
       ["htl.journal"] = "src/htl/journal.lua",
+      ["htl.operator"] = "src/htl/operator/init.lua",
+      ["htl.operator.operation"] = "src/htl/operate/operation/init.lua",
+      ["htl.operator.operation.dir"] = "src/htl/operate/operation/dir.lua",
+      ["htl.operator.operation.file"] = "src/htl/operate/operation/file.lua",
+      ["htl.operator.operation.mark"] = "src/htl/operate/operation/mark.lua",
       ["htl.parse"] = "src/htl/parse/init.lua",
       ["htl.parse.fold"] = "src/htl/parse/fold.lua",
       ["htl.project"] = "src/htl/project/init.lua",
       ["htl.project.mirror"] = "src/htl/project/mirror/init.lua",
       ["htl.project.mirror.config"] = "src/htl/project/mirror/config.lua",
+      ["htl.project.move.operation"] = "src/htl/project/move/operation/init.lua",
+      ["htl.project.move.operation.dir"] = "src/htl/project/move/operation/dir.lua",
+      ["htl.project.move.operation.file"] = "src/htl/project/move/operation/file.lua",
+      ["htl.project.move.operation.mark"] = "src/htl/project/move/operation/mark.lua",
+      ["htl.project.move.operator"] = "src/htl/project/move/operator.lua",
       ["htl.project.notes"] = "src/htl/project/notes/init.lua",
       ["htl.project.notes.entries"] = "src/htl/project/notes/entries.lua",
       ["htl.project.notes.entry"] = "src/htl/project/notes/entry/init.lua",
@@ -46,20 +56,7 @@ build = {
       ["htl.text.list"] = "src/htl/text/list.lua",
       ["htl.text.location"] = "src/htl/text/location.lua",
       ["htl.text.mark"] = "src/htl/text/mark.lua",
-      ["htl.text.reference"] = "src/htl/text/reference.lua",
-
-      -- redundant
-      ["htl.project.move.operation"] = "src/htl/project/move/operation/init.lua",
-      ["htl.project.move.operation.dir"] = "src/htl/project/move/operation/dir.lua",
-      ["htl.project.move.operation.file"] = "src/htl/project/move/operation/file.lua",
-      ["htl.project.move.operation.mark"] = "src/htl/project/move/operation/mark.lua",
-      ["htl.project.move.operator"] = "src/htl/project/move/operator.lua",
-
-      ["htl.operator"] = "src/htl/operator/init.lua",
-      ["htl.operator.operation"] = "src/htl/operate/operation/init.lua",
-      ["htl.operator.operation.file"] = "src/htl/operate/operation/file.lua",
-      ["htl.operator.operation.dir"] = "src/htl/operate/operation/dir.lua",
-      ["htl.operator.operation.mark"] = "src/htl/operate/operation/mark.lua",
+      ["htl.text.reference"] = "src/htl/text/reference.lua"
    }
 }
 test = {
