@@ -1,6 +1,6 @@
 rockspec_format = "3.0"
 package = "hnetxt-lua"
-version = "dev-25"
+version = "dev-26"
 source = {
    url = "git://github.com/hneutr/hnetxt-lua"
 }
@@ -12,8 +12,7 @@ dependencies = {
    "lua >= 5.1",
    "lyaml >= 6.2",
    "inspect >= 3.1",
-   "lua-cjson >= 2.1",
-   "hneutil-lua"
+   "lua-cjson >= 2.1"
 }
 build = {
    type = "builtin",
