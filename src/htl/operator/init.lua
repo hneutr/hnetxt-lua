@@ -17,12 +17,6 @@ M.operation_classes = {
     MarkOperation,
 }
 
-M.source_type_to_operation_class = {
-    file = FileOperation,
-    dir = DirOperation,
-    mark = MarkOperation,
-}
-
 --------------------------------------------------------------------------------
 --                                                                            --
 --                                                                            --
@@ -123,11 +117,7 @@ function M.get_operation(source, target)
             end
         end
     else
-        return table.default(
-            {operation_name = 'remove'},
-            {},
-            OperationClass
-        )
+        return OperationClass
     end
 
     return nil
@@ -139,8 +129,6 @@ function M.move(source, target)
 
     target = operation.transform_target(target, source)
     local map = operation.map_source_to_target(source, target)
-
-    -- local entries_map = operation.map_entries(map)
     local mirrors_map = operation.map_mirrors(map)
 
     operation.move(map, mirrors_map)
@@ -149,9 +137,6 @@ end
 
 function M.remove(source)
     local operation = M.get_operation_class(source)
-    local dir = Project.root_from_path(source)
-
-    -- local entries = operation.get_entries()
     operation.remove(source)
 end
 

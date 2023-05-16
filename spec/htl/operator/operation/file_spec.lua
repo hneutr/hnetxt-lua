@@ -58,7 +58,7 @@ describe("end to end", function()
 
         local b_content_new = {"text", "[ref to a](c.md)", "more text"}
 
-        Operator.operate(a_path, c_path)
+        Operator.move(a_path, c_path)
 
         assert.falsy(Path.exists(a_path))
         assert.falsy(Path.exists(a_mirror_path))
@@ -97,7 +97,7 @@ describe("end to end", function()
 
         local b_mark = b_path .. ":a"
 
-        Operator.operate(a_path, b_mark)
+        Operator.move(a_path, b_mark)
 
         assert.falsy(Path.exists(a_path))
         assert.falsy(Path.exists(a_mirror_path))

@@ -87,8 +87,8 @@ local function run_move_operation_test(spec)
     local target = spec.target
 
     assert.are.same(
-        Operator.source_type_to_operation_class[spec.operation_class],
-        Operator.get_operation_class(source)
+        spec.operation_class,
+        Operator.get_operation_class(source).type
     )
 
     local operation = Operator.get_operation(source, target)
@@ -126,13 +126,11 @@ local function run_remove_operation_test(spec)
     local source = spec.source
 
     assert.are.same(
-        Operator.source_type_to_operation_class[spec.operation_class],
-        Operator.get_operation_class(source)
+        spec.operation_class,
+        Operator.get_operation_class(source).type
     )
 
     local operation = Operator.get_operation(source)
-
-    assert.are.same(spec.operation_name, operation.operation_name)
 
     if spec.results then
         operation.remove(source)
@@ -160,195 +158,185 @@ local function run_operation_test(spec, subtest_name)
         it(test_name, function()
             spec = make_spec_paths_relative_to_test_dir(spec)
             setup_paths(spec.make)
-
-            if spec.operator_action == 'move' then
-                run_move_operation_test(spec)
-            elseif spec.operator_action == 'remove' then
-                run_remove_operation_test(spec)
-            end
+            spec.test_function(spec)
         end)
     end
 end
 
 local operation_tests = {
-    ------------------------------------[ file ]------------------------------------
-    {
-        operation_class = "file", 
-        operation_name = "remove",
-        operator_action = 'remove',
-        make = {"a.md"},
-        source = "a.md",
-        results = {
-            ["a.md"] = function(p) assert.falsy(Path.exists(p)) end,
+    remove = {
+        test_function = run_remove_operation_test,
+        {
+            operation_class = "file", 
+            operation_name = "remove",
+            operator_action = 'remove',
+            make = {"a.md"},
+            source = "a.md",
+            results = {
+                ["a.md"] = function(p) assert.falsy(Path.exists(p)) end,
+            },
+        },
+        {
+            operator_action = 'remove',
+            operation_class = "dir", 
+            operation_name = "remove",
+            source = "a",
+            make = {"a", "a/b.md"},
+            results = {
+                a = function(p) assert.falsy(Path.exists(p)) end,
+            },
+        },
+        {
+            operator_action = 'remove',
+            operation_class = "mark", 
+            operation_name = "remove",
+            source = "a.md:b",
+            make = {"a.md"},
         },
     },
-    {
-        operator_action = 'move',
-        operation_class = "file", 
-        operation_name = "rename",
-        subtests = {
-            ["Path.exists(target)"] = {make = {"a.md", "b.md"}},
-            ["! Path.exists(target)"] = {make = {"a.md"}},
+    move = {
+        test_function = run_move_operation_test,
+        ------------------------------------[ file ]------------------------------------
+        {
+            operation_class = "file", 
+            operation_name = "rename",
+            subtests = {
+                ["Path.exists(target)"] = {make = {"a.md", "b.md"}},
+                ["! Path.exists(target)"] = {make = {"a.md"}},
+            },
+            source = "a.md",
+            target = "b.md",
+            transformed_target = "b.md",
+            map = {["a.md"] = "b.md"},
+            results = {
+                ["a.md"] = function(p) assert.falsy(Path.exists(p)) end,
+                ["b.md"] = function(p) assert(Path.is_file(p)) end,
+            },
         },
-        source = "a.md",
-        target = "b.md",
-        transformed_target = "b.md",
-        map = {["a.md"] = "b.md"},
-        results = {
-            ["a.md"] = function(p) assert.falsy(Path.exists(p)) end,
-            ["b.md"] = function(p) assert(Path.is_file(p)) end,
+        {
+            operation_class = "file", 
+            operation_name = "move",
+            make = {"a.md", "b"},
+            source = "a.md",
+            target = "b",
+            transformed_target = "b/a.md",
+            map = {["a.md"] = "b/a.md"},
+            results = {
+                ["a.md"] = function(p) assert.falsy(Path.exists(p)) end,
+                ["b/a.md"] = function(p) assert(Path.is_file(p)) end,
+            },
+        },
+        {
+            operation_class = "file", 
+            operation_name = "to dir",
+            make = {"a.md"},
+            source = "a.md",
+            target = "b",
+            transformed_target = "b/@.md",
+            map = {["a.md"] = "b/@.md"},
+            results = {
+                ["a.md"] = function(p) assert.falsy(Path.exists(p)) end,
+                ["b/@.md"] = function(p) assert(Path.is_file(p)) end,
+            },
+        },
+        {
+            operation_class = "file", 
+            operation_name = "to mark",
+            subtests = {
+                ["Path.exists(target)"] = {make = {"a.md", "b.md"}},
+                ["! Path.exists(target)"] = {make = {"a.md"}},
+            },
+            source = "a.md",
+            target = "b.md:c",
+            transformed_target = "b.md:c",
+            map = {["a.md"] = "b.md:c"},
+        },
+        --------------------------------------[ dir ]-------------------------------------
+        {
+            operation_class = "dir", 
+            operation_name = "rename",
+            source = "a",
+            target = "b",
+            make = {"a", "a/c.md"},
+            transformed_target = "b",
+            map = {["a/c.md"] = "b/c.md"},
+            results = {
+                a = function(p) assert.falsy(Path.exists(p)) end,
+                b = function(p) assert(Path.is_dir(p)) end,
+                ["b/c.md"] = function(p) assert(Path.is_file(p)) end,
+            },
+        },
+        {
+            operation_class = "dir", 
+            operation_name = "move",
+            source = "a",
+            target = "b",
+            make = {"a", "b", "a/c.md"},
+            transformed_target = "b/a",
+            map = {["a/c.md"] = "b/a/c.md"},
+            results = {
+                a = function(p) assert.falsy(Path.exists(p)) end,
+                ["b/a/c.md"] = function(p) assert(Path.is_file(p)) end,
+            },
+        },
+        {
+            operation_class = "dir", 
+            operation_name = "to files",
+            source = "a/b",
+            target = "a",
+            make = {"a", "a/b", "a/b/@.md", "a/b/c.md"},
+            transformed_target = "a",
+            map = {["a/b/@.md"] = "a/b.md", ["a/b/c.md"] = "a/c.md"},
+            results = {
+                ["a/b"] = function(p) assert.falsy(Path.exists(p)) end,
+                ["a/b.md"] = function(p) assert(Path.is_file(p)) end,
+                ["a/c.md"] = function(p) assert(Path.is_file(p)) end,
+            },
+        },
+        ------------------------------------[ mark ]------------------------------------
+        {
+            operation_class = "mark", 
+            operation_name = "move",
+            source = "a.md:b",
+            target = "c.md:d",
+            subtests = {
+                ["Path.exists(target)"] = {make = {"a.md", "c.md"}},
+                ["! Path.exists(target)"] = {make = {"a.md"}},
+            },
+            transformed_target = "c.md:d",
+            map = {["a.md:b"] = "c.md:d"},
+        },
+        {
+            operation_class = "mark", 
+            operation_name = "to file",
+            source = "a.md:b",
+            target = "c.md",
+            subtests = {
+                ["Path.exists(target)"] = {make = {"a.md", "c.md"}},
+                ["! Path.exists(target)"] = {make = {"a.md"}},
+            },
+            transformed_target = "c.md",
+            map = {["a.md:b"] = "c.md"},
+        },
+        {
+            operation_class = "mark", 
+            operation_name = "to dir",
+            source = "a.md:b",
+            target = "c",
+            make = {"a.md"},
+            transformed_target = "c/@.md",
+            map = {["a.md:b"] = "c/@.md"},
+        },
+        {
+            operation_class = "mark", 
+            operation_name = "to dir file",
+            source = "a.md:b",
+            target = "c",
+            make = {"a.md", "c"},
+            transformed_target = "c/b.md",
+            map = {["a.md:b"] = "c/b.md"},
         },
     },
-    {
-        operator_action = 'move',
-        operation_class = "file", 
-        operation_name = "move",
-        make = {"a.md", "b"},
-        source = "a.md",
-        target = "b",
-        transformed_target = "b/a.md",
-        map = {["a.md"] = "b/a.md"},
-        results = {
-            ["a.md"] = function(p) assert.falsy(Path.exists(p)) end,
-            ["b/a.md"] = function(p) assert(Path.is_file(p)) end,
-        },
-    },
-    {
-        operator_action = 'move',
-        operation_class = "file", 
-        operation_name = "to dir",
-        make = {"a.md"},
-        source = "a.md",
-        target = "b",
-        transformed_target = "b/@.md",
-        map = {["a.md"] = "b/@.md"},
-        results = {
-            ["a.md"] = function(p) assert.falsy(Path.exists(p)) end,
-            ["b/@.md"] = function(p) assert(Path.is_file(p)) end,
-        },
-    },
-    {
-        operator_action = 'move',
-        operation_class = "file", 
-        operation_name = "to mark",
-        subtests = {
-            ["Path.exists(target)"] = {make = {"a.md", "b.md"}},
-            ["! Path.exists(target)"] = {make = {"a.md"}},
-        },
-        source = "a.md",
-        target = "b.md:c",
-        transformed_target = "b.md:c",
-        map = {["a.md"] = "b.md:c"},
-    },
-    --------------------------------------[ dir ]-------------------------------------
-    {
-        operator_action = 'remove',
-        operation_class = "dir", 
-        operation_name = "remove",
-        source = "a",
-        make = {"a", "a/b.md"},
-        results = {
-            a = function(p) assert.falsy(Path.exists(p)) end,
-        },
-    },
-    {
-        operator_action = 'move',
-        operation_class = "dir", 
-        operation_name = "rename",
-        source = "a",
-        target = "b",
-        make = {"a", "a/c.md"},
-        transformed_target = "b",
-        map = {["a/c.md"] = "b/c.md"},
-        results = {
-            a = function(p) assert.falsy(Path.exists(p)) end,
-            b = function(p) assert(Path.is_dir(p)) end,
-            ["b/c.md"] = function(p) assert(Path.is_file(p)) end,
-        },
-    },
-    {
-        operator_action = 'move',
-        operation_class = "dir", 
-        operation_name = "move",
-        source = "a",
-        target = "b",
-        make = {"a", "b", "a/c.md"},
-        transformed_target = "b/a",
-        map = {["a/c.md"] = "b/a/c.md"},
-        results = {
-            a = function(p) assert.falsy(Path.exists(p)) end,
-            ["b/a/c.md"] = function(p) assert(Path.is_file(p)) end,
-        },
-    },
-    {
-        operator_action = 'move',
-        operation_class = "dir", 
-        operation_name = "to files",
-        source = "a/b",
-        target = "a",
-        make = {"a", "a/b", "a/b/@.md", "a/b/c.md"},
-        transformed_target = "a",
-        map = {["a/b/@.md"] = "a/b.md", ["a/b/c.md"] = "a/c.md"},
-        results = {
-            ["a/b"] = function(p) assert.falsy(Path.exists(p)) end,
-            ["a/b.md"] = function(p) assert(Path.is_file(p)) end,
-            ["a/c.md"] = function(p) assert(Path.is_file(p)) end,
-        },
-    },
-    ------------------------------------[ mark ]------------------------------------
-    {
-        operator_action = 'remove',
-        operation_class = "mark", 
-        operation_name = "remove",
-        source = "a.md:b",
-        make = {"a.md"},
-    },
-    {
-        operator_action = 'move',
-        operation_class = "mark", 
-        operation_name = "move",
-        source = "a.md:b",
-        target = "c.md:d",
-        subtests = {
-            ["Path.exists(target)"] = {make = {"a.md", "c.md"}},
-            ["! Path.exists(target)"] = {make = {"a.md"}},
-        },
-        transformed_target = "c.md:d",
-        map = {["a.md:b"] = "c.md:d"},
-    },
-    {
-        operator_action = 'move',
-        operation_class = "mark", 
-        operation_name = "to file",
-        source = "a.md:b",
-        target = "c.md",
-        subtests = {
-            ["Path.exists(target)"] = {make = {"a.md", "c.md"}},
-            ["! Path.exists(target)"] = {make = {"a.md"}},
-        },
-        transformed_target = "c.md",
-        map = {["a.md:b"] = "c.md"},
-    },
-    {
-        operator_action = 'move',
-        operation_class = "mark", 
-        operation_name = "to dir",
-        source = "a.md:b",
-        target = "c",
-        make = {"a.md"},
-        transformed_target = "c/@.md",
-        map = {["a.md:b"] = "c/@.md"},
-    },
-    {
-        operator_action = 'move',
-        operation_class = "mark", 
-        operation_name = "to dir file",
-        source = "a.md:b",
-        target = "c",
-        make = {"a.md", "c"},
-        transformed_target = "c/b.md",
-        map = {["a.md:b"] = "c/b.md"},
-    }
 }
 
 before_each(function()
@@ -363,10 +351,13 @@ after_each(function()
 end)
 
 describe("operations", function()
-    for _, spec in ipairs(operation_tests) do
-        if not operation_class_to_test or operation_class_to_test == spec.operation_class then
-            if not operation_to_test or operation_to_test == spec.operation_name then
-                run_operation_test(spec)
+    for action, action_tests in pairs(operation_tests) do
+        for _, spec in ipairs(action_tests) do
+            if not operation_class_to_test or operation_class_to_test == spec.operation_class then
+                if not operation_to_test or operation_to_test == spec.operation_name then
+                    spec.test_function = action_tests.test_function
+                    run_operation_test(spec)
+                end
             end
         end
     end

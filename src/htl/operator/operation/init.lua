@@ -34,10 +34,6 @@ function M.update_references(map, mirrors_map, dir)
     Reference.update_locations(table.default({}, map or {}, mirrors_map or {}), dir)
 end
 
--- TODO
-function M.get_entries(source) return {} end
-function M.map_entries(source) return {} end
-
 function M.remove(source)
     local paths = {source}
     for _, path in pairs(paths) do

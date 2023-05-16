@@ -169,7 +169,7 @@ describe("end to end", function()
         Path.write(b_path, b_content_old)
         Path.write(c_path, c_content_old)
 
-        Operator.operate(a_path .. ":x", b_path .. ":y")
+        Operator.move(a_path .. ":x", b_path .. ":y")
 
         assert.are.same(a_content_new, Path.readlines(a_path))
         assert.are.same(b_content_new, Path.readlines(b_path))
