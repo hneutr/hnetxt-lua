@@ -37,6 +37,7 @@ end
 -- TODO
 function M.get_entries(source) return {} end
 function M.map_entries(source) return {} end
+
 function M.remove(source)
     local paths = {source}
     for _, path in pairs(paths) do

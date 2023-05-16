@@ -133,7 +133,7 @@ function M.get_operation(source, target)
     return nil
 end
 
-function M.operate(source, target)
+function M.move(source, target)
     local operation = M.get_operation(source, target)
     local dir = Project.root_from_path(source)
 
@@ -141,7 +141,6 @@ function M.operate(source, target)
     local map = operation.map_source_to_target(source, target)
 
     -- local entries_map = operation.map_entries(map)
-
     local mirrors_map = operation.map_mirrors(map)
 
     operation.move(map, mirrors_map)
