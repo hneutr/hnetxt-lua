@@ -39,7 +39,7 @@ build = {
       ["htl.text.list"] = "src/htl/text/list.lua",
       ["htl.text.location"] = "src/htl/text/location.lua",
       ["htl.text.mark"] = "src/htl/text/mark.lua",
-      ["htl.text.reference"] = "src/htl/text/reference.lua"
+      ["htl.text.reference"] = "src/htl/text/reference.lua",
 
       ["htl.project.notes"] = "src/htl/project/notes/init.lua",
       ["htl.project.notes.entries"] = "src/htl/project/notes/entries.lua",
