@@ -31,17 +31,6 @@ build = {
       ["htl.project"] = "src/htl/project/init.lua",
       ["htl.project.mirror"] = "src/htl/project/mirror/init.lua",
       ["htl.project.mirror.config"] = "src/htl/project/mirror/config.lua",
-      ["htl.project.notes"] = "src/htl/project/notes/init.lua",
-      ["htl.project.notes.entries"] = "src/htl/project/notes/entries.lua",
-      ["htl.project.notes.entry"] = "src/htl/project/notes/entry/init.lua",
-      ["htl.project.notes.entry.list"] = "src/htl/project/notes/entry/list.lua",
-      ["htl.project.notes.entry.prompt"] = "src/htl/project/notes/entry/prompt.lua",
-      ["htl.project.notes.entry.response"] = "src/htl/project/notes/entry/response.lua",
-      ["htl.project.notes.field"] = "src/htl/project/notes/field/init.lua",
-      ["htl.project.notes.field.bool"] = "src/htl/project/notes/field/bool.lua",
-      ["htl.project.notes.field.date"] = "src/htl/project/notes/field/date.lua",
-      ["htl.project.notes.field.list"] = "src/htl/project/notes/field/list.lua",
-      ["htl.project.notes.fields"] = "src/htl/project/notes/fields.lua",
       ["htl.project.registry"] = "src/htl/project/registry.lua",
       ["htl.text.divider"] = "src/htl/text/divider.lua",
       ["htl.text.flag"] = "src/htl/text/flag.lua",
@@ -51,6 +40,17 @@ build = {
       ["htl.text.location"] = "src/htl/text/location.lua",
       ["htl.text.mark"] = "src/htl/text/mark.lua",
       ["htl.text.reference"] = "src/htl/text/reference.lua"
+
+      ["htl.project.notes"] = "src/htl/project/notes/init.lua",
+      ["htl.project.notes.entries"] = "src/htl/project/notes/entries.lua",
+      ["htl.project.notes.entry"] = "src/htl/project/notes/entry/init.lua",
+      ["htl.project.notes.entry.prompt"] = "src/htl/project/notes/entry/prompt.lua",
+      ["htl.project.notes.entry.response"] = "src/htl/project/notes/entry/response.lua",
+      ["htl.project.notes.field"] = "src/htl/project/notes/field/init.lua",
+      ["htl.project.notes.field.bool"] = "src/htl/project/notes/field/bool.lua",
+      ["htl.project.notes.field.date"] = "src/htl/project/notes/field/date.lua",
+      ["htl.project.notes.field.list"] = "src/htl/project/notes/field/list.lua",
+      ["htl.project.notes.fields"] = "src/htl/project/notes/fields.lua",
    }
 }
 test = {

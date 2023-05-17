@@ -7,14 +7,12 @@ local Fields = require("htl.project.notes.fields")
 local Entry = require("htl.project.notes.entry")
 local PromptEntry = require("htl.project.notes.entry.prompt")
 local ResponseEntry = require("htl.project.notes.entry.response")
-local ListEntry = require("htl.project.notes.entry.list")
 
 local Entries = {}
 
 Entries.by_type = {
     [PromptEntry.type] = PromptEntry,
     [ResponseEntry.type] = ResponseEntry,
-    [ListEntry.type] = ListEntry,
     [Entry.type] = Entry,
 }
 
