@@ -7,7 +7,7 @@ local StringField = Object:extend()
 StringField.type = 'string'
 
 function StringField:new(key, args)
-    args = Dict(args, {values = {}})
+    args = Dict.update(args, {values = {}})
     self.key = key
     self.default = args.default
     self.values = args.values
@@ -39,7 +39,7 @@ function StringField.format(key, raw)
     if List.is_listlike(raw) then
         args.values = raw
     elseif type(raw) == 'table' then
-        args = Dict(args, raw)
+        args = Dict.update(args, raw)
     else
         args.default = raw
     end
