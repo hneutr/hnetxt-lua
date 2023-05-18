@@ -1,4 +1,4 @@
-local Field = require("htl.project.notes.field")
+local StringField = require("htl.notes.field.string")
 
 local key = 'test-field-key'
 
@@ -6,7 +6,7 @@ describe("new", function()
     it("works", function()
         local default = 'xyz'
         local values = {1, 2, 3}
-        local f = Field(key, {default = default, values = values})
+        local f = StringField(key, {default = default, values = values})
         assert.are.same(key, f.key)
         assert.are.same(default, f.default)
         assert.are.same(values, f.values)
@@ -15,28 +15,28 @@ end)
 
 describe("in_values", function()
     it("+: no values", function()
-        assert(Field(key):in_values(1))
+        assert(StringField(key):in_values(1))
     end)
 
     it("+: values", function()
-        assert(Field(key, {values = {1, 2}}):in_values(1))
+        assert(StringField(key, {values = {1, 2}}):in_values(1))
     end)
 
     it("-", function()
-        assert.falsy(Field(key, {values = {1, 2}}):in_values(3))
+        assert.falsy(StringField(key, {values = {1, 2}}):in_values(3))
     end)
 end)
 
 describe("set", function()
     it("sets", function()
-        local f = Field(key, {})
+        local f = StringField(key, {})
         local metadata = {a = 1}
         f:set(metadata, 2)
         assert.are.same({a = 1, [key] = 2}, metadata)
     end)
 
     it("doesn't set if not in values", function()
-        local f = Field(key, {values = {1}})
+        local f = StringField(key, {values = {1}})
         local metadata = {a = 1}
         f:set(metadata, 2)
         assert.are.same({a = 1}, metadata)
@@ -44,7 +44,7 @@ describe("set", function()
 end)
 
 describe("set_default", function()
-    local f = Field(key, {default = 1})
+    local f = StringField(key, {default = 1})
 
     it("sets", function()
         local metadata = {a = 2}
@@ -61,20 +61,20 @@ end)
 
 describe("format", function()
     it("list", function()
-        assert.are.same({values = {1, 2, 3}}, Field.format(key, {1, 2, 3}))
+        assert.are.same({values = {1, 2, 3}}, StringField.format(key, {1, 2, 3}))
     end)
 
     it("table", function()
-        assert.are.same({type = 'field'}, Field.format(key, {type = 'field'}))
+        assert.are.same({type = 'string'}, StringField.format(key, {type = 'string'}))
     end)
 
     it("etc", function()
-        assert.are.same({default = "a"}, Field.format(key, "a"))
+        assert.are.same({default = "a"}, StringField.format(key, "a"))
     end)
 end)
 
 describe("is_of_type", function()
     it("works", function()
-        assert(Field.is_of_type({}))
+        assert(StringField.is_of_type({}))
     end)
 end)

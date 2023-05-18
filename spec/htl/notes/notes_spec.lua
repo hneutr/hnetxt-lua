@@ -5,7 +5,7 @@ local Project = require("htl.project")
 local Registry = require("htl.project.registry")
 local Config = require("htl.config")
 
-local Notes = require("htl.project.notes")
+local Notes = require("htl.notes")
 
 local test_data_dir = Path.joinpath(Path.tempdir(), "test-project-data-dir")
 local test_project_config = table.default({data_dir = test_data_dir}, Config.get('project'))

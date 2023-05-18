@@ -69,8 +69,8 @@ describe("load_types", function()
         local actual = Config.load_types(raw_type_configs, category_configs)
 
         for type_name, config in pairs(actual) do
-            table.sort(config.types_to_mirror, function(a, b) return a < b end)
-            table.sort(config.mirror_types, function(a, b) return a < b end)
+            table.sort(config.types_to_mirror)
+            table.sort(config.mirror_types)
         end
 
         assert.are.same(

@@ -1,5 +1,5 @@
-local Field = require("htl.project.notes.field")
-local DateField = Field:extend()
+local StringField = require("htl.notes.field.string")
+local DateField = StringField:extend()
 
 DateField.type = 'date'
 DateField.default = os.date('%Y%m%d')

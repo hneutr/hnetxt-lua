@@ -1,4 +1,5 @@
 table = require("hl.table")
+local List = require("hl.List")
 local Path = require("hl.path")
 
 local Config = require("htl.config")
@@ -34,7 +35,10 @@ function M.load_types(raw_mirror_types, categories)
         mirror_type.dir = Path.joinpath(category.dir, name)
 
         for _, category_to_mirror in ipairs(category.categories_to_mirror) do
-            table.list_extend(mirror_type.types_to_mirror, categories[category_to_mirror].types)
+            mirror_type.types_to_mirror = List.extend(
+                mirror_type.types_to_mirror,
+                categories[category_to_mirror].types
+            )
         end
 
         mirror_types[name] = mirror_type

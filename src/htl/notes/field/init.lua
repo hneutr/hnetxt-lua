@@ -1,7 +1,7 @@
-local Field = require("htl.project.notes.field")
-local BoolField = require("htl.project.notes.field.bool")
-local ListField = require("htl.project.notes.field.list")
-local DateField = require("htl.project.notes.field.date")
+local StringField = require("htl.notes.field.string")
+local BoolField = require("htl.notes.field.bool")
+local ListField = require("htl.notes.field.list")
+local DateField = require("htl.notes.field.date")
 
 local Fields = {}
 
@@ -9,7 +9,7 @@ Fields.classes = {
     DateField,
     BoolField,
     ListField,
-    Field,
+    StringField,
 }
 
 function Fields.get_field_class(args)
@@ -39,7 +39,7 @@ function Fields.format(fields)
     end
 
     for key, args in pairs(fields) do
-        fields[key] = Field.format(key, args)
+        fields[key] = StringField.format(key, args)
     end
 
     return fields

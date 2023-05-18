@@ -1,4 +1,4 @@
-local ListField = require("htl.project.notes.field.list")
+local ListField = require("htl.notes.field.list")
 
 local key = 'test-field-key'
 

@@ -41,16 +41,20 @@ build = {
       ["htl.text.mark"] = "src/htl/text/mark.lua",
       ["htl.text.reference"] = "src/htl/text/reference.lua",
 
-      ["htl.project.notes"] = "src/htl/project/notes/init.lua",
-      ["htl.project.notes.entries"] = "src/htl/project/notes/entries.lua",
-      ["htl.project.notes.entry"] = "src/htl/project/notes/entry/init.lua",
-      ["htl.project.notes.entry.prompt"] = "src/htl/project/notes/entry/prompt.lua",
-      ["htl.project.notes.entry.response"] = "src/htl/project/notes/entry/response.lua",
-      ["htl.project.notes.field"] = "src/htl/project/notes/field/init.lua",
-      ["htl.project.notes.field.bool"] = "src/htl/project/notes/field/bool.lua",
-      ["htl.project.notes.field.date"] = "src/htl/project/notes/field/date.lua",
-      ["htl.project.notes.field.list"] = "src/htl/project/notes/field/list.lua",
-      ["htl.project.notes.fields"] = "src/htl/project/notes/fields.lua",
+      ["htl.notes"] = "src/htl/notes/init.lua",
+      ["htl.notes.set"] = "src/htl/notes/set/init.lua",
+      ["htl.notes.set.file"] = "src/htl/notes/set/file.lua",
+      ["htl.notes.set.topic"] = "src/htl/notes/set/topic.lua",
+      ["htl.notes.set.prompt"] = "src/htl/notes/set/prompt.lua",
+
+      ["htl.notes.field"] = "src/htl/notes/field/init.lua",
+      ["htl.notes.field.string"] = "src/htl/notes/field/string.lua",
+      ["htl.notes.field.bool"] = "src/htl/notes/field/bool.lua",
+      ["htl.notes.field.date"] = "src/htl/notes/field/date.lua",
+      ["htl.notes.field.list"] = "src/htl/notes/field/list.lua",
+
+      ["htl.notes.file"] = "src/htl/notes/file.lua",
+      -- ["htl.notes.note.statement"] = "src/htl/notes/entry/statement.lua",
    }
 }
 test = {

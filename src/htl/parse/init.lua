@@ -1,4 +1,5 @@
 table = require("hl.table")
+local List = require("hl.List")
 local Object = require("hl.object")
 local Path = require("hl.path")
 

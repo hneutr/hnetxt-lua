@@ -1,6 +1,6 @@
-local Field = require("htl.project.notes.field")
+local StringField = require("htl.notes.field.string")
 
-local ListField = Field:extend()
+local ListField = StringField:extend()
 ListField.type = 'list'
 ListField.default = {}
 

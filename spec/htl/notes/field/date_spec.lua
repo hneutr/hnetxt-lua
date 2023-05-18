@@ -1,4 +1,4 @@
-local DateField = require("htl.project.notes.field.date")
+local DateField = require("htl.notes.field.date")
 
 describe("new", function()
     it("works", function()

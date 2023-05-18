@@ -1,6 +1,6 @@
-local Field = require("htl.project.notes.field")
+local StringField = require("htl.notes.field.string")
 
-local BoolField = Field:extend()
+local BoolField = StringField:extend()
 BoolField.type = 'bool'
 BoolField.values = {true, false}
 

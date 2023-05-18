@@ -1,17 +1,17 @@
-local Fields = require("htl.project.notes.fields")
-local Field = require("htl.project.notes.field")
-local DateField = require("htl.project.notes.field.date")
+local Fields = require("htl.notes.field")
+local StringField = require("htl.notes.field.string")
+local DateField = require("htl.notes.field.date")
 
 local field_format
 
 describe("format", function()
     before_each(function()
-        field_format = Field.format
-        Field.format = function(key, args) return args end
+        field_format = StringField.format
+        StringField.format = function(key, args) return args end
     end)
 
     after_each(function()
-        Field.format = field_format
+        StringField.format = field_format
     end)
 
     it("handles a list", function()
