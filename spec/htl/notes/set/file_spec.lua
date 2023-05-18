@@ -110,7 +110,7 @@ describe("touch", function()
         assert.are.same(file_1, path)
 
         assert.are.same(
-            {a = true, date = os.date("%Y%m%d")},
+            {a = true, date = tonumber(os.date("%Y%m%d"))},
             file_set:path_file(file_1):get_metadata()
         )
     end)

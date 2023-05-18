@@ -1,3 +1,4 @@
+local List = require("hl.List")
 local StringField = require("htl.notes.field.string")
 local BoolField = require("htl.notes.field.bool")
 local ListField = require("htl.notes.field.list")
@@ -25,7 +26,7 @@ end
 function Fields.format(fields)
     fields = fields or {}
 
-    if table.is_list(fields) then
+    if List.is_listlike(fields) then
         for i, key in ipairs(fields) do
             fields[key] = {}
             fields[i] = nil

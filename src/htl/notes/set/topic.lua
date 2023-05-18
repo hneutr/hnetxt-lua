@@ -127,7 +127,7 @@ end
 -- dir/topic.md   → dir/topic/@.md
 -- dir/topic      → dir/topic/@.md
 function TopicSet:get_path_to_touch(path, args)
-    path = self._base.get_path_to_touch(self, path, args)
+    path = FileSet.get_path_to_touch(self, path, args)
 
     if self:is_topic_statement(path) or self:is_topic_file(path) then
         return path

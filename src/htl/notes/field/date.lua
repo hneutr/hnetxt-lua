@@ -14,6 +14,10 @@ function DateField.is_of_type(args)
     return args.default == DateField.default
 end
 
+function DateField:set(metadata, value)
+    self.super.set(self, metadata, tonumber(value))
+end
+
 function DateField.default_config()
     return {type = DateField.type}
 end

@@ -130,6 +130,8 @@ describe("format_config", function()
     end)
 
     it("no top level subsets key", function()
+        stub(Fields, "format", function(...) return ... end)
+
         local a_fields = {x = 1}
         local b_fields = {y = 2}
         local actual = Sets.format_config({a = {fields = a_fields}, b = {fields = b_fields}})
@@ -137,5 +139,7 @@ describe("format_config", function()
             {a = {fields = a_fields, filters = {}}, b = {fields = b_fields, filters = {}}},
             actual
         )
+
+        Fields.format:revert()
     end)
 end)

@@ -26,8 +26,8 @@ function FileSet:_init(path, config)
     self.path = path
 end
 
-function FileSet:files(path)
-    return Path.iterdir(path or self.path, {recursive = false, dirs = false})
+function FileSet:files()
+    return Path.iterdir(self.path, {recursive = false, dirs = false})
 end
 
 function FileSet.next_index(paths)

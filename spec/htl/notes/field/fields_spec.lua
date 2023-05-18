@@ -40,7 +40,7 @@ describe("set_metadata", function()
         }))
 
         assert.are.same(
-            {date = os.date("%Y%m%d"), a = 1, b = false, c = 3, d = false, e = {2}},
+            {date = tonumber(os.date("%Y%m%d")), a = 1, b = false, c = 3, d = false, e = {2}},
             Fields.set_metadata(fields, {a = 1, b = false, c = 3, e = 2})
         )
     end)

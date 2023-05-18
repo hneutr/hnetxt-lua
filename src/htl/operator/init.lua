@@ -136,8 +136,10 @@ function M.move(source, target)
 end
 
 function M.remove(source)
-    local operation = M.get_operation_class(source)
-    operation.remove(source)
+    if Path.exists(source) then
+        local operation = M.get_operation_class(source)
+        operation.remove(source)
+    end
 end
 
 return M

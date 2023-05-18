@@ -315,7 +315,7 @@ describe("touch", function()
         assert(Path.exists(path))
 
         assert.are.same(
-            {a = false, date = os.date("%Y%m%d")},
+            {a = false, date = tonumber(os.date("%Y%m%d"))},
             topic_set:path_file(path):get_metadata()
         )
     end)
@@ -328,7 +328,7 @@ describe("touch", function()
         assert(Path.exists(path))
 
         assert.are.same(
-            {b = true, date = os.date("%Y%m%d")},
+            {b = true, date = tonumber(os.date("%Y%m%d"))},
             topic_set:path_file(path):get_metadata()
         )
     end)

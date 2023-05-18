@@ -1,3 +1,4 @@
+local List = require("hl.List")
 local StringField = require("htl.notes.field.string")
 
 local ListField = StringField:extend()
@@ -35,7 +36,7 @@ function ListField:set_default(metadata)
 end
 
 function ListField.is_of_type(args)
-    return table.is_list(args.default)
+    return List.is_listlike(args.default)
 end
 
 return ListField

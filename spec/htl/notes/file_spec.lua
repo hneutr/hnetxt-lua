@@ -17,11 +17,13 @@ local file
 before_each(function()
     Path.unlink(path)
     file = File(path, fields)
+    stub(Fields, "format", function(...) return ... end)
 end)
 
 after_each(function()
     Path.unlink(path)
     file = nil
+    Fields.format:revert()
 end)
 
 describe("read", function()
@@ -46,7 +48,7 @@ describe("touch", function()
         file:touch({a = 2, d = 3})
 
         assert.are.same(
-            {a = 2, b = true, d = {3}, date = os.date("%Y%m%d")},
+            {a = 2, b = true, d = {3}, date = tonumber(os.date("%Y%m%d"))},
             file:get_metadata()
         )
     end)
@@ -57,14 +59,14 @@ describe("set_metadata", function()
         file:touch({a = 2, d = 3})
 
         assert.are.same(
-            {a = 2, b = true, d = {3}, date = os.date("%Y%m%d")},
+            {a = 2, b = true, d = {3}, date = tonumber(os.date("%Y%m%d"))},
             file:get_metadata()
         )
 
         file:set_metadata({a = 1, b = false, c = 3, d = 'z'})
 
         assert.are.same(
-            {a = 1, b = false, c = 3, d = {'z'}, date = os.date("%Y%m%d")},
+            {a = 1, b = false, c = 3, d = {'z'}, date = tonumber(os.date("%Y%m%d"))},
             file:get_metadata()
         )
     end)

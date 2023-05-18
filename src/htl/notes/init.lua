@@ -1,3 +1,5 @@
+local Path = require("hl.path")
+local Dict = require("hl.Dict")
 local Object = require("hl.object")
 
 local Project = require("htl.project")
@@ -6,28 +8,41 @@ local Sets = require("htl.notes.set")
 
 local Notes = Object:extend()
 
-function Notes.from_path(path)
+function Notes.sets(path)
     local project = Project.from_path(path)
-    return Registry(project.metadata.notes, project.root)
+    local configs = Sets.format_config(project.metadata.notes)
+
+    local sets = {}
+    for set_key, config in pairs(configs) do
+        set_path = Path.joinpath(project.root, set_key)
+        sets[set_path] = Sets.get_class(config)(set_path, config)
+    end
+
+    return sets
 end
 
--- this is to be used for:
--- - touch
--- - edit
-function Notes.get_set_from_path(path)
-end
+function Notes.path_set(path)
+    local sets = Notes.sets(path)
+    local set_paths = Dict.keys(sets)
 
--- the idea is to use this for `list`
-function Notes.get_sets_from_path(path)
-end
+    table.sort(set_paths, function(a, b) return #a > #b end)
 
-
-function Notes:new(config, root)
-    self.sets = {}
-    for key, set_config in pairs(Sets.format_config(config)) do
-        key = Path.joinpath(root, key)
-        self.sets[key] = Sets.get_class(set_config)(key, entry_config)
+    for _, set_path in pairs(set_paths) do
+        if set_path == path or Path.is_relative_to(path, set_path) then
+            return sets[set_path]
+        end
     end
 end
 
-return Registry
+function Notes.path_sets(path)
+    local sets = Notes.sets(path)
+    for set_path, _ in pairs(sets) do
+        if set_path ~= path and not Path.is_relative_to(set_path, path) then
+            sets[set_path] = nil
+        end
+    end
+
+    return sets
+end
+
+return Notes

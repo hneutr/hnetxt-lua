@@ -1,8 +1,7 @@
 table = require('hl.table')
+local Dict = require("hl.Dict")
 local Path = require("hl.path")
 local Object = require("hl.object")
-
-local Fields = require("htl.notes.field")
 
 local FileSet = require("htl.notes.set.file")
 local TopicSet = require("htl.notes.set.topic")
@@ -83,8 +82,8 @@ function Sets.format(set)
     local filters = set.filters or {}
     for key, subset in pairs(subsets) do
         subset = subset or {}
-        subset.fields = table.default(subset.fields, fields)
-        subset.filters = table.default(subset.filters, filters)
+        subset.fields = Dict(subset.fields, fields)
+        subset.filters = Dict(subset.filters, filters)
 
         subsets[key] = Sets.format(subset)
     end
