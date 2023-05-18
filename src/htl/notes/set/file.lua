@@ -98,12 +98,14 @@ function FileSet:list(path)
         local blurb = content[1]
 
         if #blurb == 0 then
-            blurb = Path.stem(path):replace("-", " ")
+            blurb = Path.stem(path):gsub("-", " ")
         end
 
+        item_path = Path.relative_to(item_path, path):removeprefix("/")
+
         items:append({
-            path = Path.relative_to(item_path, path),
-            clean_path = Path.with_suffix(item_path, ''):replace('-', " "),
+            path = item_path,
+            clean_path = Path.with_suffix(item_path, ''):gsub('-', " "):removeprefix("/"),
             set_path = set_path,
             metadata = metadata,
             blurb = blurb,
