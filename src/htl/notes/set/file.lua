@@ -1,3 +1,4 @@
+local List = require("hl.List")
 local Path = require("hl.path")
 
 local Fields = require("htl.notes.field")
@@ -68,7 +69,8 @@ function FileSet:path_config(path)
 end
 
 function FileSet:path_file(path)
-    return File(path, self:path_config(path).fields)
+    local config = self:path_config(path)
+    return File(path, config.fields, config.filters)
 end
 
 function FileSet:touch(path, args, metadata)
@@ -81,8 +83,34 @@ function FileSet:touch(path, args, metadata)
     return path
 end
 
--- TODO
-function FileSet:list(path, metadata)
+-- TODO: filter metadata here
+-- TODO: also will need to figure out how to cue to TopicSet that we want ALL notes when listing
+-- fields
+function FileSet:list(path)
+    local items = List()
+    local set_path = Path.relative_to(self.path, path)
+
+    for _, item_path in ipairs(self:files()) do
+        local file = self:path_file(item_path)
+        local metadata, content = unpack(file:read())
+
+        content = content:splitlines()
+        local blurb = content[1]
+
+        if #blurb == 0 then
+            blurb = Path.stem(path):replace("-", " ")
+        end
+
+        items:append({
+            path = Path.relative_to(item_path, path),
+            clean_path = Path.with_suffix(item_path, ''):replace('-', " "),
+            set_path = set_path,
+            metadata = metadata,
+            blurb = blurb,
+        })
+    end
+
+    return items
 end
 
 return FileSet

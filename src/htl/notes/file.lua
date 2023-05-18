@@ -7,9 +7,10 @@ local Fields = require("htl.notes.field")
 
 class.File()
 
-function File:_init(path, fields)
+function File:_init(path, fields, filters)
     self.path = path
     self.fields = Fields.get(fields)
+    self.filters = filters or {}
 end
 
 function File:write(metadata, content)
@@ -35,6 +36,10 @@ end
 
 function File:get_metadata()
     return self:read()[1]
+end
+
+function File:get_content()
+    return self:read()[2]
 end
 
 function File:set_metadata(new_metadata)
