@@ -1,4 +1,3 @@
-local stub = require('luassert.stub')
 local Path = require("hl.path")
 local Fields = require("htl.notes.field")
 local File = require("htl.notes.file")
@@ -37,10 +36,13 @@ before_each(function()
     for _, p in ipairs(files) do
         Path.touch(p)
     end
+
+    stub(Fields, "format", function(...) return ... end)
 end)
 
 after_each(function()
     Path.rmdir(project_root, true)
+    Fields.format:revert()
 end)
 
 describe("format_topics", function()
@@ -60,18 +62,14 @@ describe("format_topics", function()
 end)
 
 describe("format", function()
-    local date_field = {default = os.date("%Y%m%d")}
-    local fields = {date = date_field}
-
     it("works", function()
-        local actual = TopicSet.format()
         assert.are.same(
             {
                 topics = {},
-                statement = {fields = fields, filters = {}},
-                file = {fields = fields, filters = {}},
+                statement = {fields = {}, filters = {}},
+                file = {fields = {}, filters = {}},
             },
-            actual
+            TopicSet.format()
         )
     end)
 
@@ -81,16 +79,16 @@ describe("format", function()
             {
                 topics = {
                     a = {
-                        statement = {fields = fields, filters = {}},
-                        file = {fields = fields, filters = {}},
+                        statement = {fields = {}, filters = {}},
+                        file = {fields = {}, filters = {}},
                     },
                     b = {
-                        statement = {fields = fields, filters = {}},
-                        file = {fields = {date = date_field, x = {default = true}}, filters = {}},
+                        statement = {fields = {}, filters = {}},
+                        file = {fields = {x = true}, filters = {}},
                     }
                 },
-                statement = {fields = fields, filters = {}},
-                file = {fields = fields, filters = {}},
+                statement = {fields = {}, filters = {}},
+                file = {fields = {}, filters = {}},
             },
             actual
         )
@@ -301,6 +299,14 @@ describe("path_config", function()
 end)
 
 describe("touch", function()
+    before_each(function()
+        Fields.format:revert()
+    end)
+
+    after_each(function()
+        stub(Fields, 'format')
+    end)
+
     local topic_set = TopicSet(topic_set_dir, {
         topics = {},
         statement = {filters = {}, fields = Fields.format({a = false})},

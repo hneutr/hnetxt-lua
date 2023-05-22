@@ -1,13 +1,9 @@
-table = require("hl.table")
 local Path = require("hl.path")
 
 local Fields = require("htl.notes.field")
 local FileSet = require("htl.notes.set.file")
 
-local project_root = Path.joinpath(Path.tempdir(), "test-project-root")
-local file = Path.joinpath(project_root, "other.md")
-
-local fileset_dir = Path.joinpath(project_root, "files")
+local fileset_dir = Path.joinpath(Path.tempdir(), "files")
 local file_1 = Path.joinpath(fileset_dir, "1.md")
 local file_2 = Path.joinpath(fileset_dir, "2.md")
 local file_a = Path.joinpath(fileset_dir, "a.md")
@@ -17,7 +13,6 @@ local fileset_subdir = Path.joinpath(fileset_dir, "subdir")
 local subfile = Path.joinpath(fileset_subdir, "sub.md")
 
 local files = {
-    file,
     file_1,
     file_2,
     file_a,
@@ -33,19 +28,23 @@ local fileset_files = {
 }
 
 before_each(function()
-    Path.rmdir(project_root, true)
+    Path.rmdir(fileset_dir, true)
     for _, p in ipairs(files) do
         Path.touch(p)
     end
+    stub(Fields, "format", function(...) return ... end)
 end)
 
 after_each(function()
-    Path.rmdir(project_root, true)
+    Path.rmdir(fileset_dir, true)
+    Fields.format:revert()
 end)
 
 describe("format", function()
     it("works", function()
+        Fields.format:revert()
         local set = {fields = {a = 1, b = 2}}
+        
         assert.are.same(
             {
                 fields = {
@@ -56,13 +55,15 @@ describe("format", function()
             },
             FileSet.format(set)
         )
+
+        stub(Fields, "format")
     end)
 end)
 
 describe("files", function()
     it("works", function()
         local expected = fileset_files
-        local actual = FileSet(fileset_dir, {}, {}, project_root):files()
+        local actual = FileSet(fileset_dir):files()
         table.sort(expected)
         table.sort(actual)
 

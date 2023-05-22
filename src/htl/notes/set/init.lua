@@ -1,4 +1,4 @@
-table = require('hl.table')
+local List = require("hl.List")
 local Dict = require("hl.Dict")
 local Path = require("hl.path")
 local Object = require("hl.object")
@@ -49,7 +49,7 @@ end
 function Sets.format_subsets(set)
     set = set or {}
     local subsets = set.subsets or {}
-    if table.is_list(subsets) then
+    if List.is_listlike(subsets) then
         for i, key in ipairs(subsets) do
             subsets[key] = {}
             subsets[i] = nil
@@ -63,7 +63,7 @@ function Sets.format_subsets(set)
 
     local set_class = Sets.get_class(set)
     for key, subset in pairs(set) do
-        if not table.list_contains(set_class.config_keys, key) then
+        if not List.contains(set_class.config_keys, key) then
             subsets[key] = subset
             set[key] = nil
         end
@@ -81,14 +81,13 @@ function Sets.format(set)
     local fields = set.fields or {}
     local filters = set.filters or {}
     for key, subset in pairs(subsets) do
-        subset = subset or {}
         subset.fields = Dict(subset.fields, fields)
         subset.filters = Dict(subset.filters, filters)
 
         subsets[key] = Sets.format(subset)
     end
 
-    if #table.keys(subsets) > 0 then
+    if #Dict.keys(subsets) > 0 then
         set.subsets = subsets
     else
         set.subsets = nil

@@ -192,6 +192,7 @@ if path is in a topic dir, list that topic's files
 else list 
 --]]
 function TopicSet:list(path)
+    return {}
 end
 
 

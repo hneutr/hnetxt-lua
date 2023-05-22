@@ -102,10 +102,15 @@ function FileSet:list(path)
         end
 
         item_path = Path.relative_to(item_path, path):removeprefix("/")
+        clean_item_path = Path.with_suffix(item_path, ''):gsub('-', " "):removeprefix("/")
 
         items:append({
             path = item_path,
-            clean_path = Path.with_suffix(item_path, ''):gsub('-', " "):removeprefix("/"),
+            clean_path = clean_item_path,
+            stem = Path.stem(item_path),
+            clean_stem = Path.stem(clean_item_path),
+            name = Path.name(item_path),
+            clean_name = Path.name(clean_item_path),
             set_path = set_path,
             metadata = metadata,
             blurb = blurb,

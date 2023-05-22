@@ -54,7 +54,6 @@ build = {
       ["htl.notes.field.list"] = "src/htl/notes/field/list.lua",
 
       ["htl.notes.file"] = "src/htl/notes/file.lua",
-      -- ["htl.notes.note.statement"] = "src/htl/notes/entry/statement.lua",
    }
 }
 test = {

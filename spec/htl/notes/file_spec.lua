@@ -1,4 +1,3 @@
-table = require("hl.table")
 local Path = require("hl.path")
 
 local Fields = require("htl.notes.field")

@@ -51,4 +51,27 @@ function StringField.is_of_type()
     return true
 end
 
+function StringField:filter_value(value, condition)
+    return condition == nil or value == condition
+end
+
+function StringField:filter_value_type(value, condition)
+    if condition == nil then
+        return true
+    end
+
+    local in_values = self:in_values(value)
+
+    if condition == 'expected' then
+        return in_values
+    elseif condition == 'unexpected' then
+        return not in_values
+    end
+end
+
+function StringField:filter(metadata, value_condition, value_type_condition)
+    local value = self:get(metadata)
+    return self:filter_value(value, value_condition) and self:filter_value_type(value, value_type_condition)
+end
+
 return StringField

@@ -1,4 +1,5 @@
 local List = require("hl.List")
+
 local StringField = require("htl.notes.field.string")
 local BoolField = require("htl.notes.field.bool")
 local ListField = require("htl.notes.field.list")
@@ -57,6 +58,9 @@ function Fields.set_metadata(fields, metadata)
     end
 
     return metadata
+end
+
+function Fields.filter(fields, filters, value_type_conditions)
 end
 
 

@@ -1,5 +1,3 @@
-local stub = require('luassert.stub')
-
 local Fields = require("htl.notes.field")
 local Sets = require("htl.notes.set")
 local DateField = require("htl.notes.field.date")

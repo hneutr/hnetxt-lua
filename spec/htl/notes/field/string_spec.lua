@@ -78,3 +78,43 @@ describe("is_of_type", function()
         assert(StringField.is_of_type({}))
     end)
 end)
+
+describe("filter_value", function()
+    it("+: nil condition", function()
+        assert(StringField():filter_value(1, nil))
+    end)
+
+    it("+: match", function()
+        assert(StringField():filter_value(1, 1))
+    end)
+
+    it("-: mismatch", function()
+        assert.falsy(StringField():filter_value(1, false))
+    end)
+end)
+
+describe("filter_value_type", function()
+    local key = 'a'
+    local field = StringField(key, {values = {1, 2, 3}})
+
+    it("+: nil condition", function()
+        assert(field:filter_value_type(4, nil))
+    end)
+
+    it("+: unexpected value, unexpected condition", function()
+        assert(field:filter_value_type(4, 'unexpected'))
+    end)
+
+    it("-: unexpected value, expected condition", function()
+        assert.falsy(field:filter_value_type(4, 'expected'))
+    end)
+
+    it("+: expected value, expected condition", function()
+        assert(field:filter_value_type(3, 'expected'))
+    end)
+
+    it("-: expected value, unexpected condition", function()
+        assert.falsy(field:filter_value_type(3, 'unexpected'))
+    end)
+
+end)
