@@ -1,5 +1,5 @@
+local Dict = require("hl.Dict")
 local Object = require("hl.object")
-table = require("hl.table")
 
 --------------------------------------------------------------------------------
 --                                    Link                                     
@@ -18,7 +18,7 @@ Link.defaults = {
 }
 
 function Link:new(args)
-    self = table.default(self, args, self.defaults)
+    self = Dict.update(self, args, self.defaults)
 end
 
 function Link.str_is_a(str)

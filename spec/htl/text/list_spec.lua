@@ -1,16 +1,7 @@
---[[
-TODO test:
-- Line:
-    - write
-    - get_if_str_is_a
-- ListLine:
-    - get_sigil_pattern
-    - get_class
-- Parser:
---]]
 local Path = require("hl.path")
+local List = require("hl.PList")
 
-local List = require("htl.text.list")
+local TextList = require("htl.text.list")
 
 local test_dir = Path.joinpath(Path.tempdir(), "test-dir")
 local test_file = Path.joinpath(test_dir, "test-file.md")
@@ -30,8 +21,8 @@ end)
 describe("Line", function()
     describe(":new", function() 
         it("makes an empty Item", function()
-            local item1 = List.Line({text = "1"})
-            local item2 = List.Line({text = "2"})
+            local item1 = TextList.Line({text = "1"})
+            local item2 = TextList.Line({text = "2"})
 
             assert.equal('1', item1.text)
             assert.equal('2', item2.text)
@@ -40,15 +31,15 @@ describe("Line", function()
 
     describe(":tostring: ", function()
         it("works", function()
-            local x = List.Line({text = 'text', indent = '    '})
+            local x = TextList.Line({text = 'text', indent = '    '})
             assert.equal(tostring(x), "    text")
         end)
     end)
 
     describe(":merge: ", function()
         it("Line + Line", function()
-            local one = List.Line({text = '1'})
-            local two = List.Line({text = ' 2'})
+            local one = TextList.Line({text = '1'})
+            local two = TextList.Line({text = ' 2'})
 
             assert.equal(tostring(one), '1')
 
@@ -58,8 +49,8 @@ describe("Line", function()
         end)
 
         it("Line + ListLine", function()
-            local one = List.Line({text = '1    ', indent = '    '})
-            local two = List.ListLine({text = '2', indent = '    '})
+            local one = TextList.Line({text = '1    ', indent = '    '})
+            local two = TextList.ListLine({text = '2', indent = '    '})
 
             assert.equal(tostring(one), '    1    ')
             assert.equal(tostring(two), '    - 2')
@@ -74,8 +65,8 @@ end)
 describe("ListLine", function()
     describe(":new", function() 
         it("makes an empty Item", function()
-            local item1 = List.ListLine({text = "1"})
-            local item2 = List.ListLine({text = "2"})
+            local item1 = TextList.ListLine({text = "1"})
+            local item2 = TextList.ListLine({text = "2"})
 
             assert.equal(item1.text, '1')
             assert.equal(item2.text, '2')
@@ -84,7 +75,7 @@ describe("ListLine", function()
 
     describe(":tostring:", function()
         it("basic case", function()
-            local item = List.ListLine({text = 'text', indent = '    '})
+            local item = TextList.ListLine({text = 'text', indent = '    '})
 
             assert.equal(tostring(item), "    - text")
         end)
@@ -92,13 +83,13 @@ describe("ListLine", function()
 
     describe(".get_if_str_is_a:", function()
         it("-", function()
-            assert.is_nil(List.ListLine.get_if_str_is_a("string", 0))
+            assert.is_nil(TextList.ListLine.get_if_str_is_a("string", 0))
         end)
 
         it("+", function()
             assert.are.same(
-                List.ListLine.get_if_str_is_a("    - string", 0),
-                List.ListLine({text = "string", indent = "    ", line_number = 0})
+                TextList.ListLine.get_if_str_is_a("    - string", 0),
+                TextList.ListLine({text = "string", indent = "    ", line_number = 0})
             )
         end)
     end)
@@ -107,26 +98,26 @@ end)
 describe("NumberedListLine", function()
     describe(":new", function() 
         it("makes an empty Item", function()
-            assert.equal(List.NumberedListLine().number, 1)
+            assert.equal(TextList.NumberedListLine().number, 1)
         end)
     end)
 
     describe(":tostring", function()
         it("basic case", function()
-            local item = List.NumberedListLine({text = 'text', indent = '    '})
+            local item = TextList.NumberedListLine({text = 'text', indent = '    '})
             assert.equal(tostring(item), "    1. text")
         end)
     end)
 
     describe("._get_if_str_is_a", function()
         it("-", function()
-            assert.is_nil(List.NumberedListLine._get_if_str_is_a("- string", 0))
+            assert.is_nil(TextList.NumberedListLine._get_if_str_is_a("- string", 0))
         end)
 
         it("+", function()
             assert.are.same(
-                List.NumberedListLine._get_if_str_is_a("    10. string", 0),
-                List.NumberedListLine({number = 10, text = "string", indent = "    ", line_number = 0})
+                TextList.NumberedListLine._get_if_str_is_a("    10. string", 0),
+                TextList.NumberedListLine({number = 10, text = "string", indent = "    ", line_number = 0})
             )
         end)
     end)
@@ -134,7 +125,7 @@ end)
 
 describe("Parser", function()
     before_each(function()
-        parser = List.Parser()
+        parser = TextList.Parser()
     end)
 
     describe("new", function()
@@ -143,47 +134,47 @@ describe("Parser", function()
         end)
 
         it("accepts added types", function()
-            assert(table.list_contains(List.Parser({"question"}).types, "question"))
+            assert(List(TextList.Parser({"question"}).types):contains("question"))
         end)
 
         it("handles duplicate types", function()
-            local default_types = List.Parser.default_types
-            List.Parser.default_types = {"bullet"}
-            assert.are.same({"bullet", "question"}, List.Parser({"question", "bullet"}).types)
-            List.Parser.default_types = default_types
+            local default_types = TextList.Parser.default_types
+            TextList.Parser.default_types = {"bullet"}
+            assert.are.same({"bullet", "question"}, TextList.Parser({"question", "bullet"}).types)
+            TextList.Parser.default_types = default_types
         end)
     end)
 
     describe("parse_line", function()
         it("basic line", function()
             assert.are.same(
-                List.Line({text="text", line_number = 1}),
+                TextList.Line({text="text", line_number = 1}),
                 parser:parse_line("text", 1)
             )
         end)
 
         it("list line", function()
             assert.are.same(
-                List.ListLine.get_class("bullet")({text="text", line_number = 1}),
+                TextList.ListLine.get_class("bullet")({text="text", line_number = 1}),
                 parser:parse_line("- text", 1)
             )
         end)
 
         it("numbered list line", function()
             assert.are.same(
-                List.NumberedListLine({text="text", number = 10, line_number = 1}),
+                TextList.NumberedListLine({text="text", number = 10, line_number = 1}),
                 parser:parse_line("10. text", 1)
             )
         end)
 
         it("handles additional types", function()
-            expected = List.Line({text="? text", line_number = 1})
+            expected = TextList.Line({text="? text", line_number = 1})
             assert.are.same(expected, parser:parse_line("? text", 1))
         
             
-            parser = List.Parser({"question"})
+            parser = TextList.Parser({"question"})
         
-            expected = List.ListLine.get_class("question")({text="text", line_number = 1})
+            expected = TextList.ListLine.get_class("question")({text="text", line_number = 1})
             assert.are.same(expected, parser:parse_line("? text", 1))
         end)
     end)
@@ -192,7 +183,7 @@ describe("Parser", function()
         it("basics", function()
             Path.write(test_file, {"- abc", "    - 123"})
             Path.write(test_subfile, {"x", "y", "- beta"})
-            local actual = List.Parser.get_instances("bullet", test_dir)
+            local actual = TextList.Parser.get_instances("bullet", test_dir)
 
             local test_file_short = Path.with_suffix(Path.relative_to(test_file, test_dir), ''):removeprefix('/')
             local test_subfile_short = Path.with_suffix(Path.relative_to(test_subfile, test_dir), ''):removeprefix('/')

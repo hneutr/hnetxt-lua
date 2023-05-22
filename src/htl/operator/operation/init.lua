@@ -1,4 +1,5 @@
 local Object = require("hl.object")
+local Dict = require("hl.Dict")
 local Path = require('hl.path')
 local Config = require("htl.config")
 
@@ -20,7 +21,7 @@ function M.map_source_to_target(source, target) return {[source] = target} end
 function M.map_mirrors(map)
     local mirrors_map = {}
     for source, target in pairs(map) do
-        mirrors_map = table.default(mirrors_map, Mirror.find_updates(source, target))
+        mirrors_map = Dict.from(mirrors_map, Mirror.find_updates(source, target))
     end
 
     for source, target in pairs(map) do
@@ -31,7 +32,7 @@ function M.map_mirrors(map)
 end
 function M.move(map, mirrors_map) end
 function M.update_references(map, mirrors_map, dir)
-    Reference.update_locations(table.default({}, map or {}, mirrors_map or {}), dir)
+    Reference.update_locations(Dict.from(map or {}, mirrors_map or {}), dir)
 end
 
 function M.remove(source)

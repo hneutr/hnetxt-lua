@@ -1,10 +1,11 @@
+local Dict = require("hl.Dict")
 local Path = require("hl.path")
 
 local config = require("htl.config").get("goals")
 config.template_file = Path.joinpath(config.dir, config.template_filename)
 
 function get_path(args)
-    args = table.default(args, {
+    args = Dict.from(args, {
         year = os.date("%Y"),
         month = os.date("%m"),
     })

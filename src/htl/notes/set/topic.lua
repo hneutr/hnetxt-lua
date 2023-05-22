@@ -1,5 +1,5 @@
 local class = require("pl.class")
-local List = require("hl.List")
+local List = require("hl.PList")
 local Dict = require("hl.Dict")
 local Path = require("hl.path")
 
@@ -15,7 +15,7 @@ class.TopicSet(FileSet)
 TopicSet.type = 'topic'
 TopicSet.dir_file = Config.get("directory_file")
 TopicSet.iterdir_args = {recursive = false, dirs = false}
-TopicSet.config_keys = List.extend(FileSet.config_keys, {
+TopicSet.config_keys = List.from(FileSet.config_keys, {
     'statement',
     'file',
     'topics',

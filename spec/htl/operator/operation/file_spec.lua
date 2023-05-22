@@ -1,3 +1,5 @@
+local List = require("hl.PList")
+
 local stub = require('luassert.stub')
 
 local Path = require('hl.path')
@@ -78,7 +80,7 @@ describe("end to end", function()
         local a_content = {"this is", "file a"}
         Path.write(a_path, a_content)
 
-        local b_content_old = table.list_extend(
+        local b_content_old = List.from(
             {"text", "", "more text", ""},
             tostring(Header({content = "[a]()"})),
             {"b:a content"}

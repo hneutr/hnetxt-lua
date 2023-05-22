@@ -1,5 +1,5 @@
-table = require("hl.table")
-local stub = require('luassert.stub')
+local Dict = require("hl.Dict")
+local List = require("hl.PList")
 local Path = require("hl.path")
 
 local Project = require("htl.project")
@@ -26,13 +26,13 @@ local function setup_paths(paths)
 end
 
 local function make_relative_to_test_dir(thing, args)
-    args = table.default(args or {}, {transform_keys = false, transform_values = false})
+    args = Dict.from(args or {}, {transform_keys = false, transform_values = false})
 
     if type(thing) == 'string' then
         return Path.joinpath(test_dir, thing)
     elseif type(thing) == 'table' then
         local new_thing = {}
-        if table.is_list(thing) then
+        if List.is_listlike(thing) then
             for i, v in ipairs(thing) do 
                 new_thing[i] = Path.joinpath(test_dir, v)
             end
@@ -150,7 +150,7 @@ local function run_operation_test(spec, subtest_name)
 
     if spec.subtests ~= nil then
         for subtest_name, subtest_spec in pairs(spec.subtests) do
-            local subspec = table.default({}, subtest_spec, spec)
+            local subspec = Dict.from(subtest_spec, spec)
             subspec.subtests = nil
             run_operation_test(subspec, subtest_name)
         end

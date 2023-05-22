@@ -1,8 +1,9 @@
-table = require("hl.table")
 string = require("hl.string")
 io = require("hl.io")
+local Dict = require("hl.Dict")
 local Object = require("hl.object")
 local Path = require("hl.path")
+local Dict = require("hl.Dict")
 
 local Config = require("htl.config")
 local Link = require("htl.text.link")
@@ -31,7 +32,7 @@ Reference.get_referenced_marks_cmd = [[rg '\[.*\]\(.+\)' --no-heading --no-filen
 Reference.get_references_cmd = [[rg '\[.*\]\(.+\)' --no-heading --line-number --hidden ]]
 
 function Reference:new(args)
-    self = table.default(self, args or {}, self.defaults)
+    self = Dict.update(self, args or {}, self.defaults)
     self.label = self.default_label(self.label, self.location)
 end
 
@@ -156,7 +157,7 @@ function Reference.update_locations(location_changes, dir)
 
         relative_location_changes[k] = v
     end
-    local old_locations = table.keys(relative_location_changes)
+    local old_locations = Dict.keys(relative_location_changes)
 
     -- sort from longest to shortest so that file updates don't "clobber" mark updates
     table.sort(old_locations, function(a, b) return #a > #b end)

@@ -1,5 +1,4 @@
-local stub = require('luassert.stub')
-
+local Dict = require("hl.Dict")
 local Path = require("hl.path")
 local Mirror = require("htl.project.mirror")
 
@@ -38,7 +37,7 @@ describe("map_mirrors", function()
         Mirror.find_updates.on_call_with('a', 'b').returns(ab)
         Mirror.find_updates.on_call_with('c', 'd').returns(cd)
 
-        assert.are.same(table.default({}, ab, cd), Operation.map_mirrors({a = 'b', c = 'd'}))
+        assert.are.same(Dict.from(ab, cd), Operation.map_mirrors({a = 'b', c = 'd'}))
     end)
 end)
 

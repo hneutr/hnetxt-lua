@@ -1,4 +1,4 @@
-local stub = require('luassert.stub')
+local Dict = require("hl.Dict")
 local Path = require("hl.path")
 
 local Project = require("htl.project")
@@ -8,7 +8,7 @@ local Config = require("htl.config")
 local Notes = require("htl.notes")
 
 local test_data_dir = Path.joinpath(Path.tempdir(), "test-project-data-dir")
-local test_project_config = table.default({data_dir = test_data_dir}, Config.get('project'))
+local test_project_config = Dict.from({data_dir = test_data_dir}, Config.get('project'))
 local test_project_dir = Path.joinpath(Path.tempdir(), "test-project")
 local test_project_name = "test-project"
 local registry

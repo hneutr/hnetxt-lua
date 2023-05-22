@@ -1,6 +1,7 @@
-table = require("hl.table")
 string = require("hl.string")
 io = require("hl.io")
+local List = require("hl.PList")
+local Dict = require("hl.Dict")
 local Path = require("hl.path")
 
 local Object = require("hl.object")
@@ -20,7 +21,7 @@ Line.defaults = {
 Line.regex = "^(%s*)(.*)$"
 
 function Line:new(args)
-    self = table.default(self, args or {}, self.defaults)
+    self = Dict.update(self, args or {}, self.defaults)
 end
 
 function Line:write()
@@ -86,7 +87,7 @@ function ListLine.get_class(name)
         ListClass = ListLine:extend()
     end
 
-    ListClass.defaults = table.default(settings, ListClass.defaults)
+    ListClass.defaults = Dict.update(settings, ListClass.defaults)
 
     ListClass.get_if_str_is_a = function(str, line_number)
         return ListClass._get_if_str_is_a(str, line_number, ListClass)
@@ -100,7 +101,7 @@ end
 --------------------------------------------------------------------------------
 NumberedListLine = ListLine:extend()
 NumberedListLine.pattern = "^(%s*)(%d+)%.%s(.*)$"
-NumberedListLine.defaults = table.default({number = 1, ListClass = 'number'}, ListLine.defaults)
+NumberedListLine.defaults = Dict.from({number = 1, ListClass = 'number'}, ListLine.defaults)
 
 function NumberedListLine:__tostring()
     return self.indent .. self.number .. '. ' .. self.text
@@ -126,10 +127,10 @@ Parser = Object:extend()
 Parser.default_types = Config.get("list").default_types
 
 function Parser:new(additional_types)
-    self.types = table.list_extend({}, self.default_types)
+    self.types = List.from(self.default_types)
 
     for _, additional_type in ipairs(additional_types or {}) do
-        if not table.list_contains(self.types, additional_type) then
+        if not self.types:contains(additional_type) then
             self.types[#self.types + 1] = additional_type
         end
     end
@@ -153,9 +154,9 @@ function Parser:parse_line(str, line_number)
 end
 
 function Parser:parse(raw_lines)
-    self.lines = {}
+    self.lines = List()
     for i, line in ipairs(raw_lines) do
-        table.insert(self.lines, self:parse_line(line, i))
+        self.lines:append(self:parse_line(line, i))
     end
 
     return self.lines
@@ -175,10 +176,10 @@ function Parser.get_instances(list_type, dir)
             text = ListClass.get_if_str_is_a(text).text
 
             if not instances[path] then
-                instances[path] = {}
+                instances[path] = List()
             end
 
-            table.insert(instances[path], {line_number = tonumber(line_number), text = text})
+            instances[path]:append({line_number = tonumber(line_number), text = text})
         end
     end
 

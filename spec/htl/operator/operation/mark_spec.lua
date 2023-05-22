@@ -1,4 +1,4 @@
-table = require("hl.table")
+local List = require("hl.PList")
 
 local Path = require("hl.path")
 local Header = require("htl.text.header")
@@ -31,24 +31,24 @@ describe("to_dir_file.transform_target", function()
 end)
 
 describe("move", function()
-    local pre_mark_source_content = table.list_extend(
+    local pre_mark_source_content = List.from(
         tostring(Header({content = "[q]()"})),
         {"r", "s", ""}
     )
 
     local mark_text = {"b", "c"}
-    local mark_content = table.list_extend(
+    local mark_content = List.from(
         tostring(Header({content = "[a]()"})),
         mark_text,
         {""}
     )
 
-    local post_mark_source_content = table.list_extend(
+    local post_mark_source_content = List.from(
         tostring(Header({content = "[x]()"})),
         {"y", "z"}
     )
 
-    local source_content = table.list_extend({}, pre_mark_source_content, mark_content, post_mark_source_content)
+    local source_content = List.from(pre_mark_source_content, mark_content, post_mark_source_content)
     local source_mark = test_file_one .. ":a"
 
     before_each(function()
@@ -86,23 +86,23 @@ describe("move", function()
     end)
 
     it("appends to mark", function()
-        local target_pre_mark_content = table.list_extend(
+        local target_pre_mark_content = List.from(
             tostring(Header({content = "[pre]()"})),
             {"before", ""}
         )
 
-        local target_mark_content = table.list_extend(
+        local target_mark_content = List.from(
             tostring(Header({content = "[target]()"})),
             {"already", "existing", "content"},
             {""}
         )
 
-        local target_post_mark_content = table.list_extend(
+        local target_post_mark_content = List.from(
             tostring(Header({content = "[post]()"})),
             {"after"}
         )
 
-        local target_content = table.list_extend(
+        local target_content = List.from(
             {},
             target_pre_mark_content,
             target_mark_content,
@@ -134,7 +134,7 @@ describe("end to end", function()
 
         local mark_content = {"mark content"}
 
-        local a_content_old = table.list_extend(
+        local a_content_old = List.from(
             {"pre"},
             tostring(Header({content = "[x]()"})),
             mark_content,
@@ -142,19 +142,19 @@ describe("end to end", function()
             {"post"}
         )
 
-        local a_content_new = table.list_extend(
+        local a_content_new = List.from(
             {"pre", ""},
             tostring(Header({content = "[y]()"})),
             {"post"}
         )
 
-        local b_content_old = table.list_extend(
+        local b_content_old = List.from(
             {"abcd"},
             tostring(Header({content = "[b mark]()"})),
             {"after"}
         )
 
-        local b_content_new = table.list_extend(
+        local b_content_new = List.from(
             {"abcd"},
             tostring(Header({content = "[b mark]()"})),
             {"after", ""},

@@ -1,3 +1,4 @@
+local Dict = require("hl.Dict")
 local Path = require("hl.path")
 
 local Location = require("htl.text.location")
@@ -5,7 +6,7 @@ local Parser = require("htl.parse")
 
 local Operation = require('htl.operator.operation')
 
-local M = table.default({}, Operation)
+local M = Dict.from(Operation)
 M.type = "mark"
 M.check_source = Operation.is_mark
 

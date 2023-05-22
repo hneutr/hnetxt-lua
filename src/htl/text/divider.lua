@@ -1,5 +1,3 @@
-table = require("hl.table")
-
 local Object = require("hl.object")
 local Config = require("htl.config")
 

@@ -1,4 +1,3 @@
-table = require("hl.table")
 local Object = require("hl.object")
 
 local Path = require("hl.path")
@@ -106,7 +105,7 @@ function M.get_operation(source, target)
 
     if target then
         for operation_name, operation_args in pairs(M.operations[OperationClass.type]) do
-            local operation = table.default(
+            local operation = Dict.from(
                 {operation_name = operation_name},
                 operation_args,
                 OperationClass

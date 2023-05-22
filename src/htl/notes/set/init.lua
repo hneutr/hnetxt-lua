@@ -1,4 +1,4 @@
-local List = require("hl.List")
+local List = require("hl.PList")
 local Dict = require("hl.Dict")
 local Path = require("hl.path")
 local Object = require("hl.object")
@@ -63,7 +63,7 @@ function Sets.format_subsets(set)
 
     local set_class = Sets.get_class(set)
     for key, subset in pairs(set) do
-        if not List.contains(set_class.config_keys, key) then
+        if not List(set_class.config_keys):contains(key) then
             subsets[key] = subset
             set[key] = nil
         end

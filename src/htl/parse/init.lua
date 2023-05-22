@@ -1,5 +1,6 @@
-table = require("hl.table")
-local List = require("hl.List")
+local List = require("hl.PList")
+local Dict = require("hl.Dict")
+
 local Object = require("hl.object")
 local Path = require("hl.path")
 
@@ -10,18 +11,18 @@ local Header = require("htl.text.header")
 local Parser = Object:extend()
 
 function Parser:new(args)
-    self = table.default(self, args or {})
+    self = Dict.update(self, args or {})
     self.fold = Fold()
 end
 
 function Parser:parse(args)
-    args = table.default(args, {lines = {}, by_fold_level = true})
+    args = Dict.from(args, {lines = {}, by_fold_level = true})
     args.line_levels = self.fold:get_line_levels(args.lines)
     return self:parse_line_levels(args)
 end
 
 function Parser:parse_line_levels(args)
-    args = table.default(args, {line_levels = {}, by_fold_level = true})
+    args = Dict.from(args, {line_levels = {}, by_fold_level = true})
     local line_levels = args.line_levels
 
     local current_sections = {}
@@ -30,37 +31,35 @@ function Parser:parse_line_levels(args)
         for level, section in pairs(current_sections) do
             if level > line_level then
                 -- close higher fold levels
-                table.insert(sections[level], section)
+                sections[level]:append(section)
                 current_sections[level] = nil
 
             elseif level < line_level then
                 -- add the line to the lower fold levels
-                table.insert(current_sections[level], line_number)
+                current_sections[level]:append(line_number)
 
             else
                 if line_levels[line_number - 1] > level then
                     -- close the previous fold at this level if it's not continuous
-                    table.insert(sections[level], current_sections[level])
-                    current_sections[level] = {}
+                    sections[level]:append(current_sections[level])
+                    current_sections[level] = List()
                 end
-                table.insert(current_sections[level], line_number)
+                current_sections[level]:append(line_number)
             end
         end
 
-        if not current_sections[line_level] then
-            current_sections[line_level] = {line_number}
-            sections[line_level] = sections[line_level] or {}
-        end
+        current_sections[line_level] = current_sections[line_level] or List({line_number})
+        sections[line_level] = sections[line_level] or List()
     end
 
     for level, section in pairs(current_sections) do
-        table.insert(sections[level], section)
+        sections[level]:append(section)
     end
 
     if not args.by_fold_level then
-        local flat_sections = {}
+        local flat_sections = List()
         for _, level_sections in pairs(sections) do
-            table.list_extend(flat_sections, level_sections)
+            flat_sections:extend(level_sections)
         end
 
         table.sort(flat_sections, function(a, b) return a[1] < b[1] end)
@@ -72,7 +71,7 @@ function Parser:parse_line_levels(args)
 end
 
 function Parser:get_mark_content_line_index(args)
-    args = table.default(args, {mark_label = '', lines = {}, index_type = 'content'})
+    args = Dict.from(args, {mark_label = '', lines = {}, index_type = 'content'})
 
     local mark_line = Mark.find(args.mark_label, args.lines)
 
@@ -129,7 +128,7 @@ function Parser:separate_mark_content(mark_label, lines)
 
     local end_line
     for _, parse_group in ipairs(parse_groups) do
-        if table.list_contains(parse_group, start_line) then
+        if List(parse_group):contains(start_line) then
             end_line = parse_group[#parse_group]
             break
         end
@@ -162,7 +161,7 @@ function Parser:remove_mark_content(mark_location)
 end
 
 function Parser:add_mark_content(args)
-    args = table.default(args, {
+    args = Dict.from(args, {
         new_content = {},
         from_mark_location = '',
         to_mark_location = '',
@@ -187,7 +186,7 @@ function Parser:add_mark_content(args)
 end
 
 function Parser.remove_empty_lines(lines, args)
-    args = table.default(args, {head = true, tail = true})
+    args = Dict.from(args, {head = true, tail = true})
     local fn = function(l) while #l > 0 and #l[#l] == 0 do l[#l] = nil end return l end
 
     local from = args.from
@@ -197,14 +196,14 @@ function Parser.remove_empty_lines(lines, args)
     end
 
     if args.head then
-        lines = table.reverse(fn(table.reverse(lines)))
+        lines = fn(List(lines):reverse()):reverse()
     end
 
     return lines
 end
 
 function Parser.merge_line_sets(line_sets)
-    local content = {}
+    local content = List()
     for i, line_set in ipairs(line_sets) do
 
         if #content > 0 then
@@ -216,7 +215,7 @@ function Parser.merge_line_sets(line_sets)
             end
         end
 
-        table.list_extend(content, line_set)
+        content = content .. line_set
     end
 
     return content

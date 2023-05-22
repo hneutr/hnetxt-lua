@@ -1,8 +1,9 @@
+local Dict = require("hl.Dict")
 local Path = require('hl.path')
 
 local Operation = require('htl.operator.operation')
 
-local M = table.default({}, Operation)
+local M = Dict.from(Operation)
 M.type = "dir"
 M.check_source = Path.is_dir
 
@@ -16,7 +17,7 @@ function M.map_source_to_target(source, target)
 end
 
 function M.move(map, mirrors_map)
-    map = table.default({}, map or {}, mirrors_map or {})
+    map = Dict.from(map or {}, mirrors_map or {})
 
     local dirs = {}
     for source, target in pairs(map) do

@@ -1,6 +1,7 @@
-table = require("hl.table")
 string = require("hl.string")
 io = require("hl.io")
+local Dict = require("hl.Dict")
+
 local Object = require("hl.object")
 local Path = require("hl.path")
 
@@ -23,7 +24,7 @@ Mark.defaults = {
 }
 
 function Mark:new(args)
-    self = table.default(self, args or {}, self.defaults)
+    self = Dict.update(self, args or {}, self.defaults)
 end
 
 function Mark:__tostring()

@@ -1,6 +1,6 @@
-table = require("hl.table")
 string = require("hl.string")
 io = require("hl.io")
+local Dict = require("hl.Dict")
 local Object = require("hl.object")
 local Path = require("hl.path")
 local Config = require("htl.config")
@@ -15,7 +15,7 @@ Flag.list_types = Config.get("list").types
 Flag.dir_file_stem = Config.get("directory_file").stem
 
 function Flag:new(args)
-    self = table.default(self, args or {}, self.defaults)
+    self = Dict.update(self, args or {}, self.defaults)
 end
 
 function Flag:__tostring()

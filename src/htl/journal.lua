@@ -1,5 +1,4 @@
-table = require("hl.table")
-
+local Dict = require("hl.Dict")
 local Path = require("hl.path")
 
 local Config = require("htl.config")
@@ -8,7 +7,7 @@ local Project = require("htl.project")
 local config = Config.get("journal")
 
 local function get_path(args)
-    args = table.default(args, {
+    args = Dict.from(args, {
         year = os.date("%Y"),
         month = os.date("%m"),
     })

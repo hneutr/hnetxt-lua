@@ -1,5 +1,4 @@
 local class = require("pl.class")
-local List = require("hl.List")
 local Path = require("hl.path")
 
 local Fields = require("htl.notes.field")

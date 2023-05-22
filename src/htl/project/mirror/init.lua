@@ -1,5 +1,4 @@
-table = require("hl.table")
-string = require("hl.string")
+local List = require("hl.PList")
 local Path = require("hl.path")
 local Object = require("hl.object")
 
@@ -13,9 +12,10 @@ function Mirror:new(path, type_name)
     if not type_name then
         type_name = Mirror.path_type(path)
     end
+
     self.type_name = type_name
 
-    self = table.default(self, self.type_configs[type_name])
+    self = Dict.update(self, self.type_configs[type_name])
 
     self.root = Project.root_from_path(path)
 
@@ -63,12 +63,12 @@ function Mirror.get_all_mirrored_paths(path, existing_only)
         existing_only = true
     end
 
-    local paths = {}
-    local to_check = {path}
+    local paths = List()
+    local to_check = List({path})
     while #to_check > 0 do
-        local path = table.remove(to_check, #to_check)
-        to_check = table.list_extend(to_check, Mirror(path):get_mirror_paths(existing_only))
-        paths[#paths + 1] = path
+        local path = to_check:pop()
+        to_check:extend(Mirror(path):get_mirror_paths(existing_only))
+        paths:append(path)
     end
 
     return paths
@@ -94,7 +94,7 @@ function Mirror.find_updates(old_path, new_path, existing_only)
 
     local updates = {}
     local to_check = {[old_path] = new_path}
-    while table.size(to_check) > 0 do
+    while #Dict.keys(to_check) > 0 do
         local old_path, new_path = next(to_check)
         to_check[old_path] = nil
 

@@ -1,6 +1,6 @@
-table = require("hl.table")
-string = require("hl.string")
 io = require("hl.io")
+local List = require("hl.PList")
+
 local Object = require("hl.object")
 local Path = require("hl.path")
 local Config = require("htl.config")
@@ -25,7 +25,7 @@ Location.get_mark_locations_cmd = [[rg '\[.*\]\(\)' --no-heading ]]
 Location.get_files_cmd = [[fd -tf '' ]]
 
 function Location:new(args)
-    self = table.default(self, args or {}, Location.defaults)
+    self = Dict.update(self, args or {}, Location.defaults)
 end
 
 function Location:__tostring()
@@ -49,7 +49,7 @@ function Location:relative_to(dir)
 end
 
 function Location.from_str(str, args)
-    args = table.default(args, {relative_to = ''})
+    args = Dict.from(args, {relative_to = ''})
     local path, label
 
     if Location.str_has_label(str) then
@@ -89,9 +89,9 @@ function Location.get_mark_locations(dir)
 end
 
 function Location.get_all_locations(dir, args)
-    args = table.default(args, {as_str = true, relative_to_dir = true})
+    args = Dict.from(args, {as_str = true, relative_to_dir = true})
 
-    local locations = table.list_extend(Location.get_file_locations(dir), Location.get_mark_locations(dir))
+    local locations = List.from(Location.get_file_locations(dir), Location.get_mark_locations(dir))
 
     table.sort(locations, function(a, b) return #tostring(a) < #tostring(b) end)
 

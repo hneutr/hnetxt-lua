@@ -1,5 +1,7 @@
-table = require("hl.table")
+local Dict = require("hl.Dict")
+local List = require("hl.PList")
 local Path = require("hl.path")
+
 local Mirror = require("htl.project.mirror")
 local Project = require("htl.project")
 
@@ -156,17 +158,17 @@ end)
 
 describe("get_all_mirrored_paths", function()
     local all_types = Mirror.type_configs
-    local type_subset_names = {"source", "meta", "scratch"}
+    local type_subset_names = List({"source", "meta", "scratch"})
     local types_subset
 
     before_each(function()
         types_subset = {}
         for _, name in ipairs(type_subset_names) do
-            local new_type = table.default({}, Mirror.type_configs[name])
+            local new_type = Dict.from(Mirror.type_configs[name])
 
             local _mirror_types = {}
             for i, sub_mirror_type in ipairs(new_type.mirror_types) do
-                if table.list_contains(type_subset_names, sub_mirror_type) then
+                if type_subset_names:contains(sub_mirror_type) then
                     _mirror_types[#_mirror_types + 1] = sub_mirror_type
                 end
             end
@@ -202,17 +204,17 @@ end)
 
 describe("find_updates", function()
     local all_types = Mirror.type_configs
-    local type_subset_names = {"source", "meta", "scratch"}
+    local type_subset_names = List({"source", "meta", "scratch"})
     local types_subset
 
     before_each(function()
         types_subset = {}
         for _, name in ipairs(type_subset_names) do
-            local new_type = table.default({}, Mirror.type_configs[name])
+            local new_type = Dict.from(Mirror.type_configs[name])
 
             local _mirror_types = {}
             for i, sub_mirror_type in ipairs(new_type.mirror_types) do
-                if table.list_contains(type_subset_names, sub_mirror_type) then
+                if type_subset_names:contains(sub_mirror_type) then
                     _mirror_types[#_mirror_types + 1] = sub_mirror_type
                 end
             end

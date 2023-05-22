@@ -1,8 +1,10 @@
+local List = require("hl.PList")
+
 local Fold = require("htl.parse.fold")
 
 local Divider = require("htl.text.divider")
 local Header = require("htl.text.header")
-local List = require("htl.text.list")
+local TextList = require("htl.text.list")
 
 describe("barrier_starts_fold", function()
     it("-: start of header", function()
@@ -28,12 +30,12 @@ describe("list_line_starts_fold", function()
     end)
 
     it("+: fold type list line", function()
-        local expected = List.ListLine.get_class("question")({text = "question", line_number = 1})
+        local expected = TextList.ListLine.get_class("question")({text = "question", line_number = 1})
         assert.are.same(expected, Fold():list_line_starts_fold(1, {"? question"}))
     end)
 
     it("+: appropriate suffix", function()
-        local expected = List.Line({text = "item >", line_number = 1})
+        local expected = TextList.Line({text = "item >", line_number = 1})
         assert.are.same(expected, Fold():list_line_starts_fold(1, {"item >"}))
     end)
 end)
@@ -96,7 +98,7 @@ describe("list_line_ends_fold", function()
         fold.indent_stack = {-1, 2}
 
         local str = "  - list item"
-        local expected = List.Line.get_if_str_is_a(str, 1)
+        local expected = TextList.Line.get_if_str_is_a(str, 1)
         assert.are.same(expected, fold:list_line_ends_fold(1, {str}))
     end)
 
@@ -106,7 +108,7 @@ describe("list_line_ends_fold", function()
         fold.indent_stack = {-1, 4}
 
         local str = "  - list item"
-        local expected = List.Line.get_if_str_is_a(str, 1)
+        local expected = TextList.Line.get_if_str_is_a(str, 1)
         assert.are.same(expected, fold:list_line_ends_fold(1, {str}))
     end)
 
@@ -116,7 +118,7 @@ describe("list_line_ends_fold", function()
         fold.indent_stack = {-1, 0}
 
         local str = "- list item"
-        local expected = List.Line.get_if_str_is_a(str, 1)
+        local expected = TextList.Line.get_if_str_is_a(str, 1)
         assert.are.same(expected, fold:list_line_ends_fold(1, {str}))
     end)
 
@@ -232,7 +234,7 @@ describe("get_line_levels", function()
     end)
 
     it("multiple", function()
-        local lines = table.list_extend(
+        local lines = List.from(
             tostring(Header({size = "large"})),
             {
                 "- a >",

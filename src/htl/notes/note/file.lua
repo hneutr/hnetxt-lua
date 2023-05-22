@@ -1,5 +1,5 @@
 local class = require("pl.class")
-local List = require("hl.List")
+local List = require("hl.PList")
 local Dict = require("hl.Dict")
 local Path = require("hl.path")
 local Yaml = require("hl.yaml")
@@ -124,7 +124,7 @@ end
 function File:meets_filters(value_type_condition)
     local metadata = self:get_filtered_metadata(value_type_condition)
 
-    local required_fields = List(self.filters, Dict.keys(self.filters))
+    local required_fields = List.from(self.filters, Dict.keys(self.filters))
 
     for _, required_field in ipairs(required_fields) do
         local val = metadata[required_field]

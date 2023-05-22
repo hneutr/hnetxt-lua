@@ -1,4 +1,4 @@
-local List = require("hl.List")
+local List = require("hl.PList")
 local Dict = require("hl.Dict")
 
 local Object = require("hl.object")
@@ -14,7 +14,7 @@ function StringField:new(key, args)
 end
 
 function StringField:in_values(value)
-    return self.values == nil or #self.values == 0 or List.contains(self.values, value)
+    return self.values == nil or #self.values == 0 or List(self.values):contains(value)
 end
 
 function StringField:get(metadata)

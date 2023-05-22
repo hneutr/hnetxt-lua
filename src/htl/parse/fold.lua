@@ -1,5 +1,5 @@
-table = require("hl.table")
 local Object = require("hl.object")
+local Dict = require("hl.Dict")
 
 local Config = require("htl.config")
 
@@ -12,10 +12,10 @@ local Fold = Object:extend()
 Fold.config = Config.get("fold")
 Fold.line_suffix = Fold.config.line_suffix
 Fold.default_line_level = Fold.config.default_line_level
-Fold.list_types = table.keys(Config.get("list").types)
+Fold.list_types = Dict.keys(Config.get("list").types)
 
 function Fold:new(args)
-    self = table.default(self, args or {}, {list_parser = List.Parser(self.list_types)})
+    self = Dict.update(self, args or {}, {list_parser = List.Parser(self.list_types)})
     self.headers_by_size = Header.headers_by_size()
     self.dividers_by_size = Divider.dividers_by_size()
     self.level_stack = {0}

@@ -1,10 +1,7 @@
-local stub = require('luassert.stub')
-local mock = require("luassert.mock")
-
 local Path = require("hl.path")
+local List = require("hl.PList")
 local Parser = require("htl.parse")
 local Fold = require("htl.parse.fold")
-local List = require("htl.text.list")
 local Header = require("htl.text.header")
 local Divider = require("htl.text.divider")
 
@@ -58,7 +55,7 @@ describe("remove_initial_mark", function()
     end)
 
     it("header mark", function()
-        local lines = table.list_extend(tostring(Header({content = "[a]()"})), {"b", "c", "d"})
+        local lines = List.from(tostring(Header({content = "[a]()"})), {"b", "c", "d"})
         assert.are.same({"", "b", "c", "d"}, Parser():remove_initial_mark("a", lines))
     end)
 end)
@@ -94,57 +91,57 @@ describe("separate_mark_content", function()
     it("mark is missing", function()
         local header = tostring(Header({content = "[a]()"}))
         local header_content = {"- b", "- c"}
-        local after = table.list_extend({""}, tostring(Header()))
-        local lines = table.list_extend({}, header, header_content, after)
+        local after = List.from({""}, tostring(Header()))
+        local lines = List.from(header, header_content, after)
         assert.are.same({lines, {}, {}}, Parser():separate_mark_content("x", lines))
     end)
 
     it("at start", function()
         local header = tostring(Header({content = "[a]()"}))
         local header_content = {"- b", "- c"}
-        local after = table.list_extend({""}, tostring(Header()))
-        local lines = table.list_extend({}, header, header_content, after)
+        local after = List.from({""}, tostring(Header()))
+        local lines = List.from(header, header_content, after)
         local expected = {
             {},
-            table.list_extend({}, header, header_content),
+            List.from(header, header_content),
             after
         }
         assert.are.same(expected, Parser():separate_mark_content("a", lines))
     end)
 
     it("at end", function()
-        local before = table.list_extend(tostring(Header({content = "[a]()"})), {"- x", "- y", "", ""})
-        local content = table.list_extend(
+        local before = List.from(tostring(Header({content = "[a]()"})), {"- x", "- y", "", ""})
+        local content = List.from(
             tostring(Header({content = "[b]()", size = "large"})),
             {"123", "- y", ""},
             tostring(Header({content = "subheader)"})),
             {"hunter", "test", ""}
         )
-        local lines = table.list_extend({}, before, content, {})
+        local lines = List.from(before, content, {})
         local expected = {before, content, {}}
         assert.are.same(expected, Parser():separate_mark_content("b", lines))
     end)
 
     it("in middle", function()
-        local before = table.list_extend(
+        local before = List.from(
             tostring(Header({content = "[a]()", size = "large"})),
             {"- x", "- y", ""},
             {""}
         )
-        local content = table.list_extend(
+        local content = List.from(
             tostring(Header({content = "[b]()", size = "medium"})),
             {"123", "- y", ""},
             tostring(Header({content = "subheader)"})),
             {"hunter", "test"}
         )
 
-        local after = table.list_extend(
+        local after = List.from(
             {""},
             tostring(Header({content = "[c]()", size = "medium"})),
             {"more", "stuff"}
         )
 
-        local lines = table.list_extend({}, before, content, after)
+        local lines = List.from(before, content, after)
         local expected = {before, content, after}
         assert.are.same({before, content, after}, Parser():separate_mark_content("b", lines))
     end)
@@ -184,12 +181,12 @@ describe("remove_mark_content", function()
     end)
 
     it("works", function()
-        local before = table.list_extend(
+        local before = List.from(
             tostring(Header({content = "[a]()", size = "large"})),
             {"- x", "- y", ""},
             {""}
         )
-        local content = table.list_extend(
+        local content = List.from(
             tostring(Header({content = "[b]()", size = "medium"})),
             {"123", "- y", ""},
             tostring(Header({content = "subheader)"})),
@@ -198,12 +195,12 @@ describe("remove_mark_content", function()
 
         local padding = {""}
 
-        local after = table.list_extend(
+        local after = List.from(
             tostring(Header({content = "[c]()", size = "medium"})),
             {"more", "stuff"}
         )
 
-        Path.write(test_file_path, table.list_extend({}, before, content, padding, after))
+        Path.write(test_file_path, List.from(before, content, padding, after))
 
         local location = Location({path = test_file_path, label = 'b'})
 
@@ -216,7 +213,7 @@ describe("add_mark_content", function()
     local from_mark_location = Location({path = test_file_path, label = 'a'})
     local to_mark_location = Location({path = other_test_file_path, label = 'b'})
     local lines = {"- x", "- y", ""}
-    local new_content = table.list_extend(tostring(Header({content = "[a]()", size = "large"})), lines)
+    local new_content = List.from(tostring(Header({content = "[a]()", size = "large"})), lines)
 
     before_each(function()
         Path.unlink(test_file_path)
@@ -238,7 +235,7 @@ describe("add_mark_content", function()
     end)
 
     it("no file, include_mark", function()
-        local expected = table.list_extend(
+        local expected = List.from(
             tostring(Header({content = "[b]()", size = "large"})),
             lines
         )
@@ -256,7 +253,7 @@ describe("add_mark_content", function()
         local existing_file_content = {"a", "b", ""}
         Path.write(to_mark_location.path, existing_file_content)
 
-        local expected = table.list_extend(
+        local expected = List.from(
             existing_file_content,
             tostring(Header({content = "[b]()", size = "large"})),
             lines
@@ -272,7 +269,7 @@ describe("add_mark_content", function()
     end)
 
     it("existing mark content, !include_mark", function()
-        local existing_file_content = table.list_extend(
+        local existing_file_content = List.from(
             {"a", "b", ""},
             tostring(Header({content = "[b]()", size = "large"})),
             {"1", "2", ""},
@@ -280,7 +277,7 @@ describe("add_mark_content", function()
             {"z", "w", ""}
         )
 
-        local expected = table.list_extend(
+        local expected = List.from(
             {"a", "b", ""},
             tostring(Header({content = "[b]()", size = "large"})),
             {"1", "2", ""},

@@ -1,6 +1,6 @@
-table = require("hl.table")
 string = require("hl.string")
 
+local Dict = require("hl.Dict")
 local Object = require("hl.object")
 
 local Config = require("htl.config")
@@ -12,7 +12,7 @@ Header.config = Config.get("header")
 Header.default_size = Header.config.default_size
 
 function Header:new(args)
-    self = table.default(self, args or {}, {size = Header.default_size, content = ''})
+    self = Dict.update(self, args or {}, {size = Header.default_size, content = ''})
     self.divider = Divider(self.size)
 
     for k, v in pairs(self.config.sizes[self.size]) do

@@ -1,9 +1,8 @@
-local yaml = require("hl.yaml")
+local Yaml = require("hl.yaml")
 local Object = require("hl.object")
 local Path = require("hl.path")
-
-table = require("hl.table")
-string = require("hl.string")
+local List = require("hl.PList")
+local Dict = require("hl.Dict")
 
 local Config = require("htl.config")
 local Registry = require("htl.project.registry")
@@ -16,7 +15,7 @@ function Project:new(name)
     self.registry = Registry()
     self.root = self.registry:get_entry_dir(self.name)
 
-    self.metadata = yaml.read(self.get_metadata_path(self.root))
+    self.metadata = Yaml.read(self.get_metadata_path(self.root))
 end
 
 function Project.get_metadata_path(dir)
@@ -25,7 +24,7 @@ function Project.get_metadata_path(dir)
 end
 
 function Project.create(name, dir, metadata)
-    metadata = table.default(metadata, {start_date = os.date("%Y%m%d")})
+    metadata = Dict.from(metadata, {start_date = os.date("%Y%m%d")})
 
     if not name or not dir then
         return
@@ -33,7 +32,7 @@ function Project.create(name, dir, metadata)
 
     metadata.name = name
 
-    yaml.write(Project.get_metadata_path(dir), metadata)
+    Yaml.write(Project.get_metadata_path(dir), metadata)
     Registry():set_entry(name, dir)
 end
 
@@ -44,7 +43,7 @@ function Project.in_project(path)
         path = Path.parent(path)
     end
 
-    local candidates = table.list_extend({path}, Path.parents(path))
+    local candidates = List.from({path}, Path.parents(path))
 
     for _, candidate in ipairs(candidates) do
         if Path.exists(Project.get_metadata_path(candidate)) then

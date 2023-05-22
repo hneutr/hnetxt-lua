@@ -1,4 +1,3 @@
-table = require("hl.table")
 local Path = require('hl.path')
 
 local Mirror = require("htl.project.mirror")
@@ -7,12 +6,12 @@ local Location = require("htl.text.location")
 
 local Operation = require('htl.operator.operation')
 
-local M = table.default({}, Operation)
+local M = Dict.from(Operation)
 M.type = "file"
 M.check_source = Path.is_file
 
 function M.move(map, mirrors_map)
-    map = table.default({}, map or {}, mirrors_map or {})
+    map = Dict.from(map or {}, mirrors_map or {})
 
     for source, target in pairs(map) do
         Path.write(target, Path.read(source))
