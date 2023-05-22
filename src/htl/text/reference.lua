@@ -192,7 +192,7 @@ function Reference.update_location(old_location, new_location, references_by_loc
                 for _, reference_line in ipairs(reference_lines) do
                     content_updates[reference_path][reference_line] = string.gsub(
                         content_updates[reference_path][reference_line],
-                        old_location,
+                        old_location:escape(),
                         new_location
                     )
                 end
