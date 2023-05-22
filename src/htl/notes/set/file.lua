@@ -84,19 +84,4 @@ function FileSet:touch(path, args, metadata)
     return path
 end
 
-function FileSet:list(path, filters, apply_config_filters, value_type_condition)
-    local items = List()
-    for _, item_path in ipairs(self:files(path)) do
-        local file = self:path_file(item_path)
-
-        if apply_config_filters then
-            file.filters = Dict.update(filters, file.filters)
-        end
-
-        items:append(file:get_list_info(value_type_condition, path))
-    end
-
-    return items
-end
-
 return FileSet

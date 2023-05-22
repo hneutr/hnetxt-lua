@@ -96,6 +96,37 @@ function Fields.filter(metadata, fields, filters, value_type_condition)
     return metadata
 end
 
+function Fields.remove(metadata, field, value)
+    if field and metadata[field] ~= nil then
+        if value then
+            Fields.get_value_field_class(metadata[field])(field):remove(metadata, value)
+        else
+            metadata[field] = nil
+        end
+    end
+
+    return metadata
+end
+
+function Fields.move(metadata, source_field, source_value, target_field, target_value)
+    if source_field and target_field and metadata[source_field] ~= nil then
+        if source_value and target_value then
+            Fields.get_value_field_class(metadata[source_field])(source_field):move(
+                metadata,
+                source_value,
+                target_value
+            )
+        end
+
+        if source_field ~= target_field then
+            metadata[target_field] = metadata[source_field]
+            metadata[source_field] = nil
+        end
+    end
+
+    return metadata
+end
+
 function Fields.get(args_by_key)
     local fields = {}
     for key, args in pairs(args_by_key or {}) do

@@ -36,6 +36,30 @@ function ListField:set_default(metadata)
     self:set(metadata, self:get(metadata) or self.default)
 end
 
+function ListField:remove(metadata, to_remove)
+    local vals = List()
+    for _, val in ipairs(self:get(metadata)) do
+        if val ~= to_remove then
+            vals:append(val)
+        end
+    end
+
+    self:set(metadata, vals)
+end
+
+function ListField:move(metadata, source, target)
+    local vals = List()
+    for _, val in ipairs(self:get(metadata)) do
+        if val == source then
+            val = target
+        end
+
+        vals:append(val)
+    end
+
+    self:set(metadata, vals)
+end
+
 function ListField.is_of_type(args)
     return List.is_listlike(args.default)
 end
@@ -43,7 +67,6 @@ end
 function ListField.val_is_of_type(val)
     return List.is_listlike(val)
 end
-
 
 function ListField:filter_value(val, condition)
     condition = List.as_list(condition)

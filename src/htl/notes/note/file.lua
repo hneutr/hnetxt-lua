@@ -76,6 +76,34 @@ function File:set_metadata(new_metadata)
     self:write(metadata, content)
 end
 
+function File:remove_metadata(field, value)
+    local metadata, content = unpack(self:read())
+
+    metadata = Fields.remove(metadata, field, value)
+    self:write(metadata, content)
+end
+
+function File:move_metadata(source_field, source_value, target_field, target_value)
+    local metadata, content = unpack(self:read())
+
+    metadata = Fields.move(metadata, source_field, source_value, target_field, target_value)
+    self:write(metadata, content)
+end
+
+function File:flatten_metadata(field)
+    local metadata, content = unpack(self:read())
+
+    if metadata[field] and type(metadata[field]) == 'table' then
+        local vals = List()
+        for _, val in ipairs(metadata[field]) do
+            vals:append(tostring(val))
+        end
+
+        metadata[field] = string.join(", ", vals)
+        self:write(metadata, content)
+    end
+end
+
 function File:get_filtered_metadata(value_type_condition)
     return Fields.filter(self:get_metadata(), self.fields, self.filters, value_type_condition)
 end

@@ -33,6 +33,18 @@ function StringField:set_default(metadata)
     end
 end
 
+function StringField:remove(metadata, to_remove)
+    if self:get(metadata) == to_remove then
+        metadata[self.key] = nil
+    end
+end
+
+function StringField:move(metadata, source, target)
+    if self:get(metadata) == source then
+        metadata[self.key] = target
+    end
+end
+
 function StringField.format(key, raw)
     local args = {}
 

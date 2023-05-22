@@ -50,4 +50,15 @@ function Notes.path_sets(path)
     return sets
 end
 
+function Notes.path_files(path)
+    local files = List()
+    for _, note_set in pairs(Notes.path_sets(path)) do
+        for _, note_path in ipairs(note_set:files(path)) do
+            files:append(note_set:path_file(note_path))
+        end
+    end
+
+    return files
+end
+
 return Notes
