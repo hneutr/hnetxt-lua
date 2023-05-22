@@ -1,5 +1,5 @@
 local Path = require("hl.path")
-local List = require("hl.PList")
+local List = require("hl.List")
 local Parser = require("htl.parse")
 local Fold = require("htl.parse.fold")
 local Header = require("htl.text.header")

@@ -1,4 +1,4 @@
-local List = require("hl.PList")
+local List = require("hl.List")
 local Dict = require("hl.Dict")
 local Path = require("hl.path")
 local Object = require("hl.object")

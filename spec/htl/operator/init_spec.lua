@@ -1,5 +1,5 @@
 local Dict = require("hl.Dict")
-local List = require("hl.PList")
+local List = require("hl.List")
 local Path = require("hl.path")
 
 local Project = require("htl.project")

@@ -1,5 +1,5 @@
 io = require("hl.io")
-local List = require("hl.PList")
+local List = require("hl.List")
 
 local Object = require("hl.object")
 local Path = require("hl.path")

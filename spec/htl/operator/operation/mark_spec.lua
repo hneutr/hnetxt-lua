@@ -1,4 +1,4 @@
-local List = require("hl.PList")
+local List = require("hl.List")
 
 local Path = require("hl.path")
 local Header = require("htl.text.header")

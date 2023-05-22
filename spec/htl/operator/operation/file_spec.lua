@@ -1,4 +1,4 @@
-local List = require("hl.PList")
+local List = require("hl.List")
 
 local stub = require('luassert.stub')
 

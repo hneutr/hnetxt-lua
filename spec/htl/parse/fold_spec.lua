@@ -1,4 +1,4 @@
-local List = require("hl.PList")
+local List = require("hl.List")
 
 local Fold = require("htl.parse.fold")
 

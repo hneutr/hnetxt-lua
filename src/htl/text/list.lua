@@ -1,6 +1,6 @@
 string = require("hl.string")
 io = require("hl.io")
-local List = require("hl.PList")
+local List = require("hl.List")
 local Dict = require("hl.Dict")
 local Path = require("hl.path")
 

@@ -1,4 +1,4 @@
-local List = require("hl.PList")
+local List = require("hl.List")
 local Set = require("pl.Set")
 local StringField = require("htl.notes.field.string")
 

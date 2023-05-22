@@ -1,5 +1,5 @@
 local Path = require("hl.path")
-local List = require("hl.PList")
+local List = require("hl.List")
 
 local TextList = require("htl.text.list")
 

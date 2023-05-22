@@ -1,7 +1,7 @@
 local Yaml = require("hl.yaml")
 local Object = require("hl.object")
 local Path = require("hl.path")
-local List = require("hl.PList")
+local List = require("hl.List")
 local Dict = require("hl.Dict")
 
 local Config = require("htl.config")
