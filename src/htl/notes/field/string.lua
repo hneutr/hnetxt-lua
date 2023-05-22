@@ -51,12 +51,16 @@ function StringField.is_of_type()
     return true
 end
 
+function StringField.val_is_of_type()
+    return true
+end
+
 function StringField:filter_value(value, condition)
     return condition == nil or value == condition
 end
 
 function StringField:filter_value_type(value, condition)
-    if condition == nil then
+    if condition == nil or condition == 'all' then
         return true
     end
 
@@ -69,9 +73,13 @@ function StringField:filter_value_type(value, condition)
     end
 end
 
-function StringField:filter(metadata, value_condition, value_type_condition)
-    local value = self:get(metadata)
-    return self:filter_value(value, value_condition) and self:filter_value_type(value, value_type_condition)
+function StringField:filter(metadata, val_condition, val_type_condition)
+    local val = self:get(metadata)
+    if self:filter_value(val, val_condition) and self:filter_value_type(val, val_type_condition) then
+        return val
+    end
+
+    return nil
 end
 
 return StringField

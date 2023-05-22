@@ -7,7 +7,8 @@ local Config = require("htl.config")
 local Fields = require("htl.notes.field")
 
 local FileSet = require("htl.notes.set.file")
-local File = require("htl.notes.file")
+local File = require("htl.notes.note.file")
+local Statement = require("htl.notes.note.statement")
 
 class.TopicSet(FileSet)
 
@@ -55,19 +56,6 @@ function TopicSet:as_topic_statement(path)
         if self:is_topic_dir(path) then
             return Path.joinpath(path, self.dir_file.name)
         end
-
-        -- return Path.joinpath(path, self.dir_file.name)
-
-    -- elseif Path.is_relative_to(path, self.path) then
-        -- if Path.is_file(path) then
-        --     path = Path.parent(path)
-        -- end
-
-        -- path = Path.relative_to(path, self.path)
-
-        -- if #Path.parts(path) == 1 then
-        --     return Path.joinpath(self.path, Path.with_suffix(path, ''), self.dir_file.name)
-        -- end
     end
 
     return nil
@@ -95,11 +83,33 @@ function TopicSet:path_config(path)
     return config[file_type]
 end
 
-function TopicSet:topics()
-    return Path.iterdir(self.path, {recursive = false, files = false})
+function TopicSet:path_file(path)
+    local FileClass
+
+    if self:is_topic_statement(path) then
+        FileClass = Statement
+    elseif self:is_topic_file(path) then
+        FileClass = File
+    end
+
+    local config = self:path_config(path)
+    return FileClass(path, config.fields, config.filters)
 end
 
-function TopicSet:topic_files(path)
+function TopicSet:get_topic_statements()
+    local topic_statements = List()
+    for _, topic_dir in ipairs(Path.iterdir(self.path, {recursive = false, files = false})) do
+        local topic_statement = self:as_topic_statement(topic_dir)
+
+        if Path.exists(topic_statement) then
+            topic_statements:append(topic_statement)
+        end
+    end
+
+    return topic_statements
+end
+
+function TopicSet:get_topic_files(path)
     local topic_files = List()
     if self:is_topic_content(path) then
         local topic_statement_path = self:as_topic_statement(path)
@@ -116,10 +126,10 @@ end
 
 function TopicSet:files(path)
     if self:is_topic_content(path) then
-        return self:topic_files(path)
+        return self:get_topic_files(path)
     end
     
-    return self:topics()
+    return self:get_topic_statements()
 end
 
 -- dir/topic/X.md → dir/topic/X.md
@@ -185,15 +195,5 @@ function TopicSet.format(set)
         file = set.file,
     }
 end
-
--- TODO:
---[[
-if path is in a topic dir, list that topic's files
-else list 
---]]
-function TopicSet:list(path)
-    return {}
-end
-
 
 return TopicSet

@@ -1,7 +1,7 @@
 local Path = require("hl.path")
 
 local Fields = require("htl.notes.field")
-local File = require("htl.notes.file")
+local File = require("htl.notes.note.file")
 
 local path = Path.joinpath(Path.tempdir(), "test-file.md")
 local fields = Fields.format({
@@ -67,6 +67,26 @@ describe("set_metadata", function()
         assert.are.same(
             {a = 1, b = false, c = 3, d = {'z'}, date = tonumber(os.date("%Y%m%d"))},
             file:get_metadata()
+        )
+    end)
+end)
+
+describe("blurb", function()
+    it("has blurb", function()
+        file:write({a = 1}, "blurb")
+
+        assert.are.same(
+            "blurb",
+            file:get_blurb()
+        )
+    end)
+
+    it("has no blurb", function()
+        file:write({a = 1})
+
+        assert.are.same(
+            "test file",
+            file:get_blurb()
         )
     end)
 end)

@@ -88,3 +88,21 @@ describe("is_of_type", function()
         assert(ListField.is_of_type({default = {1, 2, 3}}))
     end)
 end)
+
+describe("filter_value", function()
+    it("nil condition", function()
+        assert(ListField():filter_value(1, nil))
+    end)
+
+    it("+: single condition", function()
+        assert(ListField():filter_value(1, {1}))
+    end)
+
+    it("+: multiple conditions", function()
+        assert(ListField():filter_value(1, {1, 2}))
+    end)
+
+    it("-", function()
+        assert.falsy(ListField():filter_value(3, {1, 2}))
+    end)
+end)

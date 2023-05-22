@@ -13,5 +13,9 @@ function BoolField.is_of_type(args)
     return type(args.default) == 'boolean'
 end
 
+function BoolField.val_is_of_type(val)
+    return val == true or val == false
+end
+
 
 return BoolField

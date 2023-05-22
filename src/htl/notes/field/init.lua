@@ -7,6 +7,12 @@ local DateField = require("htl.notes.field.date")
 
 local Fields = {}
 
+Fields.value_type_conditions = {
+    "all",
+    "expected",
+    "unexpected",
+}
+
 Fields.classes = {
     DateField,
     BoolField,
@@ -21,8 +27,19 @@ function Fields.get_field_class(args)
         end
     end
 
-    return Field
+    return StringField
 end
+
+function Fields.get_value_field_class(val)
+    for _, class in ipairs(Fields.classes) do
+        if class.val_is_of_type(val) then
+            return class
+        end
+    end
+
+    return StringField
+end
+
 
 function Fields.format(fields)
     fields = fields or {}
@@ -60,9 +77,24 @@ function Fields.set_metadata(fields, metadata)
     return metadata
 end
 
-function Fields.filter(fields, filters, value_type_conditions)
-end
+function Fields.filter(metadata, fields, filters, value_type_condition)
+    metadata = Dict.update(metadata)
+    for key, value in pairs(filters) do
+        local field = fields[key]
 
+        if not field then
+            field = Fields.get_value_field_class(metadata[key])(key)
+        end
+
+        metadata[key] = field:filter(
+            metadata,
+            filters[key],
+            value_type_condition
+        )
+    end
+
+    return metadata
+end
 
 function Fields.get(args_by_key)
     local fields = {}

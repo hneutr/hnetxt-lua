@@ -35,11 +35,16 @@ function Notes.path_set(path)
 end
 
 function Notes.path_sets(path)
-    local sets = Notes.sets(path)
-    for set_path, _ in pairs(sets) do
-        if set_path ~= path and not Path.is_relative_to(set_path, path) then
-            sets[set_path] = nil
+    local sets = Dict()
+    for set_path, set in pairs(Notes.sets(path)) do
+        if set_path == path or Path.is_relative_to(set_path, path) then
+            sets[set_path] = set
         end
+    end
+
+    if #sets:keys() == 0 then
+        local set = Notes.path_set(path)
+        sets[set.path] = set
     end
 
     return sets

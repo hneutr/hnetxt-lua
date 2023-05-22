@@ -1,10 +1,11 @@
+local class = require("pl.class")
 local List = require("hl.List")
 local Path = require("hl.path")
 
 local Fields = require("htl.notes.field")
-local File = require("htl.notes.file")
+local File = require("htl.notes.note.file")
 
-require("pl.class").FileSet()
+class.FileSet()
 
 FileSet.type = 'file'
 FileSet.config_keys = {
@@ -83,38 +84,16 @@ function FileSet:touch(path, args, metadata)
     return path
 end
 
--- TODO: filter metadata here
--- TODO: also will need to figure out how to cue to TopicSet that we want ALL notes when listing
--- fields
-function FileSet:list(path)
+function FileSet:list(path, filters, apply_config_filters, value_type_condition)
     local items = List()
-    local set_path = Path.relative_to(self.path, path)
-
-    for _, item_path in ipairs(self:files()) do
+    for _, item_path in ipairs(self:files(path)) do
         local file = self:path_file(item_path)
-        local metadata, content = unpack(file:read())
 
-        content = content:splitlines()
-        local blurb = content[1]
-
-        if #blurb == 0 then
-            blurb = Path.stem(path):gsub("-", " ")
+        if apply_config_filters then
+            file.filters = Dict.update(filters, file.filters)
         end
 
-        item_path = Path.relative_to(item_path, path):removeprefix("/")
-        clean_item_path = Path.with_suffix(item_path, ''):gsub('-', " "):removeprefix("/")
-
-        items:append({
-            path = item_path,
-            clean_path = clean_item_path,
-            stem = Path.stem(item_path),
-            clean_stem = Path.stem(clean_item_path),
-            name = Path.name(item_path),
-            clean_name = Path.name(clean_item_path),
-            set_path = set_path,
-            metadata = metadata,
-            blurb = blurb,
-        })
+        items:append(file:get_list_info(value_type_condition, path))
     end
 
     return items

@@ -1,4 +1,5 @@
 local List = require("hl.List")
+local Set = require("pl.Set")
 local StringField = require("htl.notes.field.string")
 
 local ListField = StringField:extend()
@@ -37,6 +38,27 @@ end
 
 function ListField.is_of_type(args)
     return List.is_listlike(args.default)
+end
+
+function ListField.val_is_of_type(val)
+    return List.is_listlike(val)
+end
+
+
+function ListField:filter_value(val, condition)
+    condition = List.as_list(condition)
+    return #condition == 0 or condition:contains(val)
+end
+
+function ListField:filter(metadata, val_condition, val_type_condition)
+    local vals = List()
+    for _, val in ipairs(self:get(metadata)) do
+        if self:filter_value(val, val_condition) and self:filter_value_type(val, val_type_condition) then
+            vals:append(val)
+        end
+    end
+
+    return vals
 end
 
 return ListField

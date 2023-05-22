@@ -14,6 +14,10 @@ function DateField.is_of_type(args)
     return args.default == DateField.default
 end
 
+function DateField.val_is_of_type(val)
+    return tonumber(val) and #tostring(val) == 8
+end
+
 function DateField:set(metadata, value)
     self.super.set(self, metadata, tonumber(value))
 end

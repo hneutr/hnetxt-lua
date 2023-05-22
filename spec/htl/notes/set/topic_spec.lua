@@ -1,6 +1,5 @@
 local Path = require("hl.path")
 local Fields = require("htl.notes.field")
-local File = require("htl.notes.file")
 
 local TopicSet = require("htl.notes.set.topic")
 
@@ -26,7 +25,7 @@ local files = {
     topic_1_file_2,
     topic_1_file_3,
     topic_1_file_a,
-    topic_1_statement,
+    topic_2_statement,
     topic_2_file_1,
     topic_2_file_2,
 }
@@ -199,21 +198,21 @@ describe("path_topic", function()
     end)
 end)
 
-describe("topics", function()
+describe("get_topic_statements", function()
     local topic_set = TopicSet(topic_set_dir)
 
     it("works", function()
-        local actual = topic_set:topics()
+        local actual = topic_set:get_topic_statements()
         table.sort(actual)
-        assert.are.same({topic_1_dir, topic_2_dir}, actual)
+        assert.are.same({topic_1_statement, topic_2_statement}, actual)
     end)
 end)
 
-describe("topic_files", function()
+describe("get_topic_files", function()
     local topic_set = TopicSet(topic_set_dir)
 
     it("works", function()
-        local actual = topic_set:topic_files(topic_1_dir)
+        local actual = topic_set:get_topic_files(topic_1_dir)
         table.sort(actual)
         assert.are.same(
             {
