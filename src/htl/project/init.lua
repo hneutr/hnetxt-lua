@@ -24,7 +24,8 @@ function Project.get_metadata_path(dir)
 end
 
 function Project.create(name, dir, metadata)
-    metadata = Dict.from(metadata, {start_date = os.date("%Y%m%d")})
+    metadata = Dict.from(metadata, {date = os.date("%Y%m%d")})
+    metadata.date = tonumber(metadata.data)
 
     if not name or not dir then
         return
