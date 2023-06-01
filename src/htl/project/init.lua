@@ -25,7 +25,7 @@ end
 
 function Project.create(name, dir, metadata)
     metadata = Dict.from(metadata, {date = os.date("%Y%m%d")})
-    metadata.date = tonumber(metadata.data)
+    metadata.date = tonumber(metadata.date)
 
     if not name or not dir then
         return

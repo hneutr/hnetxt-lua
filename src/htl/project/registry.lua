@@ -2,6 +2,7 @@ local Yaml = require("hl.yaml")
 local Path = require("hl.path")
 local Dict = require("hl.Dict")
 local Object = require("hl.object")
+local List = require("hl.List")
 
 local Config = require("htl.config")
 
@@ -24,6 +25,16 @@ end
 function Registry:set(registry)
     registry = registry or {}
     Yaml.write(self.path, registry)
+end
+
+function Registry:set(registry)
+    registry = Dict.from(registry or {})
+    local _registry = Dict()
+    for _, k in ipairs(List(registry:keys()):sorted()) do
+        _registry[k] = registry[k]
+    end
+
+    Yaml.write(self.path, _registry)
 end
 
 function Registry:set_entry(name, path)

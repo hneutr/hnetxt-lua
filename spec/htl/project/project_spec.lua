@@ -44,7 +44,7 @@ describe("create", function()
     it("no start date", function()
         local expected = {
             name = test_project_name,
-            start_date = os.date("%Y%m%d")
+            date = tonumber(os.date("%Y%m%d"))
         }
 
         Project.create(test_project_name, test_project_dir)
@@ -53,13 +53,13 @@ describe("create", function()
     end)
 
     it("start date", function()
-        local start_date = os.date("20230414")
+        local date = tonumber(os.date("20230414"))
         local expected = {
             name = test_project_name,
-            start_date = start_date,
+            date = date,
         }
 
-        Project.create(test_project_name, test_project_dir, {start_date = start_date})
+        Project.create(test_project_name, test_project_dir, {date = date})
         assert.are.same(expected, yaml.read(Project.get_metadata_path(test_project_dir)))
         assert.are.same(test_project_dir, Registry():get_entry_dir(test_project_name))
     end)
