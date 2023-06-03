@@ -52,6 +52,8 @@ build = {
       ["htl.notes.field.bool"] = "src/htl/notes/field/bool.lua",
       ["htl.notes.field.date"] = "src/htl/notes/field/date.lua",
       ["htl.notes.field.list"] = "src/htl/notes/field/list.lua",
+      ["htl.notes.field.start"] = "src/htl/notes/field/start.lua",
+      ["htl.notes.field.end"] = "src/htl/notes/field/end.lua",
 
       ["htl.notes.note.file"] = "src/htl/notes/note/file.lua",
       ["htl.notes.note.statement"] = "src/htl/notes/note/statement.lua",

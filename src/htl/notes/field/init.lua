@@ -4,6 +4,8 @@ local StringField = require("htl.notes.field.string")
 local BoolField = require("htl.notes.field.bool")
 local ListField = require("htl.notes.field.list")
 local DateField = require("htl.notes.field.date")
+local StartField = require("htl.notes.field.start")
+local EndField = require("htl.notes.field.end")
 
 local Fields = {}
 
@@ -14,13 +16,28 @@ Fields.value_type_conditions = {
 }
 
 Fields.classes = {
+    StartField,
+    EndField,
     DateField,
     BoolField,
     ListField,
     StringField,
 }
 
-function Fields.get_field_class(args)
+function Fields.get_key_class(key)
+    for _, class in ipairs(Fields.classes) do
+        if key == class.type then
+            return class
+        end
+    end
+end
+
+function Fields.get_args_class(args, key)
+    local key_class = Fields.get_key_class(key)
+    if key_class then
+        return key_class
+    end
+
     for _, class in ipairs(Fields.classes) do
         if args.type == class.type or class.is_of_type(args) then
             return class
@@ -30,7 +47,12 @@ function Fields.get_field_class(args)
     return StringField
 end
 
-function Fields.get_value_field_class(val)
+function Fields.get_val_class(val, key)
+    local key_class = Fields.get_key_class(key)
+    if key_class then
+        return key_class
+    end
+
     for _, class in ipairs(Fields.classes) do
         if class.val_is_of_type(val) then
             return class
@@ -81,9 +103,8 @@ function Fields.filter(metadata, fields, filters, value_type_condition)
     metadata = Dict.update(metadata)
     for key, value in pairs(filters) do
         local field = fields[key]
-
         if not field then
-            field = Fields.get_value_field_class(metadata[key])(key)
+            field = Fields.get_val_class(metadata[key], key)(key)
         end
 
         metadata[key] = field:filter(
@@ -96,31 +117,31 @@ function Fields.filter(metadata, fields, filters, value_type_condition)
     return metadata
 end
 
-function Fields.remove(metadata, field, value)
-    if field and metadata[field] ~= nil then
-        if value then
-            Fields.get_value_field_class(metadata[field])(field):remove(metadata, value)
+function Fields.remove(metadata, key, val)
+    if key and metadata[key] ~= nil then
+        if val then
+            Fields.get_val_class(metadata[key], key)(key):remove(metadata, val)
         else
-            metadata[field] = nil
+            metadata[key] = nil
         end
     end
 
     return metadata
 end
 
-function Fields.move(metadata, source_field, source_value, target_field, target_value)
-    if source_field and target_field and metadata[source_field] ~= nil then
-        if source_value and target_value then
-            Fields.get_value_field_class(metadata[source_field])(source_field):move(
+function Fields.move(metadata, source_key, source_val, target_key, target_val)
+    if source_key and target_key and metadata[source_key] ~= nil then
+        if source_val and target_val then
+            Fields.get_val_class(metadata[source_key], source_key)(source_key):move(
                 metadata,
-                source_value,
-                target_value
+                source_val,
+                target_val
             )
         end
 
-        if source_field ~= target_field then
-            metadata[target_field] = metadata[source_field]
-            metadata[source_field] = nil
+        if source_key ~= target_key then
+            metadata[target_key] = metadata[source_key]
+            metadata[source_key] = nil
         end
     end
 
@@ -130,7 +151,7 @@ end
 function Fields.get(args_by_key)
     local fields = {}
     for key, args in pairs(args_by_key or {}) do
-        fields[key] = Fields.get_field_class(args)(key, args)
+        fields[key] = Fields.get_args_class(args, key)(key, args)
     end
     return fields
 end
