@@ -6,12 +6,10 @@ local Object = require("hl.object")
 local FileSet = require("htl.notes.set.file")
 local TopicSet = require("htl.notes.set.topic")
 local PromptSet = require("htl.notes.set.prompt")
-local DatedSet = require("htl.notes.set.dated")
 
 local Sets = {}
 
 Sets.by_type = {
-    [DatedSet.type] = DatedSet,
     [PromptSet.type] = PromptSet,
     [TopicSet.type] = TopicSet,
     [FileSet.type] = FileSet,
