@@ -43,7 +43,7 @@ end)
 describe("create", function()
     it("no start date", function()
         local expected = {
-            name = test_project_name,
+            name = "test project",
             date = tonumber(os.date("%Y%m%d"))
         }
 
@@ -55,7 +55,7 @@ describe("create", function()
     it("start date", function()
         local date = tonumber(os.date("20230414"))
         local expected = {
-            name = test_project_name,
+            name = "test project",
             date = date,
         }
 

@@ -19,12 +19,7 @@ function Registry:get()
     if Path.exists(self.path) then
         registry = Yaml.read(self.path)
     end
-    return registry
-end
-
-function Registry:set(registry)
-    registry = registry or {}
-    Yaml.write(self.path, registry)
+    return Dict(registry)
 end
 
 function Registry:set(registry)

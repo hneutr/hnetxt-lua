@@ -1,4 +1,5 @@
 local Yaml = require("hl.yaml")
+local string = require("hl.string")
 local Object = require("hl.object")
 local Path = require("hl.path")
 local List = require("hl.List")
@@ -31,7 +32,7 @@ function Project.create(name, dir, metadata)
         return
     end
 
-    metadata.name = name
+    metadata.name = name:gsub("%-", " ")
 
     Yaml.write(Project.get_metadata_path(dir), metadata)
     Registry():set_entry(name, dir)
