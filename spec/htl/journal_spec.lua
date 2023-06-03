@@ -10,10 +10,9 @@ local Journal = require("htl.journal")
 
 describe("get_path", function()
     it("no project", function()
-        local expected = Path.joinpath(config.dir, string.format("%s.md", os.date("%Y%m")))
         assert.are.same(
-            expected,
-            Journal()
+            config.global_dir,
+            Path.parent(Journal())
         )
     end)
 
@@ -23,15 +22,11 @@ describe("get_path", function()
 
         Project.create(project_name, project_dir)
 
-        local expected = Path.joinpath(
-            project_dir,
-            config.project_dir,
-            string.format("%s.md", os.date("%Y%m"))
-        )
+        local expected = Path.joinpath(project_dir, config.project_dir)
 
         assert.are.same(
             expected,
-            Journal({project = project_name})
+            Path.parent(Journal(Project(project_name).root))
         )
 
         Path.rmdir(project_dir, true)
