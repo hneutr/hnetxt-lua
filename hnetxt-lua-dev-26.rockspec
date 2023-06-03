@@ -19,7 +19,6 @@ build = {
    modules = {
       htl = "src/htl/init.lua",
       ["htl.config"] = "src/htl/config.lua",
-      ["htl.goals"] = "src/htl/goals.lua",
       ["htl.journal"] = "src/htl/journal.lua",
       ["htl.operator"] = "src/htl/operator/init.lua",
       ["htl.operator.operation"] = "src/htl/operator/operation/init.lua",
@@ -59,6 +58,15 @@ build = {
       ["htl.notes.note.file"] = "src/htl/notes/note/file.lua",
       ["htl.notes.note.statement"] = "src/htl/notes/note/statement.lua",
       ["htl.notes.note.blank"] = "src/htl/notes/note/blank.lua",
+
+      ["htl.goals"] = "src/htl/goals/init.lua",
+      ["htl.goals.goal"] = "src/htl/goals/goal.lua",
+      ["htl.goals.set"] = "src/htl/goals/set/init.lua",
+      ["htl.goals.set.year"] = "src/htl/goals/set/year.lua",
+      ["htl.goals.set.month"] = "src/htl/goals/set/month.lua",
+      ["htl.goals.set.week"] = "src/htl/goals/set/week.lua",
+      ["htl.goals.set.day"] = "src/htl/goals/set/day.lua",
+      ["htl.goals.set.undated"] = "src/htl/goals/set/undated.lua",
    }
 }
 test = {
