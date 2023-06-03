@@ -46,6 +46,7 @@ build = {
       ["htl.notes.set.file"] = "src/htl/notes/set/file.lua",
       ["htl.notes.set.topic"] = "src/htl/notes/set/topic.lua",
       ["htl.notes.set.prompt"] = "src/htl/notes/set/prompt.lua",
+      ["htl.notes.set.dated"] = "src/htl/notes/set/dated.lua",
 
       ["htl.notes.field"] = "src/htl/notes/field/init.lua",
       ["htl.notes.field.string"] = "src/htl/notes/field/string.lua",
@@ -57,6 +58,7 @@ build = {
 
       ["htl.notes.note.file"] = "src/htl/notes/note/file.lua",
       ["htl.notes.note.statement"] = "src/htl/notes/note/statement.lua",
+      ["htl.notes.note.blank"] = "src/htl/notes/note/blank.lua",
    }
 }
 test = {
