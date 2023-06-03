@@ -45,6 +45,7 @@ build = {
       ["htl.notes.set.file"] = "src/htl/notes/set/file.lua",
       ["htl.notes.set.topic"] = "src/htl/notes/set/topic.lua",
       ["htl.notes.set.prompt"] = "src/htl/notes/set/prompt.lua",
+      ["htl.notes.set.intention"] = "src/htl/notes/set/intention.lua",
 
       ["htl.notes.field"] = "src/htl/notes/field/init.lua",
       ["htl.notes.field.string"] = "src/htl/notes/field/string.lua",
@@ -58,7 +59,6 @@ build = {
       ["htl.notes.note.statement"] = "src/htl/notes/note/statement.lua",
       ["htl.notes.note.blank"] = "src/htl/notes/note/blank.lua",
 
-      ["htl.goals"] = "src/htl/goals/init.lua",
       ["htl.goals.goal"] = "src/htl/goals/goal.lua",
       ["htl.goals.set"] = "src/htl/goals/set/init.lua",
       ["htl.goals.set.year"] = "src/htl/goals/set/year.lua",

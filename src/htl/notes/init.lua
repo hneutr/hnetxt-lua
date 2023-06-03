@@ -1,8 +1,10 @@
 local Path = require("hl.path")
 local Dict = require("hl.Dict")
+local List = require("hl.List")
 local Object = require("hl.object")
 
 local Project = require("htl.project")
+local Registry = require("htl.project.registry")
 local Fields = require("htl.notes.field")
 local Sets = require("htl.notes.set")
 
@@ -49,6 +51,19 @@ function Notes.path_files(path)
     end)
 
     return files
+end
+
+function Notes.all_sets_of_type(set_type)
+    local sets = Dict()
+    Dict(Registry():get()):values():foreach(function(root)
+        Notes.sets(root):foreach(function(name, set)
+            if set.type == set_type then
+                sets[name] = set
+            end
+        end)
+    end)
+
+    return sets
 end
 
 return Notes

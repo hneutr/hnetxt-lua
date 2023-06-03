@@ -6,12 +6,14 @@ local Object = require("hl.object")
 local FileSet = require("htl.notes.set.file")
 local TopicSet = require("htl.notes.set.topic")
 local PromptSet = require("htl.notes.set.prompt")
+local IntentionSet = require("htl.notes.set.intention")
 
 local Sets = {}
 
 Sets.by_type = {
     [PromptSet.type] = PromptSet,
     [TopicSet.type] = TopicSet,
+    [IntentionSet.type] = IntentionSet,
     [FileSet.type] = FileSet,
 }
 
