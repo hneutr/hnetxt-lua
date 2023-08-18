@@ -31,6 +31,8 @@ function Sets.get_class(path)
 end
 
 function Sets.touch(path)
+    path = path or os.date("%Y%m%d")
+
     if not Path.is_relative_to(path, Sets.config.dir) then
         path = Path.joinpath(Sets.config.dir, path)
     end
