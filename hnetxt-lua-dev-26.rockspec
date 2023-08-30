@@ -66,6 +66,8 @@ build = {
       ["htl.goals.set.week"] = "src/htl/goals/set/week.lua",
       ["htl.goals.set.day"] = "src/htl/goals/set/day.lua",
       ["htl.goals.set.undated"] = "src/htl/goals/set/undated.lua",
+
+      ["htl.uuid"] = "src/htl/uuid.lua",
    }
 }
 test = {
