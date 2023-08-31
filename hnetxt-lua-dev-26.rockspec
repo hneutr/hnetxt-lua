@@ -67,7 +67,9 @@ build = {
       ["htl.goals.set.day"] = "src/htl/goals/set/day.lua",
       ["htl.goals.set.undated"] = "src/htl/goals/set/undated.lua",
 
-      ["htl.uuid"] = "src/htl/uuid.lua",
+      ["hd.uuid"] = "src/hd/uuid/init.lua",
+      ["hd.uuid.charset"] = "src/hd/uuid/charset.lua",
+      ["hd.metadata"] = "src/hd/metadata.lua",
    }
 }
 test = {
