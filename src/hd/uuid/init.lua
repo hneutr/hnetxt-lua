@@ -1,7 +1,8 @@
 local socket = require("socket")
-local charset = require("hd.uuid.charset")
+local charsets = require("hd.uuid.charset")
 
-return function()
+return function(charset_name)
+    local charset = charsets[charset_name or "ascii"]
     local n = socket.gettime() * 10000
     local base = #charset
 
