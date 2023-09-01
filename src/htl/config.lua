@@ -13,4 +13,8 @@ function Config.get(constants_type)
     return Yaml.read(path)
 end
 
+function Config.get_data_dir(...)
+    return Path.joinpath(Config.get('init').data_dir, ...)
+end
+
 return Config

@@ -8,6 +8,7 @@ local Config = require("htl.config")
 
 local Registry = Object:extend()
 Registry.config = Config.get("project")
+Registry.config.data_dir = Path.joinpath(Config.get("init").data_dir, "projects")
 
 function Registry:new(args)
     self = Dict.update(self, args or {})

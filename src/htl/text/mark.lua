@@ -61,6 +61,4 @@ function Mark.find(label, lines)
     return nil
 end
 
-
-
 return Mark
