@@ -67,6 +67,21 @@ build = {
       ["htl.goals.set.day"] = "src/htl/goals/set/day.lua",
       ["htl.goals.set.undated"] = "src/htl/goals/set/undated.lua",
 
+      -- cli
+      ["htc"] = "src/htc/init.lua",
+      ["htc.command"] = "src/htc/command.lua",
+      ["htc.util"] = "src/htc/util.lua",
+      ["htc.journal"] = "src/htc/journal.lua",
+      ["htc.project"] = "src/htc/project.lua",
+      ["htc.move"] = "src/htc/move.lua",
+      ["htc.remove"] = "src/htc/remove.lua",
+      ["htc.goals"] = "src/htc/goals.lua",
+      ["htc.aim"] = "src/htc/aim.lua",
+      ["htc.notes"] = "src/htc/notes.lua",
+      ["htc.colors"] = "src/htc/colors.lua",
+      ["htc.colorize"] = "src/htc/colorize.lua",
+      ["htc.new"] = "src/htc/new.lua",
+
       -- ENTRIES
       ["hd.uuid"] = "src/hd/uuid/init.lua",
       ["hd.uuid.charset"] = "src/hd/uuid/charset.lua",
