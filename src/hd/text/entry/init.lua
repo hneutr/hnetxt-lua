@@ -31,9 +31,4 @@ function Entries.paths(lines)
     end)
 end
 
--- - [paths]():
--- - [references]():
--- - [titles]():
--- - [relations]():
-
 return Entries

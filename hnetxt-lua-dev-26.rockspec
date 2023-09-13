@@ -73,8 +73,6 @@ build = {
       ["hd.metadata"] = "src/hd/metadata.lua",
       ["hd.text"] = "src/hd/text/init.lua",
       ["hd.text.entry"] = "src/hd/text/entry/init.lua",
-      ["hd.text.entry.file"] = "src/hd/text/entry/file.lua",
-      -- ["hd.text.entry.section"] = "src/hd/text/entry/section.lua",
    }
 }
 test = {

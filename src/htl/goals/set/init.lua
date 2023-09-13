@@ -11,6 +11,7 @@ local UndatedSet = require("htl.goals.set.undated")
 
 local Sets = {}
 Sets.config = Config.get("goals")
+Sets.dir = Config.get_data_dir('goals')
 
 Sets.classes = List({
     YearSet,
@@ -33,8 +34,8 @@ end
 function Sets.touch(path)
     path = path or os.date("%Y%m%d")
 
-    if not Path.is_relative_to(path, Sets.config.dir) then
-        path = Path.joinpath(Sets.config.dir, path)
+    if not Path.is_relative_to(path, Sets.dir) then
+        path = Path.joinpath(Sets.dir, path)
     end
 
     path = Path.with_suffix(path, ".md")
@@ -47,7 +48,7 @@ function Sets.touch(path)
 end
 
 function Sets.to_close()
-    local paths = List(Path.iterdir(Sets.config.dir, {recursive = false, dirs = false}))
+    local paths = List(Path.iterdir(Sets.dir, {recursive = false, dirs = false}))
     return paths:filter(function(p)
         return Sets.get_class(p):should_be_closed(p)
     end)
@@ -55,11 +56,11 @@ end
 
 function Sets.to_create()
     return Sets.classes:map(function(c)
-        return c:get_current(Sets.config.dir)
+        return c:get_current(Sets.dir)
     end):filter(function(c)
         return c and not Path.exists(c)
     end):transform(function(c)
-        return Path.relative_to(c, Sets.config.dir)
+        return Path.relative_to(c, Sets.dir)
     end)
 end
 

@@ -21,13 +21,5 @@ describe("parse", function()
         }
 
         print(require("inspect")(Entries.paths(lines)))
-        -- assert.are.same(
-        -- )
-
     end)
 end)
-
--- print(require("inspect")(Entries.config))
-
-
-
