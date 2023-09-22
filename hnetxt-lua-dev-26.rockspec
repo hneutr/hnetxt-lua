@@ -81,6 +81,7 @@ build = {
       ["htc.colors"] = "src/htc/colors.lua",
       ["htc.colorize"] = "src/htc/colorize.lua",
       ["htc.new"] = "src/htc/new.lua",
+      ["htc.fields"] = "src/htc/fields.lua",
 
       -- ENTRIES
       ["hd.uuid"] = "src/hd/uuid/init.lua",
@@ -88,6 +89,10 @@ build = {
       ["hd.metadata"] = "src/hd/metadata.lua",
       ["hd.text"] = "src/hd/text/init.lua",
       ["hd.text.entry"] = "src/hd/text/entry/init.lua",
+
+      -- snippet
+      -- ["hs"] = "src/hs/init.lua",
+      ["hs.header"] = "src/hs/header.lua",
    }
 }
 test = {
