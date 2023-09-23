@@ -20,6 +20,6 @@ describe("parse", function()
             "=---------------------------------------"
         }
 
-        print(require("inspect")(Entries.paths(lines)))
+        -- print(require("inspect")(Entries.paths(lines)))
     end)
 end)

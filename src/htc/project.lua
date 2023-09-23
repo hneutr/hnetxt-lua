@@ -6,7 +6,6 @@ local Colors = require("htc.colors")
 
 local Project = require("htl.project")
 local Registry = require("htl.project.registry")
-local Flag = require("htl.text.flag")
 local List = require("htl.text.list")
 
 local args = {
@@ -45,22 +44,6 @@ return {
         root = {
             args.project,
             action = function(args) print(Project(args.project).root) end,
-        },
-        flags = {
-            args.project,
-            {"+f --flag", default = 'question', description = "flag type"},
-            action = function(args)
-                local instances = Flag.get_instances(args.flag, Project(args.project).root)
-                local paths = Dict.keys(instances)
-                table.sort(paths)
-
-                for _, path in ipairs(paths) do
-                    print(Colors("%{magenta}" .. path .. "%{reset}") .. ":")
-                    for _, instance in ipairs(instances[path]) do
-                        print("    " .. instance)
-                    end
-                end
-            end,
         },
         list = {
             args.project,

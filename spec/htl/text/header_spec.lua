@@ -7,7 +7,7 @@ describe("__tostring", function()
         assert.are.same(
             {
                 divider_string,
-                "> heading",
+                "= heading",
                 divider_string,
                 ""
             },
@@ -33,7 +33,7 @@ describe("__tostring", function()
         assert.are.same(
             {
                 divider_string,
-                "# heading",
+                "= heading",
                 divider_string,
                 ""
             },
@@ -46,7 +46,7 @@ describe("__tostring", function()
         assert.are.same(
             {
                 divider_string,
-                ">",
+                "=",
                 divider_string,
                 ""
             },
@@ -59,7 +59,7 @@ describe("__tostring", function()
         assert.are.same(
             {
                 divider_string,
-                "> function",
+                "= function",
                 divider_string,
                 ""
             },

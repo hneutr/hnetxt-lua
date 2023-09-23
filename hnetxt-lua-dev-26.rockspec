@@ -32,7 +32,6 @@ build = {
       ["htl.project.mirror.config"] = "src/htl/project/mirror/config.lua",
       ["htl.project.registry"] = "src/htl/project/registry.lua",
       ["htl.text.divider"] = "src/htl/text/divider.lua",
-      ["htl.text.flag"] = "src/htl/text/flag.lua",
       ["htl.text.header"] = "src/htl/text/header.lua",
       ["htl.text.link"] = "src/htl/text/link.lua",
       ["htl.text.list"] = "src/htl/text/list.lua",

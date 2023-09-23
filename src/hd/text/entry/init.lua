@@ -18,7 +18,7 @@ function Entries.parse(lines)
         local division_lines = division_line_numbers:map(function(line_number)
             return lines[line_number]
         end)
-        print(require("inspect")(division_lines))
+
         return Metadata.from_lines(division_lines)
     end):filter(function(entry)
         return entry ~= nil
