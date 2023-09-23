@@ -1,4 +1,4 @@
-require("approot")("/Users/hne/lib/hnetxt-cli/")
+require("approot")("/Users/hne/lib/hnetxt-lua/")
 
 local argparse = require("argparse")
 local Command = require("htc.command")

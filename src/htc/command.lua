@@ -1,4 +1,4 @@
-require("approot")("/Users/hne/lib/hnetxt-cli/")
+require("approot")("/Users/hne/lib/hnetxt-lua/")
 
 string = require("hl.string")
 local Dict = require("hl.Dict")

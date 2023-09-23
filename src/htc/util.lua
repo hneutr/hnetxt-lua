@@ -1,4 +1,4 @@
-require("approot")("/Users/hne/lib/hnetxt-cli/")
+require("approot")("/Users/hne/lib/hnetxt-lua/")
 
 local Path = require("hl.path")
 local Registry = require("htl.project.registry")
