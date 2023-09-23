@@ -4,12 +4,17 @@ local List = require("hl.List")
 local Set = require("pl.Set")
 local Yaml = require("hl.yaml")
 
+local exclusions = List({'.project'})
+
 return {
     description = "list fields",
     {"field", args = "?", description = "the field to look for"},
     {"-d --dir", default = Path.cwd(), description = "directory"},
     action = function(args)
-        local paths = List(Path.iterdir(args.dir, {dirs = false, hidden = true}))
+        local paths = List(Path.iterdir(args.dir, {dirs = false})):filter(function(p)
+            return not exclusions:contains(Path.name(p))
+        end)
+
         local field_values = Dict()
         paths:foreach(function(path)
             List(Yaml.read_raw_frontmatter(path)):foreach(function(line)
