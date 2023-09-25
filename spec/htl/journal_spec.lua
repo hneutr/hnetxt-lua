@@ -1,35 +1,20 @@
-local stub = require('luassert.stub')
 local Path = require("hl.Path")
-local yaml = require("hl.yaml")
 
-local Registry = require("htl.project.registry")
-local Project = require("htl.project")
-local config = require("htl.config").get("journal")
+local Config = require("htl.config").get("journal")
 
 local Journal = require("htl.journal")
 
 describe("get_path", function()
     it("no project", function()
-        assert.are.same(
-            config.global_dir,
-            Path.parent(Journal())
-        )
+        assert.are.same(Config.global_dir, Path.parent(Journal()))
     end)
 
     it("project", function()
-        local project_name = "journal-test"
-        local project_dir = Path.join(tostring(Path.tempdir), "journal-test")
-
-        Project.create(project_name, project_dir)
-
-        local expected = Path.join(project_dir, config.project_dir)
+        local project_dir = Path.tempdir:join("journal-test")
 
         assert.are.same(
-            expected,
-            Path.parent(Journal(Project(project_name).root))
+            tostring(project_dir:join(Config.project_dir, os.date("%Y%m%d") .. ".md")),
+            Journal(project_dir)
         )
-
-        Path.rmdir(project_dir, true)
-        Registry():remove_entry(project_name)
     end)
 end)
