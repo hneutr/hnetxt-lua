@@ -109,7 +109,7 @@ function Reference.get_referenced_locations(dir)
             local path, line_number, ref_str = unpack(line:split(":", 2))
 
             if not Path.is_relative_to(path, dir) then
-                path = Path.joinpath(dir, path)
+                path = Path.join(dir, path)
             end
 
             while Reference.str_is_a(ref_str) do
@@ -145,7 +145,7 @@ end
 --          - point references to marks in old → new
 --------------------------------------------------------------------------------
 function Reference.update_locations(location_changes, dir)
-    dir = dir or Project.root_from_path()
+    dir = tostring(dir or Project.root_from_path())
     local relative_location_changes = {}
     for k, v in pairs(location_changes or {}) do
         if Path.is_relative_to(k, dir) then

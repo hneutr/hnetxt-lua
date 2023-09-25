@@ -125,54 +125,53 @@ describe("move", function()
     end)
 end)
 
--- describe("end to end", function()
---     it("move", function()
---         local a_path = Path.joinpath(test_dir, "a.md")
---         local b_path = Path.joinpath(test_dir, "b.md")
+describe("end to end", function()
+    it("move", function()
+        local a_path = test_dir:join("a.md")
+        local b_path = test_dir:join("b.md")
+        local c_path = test_dir:join("c.md")
 
---         local c_path = Path.joinpath(test_dir, "c.md")
+        local mark_content = {"mark content"}
 
---         local mark_content = {"mark content"}
+        local a_content_old = List.from(
+            {"pre"},
+            tostring(Header({content = "[x]()"})),
+            mark_content,
+            tostring(Header({content = "[y]()"})),
+            {"post"}
+        )
 
---         local a_content_old = List.from(
---             {"pre"},
---             tostring(Header({content = "[x]()"})),
---             mark_content,
---             tostring(Header({content = "[y]()"})),
---             {"post"}
---         )
+        local a_content_new = List.from(
+            {"pre", ""},
+            tostring(Header({content = "[y]()"})),
+            {"post"}
+        )
 
---         local a_content_new = List.from(
---             {"pre", ""},
---             tostring(Header({content = "[y]()"})),
---             {"post"}
---         )
+        local b_content_old = List.from(
+            {"abcd"},
+            tostring(Header({content = "[b mark]()"})),
+            {"after"}
+        )
 
---         local b_content_old = List.from(
---             {"abcd"},
---             tostring(Header({content = "[b mark]()"})),
---             {"after"}
---         )
+        local b_content_new = List.from(
+            {"abcd"},
+            tostring(Header({content = "[b mark]()"})),
+            {"after", ""},
+            tostring(Header({content = "[y]()", size="large"})),
+            mark_content
+        )
 
---         local b_content_new = List.from(
---             {"abcd"},
---             tostring(Header({content = "[b mark]()"})),
---             {"after", ""},
---             tostring(Header({content = "[y]()", size="large"})),
---             mark_content
---         )
+        local c_content_old = {"[ref to a:x](a.md:x)"}
+        local c_content_new = {"[ref to a:x](b.md:y)"}
 
---         local c_content_old = {"[ref to a:x](a.md:x)"}
---         local c_content_new = {"[ref to a:x](b.md:y)"}
+        Path.write(a_path, a_content_old)
+        Path.write(b_path, b_content_old)
+        Path.write(c_path, c_content_old)
 
---         Path.write(a_path, a_content_old)
---         Path.write(b_path, b_content_old)
---         Path.write(c_path, c_content_old)
+        Operator.move(tostring(a_path) .. ":x", tostring(b_path) .. ":y")
 
---         Operator.move(a_path .. ":x", b_path .. ":y")
-
---         assert.are.same(a_content_new, Path.readlines(a_path))
---         assert.are.same(b_content_new, Path.readlines(b_path))
---         assert.are.same(c_content_new, Path.readlines(c_path))
---     end)
--- end)
+        assert.are.same(a_content_new, a_path:readlines())
+        assert.are.same(b_content_new, b_path:readlines())
+        assert.are.same(c_content_new, c_path:readlines())
+    end)
+end)

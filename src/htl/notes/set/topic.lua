@@ -54,7 +54,7 @@ function TopicSet:as_topic_statement(path)
         path = Path.with_suffix(path, '')
 
         if self:is_topic_dir(path) then
-            return Path.joinpath(path, self.dir_file.name)
+            return Path.join(path, self.dir_file.name)
         end
     end
 
@@ -148,7 +148,7 @@ function TopicSet:get_path_to_touch(path, args)
     end
 
     if Path.parent(path) == self.path then
-        return Path.joinpath(path, self.dir_file.name)
+        return Path.join(path, self.dir_file.name)
     end
 
     return nil

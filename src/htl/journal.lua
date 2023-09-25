@@ -7,10 +7,10 @@ local function get_path(project_dir)
     local dir = config.global_dir
 
     if project_dir then
-        dir = Path.joinpath(project_dir, config.project_dir) 
+        dir = Path.join(project_dir, config.project_dir) 
     end
 
-    return Path.joinpath(dir, os.date("%Y%m%d") .. ".md")
+    return Path.join(dir, os.date("%Y%m%d") .. ".md")
 end
 
 return get_path

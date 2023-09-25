@@ -11,7 +11,7 @@ function M.map_source_to_target(source, target)
     -- makes a map path of paths in a relative to b
     local map = {}
     for _, subsource in ipairs(Path.iterdir(source)) do
-        map[subsource] = Path.joinpath(target, Path.relative_to(subsource, source))
+        map[subsource] = Path.join(target, Path.relative_to(subsource, source))
     end
     return map
 end

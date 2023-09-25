@@ -1,6 +1,6 @@
 local Dict = require("hl.Dict")
 local List = require("hl.List")
-local Path = require("hl.path")
+local Path = require("hl.Path")
 
 local Project = require("htl.project")
 local Operator = require("htl.operator")
@@ -13,7 +13,7 @@ local project_root_from_path
 local operation_class_to_test
 local operation_to_test
 
-local test_dir = Path.joinpath(tostring(Path.tempdir), "test-dir")
+local test_dir = Path.join(tostring(Path.tempdir), "test-dir")
 
 local function setup_paths(paths)
     for _, path in ipairs(paths) do
@@ -29,21 +29,21 @@ local function make_relative_to_test_dir(thing, args)
     args = Dict.from(args or {}, {transform_keys = false, transform_values = false})
 
     if type(thing) == 'string' then
-        return Path.joinpath(test_dir, thing)
+        return Path.join(test_dir, thing)
     elseif type(thing) == 'table' then
         local new_thing = {}
         if List.is_listlike(thing) then
             for i, v in ipairs(thing) do 
-                new_thing[i] = Path.joinpath(test_dir, v)
+                new_thing[i] = Path.join(test_dir, v)
             end
         else
             for k, v in pairs(thing) do
                 if args.transform_keys then
-                    k = Path.joinpath(test_dir, k)
+                    k = Path.join(test_dir, k)
                 end
 
                 if args.transform_values then
-                    v = Path.joinpath(test_dir, v)
+                    v = Path.join(test_dir, v)
                 end
                 new_thing[k] = v
             end

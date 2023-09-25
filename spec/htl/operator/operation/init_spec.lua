@@ -1,15 +1,15 @@
 local Dict = require("hl.Dict")
-local Path = require("hl.path")
+local Path = require("hl.Path")
 local Mirror = require("htl.project.mirror")
 
 local Operation = require("htl.operator.operation")
 
-local test_dir = Path.joinpath(tostring(Path.tempdir), "test-dir")
-local test_file = Path.joinpath(test_dir, "test-file.md")
+local test_dir = Path.join(tostring(Path.tempdir), "test-dir")
+local test_file = Path.join(test_dir, "test-file.md")
 local test_mark = test_file .. ":mark"
-local test_dir_file = Path.joinpath(test_dir, "@.md")
-local test_subdir = Path.joinpath(test_dir, "test-subdir")
-local test_subfile = Path.joinpath(test_subdir, "test-file.md")
+local test_dir_file = Path.join(test_dir, "@.md")
+local test_subdir = Path.join(test_dir, "test-subdir")
+local test_subfile = Path.join(test_subdir, "test-file.md")
 
 
 before_each(function()

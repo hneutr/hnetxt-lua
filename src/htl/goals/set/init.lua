@@ -1,4 +1,4 @@
-local Path = require("hl.path")
+local Path = require("hl.Path")
 local List = require("hl.List")
 
 local Config = require("htl.config")
@@ -35,7 +35,7 @@ function Sets.touch(path)
     path = path or os.date("%Y%m%d")
 
     if not Path.is_relative_to(path, Sets.dir) then
-        path = Path.joinpath(Sets.dir, path)
+        path = Path.join(Sets.dir, path)
     end
 
     path = Path.with_suffix(path, ".md")

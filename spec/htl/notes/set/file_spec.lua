@@ -1,16 +1,16 @@
-local Path = require("hl.path")
+local Path = require("hl.Path")
 
 local Fields = require("htl.notes.field")
 local FileSet = require("htl.notes.set.file")
 
-local fileset_dir = Path.joinpath(tostring(Path.tempdir), "files")
-local file_1 = Path.joinpath(fileset_dir, "1.md")
-local file_2 = Path.joinpath(fileset_dir, "2.md")
-local file_a = Path.joinpath(fileset_dir, "a.md")
-local date_file = Path.joinpath(fileset_dir, os.date("%Y%m%d") .. ".md")
+local fileset_dir = Path.join(tostring(Path.tempdir), "files")
+local file_1 = Path.join(fileset_dir, "1.md")
+local file_2 = Path.join(fileset_dir, "2.md")
+local file_a = Path.join(fileset_dir, "a.md")
+local date_file = Path.join(fileset_dir, os.date("%Y%m%d") .. ".md")
 
-local fileset_subdir = Path.joinpath(fileset_dir, "subdir")
-local subfile = Path.joinpath(fileset_subdir, "sub.md")
+local fileset_subdir = Path.join(fileset_dir, "subdir")
+local subfile = Path.join(fileset_subdir, "sub.md")
 
 local files = {
     file_1,
@@ -86,14 +86,14 @@ describe("format_path_to_touch", function()
 
     it("args.date", function()
         assert.are.same(
-            Path.joinpath(fileset_dir, os.date("%Y%m%d") .. ".md"),
+            Path.join(fileset_dir, os.date("%Y%m%d") .. ".md"),
             file_set:get_path_to_touch(fileset_dir, {date = true})
         )
     end)
 
     it("args.next", function()
         assert.are.same(
-            Path.joinpath(fileset_dir, "3.md"),
+            Path.join(fileset_dir, "3.md"),
             file_set:get_path_to_touch(fileset_dir, {next = true})
         )
     end)

@@ -10,26 +10,26 @@ local project_root_from_path
 local root = "root"
 
 local source_name = "source.md"
-local source_path = Path.joinpath(root, source_name)
+local source_path = Path.join(root, source_name)
 
 local meta_project_dir = ".notes/meta"
-local meta_dir = Path.joinpath(root, meta_project_dir)
+local meta_dir = Path.join(root, meta_project_dir)
 
-local source_meta_project_path = Path.joinpath(meta_project_dir, source_name)
-local source_meta_path = Path.joinpath(root, source_meta_project_path)
+local source_meta_project_path = Path.join(meta_project_dir, source_name)
+local source_meta_path = Path.join(root, source_meta_project_path)
 
 local scratch_project_dir = ".chaff/scratch"
-local scratch_project_path = Path.joinpath(scratch_project_dir, source_name)
-local scratch_path = Path.joinpath(root, scratch_project_path)
-local scratch_dir = Path.joinpath(root, scratch_project_dir)
+local scratch_project_path = Path.join(scratch_project_dir, source_name)
+local scratch_path = Path.join(root, scratch_project_path)
+local scratch_dir = Path.join(root, scratch_project_dir)
 
 local fragments_project_dir = ".chaff/fragments"
 
-local source_meta_scratch_project_path = Path.joinpath(scratch_project_dir, source_meta_project_path)
-local source_meta_scratch_path = Path.joinpath(root, source_meta_scratch_project_path)
+local source_meta_scratch_project_path = Path.join(scratch_project_dir, source_meta_project_path)
+local source_meta_scratch_path = Path.join(root, source_meta_scratch_project_path)
 
-local source_meta_fragments_project_path = Path.joinpath(fragments_project_dir, source_meta_project_path)
-local source_meta_fragments_path = Path.joinpath(root, source_meta_fragments_project_path)
+local source_meta_fragments_project_path = Path.join(fragments_project_dir, source_meta_project_path)
+local source_meta_fragments_path = Path.join(root, source_meta_fragments_project_path)
 
 before_each(function()
     project_root_from_path = Project.root_from_path

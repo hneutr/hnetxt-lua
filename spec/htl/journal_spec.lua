@@ -1,5 +1,5 @@
 local stub = require('luassert.stub')
-local Path = require("hl.path")
+local Path = require("hl.Path")
 local yaml = require("hl.yaml")
 
 local Registry = require("htl.project.registry")
@@ -18,11 +18,11 @@ describe("get_path", function()
 
     it("project", function()
         local project_name = "journal-test"
-        local project_dir = Path.joinpath(tostring(Path.tempdir), "journal-test")
+        local project_dir = Path.join(tostring(Path.tempdir), "journal-test")
 
         Project.create(project_name, project_dir)
 
-        local expected = Path.joinpath(project_dir, config.project_dir)
+        local expected = Path.join(project_dir, config.project_dir)
 
         assert.are.same(
             expected,

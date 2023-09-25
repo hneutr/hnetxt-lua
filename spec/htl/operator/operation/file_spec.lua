@@ -2,7 +2,7 @@ local List = require("hl.List")
 
 local stub = require('luassert.stub')
 
-local Path = require('hl.path')
+local Path = require('hl.Path')
 
 local Project = require("htl.project")
 local Mirror = require("htl.project.mirror")
@@ -13,7 +13,7 @@ local Operator = require("htl.operator")
 local Operation = require("htl.operator.operation")
 local FileOperation = require("htl.operator.operation.file")
 
-local test_dir = Path.joinpath(tostring(Path.tempdir), "test-dir")
+local test_dir = Path.join(tostring(Path.tempdir), "test-dir")
 
 before_each(function()
     Path.rmdir(test_dir, true)
@@ -43,10 +43,10 @@ end)
 
 describe("end to end", function()
     it("rename", function()
-        local a_path = Path.joinpath(test_dir, "a.md")
+        local a_path = Path.join(test_dir, "a.md")
         local a_mirror_path = Mirror(a_path):get_mirror_path("scratch")
-        local b_path = Path.joinpath(test_dir, "b.md")
-        local c_path = Path.joinpath(test_dir, "c.md")
+        local b_path = Path.join(test_dir, "b.md")
+        local c_path = Path.join(test_dir, "c.md")
         local c_mirror_path = Mirror(c_path):get_mirror_path("scratch")
 
         local a_content = {"this is", "file a"}
@@ -71,11 +71,11 @@ describe("end to end", function()
     end)
 
     it("to mark", function()
-        local a_path = Path.joinpath(test_dir, "a.md")
+        local a_path = Path.join(test_dir, "a.md")
         local a_mirror_path = Mirror(a_path):get_mirror_path("scratch")
-        local b_path = Path.joinpath(test_dir, "b.md")
+        local b_path = Path.join(test_dir, "b.md")
         local b_mirror_path = Mirror(b_path):get_mirror_path("scratch")
-        local c_path = Path.joinpath(test_dir, "c.md")
+        local c_path = Path.join(test_dir, "c.md")
 
         local a_content = {"this is", "file a"}
         Path.write(a_path, a_content)

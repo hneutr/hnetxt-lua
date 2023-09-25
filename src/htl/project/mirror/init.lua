@@ -19,24 +19,24 @@ function Mirror:new(path, type_name)
 
     self.root = Project.root_from_path(path)
 
-    self.dir = Path.joinpath(self.root, self.dir)
+    self.dir = Path.join(self.root, self.dir)
 
     if Path.is_relative_to(path, self.dir) then
         self.path = path
         self.relative_path = Path.relative_to(path, self.dir)
     else
-        self.path = Path.joinpath(self.dir, path)
+        self.path = Path.join(self.dir, path)
         self.relative_path = path
     end
 
     self.project_path = Path.relative_to(self.path, self.root)
     self.project_dir = Path.relative_to(self.dir, self.root)
 
-    self.unmirrored_path = Path.joinpath(self.root, self.relative_path)
+    self.unmirrored_path = Path.join(self.root, self.relative_path)
 end
 
 function Mirror:get_mirror_path(type_name)
-    return Path.joinpath(self.root, self.type_configs[type_name].dir, self.project_path)
+    return Path.join(self.root, self.type_configs[type_name].dir, self.project_path)
 end
 
 function Mirror:get_mirror_paths(existing_only)

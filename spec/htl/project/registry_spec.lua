@@ -5,7 +5,6 @@ local Registry = require("htl.project.registry")
 local Config = require("htl.config")
 
 local test_data_dir = Path.tempdir:join("test-project-data-dir")
--- local test_data_dir = Path.joinpath(tostring(Path.tempdir), "test-project-data-dir")
 local registry
 
 before_each(function()

@@ -16,7 +16,7 @@ function Notes.sets(path)
 
     local sets = Dict()
     for set_key, config in pairs(configs) do
-        set_path = Path.joinpath(project.root, set_key)
+        set_path = Path.join(project.root, set_key)
         sets[set_path] = Sets.get_class(config)(set_path, config)
     end
 

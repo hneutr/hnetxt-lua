@@ -61,7 +61,7 @@ function FileSet:get_path_to_touch(path, args)
         path = Path.parent(path)
     end
 
-    return Path.joinpath(path, stem .. ".md")
+    return Path.join(path, stem .. ".md")
 end
 
 function FileSet:path_config(path)

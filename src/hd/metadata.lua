@@ -1,4 +1,4 @@
-local Path = require("hl.path")
+local Path = require("hl.Path")
 local List = require("hl.List")
 local Dict = require("hl.Dict")
 local UUID = require("hd.uuid")
@@ -38,7 +38,7 @@ function Metadata:path()
         self.uuid = self.uuid()
     end
 
-    return Path.joinpath(Path.cwd(), self.uuid .. ".md")
+    return Path.join(Path.cwd(), self.uuid .. ".md")
 end
 
 function Metadata:get_field_strings()

@@ -1,5 +1,5 @@
 local Dict = require("hl.Dict")
-local Path = require("hl.path")
+local Path = require("hl.Path")
 
 local Location = require("htl.text.location")
 local Parser = require("htl.parse")
@@ -39,7 +39,7 @@ end
 
 M.to_dir_file = {}
 function M.to_dir_file.transform_target(target, source)
-    return Path.joinpath(target, Location.from_str(source).label .. '.md')
+    return Path.join(target, Location.from_str(source).label .. '.md')
 end
 
 return M

@@ -38,7 +38,7 @@ function Sets.flatten(sets)
         sets[key] = set
 
         for subkey, subset in pairs(Sets.flatten(set.subsets)) do
-            subkey = Path.joinpath(key, subkey)
+            subkey = Path.join(key, subkey)
             sets[subkey] = subset
         end
 

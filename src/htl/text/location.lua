@@ -59,7 +59,7 @@ function Location.from_str(str, args)
     end
 
     if #args.relative_to > 0 and not Path.is_relative_to(path, args.relative_to) then
-        path = Path.joinpath(args.relative_to, path)
+        path = Path.join(args.relative_to, path)
     end
 
     return Location({path = path, label = label})

@@ -67,7 +67,7 @@ function M.is_nil(p)
 end
 
 function M.dir_file_of(p)
-    return Path.joinpath(p, M.dir_file_name)
+    return Path.join(p, M.dir_file_name)
 end
 
 function M.dir_is_not_parent_of(p1, p2)
@@ -79,7 +79,7 @@ function M.is_parent_of(p1, p2)
 end
 
 function M.make_parent_of(p1, p2)
-    return Path.joinpath(p1, Path.name(p2))
+    return Path.join(p1, Path.name(p2))
 end
 
 return M

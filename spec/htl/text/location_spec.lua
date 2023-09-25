@@ -1,12 +1,12 @@
-local Path = require("hl.path")
+local Path = require("hl.Path")
 local Location = require("htl.text.location")
 local Mark = require("htl.text.mark")
 
-local test_dir = Path.joinpath(tostring(Path.tempdir), "test-dir")
-local test_file = Path.joinpath(test_dir, "test-file.md")
+local test_dir = Path.join(tostring(Path.tempdir), "test-dir")
+local test_file = Path.join(test_dir, "test-file.md")
 
-local test_subdir = Path.joinpath(test_dir, "test-subdir")
-local test_subfile = Path.joinpath(test_subdir, "test-subfile.md")
+local test_subdir = Path.join(test_dir, "test-subdir")
+local test_subfile = Path.join(test_subdir, "test-subfile.md")
 
 before_each(function()
     Path.rmdir(test_dir, true)

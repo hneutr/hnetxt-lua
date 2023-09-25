@@ -1,23 +1,23 @@
-local Path = require("hl.path")
+local Path = require("hl.Path")
 local Fields = require("htl.notes.field")
 
 local TopicSet = require("htl.notes.set.topic")
 
-local project_root = Path.joinpath(tostring(Path.tempdir), "test-project-root")
+local project_root = Path.join(tostring(Path.tempdir), "test-project-root")
 
-local topic_set_dir = Path.joinpath(project_root, "files")
+local topic_set_dir = Path.join(project_root, "files")
 
-local topic_1_dir = Path.joinpath(topic_set_dir, "a")
-local topic_1_statement = Path.joinpath(topic_1_dir, "@.md")
-local topic_1_file_1 = Path.joinpath(topic_1_dir, "1.md")
-local topic_1_file_2 = Path.joinpath(topic_1_dir, "2.md")
-local topic_1_file_3 = Path.joinpath(topic_1_dir, "3.md")
-local topic_1_file_a = Path.joinpath(topic_1_dir, "a.md")
+local topic_1_dir = Path.join(topic_set_dir, "a")
+local topic_1_statement = Path.join(topic_1_dir, "@.md")
+local topic_1_file_1 = Path.join(topic_1_dir, "1.md")
+local topic_1_file_2 = Path.join(topic_1_dir, "2.md")
+local topic_1_file_3 = Path.join(topic_1_dir, "3.md")
+local topic_1_file_a = Path.join(topic_1_dir, "a.md")
 
-local topic_2_dir = Path.joinpath(topic_set_dir, "b")
-local topic_2_statement = Path.joinpath(topic_2_dir, "@.md")
-local topic_2_file_1 = Path.joinpath(topic_2_dir, "1.md")
-local topic_2_file_2 = Path.joinpath(topic_2_dir, "2.md")
+local topic_2_dir = Path.join(topic_set_dir, "b")
+local topic_2_statement = Path.join(topic_2_dir, "@.md")
+local topic_2_file_1 = Path.join(topic_2_dir, "1.md")
+local topic_2_file_2 = Path.join(topic_2_dir, "2.md")
 
 local files = {
     topic_1_statement,
@@ -150,7 +150,7 @@ describe("as_topic_statement", function()
     end)
 
     it("dir/a/b.md: -", function()
-        assert.falsy(topic_set:as_topic_statement(Path.joinpath(topic_set_dir, "a", "b", "c.md")))
+        assert.falsy(topic_set:as_topic_statement(Path.join(topic_set_dir, "a", "b", "c.md")))
     end)
 end)
 
@@ -247,14 +247,14 @@ describe("get_path_to_touch", function()
 
     it("dir/topic + {date = true} → dir/topic/DATE.md", function()
         assert.are.same(
-            Path.joinpath(topic_1_dir, os.date("%Y%m%d") .. ".md"),
+            Path.join(topic_1_dir, os.date("%Y%m%d") .. ".md"),
             topic_set:get_path_to_touch(topic_1_dir, {date = true})
         )
     end)
 
     it("dir/topic + {next_note = true} - → dir/topic/1234.md", function()
         assert.are.same(
-            Path.joinpath(topic_1_dir, "4.md"),
+            Path.join(topic_1_dir, "4.md"),
             topic_set:get_path_to_touch(topic_1_dir, {next = true})
         )
     end)

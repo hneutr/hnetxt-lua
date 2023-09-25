@@ -8,7 +8,7 @@ local Mirror = require("htl.project.mirror")
 local Operator = require("htl.operator")
 local DirOperation = require("htl.operator.operation.dir")
 
-local test_dir = Path.joinpath(tostring(Path.tempdir), "test-dir")
+local test_dir = Path.join(tostring(Path.tempdir), "test-dir")
 
 before_each(function()
     Path.rmdir(test_dir, true)
@@ -67,16 +67,16 @@ end)
 
 describe("end to end", function()
     it("rename", function()
-        local dir_path_old = Path.joinpath(test_dir, "a")
-        local dir_path_new = Path.joinpath(test_dir, "b")
+        local dir_path_old = Path.join(test_dir, "a")
+        local dir_path_new = Path.join(test_dir, "b")
 
-        local file_path_old = Path.joinpath(dir_path_old, "x.md")
-        local file_path_new = Path.joinpath(dir_path_new, "x.md")
+        local file_path_old = Path.join(dir_path_old, "x.md")
+        local file_path_new = Path.join(dir_path_new, "x.md")
 
         local mirror_path_old = Mirror(file_path_old):get_mirror_path("scratch")
         local mirror_path_new = Mirror(file_path_new):get_mirror_path("scratch")
 
-        local ref_path = Path.joinpath(test_dir, "c.md")
+        local ref_path = Path.join(test_dir, "c.md")
 
         local content = {"this is", "file a"}
         Path.write(file_path_old, content)

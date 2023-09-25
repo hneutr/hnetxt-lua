@@ -167,7 +167,7 @@ return {
         convert = {
             show = show,
             convert = convert,
-            touch = function(args) print(Path.joinpath(args.dir, args.date .. ".md")) end,
+            touch = function(args) print(Path.join(args.dir, args.date .. ".md")) end,
         },
     },
     action = function(args)

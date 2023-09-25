@@ -1,16 +1,16 @@
-local Path = require("hl.path")
+local Path = require("hl.Path")
 
 local Config = require("htl.config")
 local Mark = require("htl.text.mark")
 local Reference = require("htl.text.reference")
 local Location = require("htl.text.location")
 
-local test_dir = Path.joinpath(tostring(Path.tempdir), "test-dir")
-local test_file = Path.joinpath(test_dir, "test-file.md")
-local hidden_test_file = Path.joinpath(test_dir, ".test-file.md")
+local test_dir = Path.join(tostring(Path.tempdir), "test-dir")
+local test_file = Path.join(test_dir, "test-file.md")
+local hidden_test_file = Path.join(test_dir, ".test-file.md")
 
-local test_subdir = Path.joinpath(test_dir, "test-subdir")
-local test_subfile = Path.joinpath(test_subdir, "test-subfile.md")
+local test_subdir = Path.join(test_dir, "test-subdir")
+local test_subfile = Path.join(test_subdir, "test-subfile.md")
 
 before_each(function()
     Path.rmdir(test_dir, true)
@@ -34,7 +34,7 @@ describe("default_label", function()
     end)
 
     it("- label, - location.label, location.path.name == dir_file_stem", function()
-        local path = Path.joinpath("a/b", Config.get("directory_file").name)
+        local path = Path.join("a/b", Config.get("directory_file").name)
         assert.equals("b", Reference.default_label("", Location({path = path})))
     end)
 end)

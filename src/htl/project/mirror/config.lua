@@ -32,7 +32,7 @@ function M.load_types(raw_mirror_types, categories)
 
         local category = categories[mirror_type.category]
 
-        mirror_type.dir = Path.joinpath(category.dir, name)
+        mirror_type.dir = Path.join(category.dir, name)
 
         for _, category_to_mirror in ipairs(category.categories_to_mirror) do
             mirror_type.types_to_mirror:extend(categories[category_to_mirror].types)

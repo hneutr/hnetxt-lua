@@ -68,7 +68,7 @@ function Project.from_path(path)
 end
 
 function Project.root_from_path(path)
-    path = Path(path) or Path.cwd()
+    path = Path(path or Path.cwd())
     local registry = Registry()
     local name = registry:get_entry_name(path)
     return registry:get_entry_dir(name)
