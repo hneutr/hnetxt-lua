@@ -13,7 +13,7 @@ local project_root_from_path
 local operation_class_to_test
 local operation_to_test
 
-local test_dir = Path.joinpath(Path.tempdir(), "test-dir")
+local test_dir = Path.joinpath(tostring(Path.tempdir), "test-dir")
 
 local function setup_paths(paths)
     for _, path in ipairs(paths) do

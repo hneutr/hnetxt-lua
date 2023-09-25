@@ -5,7 +5,7 @@ local Mark = require("htl.text.mark")
 local Reference = require("htl.text.reference")
 local Location = require("htl.text.location")
 
-local test_dir = Path.joinpath(Path.tempdir(), "test-dir")
+local test_dir = Path.joinpath(tostring(Path.tempdir), "test-dir")
 local test_file = Path.joinpath(test_dir, "test-file.md")
 local hidden_test_file = Path.joinpath(test_dir, ".test-file.md")
 
@@ -242,7 +242,7 @@ describe("update_location", function()
         assert.are.same(
             {
                 {},
-                {[Path.joinpath(test_file)] = {tostring(new_ref), "content"}}
+                {[test_file] = {tostring(new_ref), "content"}}
             },
             Reference.update_location(
                 tostring(old_loc),
@@ -271,7 +271,7 @@ describe("update_location", function()
         assert.are.same(
             {
                 {},
-                {[Path.joinpath(test_file)] = {tostring(new_file_ref), "content", tostring(new_mark_ref)}}
+                {[test_file] = {tostring(new_file_ref), "content", tostring(new_mark_ref)}}
             },
             Reference.update_location(
                 tostring(old_file_loc),

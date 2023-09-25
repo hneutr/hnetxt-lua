@@ -1,5 +1,3 @@
-local Path = require("hl.path")
-
 local Mark = require("htl.text.mark")
 
 describe("__tostring", function() 

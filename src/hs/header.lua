@@ -1,4 +1,3 @@
-local Path = require("hl.path")
 local List = require("hl.List")
 local Dict = require("hl.Dict")
 local config = require("htl.config").get("monoheader")

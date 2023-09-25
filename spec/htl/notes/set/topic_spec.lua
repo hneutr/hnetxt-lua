@@ -3,7 +3,7 @@ local Fields = require("htl.notes.field")
 
 local TopicSet = require("htl.notes.set.topic")
 
-local project_root = Path.joinpath(Path.tempdir(), "test-project-root")
+local project_root = Path.joinpath(tostring(Path.tempdir), "test-project-root")
 
 local topic_set_dir = Path.joinpath(project_root, "files")
 

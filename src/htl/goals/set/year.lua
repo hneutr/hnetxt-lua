@@ -1,5 +1,5 @@
 local class = require("pl.class")
-local Path = require("hl.path")
+local Path = require("hl.Path")
 
 local Notes = require("htl.notes")
 
@@ -13,17 +13,18 @@ YearSet.type = 'year'
 YearSet.current_stem = os.date("%Y")
 
 function YearSet:is_current(path)
-    return Path.stem(path) == self.current_stem
+    return Path(path):stem() == self.current_stem
 end
 
 function YearSet:is_instance(path)
-    local stem = Path.stem(path)
+    local stem = Path(path):stem()
     return #stem == #self.current_stem and tonumber(stem)
 end
 
 function YearSet:is_open(path)
-    if Path.exists(path) then
-        return Goal.any_open(Path.readlines(path))
+    path = Path(path)
+    if path:exists() then
+        return Goal.any_open(path:readlines())
     end
 end
 
@@ -40,15 +41,16 @@ function YearSet:touch(path)
 
     intention_goals:sort():transform(function(g) return Goal.open_sigil .. " " .. g end)
 
-    if not Path.exists(path) then
-        Path.write(path, intention_goals:join("\n"))
+    path = Path(path)
+    if not path:exists() then
+        path:write(intention_goals:join("\n"))
     end
 
     return path
 end
 
 function YearSet:get_current(dir)
-    return Path.joinpath(dir, self.current_stem .. ".md")
+    return Path(dir):join(self.current_stem .. ".md")
 end
 
 function YearSet:get_intention_goals()

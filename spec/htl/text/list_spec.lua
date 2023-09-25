@@ -1,21 +1,20 @@
-local Path = require("hl.path")
+local Path = require("hl.Path")
 local List = require("hl.List")
 
 local TextList = require("htl.text.list")
 
-local test_dir = Path.joinpath(Path.tempdir(), "test-dir")
-local test_file = Path.joinpath(test_dir, "test-file.md")
-local test_hidden_file = Path.joinpath(test_dir, ".test-file.md")
+local test_dir = Path.tempdir:join("test-dir")
+local test_file = test_dir:join("test-file.md")
 
-local test_subdir = Path.joinpath(test_dir, "test-subdir")
-local test_subfile = Path.joinpath(test_subdir, "test-subfile.md")
+local test_subdir = test_dir:join("test-subdir")
+local test_subfile = test_subdir:join("test-subfile.md")
 
 before_each(function()
-    Path.rmdir(test_dir, true)
+    test_dir:rmdir(true)
 end)
 
 after_each(function()
-    Path.rmdir(test_dir, true)
+    test_dir:rmdir(true)
 end)
 
 describe("Line", function()
@@ -181,12 +180,12 @@ describe("Parser", function()
 
     describe("get instances", function()
         it("basics", function()
-            Path.write(test_file, {"- abc", "    - 123"})
-            Path.write(test_subfile, {"x", "y", "- beta"})
-            local actual = TextList.Parser.get_instances("bullet", test_dir)
+            test_file:write({"- abc", "    - 123"})
+            test_subfile:write({"x", "y", "- beta"})
+            local actual = TextList.Parser.get_instances("bullet", tostring(test_dir))
 
-            local test_file_short = Path.with_suffix(Path.relative_to(test_file, test_dir), ''):removeprefix('/')
-            local test_subfile_short = Path.with_suffix(Path.relative_to(test_subfile, test_dir), ''):removeprefix('/')
+            local test_file_short = tostring(test_file:with_suffix(""):relative_to(test_dir))
+            local test_subfile_short = tostring(test_subfile:relative_to(test_dir):with_suffix(""))
             assert.are.same(
                 {
                     [test_file_short] = {{line_number = 1, text = 'abc'}, {line_number = 2, text = '123'}},

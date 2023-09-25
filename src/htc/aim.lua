@@ -1,4 +1,4 @@
-local Path = require("hl.path")
+local Path = require("hl.Path")
 local List = require("hl.List")
 local GoalSets = require("htl.goals.set")
 local WeekSet = require("htl.goals.set.week")
@@ -13,7 +13,7 @@ local shorthands = {
 local function convert_shorthand(set)
     set = shorthands[set or 'd'] or set
 
-    if #Path.suffix(set) == 0 then
+    if #Path(set):suffix() == 0 then
         set = set .. ".md"
     end
 

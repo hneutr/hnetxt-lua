@@ -4,7 +4,7 @@ local Mirror = require("htl.project.mirror")
 
 local Operation = require("htl.operator.operation")
 
-local test_dir = Path.joinpath(Path.tempdir(), "test-dir")
+local test_dir = Path.joinpath(tostring(Path.tempdir), "test-dir")
 local test_file = Path.joinpath(test_dir, "test-file.md")
 local test_mark = test_file .. ":mark"
 local test_dir_file = Path.joinpath(test_dir, "@.md")

@@ -3,7 +3,6 @@ local class = require("pl.class")
 local List = require("hl.List")
 local Dict = require("hl.Dict")
 local Set = require("pl.Set")
-local Path = require("hl.path")
 
 local Config = require("htl.config")
 

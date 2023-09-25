@@ -13,7 +13,7 @@ local Operator = require("htl.operator")
 local Operation = require("htl.operator.operation")
 local FileOperation = require("htl.operator.operation.file")
 
-local test_dir = Path.joinpath(Path.tempdir(), "test-dir")
+local test_dir = Path.joinpath(tostring(Path.tempdir), "test-dir")
 
 before_each(function()
     Path.rmdir(test_dir, true)

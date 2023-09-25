@@ -3,7 +3,7 @@ local Path = require("hl.path")
 local Fields = require("htl.notes.field")
 local FileSet = require("htl.notes.set.file")
 
-local fileset_dir = Path.joinpath(Path.tempdir(), "files")
+local fileset_dir = Path.joinpath(tostring(Path.tempdir), "files")
 local file_1 = Path.joinpath(fileset_dir, "1.md")
 local file_2 = Path.joinpath(fileset_dir, "2.md")
 local file_a = Path.joinpath(fileset_dir, "a.md")

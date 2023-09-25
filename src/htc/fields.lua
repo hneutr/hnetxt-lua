@@ -1,4 +1,4 @@
-local Path = require("hl.path")
+local Path = require("hl.Path")
 local Dict = require("hl.Dict")
 local List = require("hl.List")
 local Set = require("pl.Set")
@@ -11,13 +11,13 @@ return {
     {"field", args = "?", description = "the field to look for"},
     {"-d --dir", default = Path.cwd(), description = "directory"},
     action = function(args)
-        local paths = List(Path.iterdir(args.dir, {dirs = false})):filter(function(p)
-            return not exclusions:contains(Path.name(p))
+        local paths = Path.iterdir(args.dir, {dirs = false}):filter(function(p)
+            return not exclusions:contains(p:name())
         end)
 
         local field_values = Dict()
         paths:foreach(function(path)
-            List(Yaml.read_raw_frontmatter(path)):foreach(function(line)
+            List(Yaml.read_raw_frontmatter(tostring(path))):foreach(function(line)
                 if line:match(":") then
                     local field, value = unpack(line:split(":", 1))
                     field = field:strip()

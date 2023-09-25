@@ -1,12 +1,12 @@
-local Path = require("hl.path")
+local Path = require("hl.Path")
 local List = require("hl.List")
 local Parser = require("htl.parse")
 local Fold = require("htl.parse.fold")
 local Header = require("htl.text.header")
 local Divider = require("htl.text.divider")
 
-local test_file_path = Path.joinpath(Path.tempdir(), "test-file.md")
-local other_test_file_path = Path.joinpath(Path.tempdir(), "test-file-2.md")
+local test_file_path = Path.tempdir:join("test-file.md")
+local other_test_file_path = Path.tempdir:join("test-file-2.md")
 
 describe("parse_line_levels", function()
     local parser = Parser()
@@ -173,11 +173,11 @@ end)
 
 describe("remove_mark_content", function()
     before_each(function()
-        Path.unlink(test_file_path)
+        test_file_path:unlink()
     end)
 
     after_each(function()
-        Path.unlink(test_file_path)
+        test_file_path:unlink()
     end)
 
     it("works", function()
@@ -200,29 +200,30 @@ describe("remove_mark_content", function()
             {"more", "stuff"}
         )
 
-        Path.write(test_file_path, List.from(before, content, padding, after))
 
-        local location = Location({path = test_file_path, label = 'b'})
+        test_file_path:write(List.from(before, content, padding, after))
+
+        local location = Location({path = tostring(test_file_path), label = 'b'})
 
         assert.are.same(content, Parser():remove_mark_content(location))
-        assert.are.same(Parser.merge_line_sets({before, after}), Path.readlines(test_file_path))
+        assert.are.same(Parser.merge_line_sets({before, after}), test_file_path:readlines())
     end)
 end)
 
 describe("add_mark_content", function()
-    local from_mark_location = Location({path = test_file_path, label = 'a'})
-    local to_mark_location = Location({path = other_test_file_path, label = 'b'})
+    local from_mark_location = Location({path = tostring(test_file_path), label = 'a'})
+    local to_mark_location = Location({path = tostring(other_test_file_path), label = 'b'})
     local lines = {"- x", "- y", ""}
     local new_content = List.from(tostring(Header({content = "[a]()", size = "large"})), lines)
 
     before_each(function()
-        Path.unlink(test_file_path)
-        Path.unlink(other_test_file_path)
+        test_file_path:unlink()
+        other_test_file_path:unlink()
     end)
 
     after_each(function()
-        Path.unlink(test_file_path)
-        Path.unlink(other_test_file_path)
+        test_file_path:unlink()
+        other_test_file_path:unlink()
     end)
 
     it("no file, !include_mark", function()
@@ -231,7 +232,7 @@ describe("add_mark_content", function()
             from_mark_location = from_mark_location,
             to_mark_location = to_mark_location,
         })
-        assert.are.same(lines, Path.readlines(to_mark_location.path))
+        assert.are.same(List.from({""}, lines), Path(to_mark_location.path):readlines())
     end)
 
     it("no file, include_mark", function()
@@ -246,12 +247,12 @@ describe("add_mark_content", function()
             to_mark_location = to_mark_location,
             include_mark = true
         })
-        assert.are.same(expected, Path.readlines(to_mark_location.path))
+        assert.are.same(expected, Path(to_mark_location.path):readlines())
     end)
 
     it("no existing mark content, include_mark", function()
         local existing_file_content = {"a", "b", ""}
-        Path.write(to_mark_location.path, existing_file_content)
+        Path(to_mark_location.path):write(existing_file_content)
 
         local expected = List.from(
             existing_file_content,
@@ -265,7 +266,7 @@ describe("add_mark_content", function()
             to_mark_location = to_mark_location,
             include_mark = true
         })
-        assert.are.same(expected, Path.readlines(to_mark_location.path))
+        assert.are.same(expected, Path(to_mark_location.path):readlines())
     end)
 
     it("existing mark content, !include_mark", function()
@@ -286,7 +287,7 @@ describe("add_mark_content", function()
             {"z", "w", ""}
         )
 
-        Path.write(to_mark_location.path, existing_file_content)
+        Path(to_mark_location.path):write(existing_file_content)
 
         Parser():add_mark_content({
             new_content = new_content,
@@ -294,6 +295,6 @@ describe("add_mark_content", function()
             to_mark_location = to_mark_location,
             include_mark = false,
         })
-        assert.are.same(expected, Path.readlines(to_mark_location.path))
+        assert.are.same(expected, Path(to_mark_location.path):readlines())
     end)
 end)

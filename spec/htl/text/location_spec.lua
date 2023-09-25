@@ -2,7 +2,7 @@ local Path = require("hl.path")
 local Location = require("htl.text.location")
 local Mark = require("htl.text.mark")
 
-local test_dir = Path.joinpath(Path.tempdir(), "test-dir")
+local test_dir = Path.joinpath(tostring(Path.tempdir), "test-dir")
 local test_file = Path.joinpath(test_dir, "test-file.md")
 
 local test_subdir = Path.joinpath(test_dir, "test-subdir")

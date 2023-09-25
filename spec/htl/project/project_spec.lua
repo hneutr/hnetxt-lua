@@ -5,8 +5,8 @@ local Project = require("htl.project")
 local Registry = require("htl.project.registry")
 local Config = require("htl.config")
 
-local test_project_data_dir = Path.joinpath(Path.tempdir(), "test-project-data-dir")
-local test_project_dir = Path.joinpath(Path.tempdir(), "test-project")
+local test_project_data_dir = Path.joinpath(tostring(Path.tempdir), "test-project-data-dir")
+local test_project_dir = Path.joinpath(tostring(Path.tempdir), "test-project")
 local test_project_file = Path.joinpath(test_project_dir, "test-file.md")
 local test_project_name = "test-project"
 

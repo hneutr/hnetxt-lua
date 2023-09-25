@@ -8,7 +8,7 @@ local Mirror = require("htl.project.mirror")
 local Operator = require("htl.operator")
 local DirOperation = require("htl.operator.operation.dir")
 
-local test_dir = Path.joinpath(Path.tempdir(), "test-dir")
+local test_dir = Path.joinpath(tostring(Path.tempdir), "test-dir")
 
 before_each(function()
     Path.rmdir(test_dir, true)

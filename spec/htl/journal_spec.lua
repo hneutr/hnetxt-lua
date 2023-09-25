@@ -18,7 +18,7 @@ describe("get_path", function()
 
     it("project", function()
         local project_name = "journal-test"
-        local project_dir = Path.joinpath(Path.tempdir(), "journal-test")
+        local project_dir = Path.joinpath(tostring(Path.tempdir), "journal-test")
 
         Project.create(project_name, project_dir)
 

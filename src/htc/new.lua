@@ -1,4 +1,4 @@
-local Path = require("hl.path")
+local Path = require("hl.Path")
 
 local Metadata = require("hd.metadata")
 
@@ -27,18 +27,14 @@ return {
                 stem = stem .. tostring(i)
             end
 
-            path = Path.joinpath(dir, stem .. suffix)
+            path = dir:join(stem .. suffix)
 
-            if Path.exists(path) then
+            if path:exists() then
                 i = i + 1
             else
                 print(path)
                 return
             end
         end
-
-        -- local note = Metadata()
-        -- note:write()
-        -- print(note:path())
     end,
 }

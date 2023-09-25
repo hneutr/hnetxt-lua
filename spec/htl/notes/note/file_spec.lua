@@ -1,9 +1,9 @@
-local Path = require("hl.path")
+local Path = require("hl.Path")
 
 local Fields = require("htl.notes.field")
 local File = require("htl.notes.note.file")
 
-local path = Path.joinpath(Path.tempdir(), "test-file.md")
+local path = Path.tempdir:join("test-file.md")
 local fields = Fields.format({
     "a",
     b = true,
@@ -14,13 +14,13 @@ local fields = Fields.format({
 local file
 
 before_each(function()
-    Path.unlink(path)
-    file = File(path, fields)
+    path:unlink()
+    file = File(tostring(path), fields)
     stub(Fields, "format", function(...) return ... end)
 end)
 
 after_each(function()
-    Path.unlink(path)
+    path:unlink()
     file = nil
     Fields.format:revert()
 end)
@@ -38,9 +38,9 @@ end)
 
 describe("touch", function()
     it("existing", function()
-        Path.write(file.path, "hunter")
+        Path(file.path):write("hunter")
         file:touch()
-        assert.are.same("hunter", Path.read(file.path))
+        assert.are.same("hunter", Path(file.path):read())
     end)
 
     it("new", function()
