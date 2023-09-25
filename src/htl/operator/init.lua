@@ -1,5 +1,3 @@
-local Object = require("hl.object")
-
 local Path = require("hl.path")
 
 local Project = require("htl.project")

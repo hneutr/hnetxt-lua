@@ -5,17 +5,17 @@ local Path = require("hl.path")
 local Colors = require("htc.colors")
 local Notes = require("htl.notes")
 local Util = require("htc.util")
-local Object = require('hl.object')
+local class = require("pl.class")
 local Registry = require("htl.project.registry")
 
 --------------------------------------------------------------------------------
 --                                  Printer                                   --
 --------------------------------------------------------------------------------
-local Printer = Object:extend()
+class.Printer()
 Printer.color = nil
 Printer.indent_size = 4
 
-function Printer:new(notes, args, indent)
+function Printer:_init(notes, args, indent)
     self.notes = notes
     self.args = args
     self.indent = indent or 0
@@ -146,7 +146,7 @@ end
 --------------------------------------------------------------------------------
 --                                DatePrinter                                 --
 --------------------------------------------------------------------------------
-local DatePrinter = Printer:extend()
+class.DatePrinter(Printer)
 DatePrinter.color = 'yellow'
 
 function DatePrinter:value(note)
@@ -168,7 +168,7 @@ end
 --------------------------------------------------------------------------------
 --                                FilePrinter                                 --
 --------------------------------------------------------------------------------
-local FilePrinter = Printer:extend()
+class.FilePrinter(Printer)
 
 function FilePrinter:setup()
     self.DatePrinter = DatePrinter()
@@ -211,7 +211,7 @@ end
 --------------------------------------------------------------------------------
 --                                ValuePrinter                                --
 --------------------------------------------------------------------------------
-local ValuePrinter = Printer:extend()
+class.ValuePrinter(Printer)
 -- TODO: color by expected/unexpected
 ValuePrinter.color = 'cyan'
 
@@ -270,7 +270,7 @@ end
 --------------------------------------------------------------------------------
 --                                FieldPrinter                                --
 --------------------------------------------------------------------------------
-local FieldPrinter = Printer:extend()
+class.FieldPrinter(Printer)
 FieldPrinter.color = 'green'
 
 function FieldPrinter:setup()
@@ -335,7 +335,7 @@ end
 --------------------------------------------------------------------------------
 --                                 SetPrinter                                 --
 --------------------------------------------------------------------------------
-local SetPrinter = Printer:extend()
+class.SetPrinter(Printer)
 SetPrinter.color = 'magenta'
 
 function SetPrinter:setup()
@@ -354,7 +354,7 @@ end
 --------------------------------------------------------------------------------
 --                               ProjectPrinter                               --
 --------------------------------------------------------------------------------
-local ProjectPrinter = Printer:extend()
+class.ProjectPrinter(Printer)
 ProjectPrinter.color = 'blue'
 
 --------------------------------------------------------------------------------

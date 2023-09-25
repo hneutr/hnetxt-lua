@@ -1,13 +1,5 @@
-string = require("hl.string")
-io = require("hl.io")
-local Dict = require("hl.Dict")
-
-local Object = require("hl.object")
-local Path = require("hl.path")
-
+local class = require("pl.class")
 local Link = require("htl.text.link")
-local Location = require("htl.text.location")
-
 
 --------------------------------------------------------------------------------
 --                                    Mark                                     
@@ -16,38 +8,14 @@ local Location = require("htl.text.location")
 -- preceded by: any
 -- followed by: Flag or none
 --------------------------------------------------------------------------------
-Mark = Object:extend()
-Mark.defaults = {
-    label = '',
-    before = '',
-    after = '',
-}
-
-function Mark:new(args)
-    self = Dict.update(self, args or {}, self.defaults)
-end
-
-function Mark:__tostring()
-    return tostring(Link({label = self.label}))
-end
+class.Mark(Link)
 
 function Mark.from_str(str)
-    local before, label, location, after = str:match(Link.regex)
-    return Mark({label = label, before = before, after = after})
+    return Link.from_str(str, Mark)
 end
 
 function Mark.str_is_a(str)
-    if not Link.str_is_a(str) then
-        return false
-    end
-
-    local before, label, location, after = str:match(Link.regex)
-
-    if #location > 0 then
-        return false
-    end
-
-    return true
+    return Link.str_is_a(str) and #Link.from_str(str, Mark).location == 0
 end
 
 function Mark.find(label, lines)

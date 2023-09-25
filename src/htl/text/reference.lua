@@ -1,15 +1,15 @@
 string = require("hl.string")
 io = require("hl.io")
 local Dict = require("hl.Dict")
-local Object = require("hl.object")
 local Path = require("hl.path")
 local Dict = require("hl.Dict")
+
+local class = require("pl.class")
 
 local Config = require("htl.config")
 local Link = require("htl.text.link")
 local Location = require("htl.text.location")
 local Project = require("htl.project")
-
 
 
 --------------------------------------------------------------------------------
@@ -19,19 +19,13 @@ local Project = require("htl.project")
 -- preceded by: any
 -- followed by: any
 --------------------------------------------------------------------------------
-Reference = Object:extend()
+class.Reference(Link)
 Reference.config = Config.get("directory_file")
 Reference.config.dir_file_stem = Reference.config.stem
-Reference.defaults = {
-    label = '',
-    location = nil,
-    before = '',
-    after = '',
-}
 Reference.get_referenced_marks_cmd = [[rg '\[.*\]\(.+\)' --no-heading --no-filename --no-line-number --hidden ]]
 Reference.get_references_cmd = [[rg '\[.*\]\(.+\)' --no-heading --line-number --hidden ]]
 
-function Reference:new(args)
+function Reference:_init(args)
     self = Dict.update(self, args or {}, self.defaults)
     self.label = self.default_label(self.label, self.location)
 end
@@ -57,8 +51,6 @@ end
 function Reference:__tostring()
     return tostring(Link({label = self.label, location = tostring(self.location)}))
 end
-
-Reference.str_is_a = Link.str_is_a
 
 function Reference.from_str(str)
     local before, label, location_str, after = str:match(Link.regex)
@@ -174,7 +166,7 @@ function Reference.update_locations(location_changes, dir)
     end
 
     for path, content in pairs(content_updates) do
-        Path.write(path, content)
+        Path(path):write(content)
     end
 end
 

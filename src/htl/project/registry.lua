@@ -11,7 +11,6 @@ Registry.config = Config.get("project")
 Registry.config.data_dir = Config.get_data_dir("projects")
 
 function Registry:new(args)
-    self = Dict.update(self, args or {})
     self.path = self.config.data_dir:join(self.config.registry_filename)
 end
 

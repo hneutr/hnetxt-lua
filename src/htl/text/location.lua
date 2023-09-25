@@ -1,7 +1,7 @@
 io = require("hl.io")
-local List = require("hl.List")
+local class = require("pl.class")
 
-local Object = require("hl.object")
+local List = require("hl.List")
 local Path = require("hl.path")
 local Config = require("htl.config")
 
@@ -14,7 +14,7 @@ local Config = require("htl.config")
 --------------------------------------------------------------------------------
 -- format: path:text
 --------------------------------------------------------------------------------
-Location = Object:extend()
+class.Location()
 Location.config = Config.get("location")
 Location.regex = "(.-)" .. Location.config.path_label_delimiter .. "(.*)"
 Location.defaults = {
@@ -24,7 +24,8 @@ Location.defaults = {
 Location.get_mark_locations_cmd = [[rg '\[.*\]\(\)' --no-heading ]]
 Location.get_files_cmd = [[fd -tf '' ]]
 
-function Location:new(args)
+-- function Location:new(args)
+function Location:_init(args)
     self = Dict.update(self, args or {}, Location.defaults)
 end
 
@@ -66,26 +67,21 @@ function Location.from_str(str, args)
 end
 
 function Location.get_file_locations(dir)
-    local locations = {}
-    for _, line in ipairs(io.command(Location.get_files_cmd .. dir):splitlines()) do
-        if #line > 0 then
-            locations[#locations + 1] = Location({path = line})
-        end
-    end
-    return locations
+    return List(io.command(Location.get_files_cmd .. dir):splitlines()):filter(function(line)
+        return #line > 0
+    end):map(function(line)
+        return Location({path = line})
+    end)
 end
 
 function Location.get_mark_locations(dir)
-    local locations = {}
-    for _, line in pairs(io.command(Location.get_mark_locations_cmd .. dir):splitlines()) do
-        if #line > 0 then
-            local path, mark_str = line:match("(.-):(.*)")
-            local mark = Mark.from_str(mark_str)
-            locations[#locations + 1] = Location({path = path, label = mark.label})
-        end
-    end
-
-    return locations
+    return List(io.command(Location.get_mark_locations_cmd .. dir):splitlines()):filter(function(line)
+        return #line > 0
+    end):map(function(line)
+        local path, mark_str = line:match(Location.regex)
+        local mark = Mark.from_str(mark_str)
+        return Location({path = path, label = mark.label})
+    end)
 end
 
 function Location.get_all_locations(dir, args)
@@ -93,9 +89,9 @@ function Location.get_all_locations(dir, args)
 
     local locations = List.from(Location.get_file_locations(dir), Location.get_mark_locations(dir))
 
-    table.sort(locations, function(a, b) return #tostring(a) < #tostring(b) end)
+    locations:sort(function(a, b) return #tostring(a) < #tostring(b) end)
 
-    for i, location in ipairs(locations) do
+    return locations:map(function(location)
         if args.relative_to_dir then
             location:relative_to(dir)
         end
@@ -104,10 +100,8 @@ function Location.get_all_locations(dir, args)
             location = tostring(location)
         end
         
-        locations[i] = location
-    end
-
-    return locations
+        return location
+    end)
 end
 
 return Location

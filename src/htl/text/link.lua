@@ -1,5 +1,6 @@
 local Dict = require("hl.Dict")
 local Object = require("hl.object")
+local class = require("pl.class")
 
 --------------------------------------------------------------------------------
 --                                    Link                                     
@@ -8,7 +9,7 @@ local Object = require("hl.object")
 -- preceded by: any
 -- followed by: any
 --------------------------------------------------------------------------------
-local Link = Object:extend()
+class.Link()
 Link.regex = "%s*(.-)%[(.-)%]%((.-)%)(.*)"
 Link.defaults = {
     label = '',
@@ -17,7 +18,7 @@ Link.defaults = {
     after = '',
 }
 
-function Link:new(args)
+function Link:_init(args)
     self = Dict.update(self, args, self.defaults)
 end
 
@@ -29,10 +30,10 @@ function Link:__tostring()
     return "[" .. self.label .. "](" .. self.location .. ")"
 end
 
-function Link.from_str(str)
+function Link.from_str(str, Class)
+    Class = Class or Link
     local before, label, location, after = str:match(Link.regex)
-
-    return Link({label = label, location = location, before = before, after = after})
+    return Class({label = label, location = location, before = before, after = after})
 end
 
 function Link.get_nearest(str, position)
@@ -42,6 +43,7 @@ function Link.get_nearest(str, position)
     local ends = {}
     local start_to_link = {}
     local end_to_link = {}
+
     while true do
         if Link.str_is_a(str) then
             local link = Link.from_str(str)

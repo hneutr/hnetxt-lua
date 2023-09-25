@@ -4,6 +4,7 @@ local Parser = require("htl.parse")
 local Fold = require("htl.parse.fold")
 local Header = require("htl.text.header")
 local Divider = require("htl.text.divider")
+local Location = require("htl.text.location")
 
 local test_file_path = Path.tempdir:join("test-file.md")
 local other_test_file_path = Path.tempdir:join("test-file-2.md")

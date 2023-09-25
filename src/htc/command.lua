@@ -4,10 +4,11 @@ string = require("hl.string")
 local Dict = require("hl.Dict")
 local List = require("hl.List")
 
-local Object = require('hl.object')
+local class = require("pl.class")
 
-local Component = Object:extend()
+class.Component()
 Component.config_key = 'comp'
+Component.type = ''
 Component.keys = {
     "description",
     "action",
@@ -15,7 +16,6 @@ Component.keys = {
     "argname",
     "defmode",
 }
-Component.type = ''
 
 function Component:attach(parent, settings, name)
     name = name or self:get_name(settings)
@@ -31,13 +31,8 @@ function Component:attach(parent, settings, name)
     return object
 end
 
-function Component:add(...)
-    return self:attach(...)
-end
-
-function Component.is_type(settings)
-    return false
-end
+Component.add = Component.attach
+Component.is_type = function() return false end
 
 function Component:get_name(settings)
     return settings[1]
@@ -51,7 +46,7 @@ end
 ----------------------------------------------------------------------------------
 ----                                   Mutex                                    --
 ----------------------------------------------------------------------------------
-local Mutex = Component:extend()
+class.Mutex(Component)
 Mutex.config_key = 'mutexes'
 Mutex.type = 'mutex'
 Mutex.keys = {}
@@ -74,7 +69,7 @@ end
 --------------------------------------------------------------------------------
 --                                  Argument                                  --
 --------------------------------------------------------------------------------
-local Argument = Component:extend()
+class.Argument(Component)
 Argument.config_key = 'args'
 Argument.type = 'argument'
 Argument.keys = List.from(Component.keys, {
@@ -86,14 +81,12 @@ Argument.keys = List.from(Component.keys, {
     'hidden_name',
 })
 
-function Argument.is_type(settings)
-    return true
-end
+Argument.is_type = function() return true end
 
 --------------------------------------------------------------------------------
 --                                   Option                                   --
 --------------------------------------------------------------------------------
-local Option = Component:extend()
+class.Option(Component)
 Option.type = 'option'
 Option.config_key = 'opts'
 Option.keys = List.from(Component.keys, {
@@ -113,7 +106,7 @@ end
 --------------------------------------------------------------------------------
 --                                    Flag                                    --
 --------------------------------------------------------------------------------
-local Flag = Component:extend()
+class.Flag(Component)
 Flag.config_key = 'flags'
 Flag.type = 'flag'
 Flag.keys = List.from(Component.keys, {
@@ -171,7 +164,7 @@ end
 --------------------------------------------------------------------------------
 --                                  Command                                   --
 --------------------------------------------------------------------------------
-local Command = Component:extend()
+class.Command(Component)
 Command.type = 'command'
 Command.config_key = 'commands'
 Command.keys = List.from(Component.keys, {
