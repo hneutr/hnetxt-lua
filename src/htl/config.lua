@@ -4,7 +4,6 @@ local Path = require("hl.Path")
 
 local Config = Object:extend()
 Config.constants_dir = Path.home:join(".config/hnetxt/constants")
-Config.data_dir = Path.home:join(".config/hnetxt/data")
 Config.constants_suffix = ".yaml"
 
 function Config.get(constants_type)

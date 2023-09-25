@@ -1,5 +1,5 @@
 local Yaml = require("hl.yaml")
-local Path = require("hl.path")
+local Path = require("hl.Path")
 local Dict = require("hl.Dict")
 local Object = require("hl.object")
 local List = require("hl.List")
@@ -8,16 +8,16 @@ local Config = require("htl.config")
 
 local Registry = Object:extend()
 Registry.config = Config.get("project")
-Registry.config.data_dir = Path.joinpath(Config.get("init").data_dir, "projects")
+Registry.config.data_dir = Config.get_data_dir("projects")
 
 function Registry:new(args)
     self = Dict.update(self, args or {})
-    self.path = Path.joinpath(self.config.data_dir, self.config.registry_filename)
+    self.path = self.config.data_dir:join(self.config.registry_filename)
 end
 
 function Registry:get()
     local registry = {}
-    if Path.exists(self.path) then
+    if self.path:exists() then
         registry = Yaml.read(self.path)
     end
     return Dict(registry)
@@ -35,6 +35,9 @@ end
 
 function Registry:set_entry(name, path)
     local registry = self:get()
+    if path ~= nil then
+        path = tostring(path)
+    end
     registry[name] = path
     self:set(registry)
 end

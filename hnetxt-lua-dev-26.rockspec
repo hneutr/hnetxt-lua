@@ -87,7 +87,6 @@ build = {
       ["hd.uuid.charset"] = "src/hd/uuid/charset.lua",
       ["hd.metadata"] = "src/hd/metadata.lua",
       ["hd.text"] = "src/hd/text/init.lua",
-      ["hd.text.entry"] = "src/hd/text/entry/init.lua",
 
       -- snippet
       -- ["hs"] = "src/hs/init.lua",

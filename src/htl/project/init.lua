@@ -1,7 +1,7 @@
 local Yaml = require("hl.yaml")
 local string = require("hl.string")
 local Object = require("hl.object")
-local Path = require("hl.path")
+local Path = require("hl.Path")
 local List = require("hl.List")
 local Dict = require("hl.Dict")
 
@@ -20,8 +20,8 @@ function Project:new(name)
 end
 
 function Project.get_metadata_path(dir)
-    dir = dir or Path.cwd()
-    return Path.joinpath(dir, Project.config.metadata_filename)
+    dir = Path(dir or Path.cwd())
+    return dir:join(Project.config.metadata_filename)
 end
 
 function Project.create(name, dir, metadata)
@@ -39,16 +39,16 @@ function Project.create(name, dir, metadata)
 end
 
 function Project.in_project(path)
-    path = path or Path.cwd()
+    path = Path(path or Path.cwd())
 
-    if not Path.is_dir(path) then
-        path = Path.parent(path)
+    if not path:is_dir(p) then
+        path = path:parent()
     end
 
-    local candidates = List.from({path}, Path.parents(path))
+    local candidates = List.from({path}, path:parents())
 
     for _, candidate in ipairs(candidates) do
-        if Path.exists(Project.get_metadata_path(candidate)) then
+        if Project.get_metadata_path(candidate):exists() then
             return true
         end
     end
@@ -57,7 +57,7 @@ function Project.in_project(path)
 end
 
 function Project.from_path(path)
-    path = path or Path.cwd()
+    path = Path(path) or Path.cwd()
     local name = Registry():get_entry_name(path)
 
     if name then
@@ -68,7 +68,7 @@ function Project.from_path(path)
 end
 
 function Project.root_from_path(path)
-    path = path or Path.cwd()
+    path = Path(path) or Path.cwd()
     local registry = Registry()
     local name = registry:get_entry_name(path)
     return registry:get_entry_dir(name)

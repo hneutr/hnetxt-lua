@@ -4,23 +4,24 @@ local yaml = require("hl.yaml")
 local Registry = require("htl.project.registry")
 local Config = require("htl.config")
 
-local test_data_dir = Path.joinpath(tostring(Path.tempdir), "test-project-data-dir")
+local test_data_dir = Path.tempdir:join("test-project-data-dir")
+-- local test_data_dir = Path.joinpath(tostring(Path.tempdir), "test-project-data-dir")
 local registry
 
 before_each(function()
-    Path.rmdir(test_data_dir, true)
+    test_data_dir:rmdir(true)
     Registry.config = Config.get("project")
     Registry.config.data_dir = test_data_dir
     registry = Registry()
 end)
 
 after_each(function()
-    Path.rmdir(test_data_dir, true)
+    test_data_dir:rmdir(true)
 end)
 
 describe("new", function()
     it("sets the path", function()
-        local expected = Path.joinpath(test_data_dir, Config.get("project").registry_filename)
+        local expected = test_data_dir:join(Config.get("project").registry_filename)
         assert.are.same(expected, registry.path)
     end)
 
@@ -28,7 +29,7 @@ end)
 
 describe("get", function()
     it("returns empty table if not found", function()
-        assert.falsy(Path.exists(registry.path))
+        assert.falsy(registry.path:exists())
         assert.are.same({}, registry:get())
     end)
 
