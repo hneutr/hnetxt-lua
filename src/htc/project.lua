@@ -18,7 +18,7 @@ return {
     require_command = false,
     action = function(args)
         if #Dict(args):keys() == 1 then
-            Registry():get():keys():sorted():foreach(function(name)
+            Registry.get():keys():sorted():foreach(function(name)
                 print(Project(name).metadata.name)
             end)
         end
@@ -35,11 +35,11 @@ return {
         register = {
             args.new_project,
             args.dir,
-            action = function(args) Registry():set_entry(args.project, args.dir) end,
+            action = function(args) Registry.set_entry(args.project, args.dir) end,
         },
         deregister = {
             args.new_project,
-            action = function(args) Registry():set_entry(args.project, nil) end,
+            action = function(args) Registry.set_entry(args.project, nil) end,
         },
         root = {
             args.project,

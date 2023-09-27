@@ -11,7 +11,7 @@ local UndatedSet = require("htl.goals.set.undated")
 
 local Sets = {}
 Sets.config = Config.get("goals")
-Sets.dir = Config.get_data_dir('goals')
+Sets.dir = tostring(Config.data_dir:join('goals'))
 
 Sets.classes = List({
     YearSet,

@@ -430,7 +430,7 @@ local args = {
 
 local actions = {
     projects = function(args)
-        local registry = Registry():get()
+        local registry = Registry.get()
         local printer = ProjectPrinter()
 
         Dict(registry):keys():sort():foreach(function(project)

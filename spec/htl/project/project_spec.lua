@@ -5,6 +5,9 @@ local Project = require("htl.project")
 local Registry = require("htl.project.registry")
 local Config = require("htl.config")
 
+local temp_registry_path = Path.tempdir:join("test-registry.yaml")
+local registry_path = Registry.path
+
 local test_dir = Path.tempdir:join("test-dir")
 local test_project_dir = Path.tempdir:join("test-project")
 local test_project_file = test_project_dir:join("test-file.md")
@@ -18,16 +21,19 @@ function get_project()
 end
 
 before_each(function()
+    temp_registry_path:unlink()
+    Registry.path = temp_registry_path
+
     test_dir:rmdir(true)
     test_project_dir:rmdir(true)
     Project.config = Config.get("project")
-    Registry.config = Config.get("project")
-    Registry.config.data_dir = test_dir
 end)
 
 after_each(function()
     test_dir:rmdir(true)
     test_project_dir:rmdir(true)
+
+    Registry.path = registry_path
 end)
 
 describe("get_metadata_path", function()
@@ -49,7 +55,7 @@ describe("create", function()
 
         Project.create(test_project_name, test_project_dir)
         assert.are.same(expected, yaml.read(Project.get_metadata_path(test_project_dir)))
-        assert.are.same(tostring(test_project_dir), Registry():get_entry_dir(test_project_name))
+        assert.are.same(tostring(test_project_dir), Registry.get_entry_dir(test_project_name))
     end)
 
     it("start date", function()
@@ -61,7 +67,7 @@ describe("create", function()
 
         Project.create(test_project_name, test_project_dir, {date = date})
         assert.are.same(expected, yaml.read(Project.get_metadata_path(test_project_dir)))
-        assert.are.same(tostring(test_project_dir), Registry():get_entry_dir(test_project_name))
+        assert.are.same(tostring(test_project_dir), Registry.get_entry_dir(test_project_name))
     end)
 end)
 

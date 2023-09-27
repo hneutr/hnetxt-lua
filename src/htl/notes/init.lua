@@ -55,7 +55,7 @@ end
 
 function Notes.all_sets_of_type(set_type)
     local sets = Dict()
-    Dict(Registry():get()):values():foreach(function(root)
+    Dict(Registry.get()):values():foreach(function(root)
         Notes.sets(root):foreach(function(name, set)
             if set.type == set_type then
                 sets[name] = set

@@ -13,8 +13,7 @@ Project.config = Config.get("project")
 
 function Project:new(name)
     self.name = name
-    self.registry = Registry()
-    self.root = self.registry:get_entry_dir(self.name)
+    self.root = Registry.get_entry_dir(self.name)
 
     self.metadata = Yaml.read(self.get_metadata_path(self.root))
 end
@@ -35,7 +34,7 @@ function Project.create(name, dir, metadata)
     metadata.name = name:gsub("%-", " ")
 
     Yaml.write(Project.get_metadata_path(dir), metadata)
-    Registry():set_entry(name, dir)
+    Registry.set_entry(name, dir)
 end
 
 function Project.in_project(path)
@@ -58,7 +57,7 @@ end
 
 function Project.from_path(path)
     path = Path(path) or Path.cwd()
-    local name = Registry():get_entry_name(path)
+    local name = Registry.get_entry_name(path)
 
     if name then
         return Project(name)
@@ -69,9 +68,8 @@ end
 
 function Project.root_from_path(path)
     path = Path(path or Path.cwd())
-    local registry = Registry()
-    local name = registry:get_entry_name(path)
-    return registry:get_entry_dir(name)
+    local name = Registry.get_entry_name(path)
+    return Registry.get_entry_dir(name)
 end
 
 return Project

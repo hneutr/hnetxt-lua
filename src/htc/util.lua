@@ -6,7 +6,7 @@ local Registry = require("htl.project.registry")
 local M = {}
 
 function M.default_project()
-    return Registry():get_entry_name(Path.cwd())
+    return Registry.get_entry_name(Path.cwd())
 end
 
 function M.key_val_parse(args, args_key, key_val_list)

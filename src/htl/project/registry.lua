@@ -1,56 +1,51 @@
 local Yaml = require("hl.yaml")
 local Path = require("hl.Path")
 local Dict = require("hl.Dict")
-local Object = require("hl.object")
 local List = require("hl.List")
 
 local Config = require("htl.config")
 
-local Registry = Object:extend()
-Registry.config = Config.get("project")
-Registry.config.data_dir = Config.get_data_dir("projects")
+local M = {}
 
-function Registry:new(args)
-    self.path = self.config.data_dir:join(self.config.registry_filename)
-end
+M.path = Config.data_dir:join("projects", Config.get("project").registry_filename)
 
-function Registry:get()
+function M.get()
     local registry = {}
-    if self.path:exists() then
-        registry = Yaml.read(self.path)
+    if M.path:exists() then
+        registry = Yaml.read(M.path)
     end
     return Dict(registry)
 end
 
-function Registry:set(registry)
+function M.set(registry)
     registry = Dict.from(registry or {})
     local _registry = Dict()
     for _, k in ipairs(List(registry:keys()):sorted()) do
         _registry[k] = registry[k]
     end
 
-    Yaml.write(self.path, _registry)
+    Yaml.write(M.path, _registry)
 end
 
-function Registry:set_entry(name, path)
-    local registry = self:get()
+function M.set_entry(name, path)
+    local registry = M.get()
     if path ~= nil then
         path = tostring(path)
     end
     registry[name] = path
-    self:set(registry)
+    M.set(registry)
 end
 
-function Registry:get_entry_dir(name)
-    return self:get()[name]
+function M.get_entry_dir(name)
+    return Path.as_string(M.get()[name])
 end
 
-function Registry:remove_entry(name)
-    self:set_entry(name, nil)
+function M.remove_entry(name)
+    M.set_entry(name, nil)
 end
 
-function Registry:get_entry_name(dir)
-    for name, path in pairs(self:get()) do
+function M.get_entry_name(dir)
+    for name, path in pairs(M.get()) do
         if dir == path or Path.is_relative_to(dir, path) then
             return name
         end
@@ -59,4 +54,4 @@ function Registry:get_entry_name(dir)
     return nil
 end
 
-return Registry
+return M
