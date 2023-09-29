@@ -18,7 +18,6 @@ function Header:new(args)
     for k, v in pairs(self.config.sizes[self.size]) do
         self[k] = v
     end
-    -- self.highlight_key = self.size .. "HeaderStart" 
 
     self.content_type = type(self.content)
     self.has_input = self.content_type == 'string' and #self.content == 0
