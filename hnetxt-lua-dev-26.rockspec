@@ -87,6 +87,9 @@ build = {
       ["hd.uuid.charset"] = "src/hd/uuid/charset.lua",
       ["hd.metadata"] = "src/hd/metadata.lua",
       ["hd.text"] = "src/hd/text/init.lua",
+
+      -- neoheader
+      ["htl.text.neoheader"] = "src/htl/text/neoheader",
    }
 }
 test = {
