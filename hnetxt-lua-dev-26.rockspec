@@ -17,6 +17,16 @@ dependencies = {
 build = {
    type = "builtin",
    modules = {
+      ["hl"] = "src/hl/init.lua",
+      ["hl.io"] = "src/hl/io.lua",
+      ["hl.object"] = "src/hl/object.lua",
+      ["hl.string"] = "src/hl/string.lua",
+      ["hl.yaml"] = "src/hl/yaml.lua",
+      ["hl.Dict"] = "src/hl/Dict.lua",
+      ["hl.List"] = "src/hl/List.lua",
+      ["hl.Path"] = "src/hl/Path.lua",
+
+
       htl = "src/htl/init.lua",
       ["htl.config"] = "src/htl/config.lua",
       ["htl.journal"] = "src/htl/journal.lua",

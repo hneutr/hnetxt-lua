@@ -1,19 +1,18 @@
 local Color = require("hn.color")
-local class = require("pl.class")
+local NHeader = require("htl.text.neoheader")
 
-class.NNHeader(require("htl.text.neoheader"))
-
-function NNHeader:add_syntax_highlighting()
-    local top, middle, bottom = unpack(tostring(self):split("\n"))
-    Color.add_to_syntax(self.size .. "NeoHeaderTop", {string = "^" .. top, color = self.color})
-    Color.add_to_syntax(self.size .. "NeoHeaderMiddle", {string = "^" .. middle, color = self.color})
-    Color.add_to_syntax(self.size .. "NeoHeaderBottom", {string = "^" .. bottom, color = self.color})
+function NHeader.add_syntax_highlights()
+    NHeader.headers_by_size():foreach(function(size, header)
+        header.line_templates:foreachk(function(line_type)
+            Color.add_to_syntax(
+                size .. "NeoHeader" .. line_type,
+                {
+                    string = header:get_pattern(line_type):gsub("%%s.*", "\\s"),
+                    color = header.color
+                }
+            )
+        end)
+    end)
 end
 
-function NNHeader.add_syntax_highlights()
-    for size, _ in pairs(NNHeader.config.sizes) do
-        NNHeader({size = size}):add_syntax_highlighting()
-    end
-end
-
-return NNHeader
+return NHeader

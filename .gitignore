@@ -3,3 +3,4 @@
 /.luarocks
 update_hnetxt.sh
 src/hl
+test/vendor
