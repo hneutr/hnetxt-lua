@@ -99,7 +99,7 @@ build = {
       ["hd.text"] = "src/hd/text/init.lua",
 
       -- neoheader
-      ["htl.text.neoheader"] = "src/htl/text/neoheader",
+      ["htl.text.neoheader"] = "src/htl/text/neoheader.lua",
    }
 }
 test = {
