@@ -5,6 +5,7 @@ local Config = require("htl.config")
 
 class.NHeader()
 NHeader.config = Config.get("new_header")
+NHeader.sizes = Config.get("sizes")
 
 NHeader.regex_info = Dict({
     upper = {pre = "^", post = "$"},
@@ -13,8 +14,8 @@ NHeader.regex_info = Dict({
 })
 
 function NHeader:_init(args)
-    self = Dict.update(self, args or {}, {size = NHeader.config.default_size, content = ''})
-    self = Dict.update(self, self.config.defaults, self.config.sizes[self.size])
+    self = Dict.update(self, args or {}, {content = ''})
+    self = Dict.update(self, {middle = self.config.middle[self.size]}, self.config, self.sizes[self.size])
 
     self.line_templates = Dict({
         upper = self.upper:rpad(self.width, self.fill),
@@ -67,7 +68,7 @@ end
 
 function NHeader.headers_by_size()
     local headers = Dict()
-    Dict(NHeader.config.sizes):keys():foreach(function(size)
+    Dict(NHeader.sizes):keys():foreach(function(size)
         headers[size] = NHeader({size = size})
     end)
     return headers

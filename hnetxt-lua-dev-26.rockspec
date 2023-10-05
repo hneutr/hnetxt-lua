@@ -100,6 +100,7 @@ build = {
 
       -- neoheader
       ["htl.text.neoheader"] = "src/htl/text/neoheader.lua",
+      ["htl.text.neodivider"] = "src/htl/text/neodivider.lua",
    }
 }
 test = {
