@@ -1,8 +1,8 @@
 local Divider = require("htl.text.neodivider")
 
-print(Divider("small"))
-print(Divider("medium"))
-print(Divider("large"))
+-- print(Divider("small"))
+-- print(Divider("medium"))
+-- print(Divider("large"))
 
 -- local dividers = {
 --     small = "=---------------------------------------",
