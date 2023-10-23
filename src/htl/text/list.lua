@@ -18,6 +18,7 @@ Line.defaults = {
     line_number = 0,
     indent = '',
 }
+Line.indent_size = 2
 Line.regex = "^(%s*)(.*)$"
 
 function Line:new(args)
@@ -39,6 +40,10 @@ end
 function Line.get_if_str_is_a(str, line_number)
     local indent, text = str:match(Line.regex)
     return Line({text = text, line_number = line_number, indent = indent})
+end
+
+function Line:indent_level()
+    return self.indent:len() / self.indent_size
 end
 
 --------------------------------------------------------------------------------

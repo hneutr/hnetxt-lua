@@ -14,13 +14,13 @@ NHeader.regex_info = Dict({
 })
 
 function NHeader:_init(args)
-    self = Dict.update(self, args or {}, {content = ''})
+    self = Dict.update(self, args or {}, {content = '', size = 'medium'})
     self = Dict.update(self, {middle = self.config.middle[self.size]}, self.config, self.sizes[self.size])
 
     self.line_templates = Dict({
-        upper = self.upper:rpad(self.width, self.fill),
+        upper = self.upper .. self.fill:rep(self.width - 2) .. self.right,
         middle = self.middle,
-        lower = self.lower:rpad(self.width, self.fill),
+        lower = self.lower .. self.fill:rep(self.width - 2) .. self.right,
     })
 end
 
@@ -64,6 +64,12 @@ end
 
 function NHeader:strs_are_a(l1, l2, l3)
     return self:str_is_upper(l1) and self:str_is_middle(l2) and self:str_is_lower(l3)
+end
+
+function NHeader.headers()
+    return Dict(NHeader.sizes):keys():transform(function(s)
+        return NHeader({size = s})
+    end)
 end
 
 function NHeader.headers_by_size()

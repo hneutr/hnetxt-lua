@@ -98,9 +98,10 @@ build = {
       ["hd.metadata"] = "src/hd/metadata.lua",
       ["hd.text"] = "src/hd/text/init.lua",
 
-      -- neoheader
+      -- neo
       ["htl.text.neoheader"] = "src/htl/text/neoheader.lua",
       ["htl.text.neodivider"] = "src/htl/text/neodivider.lua",
+      ["htl.text.neoparse"] = "src/htl/text/neoparse.lua",
    }
 }
 test = {

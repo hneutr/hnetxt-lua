@@ -1,42 +1,20 @@
 local Divider = require("htl.text.neodivider")
 
--- print(Divider("small"))
--- print(Divider("medium"))
--- print(Divider("large"))
+describe("str_is_a", function()
+    local small = Divider("small")
+    local medium = Divider("medium")
+    local large = Divider("large")
 
--- local dividers = {
---     small = "=---------------------------------------",
---     medium = "=-----------------------------------------------------------",
---     large = "=-------------------------------------------------------------------------------",
--- }
+    it("+", function()
+        assert(small:str_is_a(tostring(small)))
+    end)
 
--- describe("__tostring", function()
---     it("small", function()
---         assert.equal(dividers.small, tostring(Divider("small")))
---     end)
+    it("-", function()
+        assert.falsy(small:str_is_a(tostring(large)))
+    end)
+end)
 
---     it("medium", function()
---         assert.equal(dividers.medium, tostring(Divider("medium")))
---     end)
 
---     it("large", function()
---         assert.equal(dividers.large, tostring(Divider("large")))
---     end)
--- end)
-
--- describe("line_is_a", function()
---     it("+", function()
---         assert(Divider():line_is_a(1, {dividers.small}))
---     end)
-
---     it("-: wrong divider", function()
---         assert.falsy(Divider():line_is_a(1, {dividers.large}))
---     end)
-
---     it("-: not a divider", function()
---         assert.falsy(Divider():line_is_a(1, {"text"}))
---     end)
--- end)
 
 -- describe("parse_levels", function()
 --     it("works", function()
@@ -86,4 +64,3 @@ local Divider = require("htl.text.neodivider")
 --         )
 --     end)
 -- end)
-

@@ -1,5 +1,5 @@
 vim.wo.foldenable = true
-vim.wo.foldlevel = 2
+vim.wo.foldlevel = 99
 vim.wo.foldnestmax = 20
 vim.wo.foldminlines = 0
 vim.wo.fillchars = "fold: "
