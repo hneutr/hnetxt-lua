@@ -72,7 +72,7 @@ function NHeader.headers()
     end)
 end
 
-function NHeader.headers_by_size()
+function NHeader.by_size()
     local headers = Dict()
     Dict(NHeader.sizes):keys():foreach(function(size)
         headers[size] = NHeader({size = size})

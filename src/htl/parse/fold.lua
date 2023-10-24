@@ -16,7 +16,7 @@ Fold.list_types = Dict.keys(Config.get("list").types)
 
 function Fold:new(args)
     self = Dict.update(self, args or {}, {list_parser = List.Parser(self.list_types)})
-    self.headers_by_size = Header.headers_by_size()
+    self.headers_by_size = Header.by_size()
     self.dividers_by_size = Divider.by_size()
     self.level_stack = {0}
     self.indent_stack = {-1}

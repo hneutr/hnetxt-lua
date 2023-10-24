@@ -98,13 +98,13 @@ function Header:lines_are_a(l1, l2, l3)
     return false
 end
 
-function Header.headers_by_size()
-    local headers_by_size = {}
+function Header.by_size()
+    local by_size = {}
     for size, _ in pairs(Header.config.sizes) do
-        headers_by_size[size] = Header({size = size})
+        by_size[size] = Header({size = size})
     end
 
-    return headers_by_size
+    return by_size
 end
 
 return Header

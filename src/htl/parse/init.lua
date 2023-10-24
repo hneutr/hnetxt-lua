@@ -76,7 +76,7 @@ function Parser:get_mark_content_line_index(args)
     local mark_line = Mark.find(args.mark_label, args.lines)
 
     if mark_line and args.index_type ~= 'content' then
-        for size, header in pairs(Header.headers_by_size()) do
+        for size, header in pairs(Header.by_size()) do
             if header:line_is_content(mark_line, args.lines) then
                 if args.index_type == 'start' then
                     return mark_line - 1

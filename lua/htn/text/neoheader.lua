@@ -2,7 +2,7 @@ local Color = require("hn.color")
 local NHeader = require("htl.text.neoheader")
 
 function NHeader.add_syntax_highlights()
-    NHeader.headers_by_size():foreach(function(size, header)
+    NHeader.by_size():foreach(function(size, header)
         header.line_templates:foreachk(function(line_type)
             Color.add_to_syntax(
                 size .. "NeoHeader" .. line_type,
