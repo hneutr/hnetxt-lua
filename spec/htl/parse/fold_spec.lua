@@ -260,7 +260,7 @@ describe("get_line_levels", function()
     end)
 
     it("divider", function()
-        local lines = {tostring(Divider()), "a", "b"}
+        local lines = {tostring(Divider("small")), "a", "b"}
         local expected = {0, 3, 3}
         assert.are.same(expected, Fold():get_line_levels(lines))
     end)

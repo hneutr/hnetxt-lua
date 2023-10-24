@@ -17,7 +17,7 @@ Fold.list_types = Dict.keys(Config.get("list").types)
 function Fold:new(args)
     self = Dict.update(self, args or {}, {list_parser = List.Parser(self.list_types)})
     self.headers_by_size = Header.headers_by_size()
-    self.dividers_by_size = Divider.dividers_by_size()
+    self.dividers_by_size = Divider.by_size()
     self.level_stack = {0}
     self.indent_stack = {-1}
 end
@@ -98,7 +98,7 @@ function Fold:barrier_ends_fold(index, lines)
             end
         else
             local divider = self.dividers_by_size[size]
-            if divider:line_is_a(index, lines) then
+            if divider:str_is_a(lines[index]) then
                 return divider
             end
         end
@@ -174,7 +174,7 @@ function Fold:barrier_starts_fold(index, lines)
             end
         else
             local divider = self.dividers_by_size[size]
-            if divider:line_is_a(index, lines) then
+            if divider:str_is_a(lines[index]) then
                 return divider
             end
         end

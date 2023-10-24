@@ -1,7 +1,7 @@
 require("htn.text.divider").add_syntax_highlights()
 require("htn.text.header").add_syntax_highlights()
 require("htn.text.neoheader").add_syntax_highlights()
-require("htn.text.neodivider").add_syntax_highlights()
+require("htn.text.divider").add_syntax_highlights()
 require("htn.text.list").add_syntax_highlights()
 require("htn.ui.fold").add_syntax_highlights()
 

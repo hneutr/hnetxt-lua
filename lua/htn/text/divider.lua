@@ -1,20 +1,25 @@
 local Color = require("hn.color")
-
-local Divider = require("htl.text.divider"):extend()
-Divider.highlight_cmd = [[syn region KEY start="^\s*DIVIDER$" end="$" containedin=ALL]]
-
-function Divider:add_syntax_highlighting()
-    cmd = self.highlight_cmd:gsub("KEY", self.highlight_key)
-    cmd = cmd:gsub("DIVIDER", tostring(self))
-    vim.cmd(cmd)
-
-    Color.set_highlight({name = self.highlight_key, val = {fg = self.color}})
-end
+local Divider = require("htl.text.divider")
 
 function Divider.add_syntax_highlights()
-    for size, _ in pairs(Divider.config.sizes) do
-        Divider(size):add_syntax_highlighting()
-    end
+    Divider.by_size():foreach(function(size, divider)
+        Color.add_to_syntax(
+            size .. "Divider",
+            {
+                string = divider:regex(),
+                color = divider.color
+            }
+        )
+    end)
+
+    local metadata_divider = Divider("large", "metadata")
+    Color.add_to_syntax(
+        "LargeMetadataDivider",
+        {
+            string = metadata_divider:regex(),
+            color = metadata_divider.color
+        }
+    )
 end
 
 return Divider
