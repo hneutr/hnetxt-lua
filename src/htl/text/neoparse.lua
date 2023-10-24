@@ -9,7 +9,9 @@ local TextList = require("htl.text.list")
 class.Parser()
 
 function Parser:_init()
-    self.barriers = List.from(Header.headers(), Divider.dividers())
+    self.headers = Header.headers()
+    self.dividers = Divider.dividers()
+    self.barriers = List.from(self.headers, self.dividers)
     self.text_fold_level = math.max(unpack(self.barriers:map(function(b) return b.fold_level end))) + 1
 end
 
@@ -41,6 +43,19 @@ function Parser:adjust_blank_line_fold_levels(lines, levels)
     end
 
     return levels
+end
+
+function Parser:get_header_indexes(lines)
+    local header_indexes = List()
+    for i, line in ipairs(lines) do
+        for header in self.headers:iter() do
+            if header:str_is_middle(line) then
+                header_indexes:append(i)
+            end
+        end
+    end
+
+    return header_indexes
 end
 
 

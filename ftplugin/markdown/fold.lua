@@ -21,5 +21,5 @@ vim.api.nvim_create_autocmd({"WinEnter", "BufEnter"}, {
 vim.api.nvim_create_autocmd({'TextChanged', 'InsertLeave'}, {
     pattern=pattern,
     group=group,
-    callback=Fold.set_fold_levels,
+    callback=Fold.set_line_info,
 })

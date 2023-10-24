@@ -58,7 +58,25 @@ end)
 
 
 
+describe("get_header_indexes", function()
+    it("1 header", function()
+        assert.are.same(
+            {2},
+            parser:get_header_indexes(Header({size = 'large'}):get_lines())
+        )
+    end)
 
+    it("multiple headers", function()
+        assert.are.same(
+            {2, 6},
+            parser:get_header_indexes(List.from(
+                Header({size = 'large'}):get_lines(),
+                {"a"},
+                Header({size = 'small'}):get_lines()
+            ))
+        )
+    end)
+end)
 
 
 
