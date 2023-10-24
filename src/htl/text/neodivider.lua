@@ -7,12 +7,10 @@ local Config = require("htl.config")
 class.NDivider()
 NDivider.config = Config.get("new_divider")
 NDivider.sizes = Config.get("sizes")
-NDivider.regex_info = {pre = "^", post = "$"}
 
-
-function NDivider:_init(size)
-    self = Dict.update(self, {size = size}, NDivider.config)
-    self = Dict.update(self, self.config[self.size], self.sizes[self.size])
+function NDivider:_init(size, style)
+    self = Dict.update(self, {size = size, style = style}, NDivider.config)
+    self = Dict.update(self, self.config[self.style], self.sizes[self.size])
 end
 
 function NDivider:__tostring()
@@ -37,6 +35,10 @@ function NDivider.by_size()
         dividers[size] = NDivider(size)
     end)
     return dividers
+end
+
+function NDivider.metadata_divider()
+    return NDivider("large", "metadata")
 end
 
 return NDivider

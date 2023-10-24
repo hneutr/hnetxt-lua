@@ -17,6 +17,7 @@ end
 
 function Parser:get_fold_levels(lines)
     local levels = List(lines):map(function(l) return self:get_fold_level(l) end)
+    levels = self:adjust_metadata_frontmatter(lines, levels)
     return self:adjust_blank_line_fold_levels(lines, levels)
 end
 
@@ -28,6 +29,23 @@ function Parser:get_fold_level(str)
     end
 
     return TextList.Line.get_if_str_is_a(str):indent_level() + self.text_fold_level
+end
+
+function Parser:adjust_metadata_frontmatter(lines, levels)
+    local metadata_divider = Divider.metadata_divider()
+    local frontmatter_i
+
+    for i, line in ipairs(lines) do
+        if metadata_divider:str_is_a(line) then
+            for j = 1, i do
+                levels[j] = metadata_divider.fold_level
+            end
+
+            break
+        end
+    end
+
+    return levels
 end
 
 -- blank lines get the fold level of the subsequent element

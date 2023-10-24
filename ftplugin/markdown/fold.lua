@@ -8,7 +8,7 @@ vim.api.nvim_create_autocmd({"WinEnter", "BufEnter"}, {
     group=group,
     callback=function()
         vim.wo.foldenable = true
-        vim.wo.foldlevel = 99
+        vim.wo.foldlevel = 19
         vim.wo.foldnestmax = 20
         vim.wo.foldminlines = 0
         vim.wo.fillchars = "fold: "

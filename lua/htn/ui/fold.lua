@@ -2,13 +2,19 @@ local BufferLines = require("hn.buffer_lines")
 local Color = require("hn.color")
 
 local Parser = require("htl.text.neoparse")
+local Divider = require("htl.text.neodivider")
+local metadata_divider = Divider.metadata_divider()
 
 local M = {}
 
 function M.get_text(lnum)
-    local text = BufferLines.line.get({start_line = lnum})
-    local whitespace, text = text:match("^(%s*)(.*)")
-    return whitespace .. "..."
+    if M.get_indic(lnum + 1) == metadata_divider.fold_level then
+        return tostring(metadata_divider)
+    else
+        local text = BufferLines.line.get({start_line = lnum})
+        local whitespace, text = text:match("^(%s*)(.*)")
+        return whitespace .. "..."
+    end
 end
 
 function M.set_line_info()
@@ -27,7 +33,7 @@ function M.get_indic(lnum)
 end
 
 function M.add_syntax_highlights()
-    Color.set_highlight({name = "Folded", val = {fg = 'pink'}})
+    Color.set_highlight({name = "Folded", val = {fg = 'blue'}})
 end
 
 function M.jump_to_header(direction)
@@ -46,6 +52,7 @@ function M.jump_to_header(direction)
 
     if #candidates > 0 then
         vim.api.nvim_win_set_cursor(0, {candidates[1], 0})
+        vim.cmd("normal zz")
     end
 end
 
