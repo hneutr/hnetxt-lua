@@ -2,7 +2,7 @@ local List = require("hl.List")
 local Dict = require("hl.Dict")
 local class = require("pl.class")
 
-local Header = require("htl.text.neoheader")
+local Header = require("htl.text.header")
 local Divider = require("htl.text.divider")
 local TextList = require("htl.text.list")
 

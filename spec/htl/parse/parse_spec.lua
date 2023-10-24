@@ -56,8 +56,8 @@ describe("remove_initial_mark", function()
     end)
 
     it("header mark", function()
-        local lines = List.from(tostring(Header({content = "[a]()"})), {"b", "c", "d"})
-        assert.are.same({"", "b", "c", "d"}, Parser():remove_initial_mark("a", lines))
+        local lines = List.from(Header({content = "[a]()"}):get_lines(), {"b", "c", "d"})
+        assert.are.same({"b", "c", "d"}, Parser():remove_initial_mark("a", lines))
     end)
 end)
 
@@ -73,34 +73,34 @@ describe("get_mark_content_line_index", function()
     end)
 
     it("in header: start", function()
-        local args = {mark_label = "a", lines = tostring(Header({content = "[a]()"})), index_type="start"}
+        local args = {mark_label = "a", lines = Header({content = "[a]()"}):get_lines(), index_type="start"}
         assert.are.same(1, Parser():get_mark_content_line_index(args))
     end)
 
     it("in header: content", function()
-        local args = {mark_label = "a", lines = tostring(Header({content = "[a]()"})), index_type="content"}
+        local args = {mark_label = "a", lines = Header({content = "[a]()"}):get_lines(), index_type="content"}
         assert.are.same(2, Parser():get_mark_content_line_index(args))
     end)
 
     it("in header: start", function()
-        local args = {mark_label = "a", lines = tostring(Header({content = "[a]()"})), index_type="end"}
+        local args = {mark_label = "a", lines = Header({content = "[a]()"}):get_lines(), index_type="end"}
         assert.are.same(3, Parser():get_mark_content_line_index(args))
     end)
 end)
 
 describe("separate_mark_content", function()
     it("mark is missing", function()
-        local header = tostring(Header({content = "[a]()"}))
+        local header = Header({content = "[a]()"}):get_lines()
         local header_content = {"- b", "- c"}
-        local after = List.from({""}, tostring(Header()))
+        local after = List.from({""}, Header():get_lines())
         local lines = List.from(header, header_content, after)
         assert.are.same({lines, {}, {}}, Parser():separate_mark_content("x", lines))
     end)
 
     it("at start", function()
-        local header = tostring(Header({content = "[a]()"}))
+        local header = Header({content = "[a]()"}):get_lines()
         local header_content = {"- b", "- c"}
-        local after = List.from({""}, tostring(Header()))
+        local after = List.from({""}, Header():get_lines())
         local lines = List.from(header, header_content, after)
         local expected = {
             {},
@@ -111,11 +111,11 @@ describe("separate_mark_content", function()
     end)
 
     it("at end", function()
-        local before = List.from(tostring(Header({content = "[a]()"})), {"- x", "- y", "", ""})
+        local before = List.from(Header({content = "[a]()"}):get_lines(), {"- x", "- y", "", ""})
         local content = List.from(
-            tostring(Header({content = "[b]()", size = "large"})),
+            Header({content = "[b]()", size = "large"}):get_lines(),
             {"123", "- y", ""},
-            tostring(Header({content = "subheader)"})),
+            Header({content = "subheader)"}):get_lines(),
             {"hunter", "test", ""}
         )
         local lines = List.from(before, content, {})
@@ -125,20 +125,20 @@ describe("separate_mark_content", function()
 
     it("in middle", function()
         local before = List.from(
-            tostring(Header({content = "[a]()", size = "large"})),
+            Header({content = "[a]()", size = "large"}):get_lines(),
             {"- x", "- y", ""},
             {""}
         )
         local content = List.from(
-            tostring(Header({content = "[b]()", size = "medium"})),
+            Header({content = "[b]()", size = "medium"}):get_lines(),
             {"123", "- y", ""},
-            tostring(Header({content = "subheader)"})),
+            Header({content = "subheader)", size = "small"}):get_lines(),
             {"hunter", "test"}
         )
 
         local after = List.from(
             {""},
-            tostring(Header({content = "[c]()", size = "medium"})),
+            Header({content = "[c]()", size = "medium"}):get_lines(),
             {"more", "stuff"}
         )
 
@@ -183,21 +183,21 @@ describe("remove_mark_content", function()
 
     it("works", function()
         local before = List.from(
-            tostring(Header({content = "[a]()", size = "large"})),
+            Header({content = "[a]()", size = "large"}):get_lines(),
             {"- x", "- y", ""},
             {""}
         )
         local content = List.from(
-            tostring(Header({content = "[b]()", size = "medium"})),
+            Header({content = "[b]()", size = "medium"}):get_lines(),
             {"123", "- y", ""},
-            tostring(Header({content = "subheader)"})),
+            Header({content = "subheader)", size = "small"}):get_lines(),
             {"hunter", "test"}
         )
 
         local padding = {""}
 
         local after = List.from(
-            tostring(Header({content = "[c]()", size = "medium"})),
+            Header({content = "[c]()", size = "medium"}):get_lines(),
             {"more", "stuff"}
         )
 
@@ -215,7 +215,7 @@ describe("add_mark_content", function()
     local from_mark_location = Location({path = tostring(test_file_path), label = 'a'})
     local to_mark_location = Location({path = tostring(other_test_file_path), label = 'b'})
     local lines = {"- x", "- y", ""}
-    local new_content = List.from(tostring(Header({content = "[a]()", size = "large"})), lines)
+    local new_content = List.from(Header({content = "[a]()", size = "large"}):get_lines(), lines)
 
     before_each(function()
         test_file_path:unlink()
@@ -233,12 +233,13 @@ describe("add_mark_content", function()
             from_mark_location = from_mark_location,
             to_mark_location = to_mark_location,
         })
-        assert.are.same(List.from({""}, lines), Path(to_mark_location.path):readlines())
+        assert.are.same(lines, Path(to_mark_location.path):readlines())
     end)
 
     it("no file, include_mark", function()
         local expected = List.from(
-            tostring(Header({content = "[b]()", size = "large"})),
+            Header({content = "[b]()", size = "large"}):get_lines(),
+            {""},
             lines
         )
 
@@ -257,7 +258,8 @@ describe("add_mark_content", function()
 
         local expected = List.from(
             existing_file_content,
-            tostring(Header({content = "[b]()", size = "large"})),
+            Header({content = "[b]()", size = "large"}):get_lines(),
+            {""},
             lines
         )
 
@@ -273,18 +275,18 @@ describe("add_mark_content", function()
     it("existing mark content, !include_mark", function()
         local existing_file_content = List.from(
             {"a", "b", ""},
-            tostring(Header({content = "[b]()", size = "large"})),
+            Header({content = "[b]()", size = "large"}):get_lines(),
             {"1", "2", ""},
-            tostring(Header({content = "[c]()", size = "large"})),
+            Header({content = "[c]()", size = "large"}):get_lines(),
             {"z", "w", ""}
         )
 
         local expected = List.from(
             {"a", "b", ""},
-            tostring(Header({content = "[b]()", size = "large"})),
+            Header({content = "[b]()", size = "large"}):get_lines(),
             {"1", "2", ""},
             lines,
-            tostring(Header({content = "[c]()", size = "large"})),
+            Header({content = "[c]()", size = "large"}):get_lines(),
             {"z", "w", ""}
         )
 

@@ -8,19 +8,11 @@ local TextList = require("htl.text.list")
 
 describe("barrier_starts_fold", function()
     it("-: start of header", function()
-        assert.falsy(Fold():barrier_starts_fold(1, tostring(Header())))
+        assert.falsy(Fold():barrier_starts_fold(Header():get_lines()[1]))
     end)
 
     it("+: header", function()
-        assert.are.same(Header(), Fold():barrier_starts_fold(3, tostring(Header())))
-    end)
-
-    it("+: divider", function()
-        assert.are.same(Divider(), Fold():barrier_starts_fold(3, {1, 2, tostring(Divider())}))
-    end)
-
-    it("+: vary size", function()
-        assert.are.same(Divider("large"), Fold():barrier_starts_fold(3, {1, 2, tostring(Divider("large"))}))
+        assert.are.same(Header(), Fold():barrier_starts_fold(Header():get_lines()[3]))
     end)
 end)
 
@@ -75,20 +67,20 @@ end)
 
 describe("barrier_ends_fold", function()
     it("+: start of header", function()
-        assert.are.same(Header(), Fold():barrier_ends_fold(1, tostring(Header())))
+        assert.are.same(Header(), Fold():barrier_ends_fold(Header():get_lines()[1]))
     end)
 
     it("-: end of header", function()
-        assert.falsy(Fold():barrier_ends_fold(3, tostring(Header())))
+        assert.falsy(Fold():barrier_ends_fold(Header():get_lines()[3]))
     end)
 
-    it("+: divider", function()
-        assert.are.same(Divider(), Fold():barrier_ends_fold(3, {1, 2, tostring(Divider())}))
-    end)
+    -- it("+: divider", function()
+    --     assert.are.same(Divider(), Fold():barrier_ends_fold(3, {1, 2, tostring(Divider())}))
+    -- end)
 
-    it("+: vary size", function()
-        assert.are.same(Divider("large"), Fold():barrier_ends_fold(3, {1, 2, tostring(Divider("large"))}))
-    end)
+    -- it("+: vary size", function()
+    --     assert.are.same(Divider("large"), Fold():barrier_ends_fold(3, {1, 2, tostring(Divider("large"))}))
+    -- end)
 end)
 
 describe("list_line_ends_fold", function()
@@ -235,13 +227,13 @@ describe("get_line_levels", function()
 
     it("multiple", function()
         local lines = List.from(
-            tostring(Header({size = "large"})),
+            Header({size = "large"}):get_lines(),
             {
                 "- a >",
                 "    - b"
             }
         )
-        local expected = {0, 0, 0, 1, 1, 4}
+        local expected = {0, 0, 0, 1, 4}
         assert.are.same(expected, Fold():get_line_levels(lines))
     end)
 

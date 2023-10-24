@@ -77,7 +77,7 @@ function Parser:get_mark_content_line_index(args)
 
     if mark_line and args.index_type ~= 'content' then
         for size, header in pairs(Header.by_size()) do
-            if header:line_is_content(mark_line, args.lines) then
+            if header:str_is_middle(args.lines[mark_line]) then
                 if args.index_type == 'start' then
                     return mark_line - 1
                 elseif args.index_type == 'end' then
@@ -179,7 +179,7 @@ function Parser:add_mark_content(args)
     end
 
     if #content == 0 and args.include_mark and #to_mark_location.label > 0 then
-        content = tostring(Header({size = 'large', content = tostring(Mark({label = to_mark_location.label}))}))
+        content = Header({size = 'large', content = tostring(Mark({label = to_mark_location.label}))}):get_lines()
     end
 
     Path.write(to_mark_location.path, self.merge_line_sets({before, content, new_content, after}))

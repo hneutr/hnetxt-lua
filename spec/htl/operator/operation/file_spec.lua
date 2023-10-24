@@ -82,7 +82,7 @@ describe("end to end", function()
 
         local b_content_old = List.from(
             {"text", "", "more text", ""},
-            tostring(Header({content = "[a]()"})),
+            Header({content = "[a]()"}):get_lines(),
             {"b:a content"}
         )
         Path.write(b_path, b_content_old)

@@ -49,7 +49,7 @@ end
 -- line's level
 --------------------------------------------------------------------------------
 function Fold:set_line_level(index, lines, line_levels)
-    if 1 < index and self:barrier_ends_fold(index, lines) and #lines[index - 1] == 0 then
+    if 1 < index and self:barrier_ends_fold(lines[index]) and #lines[index - 1] == 0 then
         line_levels[#line_levels] = self.level_stack[#self.level_stack]
     end
 
@@ -77,7 +77,7 @@ end
 -- - a list_line that with indent <= indent_stack[-1]
 --------------------------------------------------------------------------------
 function Fold:set_current_fold(index, lines)
-    local barrier_ends_fold = self:barrier_ends_fold(index, lines)
+    local barrier_ends_fold = self:barrier_ends_fold(lines[index])
 
     if barrier_ends_fold then
         self:end_size_fold(barrier_ends_fold.size)
@@ -90,15 +90,13 @@ function Fold:set_current_fold(index, lines)
     end
 end
 
-function Fold:barrier_ends_fold(index, lines)
+function Fold:barrier_ends_fold(line)
     for size, header in pairs(self.headers_by_size) do
-        if header:line_is_a(index, lines) then
-            if header:line_is_start(index, lines) then
-                return header
-            end
+        if header:str_is_upper(line) then
+            return header
         else
             local divider = self.dividers_by_size[size]
-            if divider:str_is_a(lines[index]) then
+            if divider:str_is_a(line) then
                 return divider
             end
         end
@@ -153,7 +151,7 @@ end
 -- - a list_line that ends with the `line_suffix`
 --------------------------------------------------------------------------------
 function Fold:set_subsequent_fold(index, lines)
-    local barrier_starts_fold = self:barrier_starts_fold(index, lines)
+    local barrier_starts_fold = self:barrier_starts_fold(lines[index])
 
     if barrier_starts_fold then
         self:start_size_fold(barrier_starts_fold.size)
@@ -166,15 +164,13 @@ function Fold:set_subsequent_fold(index, lines)
     end
 end
 
-function Fold:barrier_starts_fold(index, lines)
+function Fold:barrier_starts_fold(line)
     for size, header in pairs(self.headers_by_size) do
-        if header:line_is_a(index, lines) then
-            if header:line_is_end(index, lines) then
-                return header
-            end
+        if header:str_is_lower(line) then
+            return header
         else
             local divider = self.dividers_by_size[size]
-            if divider:str_is_a(lines[index]) then
+            if divider:str_is_a(line) then
                 return divider
             end
         end

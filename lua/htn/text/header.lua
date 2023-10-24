@@ -1,21 +1,18 @@
 local Color = require("hn.color")
-
-local Header = require("htl.text.header"):extend()
-Header.highlight_cmd = [[syn match KEY /^CONTENT_START\s/ containedin=ALL]]
-
-function Header:add_syntax_highlighting()
-    local highlight_key = self.size .. "HeaderStart" 
-    cmd = self.highlight_cmd:gsub("KEY", highlight_key)
-    cmd = cmd:gsub("CONTENT_START", self.content_start)
-    vim.cmd(cmd)
-
-    Color.set_highlight({name = highlight_key, val = {fg = self.divider.color}})
-end
+local Header = require("htl.text.header")
 
 function Header.add_syntax_highlights()
-    for size, _ in pairs(Header.config.sizes) do
-        Header({size = size}):add_syntax_highlighting()
-    end
+    Header.by_size():foreach(function(size, header)
+        header.line_templates:foreachk(function(line_type)
+            Color.add_to_syntax(
+                size .. "Header" .. line_type,
+                {
+                    string = header:get_pattern(line_type):gsub("%%s.*", "\\s"),
+                    color = header.color
+                }
+            )
+        end)
+    end)
 end
 
 return Header

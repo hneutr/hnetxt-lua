@@ -32,19 +32,19 @@ end)
 
 describe("move", function()
     local pre_mark_source_content = List.from(
-        tostring(Header({content = "[q]()"})),
+        Header({content = "[q]()"}):get_lines(),
         {"r", "s", ""}
     )
 
     local mark_text = {"b", "c"}
     local mark_content = List.from(
-        tostring(Header({content = "[a]()"})),
+        Header({content = "[a]()"}):get_lines(),
         mark_text,
         {""}
     )
 
     local post_mark_source_content = List.from(
-        tostring(Header({content = "[x]()"})),
+        Header({content = "[x]()"}):get_lines(),
         {"y", "z"}
     )
 
@@ -68,7 +68,7 @@ describe("move", function()
         MarkOperation.move({[source_mark] = tostring(test_file_two)})
 
         assert.are.same(
-            List.from({""}, mark_text),
+            mark_text,
             test_file_two:readlines()
         )
     end)
@@ -87,18 +87,18 @@ describe("move", function()
 
     it("appends to mark", function()
         local target_pre_mark_content = List.from(
-            tostring(Header({content = "[pre]()"})),
+            Header({content = "[pre]()"}):get_lines(),
             {"before", ""}
         )
 
         local target_mark_content = List.from(
-            tostring(Header({content = "[target]()"})),
+            Header({content = "[target]()"}):get_lines(),
             {"already", "existing", "content"},
             {""}
         )
 
         local target_post_mark_content = List.from(
-            tostring(Header({content = "[post]()"})),
+            Header({content = "[post]()"}):get_lines(),
             {"after"}
         )
 
@@ -135,29 +135,30 @@ describe("end to end", function()
 
         local a_content_old = List.from(
             {"pre"},
-            tostring(Header({content = "[x]()"})),
+            Header({content = "[x]()"}):get_lines(),
             mark_content,
-            tostring(Header({content = "[y]()"})),
+            Header({content = "[y]()"}):get_lines(),
             {"post"}
         )
 
         local a_content_new = List.from(
             {"pre", ""},
-            tostring(Header({content = "[y]()"})),
+            Header({content = "[y]()"}):get_lines(),
             {"post"}
         )
 
         local b_content_old = List.from(
             {"abcd"},
-            tostring(Header({content = "[b mark]()"})),
+            Header({content = "[b mark]()"}):get_lines(),
             {"after"}
         )
 
         local b_content_new = List.from(
             {"abcd"},
-            tostring(Header({content = "[b mark]()"})),
+            Header({content = "[b mark]()"}):get_lines(),
             {"after", ""},
-            tostring(Header({content = "[y]()", size="large"})),
+            Header({content = "[y]()", size="large"}):get_lines(),
+            {""},
             mark_content
         )
 

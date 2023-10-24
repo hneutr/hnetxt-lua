@@ -1,110 +1,83 @@
-string = require("hl.string")
-
+local List = require("hl.List")
 local Dict = require("hl.Dict")
-local Object = require("hl.object")
-
+local class = require("pl.class")
 local Config = require("htl.config")
 
-local Divider = require("htl.text.divider")
-
-local Header = Object:extend()
+class.Header()
 Header.config = Config.get("header")
-Header.default_size = Header.config.default_size
+Header.sizes = Config.get("sizes")
 
-function Header:new(args)
-    self = Dict.update(self, args or {}, {size = Header.default_size, content = ''})
-    self.divider = Divider(self.size)
+Header.regex_info = Dict({
+    upper = {pre = "^", post = "$"},
+    middle = {pre = "^", post = "%s.*"},
+    lower = {pre = "^", post = "$"},
+})
 
-    for k, v in pairs(self.config.sizes[self.size]) do
-        self[k] = v
-    end
+function Header:_init(args)
+    self = Dict.update(self, args or {}, {content = '', size = 'medium'})
+    self = Dict.update(self, {middle = self.config.middle[self.size]}, self.config, self.sizes[self.size])
 
-    self.content_type = type(self.content)
-    self.has_input = self.content_type == 'string' and #self.content == 0
+    self.line_templates = Dict({
+        upper = self.upper .. self.fill:rep(self.width - 2) .. self.right,
+        middle = self.middle,
+        lower = self.lower .. self.fill:rep(self.width - 2) .. self.right,
+    })
+end
 
-    if self.content_type == 'string' then
-        self.content_value = self.content
-    elseif self.content_type == 'function' then
-        self.content_value = self.content()
-    else
-        self.content_value = ''
-    end
+function Header:middle_line()
+    return self.middle .. " " .. self.content
+end
+
+function Header:get_lines()
+    return List({self.line_templates.upper, self:middle_line(), self.line_templates.lower})
 end
 
 function Header:__tostring()
-    local content = self.content_start
-
-    if #self.content_value > 0 then
-        content = content .. " " .. self.content_value
-    end
-
-    lines = {
-        tostring(self.divider),
-        content,
-        tostring(self.divider),
-        "",
-    }
-
-    return lines
+    return self:get_lines():join("\n")
 end
 
-function Header:line_is_start(index, lines)
-    if #lines < index + 2 then
-        return false
-    end
+function Header:get_pattern(line_type)
+    local regex_info = Header.regex_info[line_type]
 
-    return self:lines_are_a(lines[index], lines[index + 1], lines[index + 2])
+    return List({
+        regex_info.pre or "",
+        self.line_templates[line_type],
+        regex_info.post or "",
+    }):join("")
 end
 
-function Header:line_is_content(index, lines)
-    if index - 1 < 1 or #lines < index + 1 then
-        return false
-    end
-
-    return self:lines_are_a(lines[index - 1], lines[index], lines[index + 1])
+function Header:str_is_upper(str)
+    return str:match(self:get_pattern("upper")) or false
 end
 
-function Header:line_is_end(index, lines)
-    if index - 2 < 1 then
-        return false
-    end
-
-    return self:lines_are_a(lines[index - 2], lines[index - 1], lines[index])
+function Header:str_is_lower(str)
+    return str:match(self:get_pattern("lower")) or false
 end
 
-function Header:line_is_a(index, lines)
-    if not self:line_is_start(index, lines) then
-        if not self:line_is_content(index, lines) then
-            if not self:line_is_end(index, lines) then
-                return false
-            end
-        end
-    end
-
-    return true
+function Header:str_is_middle(str)
+    return str:match(self:get_pattern("middle")) or false
 end
 
-function Header:lines_are_a(l1, l2, l3)
-    local divider_str = tostring(self.divider)
+function Header:str_is_a(str)
+    return self:str_is_upper(str) or self:str_is_middle(str) or self:str_is_lower(str)
+end
 
-    if l1 == divider_str then
-        if type(l2) == 'string' and l2:startswith(self.content_start) then
-            if l3 == divider_str then
-                return true
-            end
-        end
-    end
-    
-    return false
+function Header:strs_are_a(l1, l2, l3)
+    return self:str_is_upper(l1) and self:str_is_middle(l2) and self:str_is_lower(l3)
+end
+
+function Header.headers()
+    return Dict(Header.sizes):keys():transform(function(s)
+        return Header({size = s})
+    end)
 end
 
 function Header.by_size()
-    local by_size = {}
-    for size, _ in pairs(Header.config.sizes) do
-        by_size[size] = Header({size = size})
-    end
-
-    return by_size
+    local headers = Dict()
+    Dict(Header.sizes):keys():foreach(function(size)
+        headers[size] = Header({size = size})
+    end)
+    return headers
 end
 
 return Header
