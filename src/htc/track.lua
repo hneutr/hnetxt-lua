@@ -21,7 +21,7 @@ return {
         --     end
         -- end)
 
-        Track():create_csv()
+        -- Track():create_csv()
         print(Track():touch(args.date))
     end,
 }
