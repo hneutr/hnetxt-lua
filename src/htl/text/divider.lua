@@ -10,7 +10,7 @@ Divider.sizes = Config.get("sizes")
 
 function Divider:_init(size, style)
     self = Dict.update(self, {size = size, style = style}, Divider.config)
-    self = Dict.update(self, self.config[self.style], self.sizes[self.size])
+    self = Dict.update(self, self.config[self.style], Divider.sizes[self.size])
 end
 
 function Divider:__tostring()
