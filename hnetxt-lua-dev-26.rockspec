@@ -27,7 +27,6 @@ build = {
         ["hl.Path"] = "src/hl/Path.lua",
         ["hl.DataFrame"] = "src/hl/DataFrame.lua",
 
-
         htl = "src/htl/init.lua",
         ["htl.config"] = "src/htl/config.lua",
         ["htl.journal"] = "src/htl/journal.lua",
@@ -36,12 +35,15 @@ build = {
         ["htl.operator.operation.dir"] = "src/htl/operator/operation/dir.lua",
         ["htl.operator.operation.file"] = "src/htl/operator/operation/file.lua",
         ["htl.operator.operation.mark"] = "src/htl/operator/operation/mark.lua",
+
         ["htl.parse"] = "src/htl/parse/init.lua",
         ["htl.parse.fold"] = "src/htl/parse/fold.lua",
+
         ["htl.project"] = "src/htl/project/init.lua",
+        ["htl.project.registry"] = "src/htl/project/registry.lua",
         ["htl.project.mirror"] = "src/htl/project/mirror/init.lua",
         ["htl.project.mirror.config"] = "src/htl/project/mirror/config.lua",
-        ["htl.project.registry"] = "src/htl/project/registry.lua",
+
         ["htl.text.divider"] = "src/htl/text/divider.lua",
         ["htl.text.header"] = "src/htl/text/header.lua",
         ["htl.text.link"] = "src/htl/text/link.lua",
@@ -56,7 +58,6 @@ build = {
         ["htl.notes.set.topic"] = "src/htl/notes/set/topic.lua",
         ["htl.notes.set.prompt"] = "src/htl/notes/set/prompt.lua",
         ["htl.notes.set.intention"] = "src/htl/notes/set/intention.lua",
-
         ["htl.notes.field"] = "src/htl/notes/field/init.lua",
         ["htl.notes.field.string"] = "src/htl/notes/field/string.lua",
         ["htl.notes.field.bool"] = "src/htl/notes/field/bool.lua",
@@ -64,7 +65,6 @@ build = {
         ["htl.notes.field.list"] = "src/htl/notes/field/list.lua",
         ["htl.notes.field.start"] = "src/htl/notes/field/start.lua",
         ["htl.notes.field.end"] = "src/htl/notes/field/end.lua",
-
         ["htl.notes.note.file"] = "src/htl/notes/note/file.lua",
         ["htl.notes.note.statement"] = "src/htl/notes/note/statement.lua",
         ["htl.notes.note.blank"] = "src/htl/notes/note/blank.lua",
