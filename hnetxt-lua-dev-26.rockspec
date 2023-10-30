@@ -105,9 +105,6 @@ build = {
         -- track
         ["htl.track"] = "src/htl/track/init.lua",
         ["htc.track"] = "src/htc/track.lua",
-
-        -- test
-        -- ["htn.test"] = "lua/htn/test.lua"
     }
 }
 test = {
