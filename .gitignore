@@ -2,5 +2,6 @@
 /lua_modules
 /.luarocks
 update_hnetxt.sh
-src/hl
 test/vendor
+lua/htl
+lua/hl
