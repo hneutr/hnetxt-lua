@@ -8,6 +8,7 @@ from collections import defaultdict
 
 import htc.constants
 import htc.quotes
+import htc.plot
 
 
 @click.group()
@@ -80,6 +81,10 @@ def add_date_to_thoughts():
         new_text = f"date: {date}\nuncategorized: true\n\n" + text
         new_path = path.with_name(name).with_suffix('.md')
         new_path.write_text(new_text)
+
+@cli.command()
+def plot():
+    htc.plot.track()
 
 
 cli()
