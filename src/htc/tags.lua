@@ -4,17 +4,13 @@ local List = require("hl.List")
 local Set = require("pl.Set")
 local Yaml = require("hl.yaml")
 
-local exclusions = List({'.project'})
-
 return {
     description = "list tags",
     {"tag", args = "?", description = "the tag to look for"},
     {"-d --dir", default = Path.cwd(), description = "directory"},
     -- {"-p --path", description = "the file to look for tags in"},
     action = function(args)
-        local paths = Path.iterdir(args.dir, {dirs = false}):filter(function(p)
-            return not exclusions:contains(p:name())
-        end)
+        local paths = Path.glob(args.dir, "%.md$")
 
         local tags = List()
         local tagged_paths = Dict()

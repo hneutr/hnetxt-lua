@@ -372,6 +372,12 @@ Path.iterdir = Path.make_list_fn_match_input(function(dir, args)
     return paths
 end)
 
+Path.glob = Path.make_list_fn_match_input(function(dir, pattern, args)
+    return Path.iterdir(dir, args):filter(function(p)
+        return tostring(p):match(pattern)
+    end)
+end)
+
 function Path.rmdir(p, force)
     p = Path.as_path(p)
     force = force or false
