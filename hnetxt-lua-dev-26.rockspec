@@ -104,7 +104,7 @@ build = {
         ["htl.text.neoparse"] = "src/htl/text/neoparse.lua",
 
         -- track
-        ["htl.track"] = "src/htl/track/init.lua",
+        ["htl.track"] = "src/htl/track.lua",
         ["htc.track"] = "src/htc/track.lua",
     }
 }

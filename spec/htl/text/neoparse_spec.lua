@@ -15,7 +15,7 @@ end)
 describe("get_fold_levels", function()
     it("simple case", function()
         assert.are.same(
-            {0, 0, 0, 3, 4, 3},
+            {0, 0, 0, 4, 5, 4},
             parser:get_fold_levels(List.from(
                 Header({size = 'large'}):get_lines(),
                 {"a", "  b", "c"}
@@ -25,7 +25,7 @@ describe("get_fold_levels", function()
 
     it("multiple headers", function()
         assert.are.same(
-            {0, 0, 0, 3, 1, 1, 1, 1, 3, 3},
+            {0, 0, 0, 4, 1, 1, 1, 1, 4, 4},
             parser:get_fold_levels(List.from(
                 Header({size = 'large'}):get_lines(),
                 {"a", ""},
