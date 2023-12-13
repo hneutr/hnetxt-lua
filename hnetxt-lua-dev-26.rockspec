@@ -92,6 +92,7 @@ build = {
         ["htc.colorize"] = "src/htc/colorize.lua",
         ["htc.new"] = "src/htc/new.lua",
         ["htc.fields"] = "src/htc/fields.lua",
+        ["htc.tags"] = "src/htc/tags.lua",
 
         -- ENTRIES
         ["hd.uuid"] = "src/hd/uuid/init.lua",

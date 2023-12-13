@@ -1,7 +1,10 @@
 import yaml
-import htc.constants
 import matplotlib.pyplot as plt
+import functools
 from PIL import Image
+
+import htc.constants
+
 
 def get(config_name):
     path = htc.constants.CONFIG_DIR / f"{config_name}.yaml"

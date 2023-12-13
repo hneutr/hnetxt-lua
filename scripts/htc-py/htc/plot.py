@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, date
+import itertools
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -13,8 +14,7 @@ import hnelib.plt.color
 
 import htc.track
 import htc.config
-import htc.dashboard.data
-import htc.dashboard.plot
+import htc.dashboard
 
 DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 N_DAYS = len(DAYS)
@@ -23,18 +23,14 @@ def add_sections(
     parent_ax,
     sections,
     by='col',
-    x_start=0,
-    x_stop=1,
-    x_pad=.05,
-    y_start=0,
-    y_stop=1,
-    y_pad=.05,
+    x=0,
+    y=0,
+    width=1,
+    height=1,
+    x_pad=0,
+    y_pad=0,
+    facecolor=None,
 ):
-    section_info = []
-
-    width = x_stop - x_start
-    height = y_stop - y_start
-
     dynamic_key = 'width' if by == 'col' else 'height'
 
     for default, key, pad in zip([width, height], ['width', 'height'], [x_pad, y_pad]):
@@ -42,172 +38,229 @@ def add_sections(
             section[key] = section.get(key, default)
 
         if key == dynamic_key:
-            available = default - pad * (len(sections) - 1)
+            available = default - (pad * (len(sections) - 1))
             scale = sum([s[key] for s in sections]) / available
-        else:
-            scale = default
 
-        for section in sections:
-            section[key] /= scale
-
-    x = x_start
-    y = y_start
+            for section in sections:
+                section[key] /= scale
 
     insets = {}
     for i, section in enumerate(sections):
-        inset = parent_ax.inset_axes(
-            (
-                x,
-                y,
-                section['width'],
-                section['height'],
-            )
-        )
-
-        if by == 'col':
-            x += x_pad + section['width']
-        else:
-            y += y_pad + section['height']
-
         name = section.get('name')
+
         if 'layout' in section:
-            hl.plt.axes.hide(inset)
-            subinsets = add_sections(inset, **section['layout'])
+            subinsets = add_sections(
+                parent_ax,
+                x=x,
+                y=y,
+                width=section['width'],
+                height=section['height'],
+                x_pad=x_pad,
+                y_pad=y_pad,
+                facecolor=facecolor,
+                **section['layout'],
+            )
 
             if name:
                 insets[name] = subinsets
             else:
                 insets.update(subinsets)
         else:
+            inset = parent_ax.inset_axes(
+                (
+                    x,
+                    y,
+                    section['width'],
+                    section['height'],
+                )
+            )
+
+            if facecolor:
+                inset.set_facecolor(facecolor)
+
+            hl.plt.axes.hide_ticks(inset)
+            inset.spines.top.set_visible(True)
+            inset.spines.right.set_visible(True)
+
             insets[name or i] = inset
+
+        if by == 'col':
+            x += x_pad + section['width']
+        else:
+            y += y_pad + section['height']
 
     return insets
 
 def get_dashboard_layout(
-    pagesize=(18, 11),
-    page_margins={'left': .03, 'right': .03, 'top': .03, 'bottom': .03},
-    layout={
-        'sections': [
-            {
-                'name': 'week',
-                'width': 1.5,
-                'layout': {
-                    'by': 'row',
-                    'sections': [
-                        {'name': 'time'},
-                        {'name': 'did/not'},
-                    ],
-                },
+    sections=[
+        {
+            'name': 'week',
+            'width': 1.5,
+            'layout': {
+                'by': 'row',
+                'sections': [
+                    {'name': 'did/not'},
+                    {'name': 'time'},
+                ],
             },
-            {
-                'layout': {
-                    'by': 'row',
-                    'sections': [
-                        {'name': 'month-comparison'},
-                        {'name': 'writing'},
-                    ],
-                }
-            },
-        ],
-    },
+        },
+        {
+            'layout': {
+                'by': 'row',
+                'sections': [
+                    {'name': 'month-comparison'},
+                    {
+                        'name': 'text',
+                        'height': 2,
+                        'layout': {
+                            'by': 'row',
+                            'sections': [
+                                {'name': 'misc'},
+                                {'name': 'writing'},
+                            ],
+                        },
+                    },
+                ],
+            }
+        },
+    ],
 ):
-    fig, page_ax = plt.subplots(figsize=pagesize)
+    config = htc.track.dashboard_config()
+    fig, page_ax = plt.subplots(figsize=config['page']['size'])
+    fig.set_facecolor(config['colors']['page'])
     hl.plt.axes.hide(page_ax)
 
-    dashboard_ax = page_ax.inset_axes(
-        (
-            page_margins['left'],
-            page_margins['top'],
-            1 - page_margins['left'] - page_margins['right'],
-            1 - page_margins['top'] - page_margins['bottom'],
-        )
+    x_margin = config['page']['margin']
+    y_margin = scale_y(x_margin)
+
+    return fig, add_sections(
+        page_ax,
+        x=x_margin,
+        y=y_margin,
+        width=1 - 2 * x_margin,
+        height=1 - 2 * y_margin,
+        x_pad=x_margin,
+        y_pad=y_margin,
+        sections=sections,
+        facecolor=config['colors']['background'],
     )
-    hl.plt.axes.hide(dashboard_ax)
-
-    return fig, add_sections(dashboard_ax, **layout)
 
 
-def weekly_dashboard(
-    x_margin=.03,
-    y_margin=.03,
-    week_width=2/3,
-    week_stat_space=.05,
-    pagesize=(18, 11),
-):
+def scale_y(y):
+    config = htc.track.dashboard_config()
+    page_width, page_height = config['page']['size']
+    xy_scale = page_height / page_width
+    return y / xy_scale
+
+
+def weekly_dashboard():
     df = htc.dashboard.data.get()
-    df = htc.dashboard.data.get_week_data(df)
+    df = df[
+        df['DeltaWeeks'] == 0
+    ]
 
     fig, axes = get_dashboard_layout()
 
-    weekly_time_spent(df, axes['week']['time'])
-    weekly_habits(df, axes['week']['did/not'])
+    weekly_time_spent(axes['week']['time'])
+    # weekly_habits(df, axes['week']['did/not'])
 
     compare_months(axes['month-comparison'])
-    writing_stats(axes['writing'])
+    writing_stats(axes['text']['writing'])
+    misc_stats(axes['text']['misc'])
+
+    # hl.plt.axes.hide(axes['text']['misc'])
+
+def misc_stats(
+    ax,
+):
+    df = htc.dashboard.data.get()
+    sleep_df = htc.dashboard.data.get_sleep_data(df)
+
+    stats = {}
+    label_to_key = {
+        'went to bed': 'Start',
+        'got up': 'End',
+        'hours': 'Duration',
+    }
+
+    for label, key in label_to_key.items():
+        stats[label] = htc.dashboard.datatype.Time.to_string(sleep_df[key].mean(), round_minutes_to=15)
+
+    ex_df = df.copy()[
+        df['Activity'] == 'exercise'
+    ]
+    total_days = len(ex_df)
+    ex_days = len(ex_df[ex_df['Value']])
+    ex_rate = ex_days / total_days
+    ex_days = round(ex_rate * 7)
+    remainder = ex_rate * 7 - ex_days
+    exercised_per_week = ex_days + (round(remainder * 100 / 25) / 100 * 25)
+
+    htc.dashboard.plot.AnnotationGroup(
+        elements=[
+            htc.dashboard.plot.Header(
+                "sleep",
+                color=htc.config.get('colors')['blue'],
+                elements=stats,
+            ),
+            htc.dashboard.plot.Header(
+                "exercise",
+                color=htc.config.get('colors')['green'],
+                elements={
+                    "days per week": exercised_per_week
+                }
+            ),
+        ]
+    ).annotate(ax)
+
 
 def writing_stats(
     ax,
-    last_week=False,
+    weeks_previous=0,
+    months_previous=0,
 ):
     df = htc.dashboard.data.get()
-    print(df['Date'].min())
-    print(df['Date'].max())
-    df = htc.dashboard.data.get_week_data(df, last_week=last_week)
-    print(df['Date'].min())
-    print(df['Date'].max())
-    import sys; sys.exit()
 
-    ax.set_xticks([])
-    ax.set_yticks([])
+    stat_names = [
+        'Words',
+        'Days',
+        'Hours',
+    ]
 
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
+    weekly_df = htc.dashboard.stats.writing_stats(df, groupby_cols=['DeltaWeeks'])
+    this_week = weekly_df[
+        weekly_df['DeltaWeeks'] == weeks_previous
+    ]
 
-    ax.set_facecolor(htc.config.get('colors')['surface0'])
+    monthly_df = htc.dashboard.stats.writing_stats(df, groupby_cols=['DeltaMonths'])
+    this_month = monthly_df[
+        monthly_df['DeltaMonths'] == months_previous
+    ]
 
-    x_margin = .02
-    y_margin = -.02
+    ny_date = datetime(year=2023, month=8, day=18)
+    new_york_df = htc.dashboard.stats.writing_stats(df[df['Date'] > ny_date])
 
-    x = 0
-    y = 1
-
-    x += x_margin
-    y += y_margin
-
-    kwargs = {
-        'xycoords': 'axes fraction',
-        'ha': 'left',
-        'va': 'top',
+    label_to_df = {
+        'this week': this_week,
+        # 'this month': this_month,
+        'in NY': new_york_df,
     }
 
-    words_df = df.copy()[
-        df['Activity'] == 'words'
-    ]
+    stats = {}
+    for label, df in label_to_df.items():
+        row = {} if df.empty else df.iloc[0]
+        stats[label] = {s.lower(): row.get(s, 0) for s in stat_names}
 
-    words_written = words_df['Value'].sum()
-    days_written = len(words_df)
+    htc.dashboard.plot.AnnotationGroup(
+        elements=[
+            htc.dashboard.plot.Header(
+                "writing",
+                color=htc.config.get('colors')['flamingo'],
+                elements=stats,
+            ),
+        ]
+    ).annotate(ax)
 
-    wrote_df = df.copy()[
-        df['Activity'] == 'wrote'
-    ]
-
-    hours_written = round(htc.track.fraction_to_hours(wrote_df['Duration'].sum()), 1)
-
-    if words_written > 1000:
-        words_written /= 1000
-        words_written = round(words_written, 1)
-        words_written = str(words_written) + "K"
-
-    htc.dashboard.plot.stat_group(
-        ax,
-        header="writing",
-        stats={
-            "words this week": words_written,
-            "days this week": days_written,
-            "hours this week": hours_written,
-        },
-        color=htc.config.get('colors')['flamingo'],
-    )
 
 
 def weekly_habits(
@@ -291,9 +344,14 @@ def weekly_habits(
 
 
 def weekly_time_spent(
-    df,
     ax=None,
+    days=7,
 ):
+    df = htc.dashboard.data.get()
+    df = df[
+        -1 * days < df['DeltaDays']
+    ]
+
     if not ax:
         fig, ax = plt.subplots(figsize=hl.plt.dims[1, 1])
 
@@ -310,7 +368,7 @@ def weekly_time_spent(
     df['Facecolor'] = df['Color'].apply(hl.plt.color.set_alpha)
 
     ax.bar(
-        df['Weekday'],
+        df['DeltaDays'],
         height=df['DurationFraction'],
         bottom=df['StartFraction'],
         edgecolor=df['Color'],
@@ -341,7 +399,7 @@ def set_week_axis_limits(
     hour_tick_freq=3,
     grid_freq=6,
 ):
-    step = htc.track.timedelta_to_fraction(timedelta(hours=hour_tick_freq))
+    step = htc.dashboard.datatype.Time.delta_to_fraction(timedelta(hours=hour_tick_freq))
 
     time_fractions = list(df['StartFraction']) + list(df['EndFraction'])
     time_fractions = [t for t in time_fractions if pd.notna(t)]
@@ -357,61 +415,82 @@ def set_week_axis_limits(
         end += step
 
     yticks = np.arange(start, end + step, step)
-    yticklabels = []
-    ygrid = []
-    for tick in yticks:
-        hour = int(htc.track.fraction_to_hours(tick))
+    yticklabels = [htc.dashboard.datatype.Time.to_string(t, noon_and_midnight=True) for t in yticks]
 
-        if not hour % grid_freq:
-            ygrid.append(tick)
+    # ax.set_ylim(start, end)
+    # ax.set_yticks(yticks)
+    # ax.set_yticklabels(yticklabels)
 
-        hour = hour % 24
+    htc.dashboard.plot.set_axis(
+        ax=ax,
+        which='y',
+        ticks=list(yticks),
+        lim=[start, end],
+        labels=list(yticklabels),
+    )
 
-        if hour == 0:
-            label = 'midnight'
-        elif hour < 12:
-            label = f"{hour} AM"
-        elif hour == 12:
-            label = 'noon'
-        else:
-            label = f"{hour - 12} PM"
+    hnelib.plt.grid.on_vals(ax, ys=np.arange(start, end + step, step * 2))
 
-        yticklabels.append(label)
+    set_day_x_axis(ax, df)
 
-    ax.set_ylim(start, end)
-    ax.set_yticks(yticks)
-    ax.set_yticklabels(yticklabels)
+def set_day_x_axis(
+    ax,
+    df,
+    x_col='DeltaDays',
+    pad=.5,
+    ticklen=None,
+    offset=0,
+):
+    df = df.copy()[
+        [
+            'Date',
+            x_col,
+        ]
+    ].drop_duplicates().sort_values(by=x_col)
 
-    hnelib.plt.grid.on_vals(ax, ys=ygrid)
+    df['WeekdayName'] = df['Date'].dt.day_name()
 
-    set_week_x_axis(ax)
+    if ticklen:
+        df['WeekdayName'] = df['WeekdayName'].apply(lambda s: s[:ticklen])
+
+    ticks = list(df[x_col])
+    htc.dashboard.plot.set_axis(
+        ax,
+        which='x',
+        ticks=ticks,
+        lim=[ticks[0] - pad, ticks[-1] + pad],
+        labels=list(df['WeekdayName']),
+    )
 
 
 def plot_day_lengths(
     ax,
     df,
     width=.85,
-    height_in_minutes=20,
+    height_in_minutes=10,
 ):
+    text_color = htc.track.dashboard_config()['colors']['text']
+
     kwargs = {
         'color': hl.plt.color.named_grayscale['gray'],
-        'linewidth': 2,
+        'linewidth': 1.5,
     }
 
     df = df.copy()[
         df['Activity'] == 'day'
     ]
 
-    height = htc.track.timedelta_to_fraction(timedelta(minutes=15))
+    height = htc.dashboard.datatype.Time.delta_to_fraction(timedelta(minutes=height_in_minutes))
 
     xshift = width / 2
-    for _, day in df.iterrows():
+    for _, row in df.iterrows():
+        x = htc.dashboard.data.delta_days(row['Date'])
 
         for prefix, multiplier in zip(['Start', 'End'], [1, -1]):
-            xl = day['Weekday'] - xshift
-            xr = day['Weekday'] + xshift
+            xl = x - xshift
+            xr = x + xshift
 
-            y1 = day[f'{prefix}Fraction']
+            y1 = row[f'{prefix}Fraction']
             y2 = y1 + height * multiplier
 
             ax.plot(
@@ -420,77 +499,28 @@ def plot_day_lengths(
                 **kwargs,
             )
 
-        # if not pd.isnull(day['Slept']):
-        #     hours = round(htc.track.fraction_to_hours(day['SleptFraction']), 1)
-        #     hl.plt.text.annotate(
-        #         ax,
-        #         text=f"{hours} hours of sleep",
-        #         x=day['Weekday'],
-        #         y=day['StartFraction'] - height,
-        #         ha='center',
-        #         va='top',
-        #     )
+        hours = htc.dashboard.datatype.Time.to_string(row['Duration'], minute=False, ampm=False)
 
-        # hours = round(htc.track.fraction_to_hours(day['EndFraction'] - day['StartFraction']), 1)
-        # hl.plt.text.annotate(
-        #     ax,
-        #     text=f"{hours} hour day",
-        #     x=day['Weekday'],
-        #     y=day['EndFraction'] + height,
-        #     ha='center',
-        #     va='bottom',
-        # )
+        ax.annotate(
+            f"{hours} hour day",
+            xy=(x, row['EndFraction'] + height),
+            ha='center',
+            va='bottom',
+            color=text_color,
+        )
 
-
-def weekly_writing_dashboard(
-    df,
-    ax=None,
-):
-    config = htc.track.activity_configs()
-    writing_color = hl.plt.color.cycle[2]
-
-    if not ax:
-        fig, ax = plt.subplots(figsize=hl.plt.dims[1, 1])
-
-    words_df = df.copy()[
-        df['Activity'] == 'words'
-    ]
-
-    words_df['Color'] = writing_color
-
-
-    hl.plt.bar(
-        ax,
-        df=words_df,
-        size_col='Value',
-        place_col='Weekday',
-        tick_label_col='WeekdayName',
-        bar_color_col='Color',
-    )
-
-    ax.set_xlim(-.5, 6.5)
-
-    average = words_df['Value'].mean()
-
-    x_lim = ax.get_xlim()
-    ax.axhline(
-        average,
-        color=writing_color,
-    )
-
-
-    hl.plt.text.annotate(
-        ax,
-        f"{round(average)}/day\n{words_df['Value'].sum()} total",
-        x=ax.get_xlim()[1],
-        y=average,
-        x_pad=.1,
-        ha='left',
-    )
-
-    ax.set_ylim(0, 1000)
-    ax.set_yticks([0, 250, 500, 750, 1000])
-
+    for _, row in htc.dashboard.data.get_sleep_data(df).iterrows():
+        hours = htc.dashboard.datatype.Time.to_string(row['Duration'], minute=False)
+        ax.annotate(
+            f"{hours} hours of sleep",
+            xy=(
+                htc.dashboard.data.delta_days(row['Date']),
+                htc.dashboard.datatype.Time.time_to_fraction(row['End']) - height
+            ),
+            ha='center',
+            va='top',
+            color=text_color,
+        )
 
 def compare_months(
     ax=None,
@@ -498,6 +528,12 @@ def compare_months(
 ):
     if not ax:
         fig, ax = plt.subplots(figsize=hl.plt.dims[1, 1])
+
+    ax.set_facecolor(htc.config.get('colors')['surface1'])
+    hl.plt.axes.hide_ticks(ax)
+    x_margin = .05
+    y_margin = scale_y(x_margin)
+    ax = ax.inset_axes((x_margin, y_margin, 1 - 2 * x_margin, 1 - 2 * y_margin))
 
     df = htc.dashboard.data.get()
 
@@ -566,10 +602,6 @@ COLLECTION = {
     # 'field': track,
     # 'substances': substances_plot,
     'weekly-dashboard': weekly_dashboard,
-    'test-weekly-dashboard': {
-        'do': weekly_dashboard,
-        'kwargs': {'test': True},
-    },
     'compare-months': compare_months,
 }
 

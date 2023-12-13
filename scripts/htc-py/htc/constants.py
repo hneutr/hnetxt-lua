@@ -21,7 +21,6 @@ TEXT_DIR = HOME / "Documents/text"
 #                                     lua                                      #
 #------------------------------------------------------------------------------#
 LUA_ROOT = Path.home() / 'lib' / 'hnetxt-lua'
-TRACKER_SCRIPT = LUA_ROOT / 'scripts' / 'generate_tracker_csv.lua'
 
 #------------------------------------------------------------------------------#
 #                                 reflections                                  #

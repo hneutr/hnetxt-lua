@@ -3,6 +3,7 @@ local Fold = require('htn.ui.fold')
 local group = vim.api.nvim_create_augroup('hnetxt_fold_cmds', {clear = true})
 local pattern = "*.md"
 
+-- vim.api.nvim_create_autocmd({"VimEnter", "WinNew", "BufNew"}, {
 vim.api.nvim_create_autocmd({"WinEnter", "BufEnter"}, {
     pattern=pattern,
     group=group,

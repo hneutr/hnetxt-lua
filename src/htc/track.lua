@@ -8,20 +8,13 @@ return {
         default = os.date('%Y%m%d'),
     },
     action = function(args)
-        -- local tracker = Track()
-        -- local word_log_path = require("htl.config").data_dir:join('logs', 'word-count.md')
-        -- local lines = word_log_path:readlines()
-        -- -- lines = List({lines[1]})
-        -- lines:foreach(function(l)
-        --     if #l > 0 then
-        --         local date, count = unpack(l:removeprefix("- "):split(": "))
-        --         date = tonumber(date)
-        --         count = tonumber(count)
-        --         tracker:list_path(date):write({tracker:activity_to_list_line("word count", count)})
-        --     end
-        -- end)
+        local date = args.date
+        if type(date) == "string" then
+            if date:startswith('m') then
+                date = tonumber(os.date('%Y%m%d')) - tonumber(date:removeprefix('m'))
+            end
+        end
 
-        -- Track():create_csv()
-        print(Track():touch(args.date))
+        print(Track():touch(date))
     end,
 }

@@ -4,24 +4,24 @@ from datetime import datetime, timedelta, date
 
 import htc.config
 import htc.constants
+import htc.track.parse as parse
 
 DAY_SECONDS = timedelta(days=1).total_seconds()
 HOUR_SECONDS = timedelta(hours=1).total_seconds()
 
-@functools.lru_cache
-def csv_path(test=False):
-    config = htc.config.get('track')
-    if test:
-        return htc.constants.TEST_DATA_DIR / config['csv_name']
-
-    return htc.constants.DATA_DIR / config['data_dir'] / config['csv_name']
+# @functools.lru_cache
+def dashboard_config():
+    config = htc.config.get('dashboard')
+    colors = htc.config.get('colors')
+    config['colors'] = {k: colors[v] for k, v in config['colors'].items()}
+    return config
 
 @functools.lru_cache
 def activity_configs(datatype=None):
     order = 0
     configs = {}
     for category_config in htc.config.get('track')['categories']:
-        category_name = category_config.pop('name')
+        category_name = category_config['name']
 
         category_order = 0
         for config in category_config['activities']:
@@ -64,7 +64,6 @@ def annotate_colors(configs, src_key='color', dst_key='color'):
 def morality_configs():
     configs = htc.config.get('track')['moralities']
     configs = annotate_colors(configs)
-
     return configs
 
 @functools.lru_cache
@@ -79,29 +78,6 @@ def category_configs():
         categories[category_name] = category
 
     return categories
-
-
-def data(
-    test=False,
-):
-    df = pd.read_csv(csv_path(test=test), parse_dates=["date"]).rename(columns={
-        'date': 'Date',
-        'activity': 'Activity',
-        'value': 'Value',
-    })
-
-    df = add_missing_entries(df)
-
-    words = df[
-        (df['Date'] >= datetime(year=2023, month=8, day=18))
-        &
-        (df['Activity'] == 'words')
-    ]['Value'].sum()
-    print(words)
-    import sys; sys.exit()
-
-    return df
-
 
 
 def add_missing_entries(df):
@@ -134,4 +110,3 @@ def fraction_to_timedelta(fraction):
 
 def fraction_to_hours(fraction):
     return fraction_to_timedelta(fraction).total_seconds() / HOUR_SECONDS
-

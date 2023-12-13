@@ -6,47 +6,20 @@ from datetime import datetime, timedelta, date
 
 import htc.config
 import htc.constants
+import htc.track
 
 DAY_SECONDS = timedelta(days=1).total_seconds()
 HOUR_SECONDS = timedelta(hours=1).total_seconds()
-
-@functools.lru_cache
-def csv_path(test=False):
-    config = htc.config.get('track')
-    data_dir = htc.constants.TEST_DATA_DIR if test else htc.constants.DATA_DIR / config['data_dir']
-    return data_dir / config['csv_name']
-
-
-def regenerate_csv():
-    x = subprocess.run(
-        " ".join([
-            f"cd {htc.constants.LUA_ROOT}",
-            "&&",
-            f"luarocks test {htc.constants.TRACKER_SCRIPT}",
-        ]),
-        shell=True,
-        # capture_output=True,
-    )
+WEEK_SECONDS = timedelta(weeks=1).total_seconds()
 
 def get(
-    date_filter=None,
     test=False,
-    datatype=None,
+    date_filter=None,
 ):
-    regenerate_csv()
-    import sys; sys.exit()
-    df = pd.read_csv(
-        csv_path(test=test),
-        parse_dates=["date"]
-    ).rename(columns={
-        'date': 'Date',
-        'activity': 'Activity',
-        'value': 'Value',
-    })
-
+    df = htc.track.parse.get_raw(test=test)
     df['Weekday'] = df['Date'].dt.weekday
-    df['WeekdayName'] = df['Date'].dt.day_name()
 
+    df = annotate_dates(df)
     df = transform_data(df)
     return df
 
@@ -71,34 +44,47 @@ def transform_data(df):
             new_rows.append(datatype.transform_row(row.to_dict()))
 
     df = pd.DataFrame(new_rows)
-    df = add_sleep(df)
     df['BooleanValue'] = df['Value'].apply(bool)
+    df = annotate_dates(df)
 
     return df
 
 
-def add_sleep(df):
-    _df = df.copy()[
+def get_sleep_data(df):
+    df = df.copy()[
         df['Activity'] == 'day'
     ]
 
+    other_df = get()
+    other_df = other_df[
+        other_df['Activity'] == 'day'
+    ]
+
     sleep_rows = []
-    for _, day in _df.iterrows():
-        previous_day = _df[
-            _df['Date'] == day['Date'] - timedelta(days=1)
+    for _, day in df.iterrows():
+        date = day['Date']
+        previous_day = other_df[
+            other_df['Date'] == date - timedelta(days=1)
         ]
 
         if previous_day.empty:
             continue
 
+        previous_day = previous_day.iloc[0]
+        start = previous_day['End']
+        end = day['Start']
+        duration = end - start
+
         sleep_rows.append({
             'Activity': 'slept',
-            'Date': day['Date'],
-            'Value': day['Start'] - previous_day.iloc[0]['End'],
+            'Date': date,
+            'Start': start,
+            'End': end,
+            'Duration': duration,
         })
 
 
-    return pd.concat([df, pd.DataFrame(sleep_rows)])
+    return pd.DataFrame(sleep_rows)
 
 
 class Datatype(object):
@@ -167,9 +153,21 @@ class TimeDatatype(Datatype):
         return date + timedelta(hours=time.hour, minutes=time.minute)
 
     @staticmethod
-    def time_to_fraction(time, date):
+    def time_to_day_fraction(time, date):
         td = time - date
         return td.total_seconds() / DAY_SECONDS
+
+    @staticmethod
+    def timedelta_to_fraction(td):
+        return td.total_seconds() / DAY_SECONDS
+
+    @staticmethod
+    def fraction_to_timedelta(fraction):
+        return timedelta(seconds=fraction * DAY_SECONDS)
+
+    @staticmethod
+    def timefraction_to_hours(fraction):
+        return TimeDatatype.fraction_to_timedelta(fraction).total_seconds() / HOUR_SECONDS
 
 
 class TimespanDatatype(TimeDatatype):
@@ -190,8 +188,8 @@ class TimespanDatatype(TimeDatatype):
         if row['End'] < row['Start']:
             row['End'] += timedelta(days=1)
 
-        row['StartFraction'] = self.time_to_fraction(row['Start'], row['Date'])
-        row['EndFraction'] = self.time_to_fraction(row['End'], row['Date'])
+        row['StartFraction'] = self.time_to_day_fraction(row['Start'], row['Date'])
+        row['EndFraction'] = self.time_to_day_fraction(row['End'], row['Date'])
         row['Duration'] = row['EndFraction'] - row['StartFraction']
 
         return row
@@ -233,15 +231,25 @@ def get_week_data(
     return df
 
 
-class Parser(object):
-    ENTRY_DIR = htc.constants.
+def week_start(d=datetime.now()):
+    return datetime(year=d.year, month=d.month, day=d.day) - timedelta(days=d.weekday())
 
-    def __init__(self):
-        1
+def delta_months(d):
+    now = datetime.now()
+    years = d.year - now.year
+    months = d.month - now.month
+    return 12 * years + months
 
-    @functools.cached_property
-    def entry_dir(self):
-        config = htc.config.get('track')
-        return htc.constants.DATA_DIR / config['data_dir']
+def delta_weeks(d):
+    delta = week_start(d) - week_start()
+    return int(delta.total_seconds() / WEEK_SECONDS)
 
-    def parse()
+def delta_days(d):
+    delta = date(year=d.year, month=d.month, day=d.day) - date.today()
+    return int(delta.total_seconds() / DAY_SECONDS)
+
+def annotate_dates(df):
+    df['DeltaDays'] = df['Date'].apply(delta_days)
+    df['DeltaWeeks'] = df['Date'].apply(delta_weeks)
+    df['DeltaMonths'] = df['Date'].apply(delta_months)
+    return df

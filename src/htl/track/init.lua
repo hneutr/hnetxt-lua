@@ -10,27 +10,35 @@ local Config = require("htl.config")
 class.Track()
 
 Track.config = Config.get('track')
-Track.config.activities = List(Track.config.activities)
 Track.data_dir = Config.data_dir:join(Track.config.data_dir)
 
 function Track:_init()
     self = Dict.update(self, Track.config)
-    self:set_up_activities()
+    self:set_up_config()
 end
 
-function Track:set_up_activities()
-    local activities = List()
-    local activity_defaults = Dict()
+function Track:set_up_config()
+    local categories = List()
+    local activities = Dict()
 
+    local order = 1
+    List(self.categories):foreach(function(category_config)
+        categories:append(category_config.name)
+        List(category_config.activities):foreach(function(activity_config)
+            activity_config.category = category
+            activity_config.order = order
+            order = order + 1
 
-    self.activities:transform(Dict):foreach(function(raw)
-        local activity = raw:keys()[1]
-        activities:append(activity)
-        activity_defaults[activity] = raw[activity].default or false
+            if activity_config.default == nil then
+                activity_config.default = self.datatype_defaults[activity_config.datatype]
+            end
+
+            activities[activity_config.name] = activity_config
+        end)
     end)
 
+    self.categories = categories
     self.activities = activities
-    self.activity_defaults = activity_defaults
 end
 
 function Track.default_date(date)
@@ -47,23 +55,30 @@ function Track:date_from_list_path(list_path)
 end
 
 function Track:csv_path()
-    return self.data_dir:join(".log.csv")
+    return self.data_dir:join(self.config.csv_name)
 end
 
 function Track:activity_to_list_line(activity, value)
     if value == nil then
-        value = self.activity_defaults[activity]
+        local config = self.activities[activity] or {}
+        value = config.default
 
         if value == nil then
             value = ' '
         end
     end
 
-    return self.surround .. activity .. self.surround .. self.separator .. tostring(value)
+    return activity .. self.separator .. tostring(value)
 end
 
 function Track:list_lines()
-    return self.activities:map(function(e) return self:activity_to_list_line(e) end)
+    return self.activities:keys():sort(function(a, b)
+        local a_config = self.activities[a] or {order = 0}
+        local b_config = self.activities[b] or {order = 0}
+        return a_config.order < b_config.order
+    end):map(function(a)
+        return self:activity_to_list_line(a)
+    end)
 end
 
 function Track:touch(date)
@@ -77,23 +92,40 @@ function Track:touch(date)
 end
 
 function Track:list_line_to_row(line, date)
-    line = line:gsub(self.surround, "")
-    local field, value = unpack(line:rsplit(self.separator, 1))
-    value = value:strip()
-
-    if #value == 0 then
-        value = nil
-    elseif value == 'true' then
-        value = true
-    elseif value == 'false' then
-        value = false
-    else
-        value = tonumber(value)
+    if #line == 0 then
+        return
     end
+
+    local activity, value = unpack(line:rsplit(self.separator, 1))
+
+    value = self:parse_value(activity, value)
 
     if value ~= nil then
-        return {field = field, value = value, date = self.default_date(date)}
+        return {activity = activity, value = value, date = self.default_date(date)}
     end
+end
+
+function Track:parse_value(activity, value)
+    value = value:strip()
+
+    local config = self.activities[activity] or {datatype = 'number'}
+    local datatype = config.datatype
+
+    if #value == 0 then
+        return
+    end
+
+    if datatype == 'number' then
+        value = tonumber(value)
+    elseif datatype == 'boolean' then
+        if value == 'true' then
+            value = true
+        elseif value == 'false' then
+            value = false
+        end
+    end
+
+    return value
 end
 
 function Track:list_path_to_rows(list_path)
@@ -101,6 +133,12 @@ function Track:list_path_to_rows(list_path)
     return list_path:readlines():transform(function(line)
         return self:list_line_to_row(line, date)
     end):filter(function(r) return r ~= nil end)
+end
+
+function Track:entries()
+    return self.data_dir:iterdir({dirs = false}):filter(function(p)
+        return p ~= self:csv_path()
+    end)
 end
 
 function Track:create_csv()
@@ -111,7 +149,7 @@ function Track:create_csv()
         end
     end)
 
-    DataFrame.to_csv(rows, self:csv_path(), {cols = {"date", "field", "value"}})
+    DataFrame.to_csv(rows, self:csv_path(), {cols = {"date", "activity", "value"}})
 end
 
 return Track

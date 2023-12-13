@@ -20,16 +20,16 @@ end)
 describe("activity_to_list_line", function()
     it("value provided", function()
         assert.are.same(
-            "`activity`: true",
+            "activity: true",
             track:activity_to_list_line("activity", true)
         )
     end)
 
     it("value defaulted", function()
-        local activity = track.activities[1]
-        local value = track.activity_defaults[activity]
+        local activity = track.activities:keys()[1]
+        local value = track.activities[activity].default
         assert.are.same(
-            track.surround .. activity .. track.surround .. track.separator .. tostring(value),
+            activity .. track.separator .. tostring(value),
             track:activity_to_list_line(activity)
         )
     end)
@@ -43,22 +43,27 @@ describe("list_line_to_row", function()
     end)
 
     it("true", function()
+        track.activities[key] = {datatype = 'boolean'}
         assert.are.same(
-            {field = key, value = true, date = track.default_date()},
+            {activity = key, value = true, date = track.default_date()},
             track:list_line_to_row(track:activity_to_list_line(key, true))
         )
     end)
 
     it("false", function()
+        track.activities[key] = {datatype = 'boolean'}
+
         assert.are.same(
-            {field = key, value = false, date = track.default_date()},
+            {activity = key, value = false, date = track.default_date()},
             track:list_line_to_row(track:activity_to_list_line(key, false))
         )
     end)
 
     it("number", function()
+        track.activities[key] = {datatype = 'number'}
+
         assert.are.same(
-            {field = key, value = 1234, date = track.default_date()},
+            {activity = key, value = 1234, date = track.default_date()},
             track:list_line_to_row(track:activity_to_list_line(key, 1234))
         )
     end)
@@ -98,6 +103,8 @@ end)
 
 describe("create_csv", function()
     it("works", function()
+        track.activities.a = {datatype = 'string'}
+
         local l1 = track:activity_to_list_line("a", true)
         local l2 = track:activity_to_list_line("a", 123)
 

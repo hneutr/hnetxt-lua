@@ -40,6 +40,7 @@ ls.add_snippets("markdown", {
     divider("dl", "large"),
     divider("dm", "medium"),
     divider("ds", "small"),
+    divider("dt", "tiny"),
     -- headers
     header("hl", "large"),
     header("hm", "medium"),
@@ -91,5 +92,10 @@ ls.add_snippets("markdown", {
         is a: word
         seen in: $1
         type: ${2|unknown,cool|}
+    ]]),
+    ps("rec", [[
+        is a: recommendation
+        of: $1
+        by: $2
     ]]),
 })
