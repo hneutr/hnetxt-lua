@@ -349,7 +349,7 @@ function Path.cwd()
 end
 
 Path.iterdir = Path.make_list_fn_match_input(function(dir, args)
-    args = Dict.from(args, {recursive = true, files = true, dirs = true})
+    args = Dict.from(args, {recursive = true, files = true, dirs = true, hidden=false})
 
     dir = Path.as_path(dir)
 
@@ -367,6 +367,12 @@ Path.iterdir = Path.make_list_fn_match_input(function(dir, args)
                 paths:extend(p:iterdir(args))
             end
         end
+    end
+
+    if not hidden then
+        paths = paths:filter(function(path)
+            return not tostring(path:relative_to(dir)):startswith('.')
+        end)
     end
 
     return paths

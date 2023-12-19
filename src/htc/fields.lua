@@ -4,6 +4,8 @@ local List = require("hl.List")
 local Set = require("pl.Set")
 local Yaml = require("hl.yaml")
 
+local fields_to_exclude = List({"date"})
+
 function get_print_lines(dict)
     local lines = List()
     dict:keys():sorted():foreach(function(k)
@@ -11,7 +13,7 @@ function get_print_lines(dict)
         local sublines = List()
         
         if v:is_a(List) then
-            sublines = v:sorted()
+            sublines = Set.values(Set(v)):sorted()
         elseif v:is_a(Dict) then
             sublines = get_print_lines(v)
         end
@@ -29,71 +31,106 @@ function get_print_lines(dict)
     return lines
 end
 
+function is_field(line)
+    return line:match(":")
+end
+
+function parse_field_and_value(line)
+    local field, value
+    if line:match(":") then
+        field, value = unpack(line:split(":", 1))
+        field = field:strip()
+        value = value:strip()
+    else
+        field = line
+    end
+
+    return field, value
+end
+
+function parse_fields(raw)
+    local fields = Dict()
+
+    List(raw):foreach(function(line)
+        local field, value = parse_field_and_value(line)
+
+        fields:default(field, Set())
+
+        if value ~= nil then
+            fields[field] = fields[field] + value
+        end
+    end)
+
+    return fields
+end
+
 return {
     description = "list fields",
-    {"field", args = "?", description = "the field to look for"},
+    {"fields", args = "*", default = Dict(), description = "the field to look for", action="concat"},
     {"-d --dir", default = Path.cwd(), description = "directory", convert=Path.as_path},
-    {"-v --value", description = "restrict to this value"},
     {"+f", target = "files", description = "list files", switch = "on"},
-    {"+l", target = "values", description = "list values", switch = "on"},
     action = function(args)
-        local paths = args.dir:glob("%.md$")
+        local fields = parse_fields(args.fields)
+        local has_fields = #fields:keys() > 0
 
-        if args.value ~= nil then
-            args.values = true
-        end
-
-        local data = Dict()
-        paths:foreach(function(path)
-            local path_str = tostring(path:relative_to(args.dir))
-
+        local path_to_metadata = Dict()
+        args.dir:glob("%.md$"):foreach(function(path)
+            local metadata = Dict()
             List(Yaml.read_raw_frontmatter(path)):foreach(function(line)
-                if line:match(":") then
-                    local field, value = unpack(line:split(":", 1))
-                    field = field:strip()
-                    value = value:strip()
+                if is_field(line) then
+                    local field, value = parse_field_and_value(line)
 
-                    if not data[field] then
-                        data[field] = Dict()
+                    if not fields_to_exclude:contains(field) then
+                        metadata[field] = value
                     end
+                end
+            end)
 
-                    if not data[field][value] then
-                        data[field][value] = List()
-                    end
+            path_to_metadata[tostring(path:relative_to(args.dir))] = metadata
+        end)
 
-                    data[field][value]:append(path_str)
+        fields:foreach(function(field, values)
+            path_to_metadata:foreach(function(path, metadata)
+                if metadata[field] == nil then
+                    path_to_metadata[path] = nil
+                elseif #Set.values(values) > 0 and not values[metadata[field]] then
+                    path_to_metadata[path] = nil
                 end
             end)
         end)
 
-        if args.field then
-            data = data:filterk(function(field) return field == args.field end)
-        end
+        local data = Dict()
+        path_to_metadata:foreach(function(path, metadata)
+            metadata:foreach(function(field, value)
+                if has_fields then
+                    if fields:keys():contains(field) then
+                        local values = fields[field]
 
-        if args.value then
-            data:foreachv(function(values_d)
-                values_d:filterk(function(value) return value == args.value end)
-            end)
-        end
+                        if #Set.values(values) == 0 then
+                            data:default(field, List())
 
-        if args.values and not args.files then
-            data:transformv(function(values_d) return values_d:keys() end)
-        elseif not args.values and args.files then
-            data:transformv(function(values_d)
-                local files = List()
-                values_d:values():foreach(function(files_sublist)
-                    files_sublist:foreach(function(file)
-                        if not files:contains(file) then
-                            files:append(file)
+                            if args.files then
+                                value = path
+                            end
+
+                            data[field]:append(value)
+                        elseif values[value] then
+                            data:default(field, Dict())
+                            data[field]:default(value, List())
+                            data[field][value]:append(path)
                         end
-                    end)
-                end)
+                    end
+                else
+                    data:default(field, List())
 
-                return files
+                    if args.files then
+                        value = path
+                    end
+
+                    data[field]:append(value)
+                end
             end)
-        elseif not args.values and not args.files then
-            data = data:transformv(function(_) return Dict() end)
-        end
+        end)
 
         get_print_lines(data):foreach(print)
     end,

@@ -117,4 +117,12 @@ function Dict.fromlist(l)
     return Dict.from(unpack(l))
 end
 
+function Dict:default(key, value)
+    if not self[key] then
+        self[key] = value
+    end
+
+    return self
+end
+
 return Dict
