@@ -3,16 +3,15 @@ local Fold = require('htn.ui.fold')
 local group = vim.api.nvim_create_augroup('hnetxt_fold_cmds', {clear = true})
 local pattern = "*.md"
 
--- vim.api.nvim_create_autocmd({"VimEnter", "WinNew", "BufNew"}, {
-vim.api.nvim_create_autocmd({"WinEnter", "BufEnter"}, {
+vim.api.nvim_create_autocmd({"VimEnter", "WinNew"}, {
     pattern=pattern,
     group=group,
     callback=function()
+        vim.opt.fillchars = {fold = " "}
         vim.wo.foldenable = true
         vim.wo.foldlevel = 19
         vim.wo.foldnestmax = 20
         vim.wo.foldminlines = 0
-        vim.wo.fillchars = "fold: "
         vim.wo.foldmethod = 'expr'
         vim.wo.foldexpr = 'hnetxt_nvim#foldexpr()'
         vim.wo.foldtext = "hnetxt_nvim#foldtext()"
