@@ -369,7 +369,7 @@ Path.iterdir = Path.make_list_fn_match_input(function(dir, args)
         end
     end
 
-    if not hidden then
+    if not args.hidden then
         paths = paths:filter(function(path)
             return not tostring(path:relative_to(dir)):startswith('.')
         end)
@@ -393,7 +393,7 @@ function Path.rmdir(p, force)
     end
 
     if force then
-        p:iterdir():reverse():foreach(function(_p)
+        p:iterdir({hidden=true}):reverse():foreach(function(_p)
             if _p:is_file() then
                 _p:unlink()
             elseif _p:is_dir() then

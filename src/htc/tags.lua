@@ -82,6 +82,7 @@ return {
     description = "list tags",
     {"tags", args = "*", default = List(), description = "the tag to look for", action="concat"},
     {"-d --dir", default = Path.cwd(), description = "directory", convert=Path.as_path},
+    {"+f", target = "files", description = "list files", switch = "on"},
     action = function(args)
         local tags = parse_tags(args.tags)
 
@@ -94,6 +95,9 @@ return {
             path_to_tags:filterv(function(path_tags)
                 return check_tag_match(tags, path_tags)
             end)
+        end
+
+        if args.files then
             path_to_tags:keys():foreach(print)
         else
             local tags_map = Dict.fromlist(path_to_tags:values())
