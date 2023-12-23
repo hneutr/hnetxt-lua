@@ -125,4 +125,24 @@ function Dict:default(key, value)
     return self
 end
 
+function Dict:default_dict(key, ...)
+    if not self[key] then
+        self[key] = Dict()
+    end
+
+    if ... then
+        self[key]:default_dict(...)
+    end
+end
+
+function Dict:descend(key, ...)
+    local value = self[key]
+
+    if ... then
+        value = value:descend(...)
+    end
+
+    return value
+end
+
 return Dict

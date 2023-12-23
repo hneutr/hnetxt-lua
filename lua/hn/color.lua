@@ -28,43 +28,6 @@ local solarized = {
 local mocha = require("catppuccin.palettes").get_palette("mocha")
 local macchiato = require("catppuccin.palettes").get_palette("macchiato")
 
--- flamingo = "#f2cdce",
-
--- maroon = "#eba0ad",
--- mauve = "#cba6f8",
-
--- red = "#f38ba9",
--- peach = "#fab388",
--- yellow = "#f9e2b0",
--- green = "#a6e3a2",
-
--- pink = "#f5c2e8",
--- rosewater = "#f5e0dd",
-
--- sapphire = "#74c7ed",
--- sky = "#89dcec",
-
--- teal = "#94e2d6",
--- blue = "#89b4fb",
--- lavender = "#b4beff",
-
--- crust = "#11111c",
--- mantle = "#181826",
-
--- text = "#cdd6f5",
--- base = "#1e1e2f",
-
--- subtext0 = "#abadc9",
--- subtext1 = "#bac2df",
-
--- surface0 = "#313245",
--- surfacel = "#45475b",
--- surface2 = "#585b71",
-
--- overlay0 = "#6c7087",
--- overlay1 = "#7f849d",
--- overlay2 = "#9399b3",
-
 local M = {}
 
 M.C = macchiato
@@ -109,8 +72,6 @@ function M.set_highlight(args)
     for _, key in ipairs({'fg', 'bg'}) do
         if val[key] ~= nil then
             val[key] = M.C[table.removekey(val, key)]
-            -- val["cterm" .. key] = M.C.cterm[table.removekey(val, key)]
-            -- val[key] = M.C.cterm[table.removekey(val, key)]
         end
     end
 

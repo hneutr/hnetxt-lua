@@ -40,11 +40,12 @@ ls.add_snippets("markdown", {
     divider("dl", "large"),
     divider("dm", "medium"),
     divider("ds", "small"),
-    divider("dt", "tiny"),
+    divider("dS", "tiny"),
     -- headers
     header("hl", "large"),
     header("hm", "medium"),
     header("hs", "small"),
+    header("hS", "tiny"),
     header("Hl", "large", true),
     header("Hm", "medium", true),
     header("Hs", "small", true),
