@@ -1,1 +1,1 @@
-vim.b.list_types = {"question", "important", "maybe", "possibility", "detail"}
+vim.b.list_types = require("htl.config").get("list").extra_types

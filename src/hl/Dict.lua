@@ -135,14 +135,24 @@ function Dict:default_dict(key, ...)
     end
 end
 
-function Dict:descend(key, ...)
+function Dict:get(key, ...)
     local value = self[key]
 
     if ... then
-        value = value:descend(...)
+        value = value:get(...)
     end
 
     return value
+end
+
+function Dict:has(key, ...)
+    local has = self:keys():contains(key)
+
+    if has and ... then
+        has = self[key]:has(...)
+    end
+
+    return has
 end
 
 return Dict

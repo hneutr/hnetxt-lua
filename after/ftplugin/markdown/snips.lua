@@ -60,9 +60,8 @@ ls.add_snippets("markdown", {
     ps("book", [[
         is a: book
         by: $1
-        published in: ${2:YYYY}
-        type: ${3|read,recommendation|}
-        read in: ${4:YYYY}
+        published: ${2:YYYY}
+        read: ${4:YYYY}
         recommended by: $5
     ]]),
     ps("quote", [[

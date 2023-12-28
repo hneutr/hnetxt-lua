@@ -56,4 +56,9 @@ function M.read_raw_frontmatter(path)
     return frontmatter_str:split("\n")
 end
 
+function M.read_raw_text(path)
+    local contents = Path(path):read()
+    return contents:split(M.document_frontmatter_separator, 1)[2]
+end
+
 return M

@@ -6,6 +6,8 @@ local Yaml = require("hl.yaml")
 
 local TAG_PREFIX = "@"
 local TAG_SEPARATOR = "."
+local FIELD_DELIMITER = ":"
+local EXCLUSION_SUFFIX = "!"
 
 function get_print_lines(dict)
     local lines = List()
@@ -40,38 +42,65 @@ function get_print_lines(dict)
     return lines
 end
 
-function parse_tags_from_path(path)
-    local tags_map = Dict()
-    List(Yaml.read_raw_frontmatter(path)):filter(function(line)
-        return line:startswith(TAG_PREFIX)
-    end):transform(function(line)
-        return line:removeprefix(TAG_PREFIX)
-    end):filter(function(tags_string)
-        return #tags_string > 0
-    end):foreach(function(tags_string)
-        tags_map:default_dict(unpack(tags_string:split(TAG_SEPARATOR)))
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                   fields                                   --
+--                                                                            --
+--------------------------------------------------------------------------------
+function filter_fields(str) return str:match(FIELD_DELIMITER) end
+
+function parse_fields_string(str)
+    local field, value
+
+    if str:match(":") then
+        field, value = unpack(str:split(":", 1))
+        field = field:strip()
+        value = value:strip()
+    else
+        field = str
+    end
+
+    return field, value
+end
+
+
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                    tags                                    --
+--                                                                            --
+--------------------------------------------------------------------------------
+function filter_tags(str) return str:startswith(TAG_PREFIX) end
+
+function parse_tags_string(str)
+    str = str:removeprefix(TAG_PREFIX)
+    str = str:removesuffix(EXCLUSION_SUFFIX)
+    return List(str:split(TAG_SEPARATOR))
+end
+
+function parse_file_tags(path)
+    local tags = Dict()
+    List(Yaml.read_raw_frontmatter(path)):filter(filter_tags):foreach(function(str)
+        tags:default_dict(unpack(parse_tags_string(str)))
     end)
             
-    return tags_map
+    return tags
 end
 
-function parse_tags(raw)
-    local tags_map = Dict()
-
-    List(raw):foreach(function(tags_string)
-        tags_map:default_dict(unpack(tags_string:split(TAG_SEPARATOR)))
-    end)
-
-    return tags_map
+function parse_tag_filters(raw, exclude)
+    return List(raw):filter(function(str)
+        return (exclude and str:endswith(EXCLUSION_SUFFIX)) or (not exclude and not str:endswith(EXCLUSION_SUFFIX))
+    end):transform(parse_tags_string)
 end
 
-function check_tag_match(tags_to_match, tags)
+function check_tag_match(actual, expected, exclude)
     local match = true
-    tags_to_match:foreach(function(tag, subtags_to_match)
-        if tags:keys():contains(tag) and match then
-            match = check_tag_match(subtags_to_match, tags[tag])
-        else
-            match = false
+    expected:foreach(function(tags)
+        if match then
+            if exclude then
+                match = not actual:has(unpack(tags))
+            else
+                match = actual:has(unpack(tags))
+            end
         end
     end)
 
@@ -83,21 +112,22 @@ return {
     {"tags", args = "*", default = List(), description = "the tag to look for", action="concat"},
     {"-d --dir", default = Path.cwd(), description = "directory", convert=Path.as_path},
     {"+f", target = "files", description = "list files", switch = "on"},
+    {"+r", target = "random", description = "print random", switch = "on"},
     action = function(args)
-        local tags = parse_tags(args.tags)
-
         local path_to_tags = Dict()
         args.dir:glob("%.md$"):foreach(function(path)
-            path_to_tags[path:relative_to(args.dir)] = parse_tags_from_path(path)
+            path_to_tags[path:relative_to(args.dir)] = parse_file_tags(path)
         end)
 
-        if #tags:keys() > 0 then
-            path_to_tags:filterv(function(path_tags)
-                return check_tag_match(tags, path_tags)
-            end)
-        end
+        path_to_tags:filterv(check_tag_match, parse_tag_filters(args.tags))
+        path_to_tags:filterv(check_tag_match, parse_tag_filters(args.tags, true), true)
 
-        if args.files then
+        if args.random then
+            local paths = path_to_tags:keys()
+            local index = math.random(1, #paths)
+            local path = paths[index]
+            print(Yaml.read_raw_text(args.dir:join(path)):strip())
+        elseif args.files then
             path_to_tags:keys():foreach(print)
         else
             local tags_map = Dict.fromlist(path_to_tags:values())
