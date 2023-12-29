@@ -43,11 +43,16 @@ function M.write_document(path, frontmatter_table, text)
     Path(path):write(content)
 end
 
-function M.read_document(path)
+function M.read_document(path, raw)
     local contents = Path(path):read()
-    local frontmatter_str, text = unpack(contents:split(M.document_frontmatter_separator, 1))
+    local frontmatter, text = unpack(contents:split(M.document_frontmatter_separator, 1))
     text = text or ''
-    return {M.load(frontmatter_str), text}
+
+    if raw ~= true then
+        frontmatter = M.load(frontmatter)
+    end
+
+    return {frontmatter, text:strip()}
 end
 
 function M.read_raw_frontmatter(path)

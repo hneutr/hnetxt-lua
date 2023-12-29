@@ -2,6 +2,7 @@ local ls = require("luasnip")
 
 local Header = require("htn.text.header")
 local Divider = require("htn.text.divider")
+local Snippet = require("htl.snippet")
 
 local s = ls.snippet
 local i = ls.insert_node
@@ -12,16 +13,10 @@ local fmt = require("luasnip.extras.fmt").fmt
 
 local today = function() return vim.fn.strftime("%Y%m%d") end
 
-local function header(trigger, size, as_link)
-    local content = "$1"
-
-    if as_link then
-        content = "[$1]($2)"
-    end
-
+local function header(trigger, size)
     return ps(
         trigger,
-        tostring(Header({size = size, content = content})) .. "\n",
+        tostring(Header({size = size, content = "$1"})) .. "\n",
         {trim_empty = false}
     )
 end
@@ -34,7 +29,7 @@ local function divider(trigger, size, style)
     )
 end
 
-ls.add_snippets("markdown", {
+local snippets = List({
     ps("l", "[$1]($2)"),
     -- dividers
     divider("dl", "large"),
@@ -46,31 +41,8 @@ ls.add_snippets("markdown", {
     header("hm", "medium"),
     header("hs", "small"),
     header("hS", "tiny"),
-    header("Hl", "large", true),
-    header("Hm", "medium", true),
-    header("Hs", "small", true),
     -- metadata dividers
     divider("m", "large", "metadata"),
-    -- misc
-    ps("person", [[
-        first name: $1
-        middle name: $2
-        last name: $3
-    ]]),
-    ps("book", [[
-        is a: book
-        by: $1
-        published: ${2:YYYY}
-        read: ${4:YYYY}
-        recommended by: $5
-    ]]),
-    ps("quote", [[
-        is a: quote
-        of: $1
-        on page: $2
-
-        $5
-    ]]),
     s("date", fmt(
         [[
             date: {today}
@@ -78,24 +50,11 @@ ls.add_snippets("markdown", {
         ]],
         {today = f(today)})
     ),
-    -- make snippet to look for all tags and make a popup selector
-    -- ps("t", "@$1"),
-    s("thought", fmt(
-        [[
-            date: {today}
-            is a: {i1}
-            @{i2}
-        ]],
-        {today = f(today), i1 = i(1, ""), i2 = i(2, "tag")})
-    ),
-    ps("word", [[
-        is a: word
-        seen in: $1
-        type: ${2|unknown,cool|}
-    ]]),
-    ps("rec", [[
-        is a: recommendation
-        of: $1
-        by: $2
-    ]]),
 })
+
+
+Snippet.definitions:foreach(function(name, definition)
+    snippets:append(ps(name, definition.snippet))
+end)
+
+ls.add_snippets("markdown", snippets)

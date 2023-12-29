@@ -3,6 +3,7 @@ local Dict = require("hl.Dict")
 local List = require("hl.List")
 local Set = require("pl.Set")
 local Yaml = require("hl.yaml")
+local Snippet = require("htl.snippet")
 
 local TAG_PREFIX = "@"
 local TAG_SEPARATOR = "."
@@ -126,7 +127,8 @@ return {
             local paths = path_to_tags:keys()
             local index = math.random(1, #paths)
             local path = paths[index]
-            print(Yaml.read_raw_text(args.dir:join(path)):strip())
+
+            print(Snippet(args.dir:join(path)))
         elseif args.files then
             path_to_tags:keys():foreach(print)
         else
