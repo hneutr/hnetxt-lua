@@ -34,10 +34,14 @@ def quotes():
         if not quote_set.has_been_migrated:
             quote_sets.append(quote_set)
 
+    total = 0
     if len(quote_sets):
         print(f"quote sets to process: {len(quote_sets)}/{len(paths)}")
         for quote_set in quote_sets:
             quote_set.migrate()
+            total += len(quote_set.quotes)
+
+    print(f"total quotes: {total}")
 
 @cli.command()
 def typeless_quotes():

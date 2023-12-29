@@ -64,6 +64,6 @@ describe("read_document", function()
 
     it("no text", function()
         yaml.write_document(test_file, {a = 1})
-        assert.are.same({{a = 1}, '\n'}, yaml.read_document(test_file))
+        assert.are.same({{a = 1}, ''}, yaml.read_document(test_file))
     end)
 end)

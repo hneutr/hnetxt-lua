@@ -1,16 +1,16 @@
 local Path = require("hl.Path")
+local Yaml = require("hl.yaml")
+local Link = require("htl.text.link")
 
-Path.home:join("eidola", "people"):glob("%.md$"):foreach(function(p)
-    local lines = p:readlines()
+local old_quotes_dir = Path.home:join('Documents', 'text', '_quotes')
+local eidola_dir = Path.home:join("eidola")
+local people_dir = eidola_dir:join("people")
+local media_dir = eidola_dir:join("media")
 
-    lines:put("is a: person")
-    lines = lines:filter(function(line) return line ~= "is a: author" end)
-    lines:transform(function(line)
-        line = line:gsub("^%s*first:", "first name:")
-        line = line:gsub("^%s*middle:", "middle name:")
-        line = line:gsub("^%s*last:", "last name:")
-        return line
-    end)
+media_dir:glob("%.md$"):foreach(function(p)
+    local text = Yaml.read_raw_text(p) or ""
 
-    p:write(lines)
+    if #text:strip() == 0 and p:stem() ~= "@" and p:read():match("is a: quote") then
+        p:unlink()
+    end
 end)
