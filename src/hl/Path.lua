@@ -89,7 +89,7 @@ end)
 
 
 function Path:_init(path)
-    self.p = Path.as_string(path)
+    self.p = Path.expanduser(Path.as_string(path))
 end
 
 function Path:__concat(p)
@@ -304,6 +304,7 @@ Path.relative_to = Path.make_fn_match_input(function(p, p2)
 end)
 
 Path.resolve = Path.make_fn_match_input(function(p)
+    p = Path.expanduser(p)
     p = Path.as_path(p)
 
     if p:parts()[1] == "." then

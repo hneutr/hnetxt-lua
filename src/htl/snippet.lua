@@ -66,7 +66,7 @@ function Snippet:parse_line(line)
         value = value:strip()
 
         if Link.str_is_a(value) then
-            value = Snippet(Path(Project.root_from_path(self.path)):join(Link.from_str(value).location))
+            value = Snippet(Project.root_from_path(self.path):join(Link.from_str(value).location))
         end
     else
         field = line

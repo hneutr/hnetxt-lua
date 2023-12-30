@@ -31,9 +31,7 @@ function get_print_lines(dict)
     return lines
 end
 
-function is_field(line)
-    return line:match(":")
-end
+function is_field(line) return line:match(":") end
 
 function parse_field_and_value(line)
     local field, value

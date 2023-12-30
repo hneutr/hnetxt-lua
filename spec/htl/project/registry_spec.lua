@@ -65,7 +65,7 @@ end)
 describe("get_entry_dir", function()
     it("existing", function()
         Registry.set_entry("a", "b")
-        assert.are.same("b", Registry.get_entry_dir("a"))
+        assert.are.same(Path("b"), Registry.get_entry_dir("a"))
     end)
 
     it("missing", function()

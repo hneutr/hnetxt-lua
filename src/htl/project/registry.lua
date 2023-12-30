@@ -37,7 +37,7 @@ function M.set_entry(name, path)
 end
 
 function M.get_entry_dir(name)
-    return Path.as_string(M.get()[name])
+    return Path.as_path(M.get()[name])
 end
 
 function M.remove_entry(name)

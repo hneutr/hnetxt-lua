@@ -3,16 +3,22 @@ local Dict = require("hl.Dict")
 local List = require("hl.List")
 local Set = require("pl.Set")
 local Yaml = require("hl.yaml")
+local Link = require("htl.text.Link")
+local Project = require("htl.project")
 local Snippet = require("htl.snippet")
+local Config = require("htl.config")
+
+local EXCLUSION_SUFFIX = "!"
 
 local TAG_PREFIX = "@"
 local TAG_SEPARATOR = "."
+
 local FIELD_DELIMITER = ":"
-local EXCLUSION_SUFFIX = "!"
+local FIELDS_TO_EXCLUDE = Set({"date"})
 
 function get_print_lines(dict)
     local lines = List()
-    dict:keys():sorted():foreach(function(k)
+    dict:transformk(tostring):keys():sorted():foreach(function(k)
         local v = dict[k]
         local sublines = List()
         
@@ -48,59 +54,101 @@ end
 --                                   fields                                   --
 --                                                                            --
 --------------------------------------------------------------------------------
-function filter_fields(str) return str:match(FIELD_DELIMITER) end
+function is_field(str) return str:match(FIELD_DELIMITER) end
 
-function parse_fields_string(str)
-    local field, value
+function parse_field_string(field)
+    local value
 
-    if str:match(":") then
-        field, value = unpack(str:split(":", 1))
-        field = field:strip()
-        value = value:strip()
-    else
-        field = str
+    if field:match(FIELD_DELIMITER) then
+        field, value = unpack(field:split(FIELD_DELIMITER, 1):mapm("strip"))
+
+        if Link.str_is_a(value) then
+            value = Path(Link.from_str(value).location)
+        end
     end
 
-    return field, value
-end
+    if FIELDS_TO_EXCLUDE[field] then
+        return List({})
+    end
 
+    return List({field, value})
+end
 
 --------------------------------------------------------------------------------
 --                                                                            --
 --                                    tags                                    --
 --                                                                            --
 --------------------------------------------------------------------------------
-function filter_tags(str) return str:startswith(TAG_PREFIX) end
+function is_tag(str) return str:startswith(TAG_PREFIX) end
+function is_exclusion(str) return str:endswith(EXCLUSION_SUFFIX) end
 
 function parse_tags_string(str)
     str = str:removeprefix(TAG_PREFIX)
     str = str:removesuffix(EXCLUSION_SUFFIX)
-    return List(str:split(TAG_SEPARATOR))
+    return str:split(TAG_SEPARATOR)
 end
 
 function parse_file_tags(path)
     local tags = Dict()
-    List(Yaml.read_raw_frontmatter(path)):filter(filter_tags):foreach(function(str)
+    List(Yaml.read_raw_frontmatter(path)):filter(is_tag):foreach(function(str)
         tags:default_dict(unpack(parse_tags_string(str)))
     end)
             
     return tags
 end
 
-function parse_tag_filters(raw, exclude)
-    return List(raw):filter(function(str)
-        return (exclude and str:endswith(EXCLUSION_SUFFIX)) or (not exclude and not str:endswith(EXCLUSION_SUFFIX))
-    end):transform(parse_tags_string)
+--------------------------------------------------------------------------------
+--                                                                            --
+--                               file metadata                                --
+--                                                                            --
+--------------------------------------------------------------------------------
+function parse_metadata_string(str)
+    if is_tag(str) then
+        return parse_tags_string(str)
+    end
+    
+    return parse_field_string(str)
 end
 
-function check_tag_match(actual, expected, exclude)
+function parse_metadata(path)
+    local metadata = Dict()
+    List(Yaml.read_raw_frontmatter(path)):transform(
+        parse_metadata_string
+    ):filter(function(m)
+        return #m > 0
+    end):foreach(function(m)
+        metadata:default_dict(unpack(m))
+    end)
+            
+    return metadata
+end
+
+function get_path_to_metadata(dir, conditions)
+    local path_to_metadata = Dict()
+    dir:glob("%.md$"):foreach(function(path)
+        path_to_metadata[path] = parse_metadata(path)
+    end)
+
+    path_to_metadata:filterv(check_conditions, conditions)
+
+    return path_to_metadata
+end
+
+--------------------------------------------------------------------------------
+--                                                                            --
+--                            checking conditions                             --
+--                                                                            --
+--------------------------------------------------------------------------------
+function check_conditions(metadata, conditions)
     local match = true
-    expected:foreach(function(tags)
+    List(conditions):foreach(function(condition_string)
         if match then
-            if exclude then
-                match = not actual:has(unpack(tags))
+            local tags = parse_metadata_string(condition_string)
+
+            if is_exclusion(condition_string) then
+                match = not metadata:has(unpack(tags))
             else
-                match = actual:has(unpack(tags))
+                match = metadata:has(unpack(tags))
             end
         end
     end)
@@ -108,32 +156,57 @@ function check_tag_match(actual, expected, exclude)
     return match
 end
 
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                x-of-the-day                                --
+--                                                                            --
+--------------------------------------------------------------------------------
+function set_x_of_the_day()
+    local config = Config.get("x-of-the-day")
+    local data_dir = Config.data_dir:join(config.data_dir)
+
+    List(config.commands):foreach(function(command)
+        local output_path = data_dir:join(command.name, os.date("%Y%m%d"))
+
+        if not output_path:exists() then
+            local path = get_random_path(get_path_to_metadata(Path(command.dir), command.conditions))
+            output_path:write(tostring(path))
+        end
+    end)
+end
+
+function get_random_path(path_to_metadata)
+    local paths = path_to_metadata:keys()
+    local index = math.random(1, #paths)
+    return paths[index]
+end
+
 return {
     description = "list tags",
-    {"tags", args = "*", default = List(), description = "the tag to look for", action="concat"},
+    {
+        "conditions",
+        args = "*",
+        default = List(),
+        description = "the conditions to meet (fields:value?/@tag.subtag/exclusion!)", 
+        action="concat",
+    },
     {"-d --dir", default = Path.cwd(), description = "directory", convert=Path.as_path},
     {"+f", target = "files", description = "list files", switch = "on"},
     {"+r", target = "random", description = "print random", switch = "on"},
+    {"+x", target = "x_of_the_day", description = "run the x-of-the-day", switch = "on"},
     action = function(args)
-        local path_to_tags = Dict()
-        args.dir:glob("%.md$"):foreach(function(path)
-            path_to_tags[path:relative_to(args.dir)] = parse_file_tags(path)
-        end)
-
-        path_to_tags:filterv(check_tag_match, parse_tag_filters(args.tags))
-        path_to_tags:filterv(check_tag_match, parse_tag_filters(args.tags, true), true)
+        if args.x_of_the_day then
+            return set_x_of_the_day()
+        end
+        
+        local path_to_metadata = get_path_to_metadata(args.dir, args.conditions)
 
         if args.random then
-            local paths = path_to_tags:keys()
-            local index = math.random(1, #paths)
-            local path = paths[index]
-
-            print(Snippet(args.dir:join(path)))
+            print(Snippet(get_random_path(path_to_metadata)))
         elseif args.files then
-            path_to_tags:keys():foreach(print)
+            path_to_metadata:keys():mapm("relative_to", args.dir):foreach(print)
         else
-            local tags_map = Dict.fromlist(path_to_tags:values())
-            get_print_lines(tags_map):foreach(print)
+            get_print_lines(Dict.fromlist(path_to_metadata:values())):foreach(print)
         end
     end,
 }

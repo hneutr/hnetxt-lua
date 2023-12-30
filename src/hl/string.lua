@@ -73,7 +73,7 @@ function string.split(str, sep, maxsplit, plain)
         splits = filtered_splits
     end
     
-    return splits
+    return List(splits)
 end
 
 

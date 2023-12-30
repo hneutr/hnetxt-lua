@@ -17,8 +17,11 @@ end)
 
 describe("init", function()
     it("works", function()
-        local p = "~/Desktop"
-        assert.are.same(p, Path(p).p)
+        assert.are.same("a", Path("a").p)
+    end)
+
+    it("works", function()
+        assert.are.same(Path.home:join("a"), Path("~/a"))
     end)
 end)
 
