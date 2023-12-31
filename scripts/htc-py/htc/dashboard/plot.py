@@ -18,6 +18,15 @@ FONTPROPERTIES = {
     'stat': FontProperties(
         size=16,
     ),
+    'annotation': FontProperties(
+        size=10,
+    ),
+    'quote': FontProperties(
+        size=16,
+    ),
+    'attribution': FontProperties(
+        size=12,
+    ),
 }
 
 def add_emoji(
@@ -69,6 +78,7 @@ class Header(object):
     FONTPROPERTIES = FONTPROPERTIES['header']
     TEXT_COLOR = htc.config.get('colors')['text']
     BACKGROUND_COLOR = htc.track.dashboard_config()['colors']['background']
+    ANNOTATE_KWARGS = {}
 
     def __init__(self, label, elements=None, color=None, indent=0):
         self.label = label
@@ -76,7 +86,9 @@ class Header(object):
         self.indent = 0
 
         if elements:
-            self.elements = [self.get_elements(k, v) for k, v in elements.items()]
+            if isinstance(elements, dict):
+                self.elements = [self.get_elements(k, v) for k, v in elements.items()]
+            else: self.elements = elements
         else:
             self.elements = []
 
@@ -117,6 +129,7 @@ class Header(object):
             xycoords="axes fraction",
             ha='left',
             va='top',
+            **self.ANNOTATE_KWARGS,
         )
 
         if self.elements:
@@ -156,6 +169,42 @@ class Subheader(Header):
     @property
     def indented_label(self):
         return " " * 4 * self.indent + self.label + ":"
+
+class Quote(Header):
+    FONTPROPERTIES = FONTPROPERTIES['quote']
+    Y_PAD = -.02
+    ANNOTATE_KWARGS = {
+        'wrap': True,
+    }
+
+    def __init__(self, text, indent=1):
+        self.parse(text)
+        self.indent = indent
+        self.color = self.TEXT_COLOR
+
+    def parse(self, text):
+        self.label, attribution = text.rsplit("\n", 1)
+        self.elements = [Attribution(text=attribution)]
+
+class Attribution(Header):
+    FONTPROPERTIES = FONTPROPERTIES['attribution']
+    Y_PAD = -.02
+
+    def __init__(self, text, indent=2):
+        self.label = text
+        self.indent = indent
+        self.color = self.TEXT_COLOR
+        self.elements = []
+
+class Question(Header):
+    X_PAD = .02
+    Y_PAD = -.02
+
+    def __init__(self, label):
+        self.label = label
+        self.color = self.TEXT_COLOR
+        self.indent = 0
+        self.elements = []
 
 class Stat(Header):
     FONTPROPERTIES = FONTPROPERTIES['stat']
@@ -209,17 +258,6 @@ class Stat(Header):
 class AnnotationGroup(object):
     def __init__(self, elements):
         self.elements = elements
-
-    def get_element(self, key, val, dict_class=Header, indent=0):
-        if isinstance(val, dict):
-            return dict_class(
-                label=key,
-                elements=[self.get_element(k, v, dict_class=Subheader, indent=indent + 1) for k, v in val.items()],
-                indent=indent,
-            )
-        else:
-            return Stat(label=key, value=val, indent=indent)
-
 
     def annotate(self, ax):
         previous_element = None

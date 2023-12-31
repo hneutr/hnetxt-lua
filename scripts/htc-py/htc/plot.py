@@ -15,9 +15,7 @@ import hnelib.plt.color
 import htc.track
 import htc.config
 import htc.dashboard
-
-DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-N_DAYS = len(DAYS)
+from htc.datatype import TimeDelta, Time
 
 def add_sections(
     parent_ax,
@@ -55,10 +53,14 @@ def add_sections(
                 y=y,
                 width=section['width'],
                 height=section['height'],
-                x_pad=x_pad,
-                y_pad=y_pad,
-                facecolor=facecolor,
-                **section['layout'],
+                **{
+                    **{
+                        'x_pad': x_pad,
+                        'y_pad': y_pad,
+                        'facecolor': facecolor,
+                    },
+                    **section['layout'],
+                },
             )
 
             if name:
@@ -94,13 +96,13 @@ def add_sections(
 def get_dashboard_layout(
     sections=[
         {
-            'name': 'week',
             'width': 1.5,
             'layout': {
                 'by': 'row',
+                'y_pad': .05,
                 'sections': [
-                    {'name': 'did/not'},
-                    {'name': 'time'},
+                    {'name': 'quote-of-the-day'},
+                    {'name': 'week'},
                 ],
             },
         },
@@ -154,61 +156,48 @@ def scale_y(y):
 
 
 def weekly_dashboard():
-    df = htc.dashboard.data.get()
-    df = df[
-        df['DeltaWeeks'] == 0
-    ]
-
     fig, axes = get_dashboard_layout()
 
-    weekly_time_spent(axes['week']['time'])
-    # weekly_habits(df, axes['week']['did/not'])
+    weekly_time_spent(axes['week'])
 
-    compare_months(axes['month-comparison'])
+    # compare_months(axes['month-comparison'])
     writing_stats(axes['text']['writing'])
     misc_stats(axes['text']['misc'])
 
-    # hl.plt.axes.hide(axes['text']['misc'])
+    quote_of_the_day(axes['quote-of-the-day'])
 
-def misc_stats(
-    ax,
-):
-    df = htc.dashboard.data.get()
-    sleep_df = htc.dashboard.data.get_sleep_data(df)
+def quote_of_the_day(ax):
+    today = datetime.today().strftime("%Y%m%d")
+    quote_path = htc.constants.QUOTE_OF_THE_DAY_DIR / today
+    question_path = htc.constants.QUESTION_OF_THE_DAY_DIR / today
 
-    stats = {}
-    label_to_key = {
-        'went to bed': 'Start',
-        'got up': 'End',
-        'hours': 'Duration',
-    }
+    htc.dashboard.plot.AnnotationGroup(
+        elements=[
+            htc.dashboard.plot.Question(question_path.read_text()),
+            htc.dashboard.plot.Header(
+                "quote of the day",
+                color=htc.track.dashboard_config()['colors']['highlight'],
+                elements=[
+                    htc.dashboard.plot.Quote(text=quote_path.read_text())
+                ],
+            ),
+        ]
+    ).annotate(ax)
 
-    for label, key in label_to_key.items():
-        stats[label] = htc.dashboard.datatype.Time.to_string(sleep_df[key].mean(), round_minutes_to=15)
 
-    ex_df = df.copy()[
-        df['Activity'] == 'exercise'
-    ]
-    total_days = len(ex_df)
-    ex_days = len(ex_df[ex_df['Value']])
-    ex_rate = ex_days / total_days
-    ex_days = round(ex_rate * 7)
-    remainder = ex_rate * 7 - ex_days
-    exercised_per_week = ex_days + (round(remainder * 100 / 25) / 100 * 25)
 
+def misc_stats(ax):
     htc.dashboard.plot.AnnotationGroup(
         elements=[
             htc.dashboard.plot.Header(
                 "sleep",
-                color=htc.config.get('colors')['blue'],
-                elements=stats,
+                color=htc.track.activity_configs()['day']['color'],
+                elements=htc.dashboard.stats.sleep_stats(),
             ),
             htc.dashboard.plot.Header(
                 "exercise",
-                color=htc.config.get('colors')['green'],
-                elements={
-                    "days per week": exercised_per_week
-                }
+                color=htc.track.activity_configs()['exercise']['color'],
+                elements=htc.dashboard.stats.exercise_stats(),
             ),
         ]
     ).annotate(ax)
@@ -255,92 +244,12 @@ def writing_stats(
         elements=[
             htc.dashboard.plot.Header(
                 "writing",
-                color=htc.config.get('colors')['flamingo'],
+                color=htc.track.activity_configs()['wrote']['color'],
                 elements=stats,
             ),
         ]
     ).annotate(ax)
 
-
-
-def weekly_habits(
-    df,
-    ax=None,
-    activity_height=1,
-):
-    color = hl.plt.color.cycle[2]
-    if not ax:
-        fig, ax = plt.subplots(figsize=hl.plt.dims[1, 1])
-
-    activities = htc.track.activity_configs(datatype='boolean')
-    activity_categories = {activity['category'] for activity in activities.values()}
-    categories = {c: conf for c, conf in htc.track.category_configs().items() if c in activity_categories}
-    categories_list = list(categories)
-
-    activities_list = []
-    for category, config in categories.items():
-        activities_list += [a for a in config['activities'] if a in activities]
-
-    df = df.copy()[
-        df['Activity'].isin(activities.keys())
-    ]
-
-    df['Category'] = df['Activity'].apply(lambda a: activities[a]['category'])
-    df['CategoryIndex'] = df['Category'].apply(lambda c: categories_list.index(c))
-    df['ActivityIndex'] = df['Activity'].apply(lambda a: activities_list.index(a))
-
-    df['ActivityOrder'] = df['CategoryIndex'] * activity_height
-    df['ActivityOrder'] += df['ActivityIndex'] * activity_height
-    df['Emoji'] = df['Activity'].apply(lambda a: activities[a]['emoji'])
-    df['Height'] = activity_height
-    df['Bar'] = [i for i in range(len(df))]
-    df['Color'] = color
-
-    df['MarkerFaceColor'] = df['Value'].apply(lambda v: 'w' if v else hl.plt.color.set_alpha(color))
-    df['FaceColor'] = df['Value'].apply(lambda v: hl.plt.color.set_alpha(color) if v else 'w')
-    df['Marker'] = df['Value'].apply(lambda v: 'o' if v else 'X')
-
-    set_week_x_axis(ax)
-
-    ax.barh(
-        df['ActivityOrder'],
-        df['Height'],
-        left=df['Weekday'] - .5,
-        color=df['FaceColor'],
-        edgecolor=df['Color'],
-    )
-
-    for marker, rows in df.groupby('Marker'):
-        ax.scatter(
-            rows['Weekday'],
-            rows['ActivityOrder'],
-            marker=marker,
-            edgecolor=rows['Color'],
-            color=rows['MarkerFaceColor'],
-            s=500,
-        )
-
-    ax.set_ylim(0 - activity_height / 2, df['ActivityOrder'].max() + (activity_height / 2))
-
-    activities_df = df[
-        [
-            'Activity',
-            'ActivityOrder',
-            'Emoji',
-        ]
-    ].drop_duplicates().sort_values(by='ActivityOrder')
-
-    ax.set_yticks(list(activities_df['ActivityOrder']))
-    ax.set_yticklabels(activities_df['Activity'])
-
-    for _, row in activities_df.iterrows():
-        htc.dashboard.plot.add_emoji(
-            ax,
-            row['Emoji'],
-            x=ax.get_xlim()[0],
-            y=row['ActivityOrder'],
-            ha='left',
-        )
 
 
 def weekly_time_spent(
@@ -352,45 +261,32 @@ def weekly_time_spent(
         -1 * days < df['DeltaDays']
     ]
 
-    if not ax:
-        fig, ax = plt.subplots(figsize=hl.plt.dims[1, 1])
-
     set_week_axis_limits(ax, df)
-
     plot_day_lengths(ax, df)
+    plot_timespan_activities(ax, df)
 
+
+def plot_timespan_activities(ax, df):
+    exclusions = ['day']
     df = df.copy()[
-        df['Activity'] == 'wrote'
+        (df['Datatype'] == 'timespan')
+        &
+        (~df['Activity'].isin(exclusions))
     ]
 
-    df['DurationFraction'] = df['EndFraction'] - df['StartFraction']
-    df['Color'] = hl.plt.color.cycle[2]
-    df['Facecolor'] = df['Color'].apply(hl.plt.color.set_alpha)
+    activity_configs = htc.track.activity_configs()
+    for activity, rows in df.groupby('Activity'):
+        rows = rows.copy()
+        rows['Color'] = activity_configs[activity]['color']
+        rows['Facecolor'] = rows['Color'].apply(hl.plt.color.set_alpha)
 
-    ax.bar(
-        df['DeltaDays'],
-        height=df['DurationFraction'],
-        bottom=df['StartFraction'],
-        edgecolor=df['Color'],
-        color=df['Facecolor'],
-    )
-
-
-def set_week_x_axis(
-    ax,
-    pad=.5,
-    ticklen=None,
-    offset=0,
-
-):
-    ticks = DAYS.copy()
-
-    if ticklen:
-        ticks = [t[:ticklen] for t in ticks]
-
-    ax.set_xlim(offset - pad, offset + N_DAYS - pad)
-    ax.set_xticks([i + offset for i in range(N_DAYS)])
-    ax.set_xticklabels(ticks)
+        ax.bar(
+            rows['DeltaDays'],
+            height=rows['Duration'],
+            bottom=rows['Start'],
+            edgecolor=rows['Color'],
+            color=rows['Facecolor'],
+        )
 
 
 def set_week_axis_limits(
@@ -399,9 +295,9 @@ def set_week_axis_limits(
     hour_tick_freq=3,
     grid_freq=6,
 ):
-    step = htc.dashboard.datatype.Time.delta_to_fraction(timedelta(hours=hour_tick_freq))
+    step = TimeDelta.to_frac(hours=hour_tick_freq)
 
-    time_fractions = list(df['StartFraction']) + list(df['EndFraction'])
+    time_fractions = list(df['Start']) + list(df['End'])
     time_fractions = [t for t in time_fractions if pd.notna(t)]
     earliest = min(time_fractions)
     latest = max(time_fractions)
@@ -415,23 +311,18 @@ def set_week_axis_limits(
         end += step
 
     yticks = np.arange(start, end + step, step)
-    yticklabels = [htc.dashboard.datatype.Time.to_string(t, noon_and_midnight=True) for t in yticks]
-
-    # ax.set_ylim(start, end)
-    # ax.set_yticks(yticks)
-    # ax.set_yticklabels(yticklabels)
-
     htc.dashboard.plot.set_axis(
         ax=ax,
         which='y',
         ticks=list(yticks),
         lim=[start, end],
-        labels=list(yticklabels),
+        labels=[Time.to_string(t, noon_and_midnight=True) for t in yticks],
     )
 
     hnelib.plt.grid.on_vals(ax, ys=np.arange(start, end + step, step * 2))
 
     set_day_x_axis(ax, df)
+
 
 def set_day_x_axis(
     ax,
@@ -459,7 +350,7 @@ def set_day_x_axis(
         which='x',
         ticks=ticks,
         lim=[ticks[0] - pad, ticks[-1] + pad],
-        labels=list(df['WeekdayName']),
+        labels=[l.lower() for l in df['WeekdayName']]
     )
 
 
@@ -467,128 +358,59 @@ def plot_day_lengths(
     ax,
     df,
     width=.85,
-    height_in_minutes=10,
+    height_in_minutes=25,
+    text_pad_in_minutes=5,
 ):
-    text_color = htc.track.dashboard_config()['colors']['text']
-
-    kwargs = {
-        'color': hl.plt.color.named_grayscale['gray'],
-        'linewidth': 1.5,
-    }
-
     df = df.copy()[
         df['Activity'] == 'day'
     ]
 
-    height = htc.dashboard.datatype.Time.delta_to_fraction(timedelta(minutes=height_in_minutes))
+    annotations = []
 
     xshift = width / 2
     for _, row in df.iterrows():
         x = htc.dashboard.data.delta_days(row['Date'])
 
-        for prefix, multiplier in zip(['Start', 'End'], [1, -1]):
+        for field, multiplier in zip(['Start', 'End'], [1, -1]):
             xl = x - xshift
             xr = x + xshift
 
-            y1 = row[f'{prefix}Fraction']
-            y2 = y1 + height * multiplier
+            y1 = row[field]
+            y2 = y1 + multiplier * TimeDelta.to_frac(minutes=height_in_minutes)
 
             ax.plot(
                 [xl, xl, xr, xr],
                 [y2, y1, y1, y2],
-                **kwargs,
+                color=htc.track.dashboard_config()['colors']['ticks'],
+                linewidth=2,
+                alpha=1,
             )
 
-        hours = htc.dashboard.datatype.Time.to_string(row['Duration'], minute=False, ampm=False)
-
-        ax.annotate(
-            f"{hours} hour day",
-            xy=(x, row['EndFraction'] + height),
-            ha='center',
-            va='bottom',
-            color=text_color,
-        )
+        annotations.append({
+            'label': 'awake',
+            'x': x,
+            'y': row['End'],
+            'value': row['Duration'],
+        })
 
     for _, row in htc.dashboard.data.get_sleep_data(df).iterrows():
-        hours = htc.dashboard.datatype.Time.to_string(row['Duration'], minute=False)
+        annotations.append({
+            'label': 'asleep',
+            'x': htc.dashboard.data.delta_days(row['Date']),
+            'y': row['End'] - 1,
+            'value': row['Duration'],
+        })
+
+    text_pad = TimeDelta.to_frac(minutes=text_pad_in_minutes)
+    for annotation in annotations:
         ax.annotate(
-            f"{hours} hours of sleep",
-            xy=(
-                htc.dashboard.data.delta_days(row['Date']),
-                htc.dashboard.datatype.Time.time_to_fraction(row['End']) - height
-            ),
+            f"{TimeDelta.to_string(val=annotation['value'])}h {annotation['label']}",
+            xy=(annotation['x'], annotation['y'] + text_pad),
             ha='center',
-            va='top',
-            color=text_color,
+            va='bottom',
+            color=htc.track.dashboard_config()['colors']['text'],
+            fontproperties=htc.dashboard.plot.FONTPROPERTIES['annotation'],
         )
-
-def compare_months(
-    ax=None,
-    period_days=30,
-):
-    if not ax:
-        fig, ax = plt.subplots(figsize=hl.plt.dims[1, 1])
-
-    ax.set_facecolor(htc.config.get('colors')['surface1'])
-    hl.plt.axes.hide_ticks(ax)
-    x_margin = .05
-    y_margin = scale_y(x_margin)
-    ax = ax.inset_axes((x_margin, y_margin, 1 - 2 * x_margin, 1 - 2 * y_margin))
-
-    df = htc.dashboard.data.get()
-
-    start_of_current_period = datetime.today() - timedelta(days=period_days)
-    start_of_previous_period = start_of_current_period - timedelta(days=period_days)
-
-    df = df[
-        df['Activity'].isin(htc.config.get('track')['comparison_activities'])
-    ]
-
-    df = df[
-        df['Date'] >= start_of_previous_period
-    ]
-
-    df['Period'] = df['Date'] >= start_of_current_period
-
-    df['Did'] = df.groupby(['Activity', 'Period'])['BooleanValue'].transform('sum')
-    df['DidFraction'] = df['Did'] / period_days
-
-    df = df[
-        [
-            'Activity',
-            'Period',
-            'Did',
-            'DidFraction',
-        ]
-    ].drop_duplicates()
-
-    df['Color'] = hl.plt.color.cycle[0]
-    df['FaceColor'] = df.apply(lambda r: r['Color'] if r['Period'] else 'w', axis=1)
-
-    bars_df = hl.plt.bar(
-        ax=ax,
-        df=df,
-        size_col='Did',
-        bar_edge_color_col='Color',
-        bar_color_col='FaceColor',
-        stack_col='Period',
-        group_col='Activity',
-        tick_label_col='Activity',
-        separate_groups=False,
-    )
-    ax.set_ylim([0, period_days])
-
-    ticklabels = np.arange(1, 8)
-    ticks = [t / 7 * period_days for t in ticklabels]
-
-    ax.set_yticks(ticks)
-    ax.set_yticklabels(ticklabels)
-    ax.set_ylabel(r"$\frac{days}{week}$")
-
-    hl.plt.grid.on_ticks(ax, x=False)
-
-
-
 
 
 #------------------------------------------------------------------------------#
@@ -602,7 +424,6 @@ COLLECTION = {
     # 'field': track,
     # 'substances': substances_plot,
     'weekly-dashboard': weekly_dashboard,
-    'compare-months': compare_months,
 }
 
 runner = hl.runner.PlotRunner(

@@ -6,10 +6,6 @@ import htc.config
 import htc.constants
 import htc.track.parse as parse
 
-DAY_SECONDS = timedelta(days=1).total_seconds()
-HOUR_SECONDS = timedelta(hours=1).total_seconds()
-
-# @functools.lru_cache
 def dashboard_config():
     config = htc.config.get('dashboard')
     colors = htc.config.get('colors')
@@ -78,35 +74,3 @@ def category_configs():
         categories[category_name] = category
 
     return categories
-
-
-def add_missing_entries(df):
-    configs = activity_configs()
-
-    today = datetime.today()
-
-    new_entries = []
-    for activity, rows in df.groupby('Activity'):
-        activity_dates = df['Date'].unique()
-        all_dates = pd.date_range(start=df['Date'].min(), end=today)
-
-        default_value = configs.get(activity, {}).get('default', False)
-        for date in [d for d in all_dates if d not in activity_dates]:
-            new_entries.append({
-                'Date': date,
-                'Activity': activity,
-                'Value': default_value,
-            })
-
-    df = pd.concat([df, pd.DataFrame(new_entries)])
-    return df
-
-
-def timedelta_to_fraction(td):
-    return td.total_seconds() / DAY_SECONDS
-
-def fraction_to_timedelta(fraction):
-    return timedelta(seconds=fraction * DAY_SECONDS)
-
-def fraction_to_hours(fraction):
-    return fraction_to_timedelta(fraction).total_seconds() / HOUR_SECONDS

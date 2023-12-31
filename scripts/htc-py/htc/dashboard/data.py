@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, date
 import htc.config
 import htc.constants
 import htc.track
+from htc.datatype import Time, TimeDelta
 
 DAY_SECONDS = timedelta(days=1).total_seconds()
 HOUR_SECONDS = timedelta(hours=1).total_seconds()
@@ -72,17 +73,16 @@ def get_sleep_data(df):
 
         previous_day = previous_day.iloc[0]
         start = previous_day['End']
-        end = day['Start']
-        duration = end - start
+
+        end = day['Start'] + 1
 
         sleep_rows.append({
             'Activity': 'slept',
             'Date': date,
             'Start': start,
             'End': end,
-            'Duration': duration,
+            'Duration': end - start,
         })
-
 
     return pd.DataFrame(sleep_rows)
 
@@ -144,31 +144,8 @@ class TimeDatatype(Datatype):
         return bool(self.RE.match(val))
 
     def transform_row(self, row):
-        row['Value'] = self.time_to_datetime(row['Value'], row['Date'])
+        row['Value'] = Time.to_frac(row['Value'])
         return row
-
-    @staticmethod
-    def time_to_datetime(time, date):
-        time = datetime.strptime(time, "%H:%M")
-        return date + timedelta(hours=time.hour, minutes=time.minute)
-
-    @staticmethod
-    def time_to_day_fraction(time, date):
-        td = time - date
-        return td.total_seconds() / DAY_SECONDS
-
-    @staticmethod
-    def timedelta_to_fraction(td):
-        return td.total_seconds() / DAY_SECONDS
-
-    @staticmethod
-    def fraction_to_timedelta(fraction):
-        return timedelta(seconds=fraction * DAY_SECONDS)
-
-    @staticmethod
-    def timefraction_to_hours(fraction):
-        return TimeDatatype.fraction_to_timedelta(fraction).total_seconds() / HOUR_SECONDS
-
 
 class TimespanDatatype(TimeDatatype):
     NAME = 'timespan'
@@ -183,14 +160,14 @@ class TimespanDatatype(TimeDatatype):
     def transform_row(self, row):
         match = self.RE.match(row['Value'])
         start, end = match[1], match[2]
-        row['Start'] = self.time_to_datetime(start, row['Date'])
-        row['End'] = self.time_to_datetime(end, row['Date'])
-        if row['End'] < row['Start']:
-            row['End'] += timedelta(days=1)
 
-        row['StartFraction'] = self.time_to_day_fraction(row['Start'], row['Date'])
-        row['EndFraction'] = self.time_to_day_fraction(row['End'], row['Date'])
-        row['Duration'] = row['EndFraction'] - row['StartFraction']
+        row['Start'] = Time.to_frac(start)
+        row['End'] = Time.to_frac(end)
+
+        if row['End'] < row['Start']:
+            row['End'] += 1
+        
+        row['Duration'] = row['End'] - row['Start']
 
         return row
 
@@ -207,28 +184,6 @@ def get_datatypes():
 @functools.lru_cache
 def get_datatypes_by_name():
     return {d.NAME: d for d in get_datatypes()}
-
-
-
-def get_week_data(
-    df,
-    last_week=False,
-):
-    today = datetime.today()
-    week_start = datetime(year=today.year, month=today.month, day=today.day) - timedelta(days=today.weekday())
-
-    if last_week:
-        week_start -= timedelta(days=7)
-        
-    week_end = week_start + timedelta(days=7)
-
-    df = df.copy()[
-        (week_start <= df['Date'])
-        &
-        (df['Date'] < week_end)
-    ]
-
-    return df
 
 
 def week_start(d=datetime.now()):
