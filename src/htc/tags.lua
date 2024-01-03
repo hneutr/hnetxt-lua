@@ -168,9 +168,9 @@ function set_x_of_the_day()
     List(config.commands):foreach(function(command)
         local output_path = data_dir:join(command.name, os.date("%Y%m%d"))
 
-        if not output_path:exists() then
+        if not output_path:exists() or 1 then
             local path = get_random_path(get_path_to_metadata(Path(command.dir), command.conditions))
-            output_path:write(tostring(path))
+            output_path:write(tostring(Snippet(path)))
         end
     end)
 end

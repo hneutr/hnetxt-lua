@@ -83,7 +83,7 @@ class Time(object):
             elif string == '12 AM':
                 return 'midnight'
 
-        return string
+        return string.lower()
 
     @classmethod
     def _from(cls, val):

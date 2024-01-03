@@ -61,7 +61,7 @@ end
 function Reference.get_referenced_mark_locations(dir)
     local locations = {}
     local locations_list = {}
-    for _, line in ipairs(io.command(Reference.get_referenced_marks_cmd .. dir):splitlines()) do
+    for _, line in ipairs(io.command(Reference.get_referenced_marks_cmd .. tostring(dir)):splitlines()) do
         while Reference.str_is_a(line) do
             local reference = Reference.from_str(line)
 

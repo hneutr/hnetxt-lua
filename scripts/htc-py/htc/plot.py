@@ -110,7 +110,6 @@ def get_dashboard_layout(
             'layout': {
                 'by': 'row',
                 'sections': [
-                    {'name': 'month-comparison'},
                     {
                         'name': 'text',
                         'height': 2,
@@ -160,7 +159,6 @@ def weekly_dashboard():
 
     weekly_time_spent(axes['week'])
 
-    # compare_months(axes['month-comparison'])
     writing_stats(axes['text']['writing'])
     misc_stats(axes['text']['misc'])
 
@@ -171,9 +169,10 @@ def quote_of_the_day(ax):
     quote_path = htc.constants.QUOTE_OF_THE_DAY_DIR / today
     question_path = htc.constants.QUESTION_OF_THE_DAY_DIR / today
 
-    htc.dashboard.plot.AnnotationGroup(
+    htc.dashboard.plot.add_annotate_group(
+        ax=ax,
         elements=[
-            htc.dashboard.plot.Question(question_path.read_text()),
+            htc.dashboard.plot.Header(question_path.read_text()),
             htc.dashboard.plot.Header(
                 "quote of the day",
                 color=htc.track.dashboard_config()['colors']['highlight'],
@@ -182,12 +181,13 @@ def quote_of_the_day(ax):
                 ],
             ),
         ]
-    ).annotate(ax)
+    )
 
 
 
 def misc_stats(ax):
-    htc.dashboard.plot.AnnotationGroup(
+    htc.dashboard.plot.add_annotate_group(
+        ax=ax,
         elements=[
             htc.dashboard.plot.Header(
                 "sleep",
@@ -197,10 +197,20 @@ def misc_stats(ax):
             htc.dashboard.plot.Header(
                 "exercise",
                 color=htc.track.activity_configs()['exercise']['color'],
-                elements=htc.dashboard.stats.exercise_stats(),
+                elements=htc.dashboard.stats.days_week_stat('exercise'),
+            ),
+            htc.dashboard.plot.Header(
+                "alcohol",
+                color=htc.track.activity_configs()['alcohol']['color'],
+                elements=htc.dashboard.stats.days_week_stat('alcohol'),
+            ),
+            htc.dashboard.plot.Header(
+                "journal",
+                color=htc.track.activity_configs()['journal']['color'],
+                elements=htc.dashboard.stats.days_week_stat('journal'),
             ),
         ]
-    ).annotate(ax)
+    )
 
 
 def writing_stats(
@@ -208,47 +218,16 @@ def writing_stats(
     weeks_previous=0,
     months_previous=0,
 ):
-    df = htc.dashboard.data.get()
-
-    stat_names = [
-        'Words',
-        'Days',
-        'Hours',
-    ]
-
-    weekly_df = htc.dashboard.stats.writing_stats(df, groupby_cols=['DeltaWeeks'])
-    this_week = weekly_df[
-        weekly_df['DeltaWeeks'] == weeks_previous
-    ]
-
-    monthly_df = htc.dashboard.stats.writing_stats(df, groupby_cols=['DeltaMonths'])
-    this_month = monthly_df[
-        monthly_df['DeltaMonths'] == months_previous
-    ]
-
-    ny_date = datetime(year=2023, month=8, day=18)
-    new_york_df = htc.dashboard.stats.writing_stats(df[df['Date'] > ny_date])
-
-    label_to_df = {
-        'this week': this_week,
-        # 'this month': this_month,
-        'in NY': new_york_df,
-    }
-
-    stats = {}
-    for label, df in label_to_df.items():
-        row = {} if df.empty else df.iloc[0]
-        stats[label] = {s.lower(): row.get(s, 0) for s in stat_names}
-
-    htc.dashboard.plot.AnnotationGroup(
+    htc.dashboard.plot.add_annotate_group(
+        ax=ax,
         elements=[
             htc.dashboard.plot.Header(
                 "writing",
                 color=htc.track.activity_configs()['wrote']['color'],
-                elements=stats,
+                elements=htc.dashboard.stats.writing_stats(),
             ),
         ]
-    ).annotate(ax)
+    )
 
 
 
@@ -292,7 +271,7 @@ def plot_timespan_activities(ax, df):
 def set_week_axis_limits(
     ax,
     df,
-    hour_tick_freq=3,
+    hour_tick_freq=6,
     grid_freq=6,
 ):
     step = TimeDelta.to_frac(hours=hour_tick_freq)
@@ -311,6 +290,7 @@ def set_week_axis_limits(
         end += step
 
     yticks = np.arange(start, end + step, step)
+
     htc.dashboard.plot.set_axis(
         ax=ax,
         which='y',
@@ -429,5 +409,6 @@ COLLECTION = {
 runner = hl.runner.PlotRunner(
     collection=COLLECTION,
     directory=htc.constants.FIGURES_DIR / 'track',
+    # suffix='.pdf',
 )
 r = runner

@@ -76,42 +76,84 @@ class Header(object):
     X_PAD = .02
     Y_PAD = -.02
     FONTPROPERTIES = FONTPROPERTIES['header']
-    TEXT_COLOR = htc.config.get('colors')['text']
     BACKGROUND_COLOR = htc.track.dashboard_config()['colors']['background']
     ANNOTATE_KWARGS = {}
 
-    def __init__(self, label, elements=None, color=None, indent=0):
-        self.label = label
-        self.color = color or self.TEXT_COLOR
-        self.indent = 0
+    FIXED_COLOR = False
+    FIXED_INDENT = True
 
-        if elements:
-            if isinstance(elements, dict):
-                self.elements = [self.get_elements(k, v) for k, v in elements.items()]
-            else: self.elements = elements
-        else:
-            self.elements = []
+    DEFAULT_COLOR = htc.config.get('colors')['text']
+    DEFAULT_INDENT = 0
+
+    INDENT_SIZE = 4
+
+    def __init__(self, text, elements=None, color=None, indent=None):
+        self.color = color
+        self.indent = indent
+        self.text = text
+        self.elements = elements
+
+    @property
+    def color(self):
+        return self._color
+
+    @color.setter
+    def color(self, val):
+        self.raw_color = val
+
+        if self.FIXED_COLOR:
+            val = None
+
+        self._color = val or self.DEFAULT_COLOR
+
+    @property
+    def indent(self):
+        return self._indent
+
+    @indent.setter
+    def indent(self, val):
+        if self.FIXED_INDENT:
+            val = None
+
+        self._indent = val or self.DEFAULT_INDENT
+
+    @property
+    def text(self):
+        return self._text
+
+    @text.setter
+    def text(self, val):
+        self._text = " " * self.INDENT_SIZE * self.indent + val
+
+    @property
+    def elements(self):
+        return self._elements
+
+    @elements.setter
+    def elements(self, elements):
+        if not elements:
+            elements = []
+
+        if isinstance(elements, dict):
+            elements = [self.get_elements(k, v) for k, v in elements.items()]
+
+        self._elements = elements
 
     def get_elements(self, key, val):
         if isinstance(val, dict):
             return Subheader(
-                label=key,
+                text=key,
                 elements=val,
-                color=self.color,
+                color=self.raw_color,
                 indent=self.indent + 1,
             )
         else:
             return Stat(
-                label=key,
+                text=key,
                 value=val,
-                color=self.color,
+                color=self.raw_color,
                 indent=self.indent + 1,
             )
-
-
-    @property
-    def indented_label(self):
-        return " " * 4 * self.indent + self.label
 
     def annotate(self, ax, previous_element=None):
         x, y = 0, 1
@@ -122,7 +164,7 @@ class Header(object):
             _, y = ax.transAxes.inverted().transform((0, previous_y))
            
         previous_element = ax.annotate(
-            self.indented_label,
+            self.text,
             xy=(x + self.X_PAD, y + self.Y_PAD),
             fontproperties=self.FONTPROPERTIES,
             color=self.color,
@@ -132,15 +174,14 @@ class Header(object):
             **self.ANNOTATE_KWARGS,
         )
 
-        if self.elements:
-            first_stat = True
-            for element in self.elements:
-                if isinstance(element, Stat) and first_stat:
-                    previous_element = self.get_alignment_element(ax, previous_element)
-                    element.first = True
-                    first_stat = False
+        first_stat = True
+        for element in self.elements:
+            if isinstance(element, Stat) and first_stat:
+                previous_element = self.get_alignment_element(ax, previous_element)
+                element.first = True
+                first_stat = False
 
-                previous_element = element.annotate(ax, previous_element=previous_element)
+            previous_element = element.annotate(ax, previous_element=previous_element)
 
         return previous_element
 
@@ -154,76 +195,78 @@ class Subheader(Header):
     FONTPROPERTIES = FONTPROPERTIES['subheader']
     Y_PAD = .01
 
-    def __init__(self, label, elements=None, color=None, indent=1):
-        self.label = label
-        self.color = color or self.TEXT_COLOR
-        self.indent = indent
+    FIXED_COLOR = True
+    FIXED_INDENT = False
 
-        if elements:
-            self.elements = [self.get_elements(k, v) for k, v in elements.items()]
-        else:
-            self.elements = []
+    DEFAULT_INDENT = 1
 
-        self.color = self.TEXT_COLOR
-
-    @property
-    def indented_label(self):
-        return " " * 4 * self.indent + self.label + ":"
+    def __init__(self, text, **kwargs):
+        super().__init__(text=text + ":", **kwargs)
 
 class Quote(Header):
     FONTPROPERTIES = FONTPROPERTIES['quote']
-    Y_PAD = -.02
+    Y_PAD = 0
+    X_PAD = .05
+    LINE_LENGTH = 90
     ANNOTATE_KWARGS = {
         'wrap': True,
     }
 
-    def __init__(self, text, indent=1):
-        self.parse(text)
+    FIXED_COLOR = True
+
+    def __init__(self, text, elements=None, color=None, indent=None):
+        self.color = color
         self.indent = indent
-        self.color = self.TEXT_COLOR
+        self.text, self.elements = self.parse(text)
 
     def parse(self, text):
-        self.label, attribution = text.rsplit("\n", 1)
-        self.elements = [Attribution(text=attribution)]
+        text, attribution = text.rsplit("\n", 1)
+
+        lines = [""]
+        for word in text.split():
+            if len(lines[-1] + word) > self.LINE_LENGTH:
+                lines.append("")
+
+            if lines[-1]:
+                word = " " + word
+
+            lines[-1] += word
+
+        elements = [Line(line, indent=self.indent) for line in lines[1:]] + [Attribution(text=attribution)]
+        return lines[0], elements
+
+class Line(Header):
+    FONTPROPERTIES = FONTPROPERTIES['quote']
+    X_PAD = .05
+    Y_PAD = .01
+
+    FIXED_COLOR = True
 
 class Attribution(Header):
     FONTPROPERTIES = FONTPROPERTIES['attribution']
     Y_PAD = -.02
+    X_PAD = .075
 
-    def __init__(self, text, indent=2):
-        self.label = text
-        self.indent = indent
-        self.color = self.TEXT_COLOR
-        self.elements = []
-
-class Question(Header):
-    X_PAD = .02
-    Y_PAD = -.02
-
-    def __init__(self, label):
-        self.label = label
-        self.color = self.TEXT_COLOR
-        self.indent = 0
-        self.elements = []
+    FIXED_COLOR = True
 
 class Stat(Header):
     FONTPROPERTIES = FONTPROPERTIES['stat']
     STAT_START_XY = (0, -.1)
 
-    def __init__(self, label, value, color=None, indent=2):
-        self.label = label
-        self.value = value
-        self.color = color or self.TEXT_COLOR
-        self.indent = indent
-        self.first = False
+    FIXED_COLOR = False
+    FIXED_INDENT = False
 
-    @property
-    def indented_label(self):
-        return " " * 6 * self.indent + self.label + ": "
+    DEFAULT_INDENT = 2
+    INDENT_SIZE = 6
+
+    def __init__(self, text, value, **kwargs):
+        super().__init__(text=text + ": ", **kwargs)
+        self.value = value
+        self.first = False
 
     def annotate_for_alignment(self, ax, previous_element=None):
         return ax.annotate(
-            self.indented_label,
+            self.text,
             xy=self.STAT_START_XY,
             color=self.BACKGROUND_COLOR,
             xycoords=previous_element,
@@ -235,13 +278,13 @@ class Stat(Header):
         xy = (1, 1) if self.first else (1, -.05)
 
         element = ax.annotate(
-            self.indented_label,
+            self.text,
             xy=xy,
             xycoords=previous_element,
             va='top',
             ha='right',
             fontproperties=self.FONTPROPERTIES,
-            color=self.TEXT_COLOR,
+            color=self.DEFAULT_COLOR,
         )
 
         ax.annotate(
@@ -255,12 +298,7 @@ class Stat(Header):
 
         return element
 
-class AnnotationGroup(object):
-    def __init__(self, elements):
-        self.elements = elements
-
-    def annotate(self, ax):
-        previous_element = None
-
-        for element in self.elements:
-            previous_element = element.annotate(ax, previous_element=previous_element)
+def add_annotate_group(ax, elements):
+    previous_element = None
+    for element in elements:
+        previous_element = element.annotate(ax, previous_element=previous_element)

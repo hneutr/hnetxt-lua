@@ -67,7 +67,7 @@ function Location.from_str(str, args)
 end
 
 function Location.get_file_locations(dir)
-    return List(io.command(Location.get_files_cmd .. dir):splitlines()):filter(function(line)
+    return List(io.command(Location.get_files_cmd .. tostring(dir)):splitlines()):filter(function(line)
         return #line > 0
     end):map(function(line)
         return Location({path = line})
@@ -75,7 +75,7 @@ function Location.get_file_locations(dir)
 end
 
 function Location.get_mark_locations(dir)
-    return List(io.command(Location.get_mark_locations_cmd .. dir):splitlines()):filter(function(line)
+    return List(io.command(Location.get_mark_locations_cmd .. tostring(dir)):splitlines()):filter(function(line)
         return #line > 0
     end):map(function(line)
         local path, mark_str = line:match(Location.regex)

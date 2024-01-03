@@ -1,3 +1,4 @@
+from datetime import datetime
 import hnelib as hl
 
 import htc.track
@@ -21,10 +22,10 @@ def sleep_stats():
 
     return stats
 
-def exercise_stats():
+def days_week_stat(activity):
     df = htc.dashboard.data.get()
     df = df[
-        df['Activity'] == 'exercise'
+        df['Activity'] == activity
     ]
 
     total_days = len(df)
@@ -32,14 +33,21 @@ def exercise_stats():
     rate = days / total_days
     days = round(rate * 7)
     remainder = rate * 7 - days
-    exercised_per_week = days + (round(remainder * 100 / 25) / 100 * 25)
+    rate = days + (round(remainder * 100 / 25) / 100 * 25)
+
+    rate = round(rate / .25) * .25
+
+    if int(rate) == rate:
+        rate = int(rate)
 
     return {
-        "days/week": exercised_per_week
+        "days/week": rate
     }
 
 
-def writing_stats(df, groupby_cols=None):
+
+# def writing_stats_df(df, groupby_cols=None):
+def writing_stats_df(df, groupby_cols=None):
     df, groupby_cols = hl.pd.util.get_groupby_cols(df, groupby_cols)
 
     words = df.copy()[
@@ -72,10 +80,47 @@ def writing_stats(df, groupby_cols=None):
         ]
     ].drop_duplicates()
 
-    return hl.pd.util.remove_fake_cols(words.merge(
+    df = words.merge(
         wrote,
         on=groupby_cols
-    ))
+    )
+
+    df = df.sort_values(by=groupby_cols, ascending=False)
+    return hl.pd.util.remove_fake_cols(df)
+
+def writing_stats(
+    weeks_previous=0,
+    months_previous=0,
+):
+    df = htc.dashboard.data.get()
+
+    ny_date = datetime(year=2023, month=8, day=18)
+
+    sections = {
+        'this week': {
+            'groupby_cols': ['DeltaWeeks'],
+            'stats': ['Words', 'Days', 'Hours'],
+            'filters': {'DeltaWeeks': weeks_previous},
+        },
+        'in NY': {
+            'stats': ['Words'],
+            'df': df[df['Date'] > ny_date]
+        }
+
+    }
+    stats = {}
+    for label, section in sections.items():
+        section_df = writing_stats_df(section.get('df', df), groupby_cols=section.get('groupby_cols'))
+        for col, val in section.get('filters', {}).items():
+            section_df = section_df[
+                section_df[col] == val
+            ]
+
+        section_stats = {} if section_df.empty else section_df.iloc[0]
+
+        stats[label] = {stat.lower(): section_stats.get(stat, 0) for stat in section['stats']}
+
+    return stats
 
 def word_count_to_string(words):
     if words > 1000:
