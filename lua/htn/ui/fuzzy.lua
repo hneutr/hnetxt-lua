@@ -10,7 +10,7 @@ local fuzzy_actions = {
     ["ctrl-t"] = "tabedit",
 }
 
-M = { sink = {} }
+M = {sink = {}}
 
 function M._do(fn)
     local actions = {}

@@ -59,9 +59,10 @@ function Reference.from_str(str)
 end
 
 function Reference.get_referenced_mark_locations(dir)
+    dir = tostring(dir)
     local locations = {}
     local locations_list = {}
-    for _, line in ipairs(io.command(Reference.get_referenced_marks_cmd .. tostring(dir)):splitlines()) do
+    for _, line in ipairs(io.command(Reference.get_referenced_marks_cmd .. dir):splitlines()) do
         while Reference.str_is_a(line) do
             local reference = Reference.from_str(line)
 
@@ -95,6 +96,7 @@ end
 -- }
 --------------------------------------------------------------------------------
 function Reference.get_referenced_locations(dir)
+    dir = tostring(dir)
     local references_by_location = {}
     for _, line in ipairs(io.command(Reference.get_references_cmd .. dir):splitlines()) do
         if #line > 0 then

@@ -1,5 +1,5 @@
 local Sync = require('htn.project.sync')
-vim.b.hnetxt_sync = true
+-- vim.b.hnetxt_sync = true
 
 local pattern = "*.md"
 local group = vim.api.nvim_create_augroup('hnetxt_sync', {clear = true})
