@@ -7,6 +7,7 @@ local Link = require("htl.text.Link")
 local Project = require("htl.project")
 local Snippet = require("htl.snippet")
 local Config = require("htl.config")
+local Divider = require("htl.text.divider")
 
 local EXCLUSION_SUFFIX = "!"
 
@@ -14,7 +15,11 @@ local TAG_PREFIX = "@"
 local TAG_SEPARATOR = "."
 
 local FIELD_DELIMITER = ":"
-local FIELDS_TO_EXCLUDE = Set({"date"})
+local FIELDS_TO_EXCLUDE = Set({
+    "date",
+    "on page",
+    tostring(Divider("large", "metadata")),
+})
 
 function get_print_lines(dict)
     local lines = List()
@@ -88,15 +93,6 @@ function parse_tags_string(str)
     return str:split(TAG_SEPARATOR)
 end
 
-function parse_file_tags(path)
-    local tags = Dict()
-    List(Yaml.read_raw_frontmatter(path)):filter(is_tag):foreach(function(str)
-        tags:default_dict(unpack(parse_tags_string(str)))
-    end)
-            
-    return tags
-end
-
 --------------------------------------------------------------------------------
 --                                                                            --
 --                               file metadata                                --
@@ -123,15 +119,58 @@ function parse_metadata(path)
     return metadata
 end
 
-function get_path_to_metadata(dir, conditions)
+function get_path_to_metadata(dir, conditions, reference)
     local path_to_metadata = Dict()
     dir:glob("%.md$"):foreach(function(path)
-        path_to_metadata[path] = parse_metadata(path)
+        path_to_metadata[tostring(path)] = parse_metadata(path)
     end)
+
+    if reference then
+        if not reference:is_relative_to(Path.cwd()) then
+            reference = Path.cwd():join(reference)
+        end
+        
+        local path_to_references = get_path_to_references(dir)
+
+        path_to_references:foreach(function(path, references)
+            if not references:contains(reference) then
+                path_to_metadata[path] = nil
+            end
+        end)
+    end
 
     path_to_metadata:filterv(check_conditions, conditions)
 
     return path_to_metadata
+end
+
+function get_path_to_references(dir)
+    local project_dir = Project.root_from_path(dir)
+    local path_to_references = Dict()
+    dir:glob("%.md$"):foreach(function(path)
+        path_to_references[tostring(path)] = parse_references(path, project_dir)
+    end)
+
+    path_to_references:transformv(function(references)
+        local all_references = references:clone()
+        references:foreach(function(reference)
+            if path_to_references[tostring(reference)] then
+                all_references:extend(path_to_references[tostring(reference)])
+            end
+        end)
+
+        return all_references
+    end)
+
+    return path_to_references
+end
+
+function parse_references(path, dir)
+    return List(Yaml.read_raw_frontmatter(path)):filter(
+        Link.str_is_a
+    ):transform(function(l)
+        return dir:join(Link.from_str(l).location)
+    end)
 end
 
 --------------------------------------------------------------------------------
@@ -178,7 +217,7 @@ end
 function get_random_path(path_to_metadata)
     local paths = path_to_metadata:keys()
     local index = math.random(1, #paths)
-    return paths[index]
+    return Path(paths[index])
 end
 
 return {
@@ -191,20 +230,21 @@ return {
         action="concat",
     },
     {"-d --dir", default = Path.cwd(), description = "directory", convert=Path.as_path},
+    {"-r --reference", description = "print", convert=Path.as_path},
     {"+f", target = "files", description = "list files", switch = "on"},
-    {"+r", target = "random", description = "print random", switch = "on"},
+    {"+p", target = "print", description = "print", switch = "on"},
     {"+x", target = "x_of_the_day", description = "run the x-of-the-day", switch = "on"},
     action = function(args)
         if args.x_of_the_day then
             return set_x_of_the_day()
         end
         
-        local path_to_metadata = get_path_to_metadata(args.dir, args.conditions)
+        local path_to_metadata = get_path_to_metadata(args.dir, args.conditions, args.reference)
 
-        if args.random then
+        if args.print then
             print(Snippet(get_random_path(path_to_metadata)))
         elseif args.files then
-            path_to_metadata:keys():mapm("relative_to", args.dir):foreach(print)
+            path_to_metadata:keys():transform(Path):mapm("relative_to", args.dir):foreach(print)
         else
             get_print_lines(Dict.fromlist(path_to_metadata:values())):foreach(print)
         end
