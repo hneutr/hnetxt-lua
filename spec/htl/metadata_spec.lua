@@ -289,7 +289,7 @@ describe("Files", function()
             })
 
             local filter_reference = c
-            local files = Files(dir)
+            local files = Files({dir = dir})
 
             local expected = List({a, b}):transform(tostring)
             files:filter_by_reference(filter_reference)
