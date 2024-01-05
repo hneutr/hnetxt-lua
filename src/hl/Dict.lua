@@ -122,7 +122,7 @@ function Dict:default(key, value)
         self[key] = value
     end
 
-    return self
+    return self[key]
 end
 
 function Dict:default_dict(key, ...)
@@ -130,9 +130,12 @@ function Dict:default_dict(key, ...)
         self[key] = Dict()
     end
 
+    local to_return = self
     if ... then
-        self[key]:default_dict(...)
+        to_return = self[key]:default_dict(...)
     end
+
+    return to_return
 end
 
 function Dict:get(key, ...)

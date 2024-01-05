@@ -2,203 +2,13 @@ local Path = require("hl.Path")
 local Dict = require("hl.Dict")
 local List = require("hl.List")
 local Set = require("pl.Set")
-local Yaml = require("hl.yaml")
-local Link = require("htl.text.Link")
-local Project = require("htl.project")
 local Snippet = require("htl.snippet")
 local Config = require("htl.config")
-local Divider = require("htl.text.divider")
 
-local EXCLUSION_SUFFIX = "!"
-
-local TAG_PREFIX = "@"
-local TAG_SEPARATOR = "."
-
-local FIELD_DELIMITER = ":"
-local FIELDS_TO_EXCLUDE = Set({
-    "date",
-    "on page",
-    tostring(Divider("large", "metadata")),
-})
-
-function get_print_lines(dict)
-    local lines = List()
-    dict:transformk(tostring):keys():sorted():foreach(function(k)
-        local v = dict[k]
-        local sublines = List()
-        
-        if v:is_a(List) then
-            sublines = Set.values(Set(v)):sorted()
-        elseif v:is_a(Dict) then
-            sublines = get_print_lines(v)
-        end
-
-        sublines:transform(function(subline)
-            local pad = string.rep(" ", #k)
-            if subline:match("%.") then
-                pad = pad .. " "
-            else
-                pad = pad .. "."
-            end
-            return pad .. subline
-        end)
-
-        if #sublines > 0 then
-            lines:append(k)
-            lines:extend(sublines)
-        else
-            lines:append(k)
-        end
-    end)
-
-    return lines
-end
+local Metadata = require("htl.metadata")
 
 --------------------------------------------------------------------------------
---                                                                            --
---                                   fields                                   --
---                                                                            --
---------------------------------------------------------------------------------
-function is_field(str) return str:match(FIELD_DELIMITER) end
-
-function parse_field_string(field)
-    local value
-
-    if field:match(FIELD_DELIMITER) then
-        field, value = unpack(field:split(FIELD_DELIMITER, 1):mapm("strip"))
-
-        if Link.str_is_a(value) then
-            value = Path(Link.from_str(value).location)
-        end
-    end
-
-    if FIELDS_TO_EXCLUDE[field] then
-        return List({})
-    end
-
-    return List({field, value})
-end
-
---------------------------------------------------------------------------------
---                                                                            --
---                                    tags                                    --
---                                                                            --
---------------------------------------------------------------------------------
-function is_tag(str) return str:startswith(TAG_PREFIX) end
-function is_exclusion(str) return str:endswith(EXCLUSION_SUFFIX) end
-
-function parse_tags_string(str)
-    str = str:removeprefix(TAG_PREFIX)
-    str = str:removesuffix(EXCLUSION_SUFFIX)
-    return str:split(TAG_SEPARATOR)
-end
-
---------------------------------------------------------------------------------
---                                                                            --
---                               file metadata                                --
---                                                                            --
---------------------------------------------------------------------------------
-function parse_metadata_string(str)
-    if is_tag(str) then
-        return parse_tags_string(str)
-    end
-    
-    return parse_field_string(str)
-end
-
-function parse_metadata(path)
-    local metadata = Dict()
-    List(Yaml.read_raw_frontmatter(path)):transform(
-        parse_metadata_string
-    ):filter(function(m)
-        return #m > 0
-    end):foreach(function(m)
-        metadata:default_dict(unpack(m))
-    end)
-            
-    return metadata
-end
-
-function get_path_to_metadata(dir, conditions, reference)
-    local path_to_metadata = Dict()
-    dir:glob("%.md$"):foreach(function(path)
-        path_to_metadata[tostring(path)] = parse_metadata(path)
-    end)
-
-    if reference then
-        if not reference:is_relative_to(Path.cwd()) then
-            reference = Path.cwd():join(reference)
-        end
-        
-        local path_to_references = get_path_to_references(dir)
-
-        path_to_references:foreach(function(path, references)
-            if not references:contains(reference) then
-                path_to_metadata[path] = nil
-            end
-        end)
-    end
-
-    path_to_metadata:filterv(check_conditions, conditions)
-
-    return path_to_metadata
-end
-
-function get_path_to_references(dir)
-    local project_dir = Project.root_from_path(dir)
-    local path_to_references = Dict()
-    dir:glob("%.md$"):foreach(function(path)
-        path_to_references[tostring(path)] = parse_references(path, project_dir)
-    end)
-
-    path_to_references:transformv(function(references)
-        local all_references = references:clone()
-        references:foreach(function(reference)
-            if path_to_references[tostring(reference)] then
-                all_references:extend(path_to_references[tostring(reference)])
-            end
-        end)
-
-        return all_references
-    end)
-
-    return path_to_references
-end
-
-function parse_references(path, dir)
-    return List(Yaml.read_raw_frontmatter(path)):filter(
-        Link.str_is_a
-    ):transform(function(l)
-        return dir:join(Link.from_str(l).location)
-    end)
-end
-
---------------------------------------------------------------------------------
---                                                                            --
---                            checking conditions                             --
---                                                                            --
---------------------------------------------------------------------------------
-function check_conditions(metadata, conditions)
-    local match = true
-    List(conditions):foreach(function(condition_string)
-        if match then
-            local tags = parse_metadata_string(condition_string)
-
-            if is_exclusion(condition_string) then
-                match = not metadata:has(unpack(tags))
-            else
-                match = metadata:has(unpack(tags))
-            end
-        end
-    end)
-
-    return match
-end
-
---------------------------------------------------------------------------------
---                                                                            --
---                                x-of-the-day                                --
---                                                                            --
+--                                x of the day                                --
 --------------------------------------------------------------------------------
 function set_x_of_the_day()
     local config = Config.get("x-of-the-day")
@@ -207,17 +17,11 @@ function set_x_of_the_day()
     List(config.commands):foreach(function(command)
         local output_path = data_dir:join(command.name, os.date("%Y%m%d"))
 
-        if not output_path:exists() or 1 then
-            local path = get_random_path(get_path_to_metadata(Path(command.dir), command.conditions))
+        if not output_path:exists() then
+            local path = Files(command):get_random_file()
             output_path:write(tostring(Snippet(path)))
         end
     end)
-end
-
-function get_random_path(path_to_metadata)
-    local paths = path_to_metadata:keys()
-    local index = math.random(1, #paths)
-    return Path(paths[index])
 end
 
 return {
@@ -225,7 +29,7 @@ return {
     {
         "conditions",
         args = "*",
-        default = List(),
+        default = {},
         description = "the conditions to meet (fields:value?/@tag.subtag/exclusion!)", 
         action="concat",
     },
@@ -239,14 +43,18 @@ return {
             return set_x_of_the_day()
         end
         
-        local path_to_metadata = get_path_to_metadata(args.dir, args.conditions, args.reference)
+        if args.reference and not args.reference:is_relative_to(Path.cwd()) then
+            args.reference = Path.cwd():join(args.reference)
+        end
+
+        local files = Metadata.Files(args)
 
         if args.print then
-            print(Snippet(get_random_path(path_to_metadata)))
+            print(Snippet(files:get_random_file()))
         elseif args.files then
-            path_to_metadata:keys():transform(Path):mapm("relative_to", args.dir):foreach(print)
+            files:get_files():foreach(print)
         else
-            get_print_lines(Dict.fromlist(path_to_metadata:values())):foreach(print)
+            files:get_map():foreach(print)
         end
     end,
 }

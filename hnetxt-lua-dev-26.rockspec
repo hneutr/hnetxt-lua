@@ -109,6 +109,9 @@ build = {
 
         -- snippet
         ["htl.snippet"] = "src/htl/snippet.lua",
+
+        -- metadata
+        ['htl.metadata'] = "src/htl/metadata.lua"
     }
 }
 test = {
