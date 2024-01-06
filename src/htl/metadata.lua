@@ -45,10 +45,6 @@ function Field:add_to_metadata(metadata)
 end
 
 function Field:should_exclude()
-    if self.key:startswith(" ") then
-        return true
-    end
-
     if self.exclusions:contains(self.key) then
         return true
     end
@@ -100,19 +96,13 @@ end
 class.BlankField(Field)
 
 function BlankField.is_a(str) return true end
-function BlankField:parse(str) return str end
 function BlankField:_init(str) 
     self.key = str
-end
-
-function BlankField:add_to_metadata(metadata)
-    metadata:default_dict(self.metadata_key, self.key)
 end
 
 function BlankField:check_metadata(metadata)
     return metadata:has(self.metadata_key, self.key)
 end
-
 
 --------------------------------------------------------------------------------
 --                                 MReference                                 --
@@ -149,8 +139,7 @@ function Tag:check_metadata(metadata)
 end
 
 function Tag.gather(existing, new)
-    existing:update(new or Dict())
-    return existing
+    return existing:update(new)
 end
 
 function Tag.get_print_lines(gathered)
