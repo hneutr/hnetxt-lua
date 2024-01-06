@@ -173,6 +173,8 @@ function Reference.update_locations(location_changes, dir)
 end
 
 function Reference.update_location(old_location, new_location, references_by_location, content_updates)
+    old_location = tostring(old_location)
+    new_location = tostring(new_location)
     local old_location_is_file = not Location.str_has_label(old_location)
     for referenced_location, references in pairs(references_by_location) do
         local update = old_location == referenced_location

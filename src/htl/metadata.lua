@@ -148,26 +148,26 @@ end
 
 
 --------------------------------------------------------------------------------
---                                 Reference                                  --
+--                                 MReference                                 --
 --------------------------------------------------------------------------------
-class.Reference(Field)
-Reference.metadata_key = "references"
-function Reference.is_a(str) return Field.is_a(str) and Link.str_is_a(str) end
+class.MReference(Field)
+MReference.metadata_key = "references"
+function MReference.is_a(str) return Field.is_a(str) and Link.str_is_a(str) end
 
-function Reference:_init(str)
+function MReference:_init(str)
     self.key, self.val = unpack(self:parse(str))
     self.val = Link.from_str(str).location
 end
 
-function Reference.gather(existing, new)
-    existing = Field._gather(Reference.metadata_key, existing, new)
-    existing[Reference.metadata_key]:transformv(function(references)
+function MReference.gather(existing, new)
+    existing = Field._gather(MReference.metadata_key, existing, new)
+    existing[MReference.metadata_key]:transformv(function(references)
         return Set(Set.values(references):transform(Path))
     end)
 end
 
-function Reference.get_print_lines(gathered)
-    return Field._get_print_lines(Reference.metadata_key, gathered)
+function MReference.get_print_lines(gathered)
+    return Field._get_print_lines(MReference.metadata_key, gathered)
 end
 
 --------------------------------------------------------------------------------
@@ -251,7 +251,7 @@ end
 --                                    File                                    --
 --------------------------------------------------------------------------------
 class.File()
-File.LineParsers = List({Tag, Reference, Field})
+File.LineParsers = List({Tag, MReference, Field})
 function File:_init(path, project_root)
     self.path = path
     self.project_root = project_root
@@ -284,11 +284,13 @@ end
 
 function File:check_conditions(conditions)
     local result = true
-    conditions:foreach(function(condition)
-        if result then
-            result = condition:check(self.metadata)
-        end
-    end)
+    if #conditions >= 0 then
+        List(conditions):foreach(function(condition)
+            if result then
+                result = condition:check(self.metadata)
+            end
+        end)
+    end
 
     return result
 end
@@ -334,7 +336,7 @@ class.Files()
 Files.ParsersByName = Dict({
     tags = Tag,
     fields = Field,
-    references = Reference,
+    references = MReference,
 })
 
 function Files:_init(args)
@@ -439,7 +441,7 @@ return {
     Field = Field,
     BlankField = BlankField,
     Tag = Tag,
-    Reference = Reference,
+    MReference = MReference,
     Condition = Condition,
     File = File,
     Files = Files,

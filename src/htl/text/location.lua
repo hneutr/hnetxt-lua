@@ -24,7 +24,6 @@ Location.defaults = {
 Location.get_mark_locations_cmd = [[rg '\[.*\]\(\)' --no-heading ]]
 Location.get_files_cmd = [[fd -tf '' ]]
 
--- function Location:new(args)
 function Location:_init(args)
     self = Dict.update(self, args or {}, Location.defaults)
 end
@@ -40,7 +39,7 @@ function Location:__tostring()
 end
 
 function Location.str_has_label(str)
-    return str:find(Location.config.path_label_delimiter)
+    return tostring(str):find(Location.config.path_label_delimiter)
 end
 
 function Location:relative_to(dir)
