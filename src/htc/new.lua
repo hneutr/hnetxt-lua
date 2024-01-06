@@ -1,7 +1,5 @@
 local Path = require("hl.Path")
 
-local Metadata = require("hd.metadata")
-
 return {
     description = "make a new entry",
     {"+d --date", description = "use today's date for the file name", switch = 'on'},

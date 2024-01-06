@@ -1,7 +1,6 @@
 local List = require("hl.list")
 local Mirror = require('htn.project.mirror')
 local Location = require("htn.text.location")
-local Entry = require("htn.text.metadata")
 
 local M = {}
 
@@ -17,10 +16,6 @@ local all_mappings = {
             ["<M-t>"] = "tabedit",
         },
         map_args = {},
-    },
-    new_entry = {
-        lhs_prefix = "<leader>n",
-        fn = Entry.open_new,
     },
 }
 

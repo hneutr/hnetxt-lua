@@ -94,12 +94,6 @@ build = {
         ["htc.fields"] = "src/htc/fields.lua",
         ["htc.tags"] = "src/htc/tags.lua",
 
-        -- ENTRIES
-        ["hd.uuid"] = "src/hd/uuid/init.lua",
-        ["hd.uuid.charset"] = "src/hd/uuid/charset.lua",
-        ["hd.metadata"] = "src/hd/metadata.lua",
-        ["hd.text"] = "src/hd/text/init.lua",
-
         -- neo
         ["htl.text.neoparse"] = "src/htl/text/neoparse.lua",
 

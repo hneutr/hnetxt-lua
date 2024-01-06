@@ -57,7 +57,9 @@ Field.delimiter = MetadataConfig.field_delimiter
 Field.exclusions = List(MetadataConfig.excluded_fields):extend({tostring(Divider("large", "metadata"))})
 Field.indent = "    "
 
-function Field.is_a(str) return str:match(Field.delimiter) end
+function Field.is_a(str)
+    return str:match(Field.delimiter) and not str:endswith(Field.delimiter)
+end
 function Field:parse(str) return str:split(self.delimiter, 1):mapm("strip") end
 
 function Field:_init(str)
@@ -72,6 +74,10 @@ function Field:add_to_metadata(metadata)
 end
 
 function Field:should_exclude()
+    if self.key:startswith(" ") then
+        return true
+    end
+
     if self.exclusions:contains(self.key) then
         return true
     end
@@ -109,7 +115,7 @@ function Field.get_print_lines(gathered)
 end
 
 function Field._get_print_lines(metadata_key, gathered)
-    local lines = List({metadata_key .. ":"})
+    local lines = List()
 
     gathered[metadata_key]:foreach(function(key, vals)
         vals = Set.values(vals)
@@ -123,6 +129,10 @@ function Field._get_print_lines(metadata_key, gathered)
             lines:append(Field.indent .. key)
         end
     end)
+
+    if #lines > 0 then
+        lines:put(metadata_key .. ":")
+    end
 
     return lines
 end
@@ -201,7 +211,7 @@ function Tag.gather(existing, new)
 end
 
 function Tag.get_print_lines(gathered)
-    local lines = List({"tags:"})
+    local lines = List()
 
     Tag._get_print_lines(gathered[Tag.metadata_key]):foreach(function(line)
         if not line:startswith(" ") then
@@ -212,6 +222,10 @@ function Tag.get_print_lines(gathered)
 
         return lines:append(Tag.indent .. line)
     end)
+
+    if #lines > 0 then
+        lines:put("tags:")
+    end
 
     return lines
 end
