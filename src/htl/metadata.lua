@@ -19,6 +19,20 @@ local FIELDS_TO_EXCLUDE = Set({
     tostring(Divider("large", "metadata")),
 })
 
+--[[
+so, we keep the parsing exactly the same
+then, when it comes time to print:
+
+only for fields do we do this; tags can be assigned in a context, but can't have their own context
+
+when we are adding something to the context, we look at the field.key of the context
+
+we loop over the file metadata lines:
+- when we see a line, we parse that line and add it to the parent context
+- we set the child context to the line
+
+--]]
+
 --------------------------------------------------------------------------------
 --                                   Field                                    --
 --------------------------------------------------------------------------------
@@ -27,6 +41,7 @@ Field.metadata_key = "fields"
 Field.delimiter = MetadataConfig.field_delimiter
 Field.exclusions = List(MetadataConfig.excluded_fields):extend({tostring(Divider("large", "metadata"))})
 Field.indent = "    "
+Field.indent_step = 2
 
 function Field.is_a(str)
     return str:match(Field.delimiter) and not str:endswith(Field.delimiter) and not str:strip():startswith("-")
@@ -75,8 +90,8 @@ end
 function Field.get_print_lines(gathered)
     local lines = List()
 
-    gathered:foreach(function(key, vals)
-        local sublines = Set.values(vals):sorted():transform(function(v)
+    gathered:keys():sorted():foreach(function(key)
+        local sublines = Set.values(gathered[key]):sorted():transform(function(v)
             return Field.indent .. tostring(v)
         end)
 
@@ -89,6 +104,14 @@ function Field.get_print_lines(gathered)
     end)
 
     return lines
+end
+
+function Field.line_level(str)
+    return #str - #str:lstrip()
+end
+
+function Field.line_level_up(str)
+    return math.max(0, Field.line_level(str) - Field.indent_step)
 end
 
 --------------------------------------------------------------------------------
@@ -219,15 +242,15 @@ function File:read(path)
 end
 
 function File:parse_line(line)
-    local parser
+    local Parser
     self.LineParsers:foreach(function(LineParser)
-        if not parser and LineParser.is_a(line) then
-            parser = LineParser
+        if not Parser and LineParser.is_a(line) then
+            Parser = LineParser
         end
     end)
 
-    if parser then
-        parser(line):add_to_metadata(self.metadata)
+    if Parser then
+        Parser(line):add_to_metadata(self.metadata)
     end
 end
 
