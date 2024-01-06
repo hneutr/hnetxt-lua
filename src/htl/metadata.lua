@@ -19,35 +19,6 @@ local FIELDS_TO_EXCLUDE = Set({
     tostring(Divider("large", "metadata")),
 })
 
---[[
-we have:
-- conditions
-- files
-
-a condition:
-- can be an exclusion
-- field:
-    - no values (accepts all)
-    - one value (accepts 1)
-    - multiple values (accepts at least one)
-
-a file:
-- has:
-    - tags
-    - fields
-    - references
-
-
----------------------------------[ conditions ]---------------------------------
-- have dictionary of conditions
-    - tags
-    - fields
-    - references
-
------------------------------------[ files ]------------------------------------
-
--- ]]
-
 --------------------------------------------------------------------------------
 --                                   Field                                    --
 --------------------------------------------------------------------------------
@@ -95,29 +66,19 @@ function Field:check_metadata(metadata)
 end
 
 function Field.gather(existing, new)
-    return Field._gather(Field.metadata_key, existing, new)
-end
-
-function Field._gather(metadata_key, existing, new)
-    local new_fields = new[metadata_key] or Dict()
-    existing:default_dict(metadata_key)
-
-    new_fields:foreach(function(key, val)
-        existing[metadata_key]:default(key, Set())
-        existing[metadata_key][key] = existing[metadata_key][key] + val
+    new = new or Dict()
+    new:foreach(function(key, val)
+        existing:default(key, Set())
+        existing[key] = existing[key] + val
     end)
 
     return existing
 end
 
 function Field.get_print_lines(gathered)
-    return Field._get_print_lines(Field.metadata_key, gathered)
-end
-
-function Field._get_print_lines(metadata_key, gathered)
     local lines = List()
 
-    gathered[metadata_key]:foreach(function(key, vals)
+    gathered:foreach(function(key, vals)
         vals = Set.values(vals)
 
         if #vals > 0 then
@@ -129,10 +90,6 @@ function Field._get_print_lines(metadata_key, gathered)
             lines:append(Field.indent .. key)
         end
     end)
-
-    if #lines > 0 then
-        lines:put(metadata_key .. ":")
-    end
 
     return lines
 end
@@ -169,17 +126,6 @@ function MReference:_init(str)
     self.val = Link.from_str(str).location
 end
 
-function MReference.gather(existing, new)
-    existing = Field._gather(MReference.metadata_key, existing, new)
-    existing[MReference.metadata_key]:transformv(function(references)
-        return Set(Set.values(references):transform(Path))
-    end)
-end
-
-function MReference.get_print_lines(gathered)
-    return Field._get_print_lines(MReference.metadata_key, gathered)
-end
-
 --------------------------------------------------------------------------------
 --                                    Tag                                     --
 --------------------------------------------------------------------------------
@@ -203,17 +149,14 @@ function Tag:check_metadata(metadata)
 end
 
 function Tag.gather(existing, new)
-    existing:default_dict(Tag.metadata_key)
-    new:default_dict(Tag.metadata_key)
-
-    existing[Tag.metadata_key]:update(new[Tag.metadata_key])
+    existing:update(new or Dict())
     return existing
 end
 
 function Tag.get_print_lines(gathered)
     local lines = List()
 
-    Tag._get_print_lines(gathered[Tag.metadata_key]):foreach(function(line)
+    Tag._get_print_lines(gathered):foreach(function(line)
         if not line:startswith(" ") then
             line = Tag.prefix .. line
         else
@@ -222,10 +165,6 @@ function Tag.get_print_lines(gathered)
 
         return lines:append(Tag.indent .. line)
     end)
-
-    if #lines > 0 then
-        lines:put("tags:")
-    end
 
     return lines
 end
@@ -347,11 +286,7 @@ end
 --                                   Files                                    --
 --------------------------------------------------------------------------------
 class.Files()
-Files.ParsersByName = Dict({
-    tags = Tag,
-    fields = Field,
-    references = MReference,
-})
+Files.Parsers = List({Field, MReference, Tag})
 
 function Files:_init(args)
     self.dir = Path(args.dir)
@@ -418,22 +353,30 @@ end
 function Files:get_map(args)
     args = Dict.update(args or {}, {tags = true, fields = true, references = false})
 
-    local parsers = self.ParsersByName:keys():filter(function(key)
-        return args[key]
-    end):transform(function(key)
-        return self.ParsersByName[key]
+    local Parsers = self.Parsers:clone():filter(function(Parser)
+        return args[Parser.metadata_key]
     end)
 
     local map = Dict()
+    Parsers:foreach(function(Parser)
+        map[Parser.metadata_key] = Dict()
+    end)
+
     self.path_to_file:values():foreach(function(file)
-        parsers:foreach(function(parser)
-            map = parser.gather(map, file.metadata)
+        Parsers:foreach(function(Parser)
+            local key = Parser.metadata_key
+            map[key] = Parser.gather(map[key], file.metadata[key])
         end)
     end)
 
     local lines = List()
-    parsers:foreach(function(parser)
-        lines:extend(parser.get_print_lines(map))
+    Parsers:foreach(function(Parser)
+        local key = Parser.metadata_key
+        local parser_lines = Parser.get_print_lines(map[key])
+        if #parser_lines > 0 then
+            lines:append(key .. ":")
+            lines:extend(parser_lines)
+        end
     end)
 
     return lines

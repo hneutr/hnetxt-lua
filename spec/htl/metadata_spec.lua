@@ -93,13 +93,13 @@ describe("Field", function()
 
     describe("gather", function()
         it("works", function()
-            local m1 = Dict({fields = Dict({a = "b"})})
-            local m2 = Dict({fields = Dict({a = "c"})})
+            local m1 = Dict({a = "b"})
+            local m2 = Dict({a = "c"})
             local metadata = Dict()
             Field.gather(metadata, m1)
             Field.gather(metadata, m2)
             assert.are.same(
-                Dict({fields = Dict({a = Set({"b", "c"})})}),
+                Dict({a = Set({"b", "c"})}),
                 metadata
             )
         end)
