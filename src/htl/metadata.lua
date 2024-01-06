@@ -29,7 +29,7 @@ Field.exclusions = List(MetadataConfig.excluded_fields):extend({tostring(Divider
 Field.indent = "    "
 
 function Field.is_a(str)
-    return str:match(Field.delimiter) and not str:endswith(Field.delimiter)
+    return str:match(Field.delimiter) and not str:endswith(Field.delimiter) and not str:strip():startswith("-")
 end
 function Field:parse(str) return str:split(self.delimiter, 1):mapm("strip") end
 
@@ -62,6 +62,7 @@ function Field:check_metadata(metadata)
 end
 
 function Field.gather(existing, new)
+    existing = existing or Dict()
     new = new or Dict()
     new:foreach(function(key, val)
         existing:default(key, Set())
@@ -75,15 +76,15 @@ function Field.get_print_lines(gathered)
     local lines = List()
 
     gathered:foreach(function(key, vals)
-        vals = Set.values(vals)
+        local sublines = Set.values(vals):sorted():transform(function(v)
+            return Field.indent .. tostring(v)
+        end)
 
-        if #vals > 0 then
-            lines:append(Field.indent .. key .. ":")
-            vals:sorted():foreach(function(val)
-                lines:append(string.rep(Field.indent, 2) .. tostring(val))
-            end)
+        if #sublines > 0 then
+            lines:append(key .. ":")
+            lines:extend(sublines)
         else
-            lines:append(Field.indent .. key)
+            lines:append(key)
         end
     end)
 
@@ -152,7 +153,7 @@ function Tag.get_print_lines(gathered)
             line = " " .. line
         end
 
-        return lines:append(Tag.indent .. line)
+        return lines:append(line)
     end)
 
     return lines
@@ -194,15 +195,27 @@ end
 --------------------------------------------------------------------------------
 class.File()
 File.LineParsers = List({Tag, MReference, Field})
+File.metadata_divider = tostring(Divider("large", "metadata"))
 function File:_init(path, project_root)
     self.path = path
     self.project_root = project_root
     self.metadata = Dict()
-    List(Yaml.read_raw_frontmatter(path)):foreach(function(line)
+    self:read(self.path):foreach(function(line)
         self:parse_line(line)
     end)
 
     self.references = self:set_references_list(self.metadata.references or Dict())
+end
+
+function File:read(path)
+    local lines = Yaml.read_raw_frontmatter(path)
+    local divider_index = lines:index(File.metadata_divider)
+
+    if divider_index then
+        lines:chop(divider_index, #lines)
+    end
+
+    return lines
 end
 
 function File:parse_line(line)
@@ -363,7 +376,6 @@ function Files:get_map(args)
         local key = Parser.metadata_key
         local parser_lines = Parser.get_print_lines(map[key])
         if #parser_lines > 0 then
-            lines:append(key .. ":")
             lines:extend(parser_lines)
         end
     end)
