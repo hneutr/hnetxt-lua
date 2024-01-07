@@ -91,7 +91,6 @@ build = {
         ["htc.colors"] = "src/htc/colors.lua",
         ["htc.colorize"] = "src/htc/colorize.lua",
         ["htc.new"] = "src/htc/new.lua",
-        ["htc.fields"] = "src/htc/fields.lua",
         ["htc.tags"] = "src/htc/tags.lua",
 
         -- neo
@@ -105,7 +104,9 @@ build = {
         ["htl.snippet"] = "src/htl/snippet.lua",
 
         -- metadata
-        ['htl.metadata'] = "src/htl/metadata.lua"
+        ['htl.metadata'] = "src/htl/metadata.lua",
+
+        ['hl.Set'] = "src/hl/Set.lua"
     }
 }
 test = {

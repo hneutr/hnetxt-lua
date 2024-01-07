@@ -3,7 +3,7 @@ local Project = require("htl.project")
 
 local Path = require("hl.Path")
 local Dict = require("hl.Dict")
-local Set = require("pl.Set")
+local Set = require("hl.Set")
 
 local Metadata = require("htl.metadata")
 local Tag = Metadata.Tag
@@ -45,7 +45,13 @@ describe("Field", function()
         it("parses", function()
             local f = Field("a: b")
             assert.are.same("a", f.key)
-            assert.are.same("b", f.val)
+            assert.are.same({"b"}, f.vals)
+        end)
+
+        it("multiple values", function()
+            local f = Field("a: b|c")
+            assert.are.same("a", f.key)
+            assert.are.same({"b", "c"}, f.vals)
         end)
     end)
 
@@ -55,21 +61,18 @@ describe("Field", function()
             Field("a: b"):add_to_metadata(metadata)
 
             local expected = Dict()
-            expected:default_dict("fields")
-            expected.fields.a = "b"
+            expected:set({"fields", "a", "b"})
             assert.are.same(expected, metadata)
         end)
 
         it("doesn't overwrite", function()
             local metadata = Dict()
-            metadata:default_dict("fields")
-            metadata.fields.a = "b"
+            metadata:set({"fields", "a", "b"})
             Field("c: d"):add_to_metadata(metadata)
 
             local expected = Dict()
-            expected:default_dict("fields")
-            expected.fields.a = "b"
-            expected.fields.c = "d"
+            expected:set({"fields", "a", "b"})
+            expected:set({"fields", "c", "d"})
             assert.are.same(expected, metadata)
         end)
     end)
@@ -93,14 +96,32 @@ describe("Field", function()
 
     describe("gather", function()
         it("works", function()
-            local m1 = Dict({a = "b"})
-            local m2 = Dict({a = "c"})
+            local m1 = Dict({a = {b = {}}})
+            local m2 = Dict({a = {c = {}}})
             local metadata = Dict()
             Field.gather(metadata, m1)
             Field.gather(metadata, m2)
+
             assert.are.same(
-                Dict({a = Set({"b", "c"})}),
-                metadata
+                Set({"b", "c"}),
+                metadata.a
+            )
+        end)
+    end)
+
+    describe("get_print_lines", function()
+        it("works", function()
+            local metadata = Dict({
+                a = Set({"b", "c"})
+            })
+
+            assert.are.same(
+                {
+                    "a:",
+                    "    b",
+                    "    c",
+                },
+                Field.get_print_lines(metadata)
             )
         end)
     end)
@@ -156,7 +177,7 @@ describe("Tag", function()
             Tag("@a.b"):add_to_metadata(metadata)
 
             local expected = Dict()
-            expected:default_dict("tags", "a", "b")
+            expected:set({"tags", "a", "b"})
             assert.are.same(expected, metadata)
         end)
     end)
@@ -215,7 +236,7 @@ describe("MReference", function()
         it("+", function()
             local r = MReference("a: [b](c)")
             assert.are.same("a", r.key)
-            assert.are.same("c", r.val)
+            assert.are.same(List({"c"}), r.vals)
         end)
     end)
 
@@ -225,8 +246,7 @@ describe("MReference", function()
             MReference("a: [b](c)"):add_to_metadata(metadata)
 
             local expected = Dict()
-            expected:default_dict("references")
-            expected.references.a = "c"
+            expected:set({"references", "a", "c"})
             assert.are.same(expected, metadata)
         end)
     end)
@@ -261,12 +281,9 @@ describe("File", function()
             })
             
             local expected = Dict()
-            expected:default_dict("tags", "c", "d")
-            expected:default_dict("fields")
-            expected.fields.a = "b"
-            expected:default_dict("references")
-            expected.references.e = "g"
-
+            expected:set({"tags", "c", "d"})
+            expected:set({"fields", "a", "b"})
+            expected:set({"references", "e", "g"})
             assert.are.same(expected, File(file, dir).metadata)
         end)
     end)
@@ -307,11 +324,9 @@ describe("Files", function()
                 "xyz",
             })
 
-            local filter_reference = c
-            local files = Files({dir = dir})
+            local files = Files({dir = dir, reference = c})
 
             local expected = List({a, b}):transform(tostring)
-            files:filter_by_reference(filter_reference)
             assert.are.same(expected, files.path_to_file:keys())
         end)
     end)    

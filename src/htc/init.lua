@@ -5,7 +5,7 @@ local Command = require("htc.command")
 local List = require("hl.List")
 
 local groups = {
-    {name = "Commands", commands = {"move", "remove", "journal", "aim", "new", "fields", "tags", "track"}},
+    {name = "Commands", commands = {"move", "remove", "journal", "aim", "new", "tags", "track"}},
     {name = "Command groups", commands = {"project", "notes", "goals"}},
 }
 

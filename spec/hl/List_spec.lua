@@ -1,8 +1,5 @@
 local List = require("hl.List")
 
--- print(require("inspect")(require("pl.List")))
--- print(require("inspect")(List))
-
 describe("append", function()
     it("works", function()
         local l = List()
@@ -70,5 +67,25 @@ describe("as_list", function()
 
     it("nil", function()
         assert.are.same(List(), List.as_list(nil))
+    end)
+end)
+
+describe("all", function()
+    it("+", function()
+        assert(List({1, "hunter", true}):all())
+    end)
+
+    it("-", function()
+        assert.falsy(List({1, "hunter", false}):all())
+    end)
+end)
+
+describe("any", function()
+    it("+", function()
+        assert(List({false, true}):any())
+    end)
+
+    it("-", function()
+        assert.falsy(List({false, nil}):any())
     end)
 end)

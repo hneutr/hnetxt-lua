@@ -128,3 +128,33 @@ describe("filterv", function()
         assert.are.same({a = 1, c = 3}, d)
     end)
 end)
+
+describe("set", function()
+    it("one key, no keys existing", function()
+        assert.are.same(
+            {a = 1},
+            Dict():set({"a"}, 1)
+        )
+    end)
+
+    it("multiple keys, no keys existing", function()
+        assert.are.same(
+            {a = {b = 1}},
+            Dict():set({"a", "b"}, 1)
+        )
+    end)
+    
+    it("one key, keys existing", function()
+        assert.are.same(
+            {a = 1, b = 2},
+            Dict({b = 2}):set({"a"}, 1)
+        )
+    end)
+
+    it("multiple keys, keys existing", function()
+        assert.are.same(
+            {a = {b = 1}, c = 2},
+            Dict({c = 2}):set({"a", "b"}, 1)
+        )
+    end)
+end)

@@ -117,35 +117,43 @@ function Dict.fromlist(l)
     return Dict.from(unpack(l))
 end
 
-function Dict:default(key, value)
-    if not self[key] then
-        self[key] = value
+function Dict.default(dict, key, val)
+    if not dict[key] then
+        dict[key] = val
     end
 
-    return self[key]
+    return dict[key]
 end
 
-function Dict:default_dict(key, ...)
-    if not self[key] then
-        self[key] = Dict()
-    end
-
-    local to_return = self
-    if ... then
-        to_return = self[key]:default_dict(...)
-    end
-
-    return to_return
-end
-
-function Dict:get(key, ...)
-    local value = self[key]
+function Dict.get(dict, key, ...)
+    local value = dict[key]
 
     if ... then
         value = value:get(...)
     end
 
     return value
+end
+
+function Dict.set(dict, keys, val)
+    if val == nil then
+        val = Dict()
+    end
+    keys = List(keys):reverse()
+
+    local d = dict
+    while #keys > 1 do
+        local key = keys:pop()
+
+        if not d[key] then
+            d[key] = Dict()
+        end
+
+        d = d[key]
+    end
+
+    d[keys:pop()] = val
+    return dict
 end
 
 function Dict:has(key, ...)

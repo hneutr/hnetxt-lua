@@ -40,4 +40,24 @@ function List.as_list(v)
     return List(v)
 end
 
+function List:all()
+    for item in self:iter() do
+        if not item then
+            return false
+        end
+    end
+
+    return true
+end
+
+function List:any()
+    for item in self:iter() do
+        if item then
+            return item
+        end
+    end
+
+    return false
+end
+
 return List

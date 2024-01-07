@@ -1,23 +1,16 @@
 local Path = require("hl.Path")
 local Dict = require("hl.Dict")
 local List = require("hl.List")
-local Set = require("pl.Set")
+local Set = require("hl.Set")
 local Yaml = require("hl.yaml")
 
 local class = require("pl.class")
 
 local Link = require("htl.text.Link")
 local Project = require("htl.project")
-local Snippet = require("htl.snippet")
 local Config = require("htl.config")
 local MetadataConfig = Config.get("metadata")
 local Divider = require("htl.text.divider")
-
-local FIELDS_TO_EXCLUDE = Set({
-    "date",
-    "on page",
-    tostring(Divider("large", "metadata")),
-})
 
 --[[
 so, we keep the parsing exactly the same
@@ -31,6 +24,31 @@ we loop over the file metadata lines:
 - when we see a line, we parse that line and add it to the parent context
 - we set the child context to the line
 
+
+example:
+
+document 1:
+    is a: answer
+        to: [abc](abc)
+        @ego
+    @remind
+document 2:
+    is a: quote
+        of: [xyz](xyz)
+        @humor
+    @remind
+
+should produce the following tagmap (showing references):
+    is a:
+        answer:
+            to:
+                [abc](abc)
+            @ego
+        quote:
+            of: 
+                [xyz](xyz)
+            @humor
+    @remind
 --]]
 
 --------------------------------------------------------------------------------
@@ -39,6 +57,7 @@ we loop over the file metadata lines:
 class.Field()
 Field.metadata_key = "fields"
 Field.delimiter = MetadataConfig.field_delimiter
+Field.or_delimiter = MetadataConfig.field_or_delimiter
 Field.exclusions = List(MetadataConfig.excluded_fields):extend({tostring(Divider("large", "metadata"))})
 Field.indent = "    "
 Field.indent_step = 2
@@ -46,42 +65,43 @@ Field.indent_step = 2
 function Field.is_a(str)
     return str:match(Field.delimiter) and not str:endswith(Field.delimiter) and not str:strip():startswith("-")
 end
-function Field:parse(str) return str:split(self.delimiter, 1):mapm("strip") end
+function Field:parse(str)
+    local key, vals = unpack(str:split(self.delimiter, 1):mapm("strip"))
+    return {key, List(vals:split(self.or_delimiter))}
+end
 
 function Field:_init(str)
-    self.key, self.val = unpack(self:parse(str))
+    self.key, self.vals = unpack(self:parse(str))
 end
 
 function Field:add_to_metadata(metadata)
-    metadata:default_dict(self.metadata_key)
-    if not self:should_exclude() then
-        metadata[self.metadata_key][self.key] = self.val
+    if self:should_include() then
+        self.vals:foreach(function(val)
+            metadata:set({self.metadata_key, self.key, val})
+        end)
     end
 end
 
-function Field:should_exclude()
-    if self.exclusions:contains(self.key) then
-        return true
-    end
+function Field:should_include()
+    return not List({
+        self.exclusions:contains(self.key),
+        tonumber(self.key)
+    }):any()
+end
 
-    if tonumber(self.key) then
-        return true
+function Field:check_metadata(metadata)
+    if metadata:has(self.metadata_key, self.key) then
+        local shared = Set(self.vals) * Set(metadata:get(self.metadata_key, self.key):keys())
+        return not shared:isempty()
     end
 
     return false
 end
 
-function Field:check_metadata(metadata)
-    metadata:default_dict(self.metadata_key)
-    return metadata:get(self.metadata_key)[self.key] == self.val
-end
-
 function Field.gather(existing, new)
     existing = existing or Dict()
-    new = new or Dict()
-    new:foreach(function(key, val)
-        existing:default(key, Set())
-        existing[key] = existing[key] + val
+    Dict(new):foreach(function(key, vals)
+        existing:default(key, Set()):add(Dict(vals):keys())
     end)
 
     return existing
@@ -91,7 +111,7 @@ function Field.get_print_lines(gathered)
     local lines = List()
 
     gathered:keys():sorted():foreach(function(key)
-        local sublines = Set.values(gathered[key]):sorted():transform(function(v)
+        local sublines = gathered[key]:values():sorted():transform(function(v)
             return Field.indent .. tostring(v)
         end)
 
@@ -106,10 +126,12 @@ function Field.get_print_lines(gathered)
     return lines
 end
 
+-- TODO: this function is intended for use with detecting nested fields/tags
 function Field.line_level(str)
     return #str - #str:lstrip()
 end
 
+-- TODO: this function is intended for use with detecting nested fields/tags
 function Field.line_level_up(str)
     return math.max(0, Field.line_level(str) - Field.indent_step)
 end
@@ -136,8 +158,10 @@ MReference.metadata_key = "references"
 function MReference.is_a(str) return Field.is_a(str) and Link.str_is_a(str) end
 
 function MReference:_init(str)
-    self.key, self.val = unpack(self:parse(str))
-    self.val = Link.from_str(str).location
+    self.key, self.vals = unpack(self:parse(str))
+    self.vals:transform(function(val)
+        return Link.from_str(val).location
+    end)
 end
 
 --------------------------------------------------------------------------------
@@ -155,7 +179,7 @@ function Tag:_init(str)
 end
 
 function Tag:add_to_metadata(metadata)
-    metadata:default_dict(unpack(List({self.metadata_key}):extend(self.val)))
+    metadata:set(List({self.metadata_key}):extend(self.val))
 end
 
 function Tag:check_metadata(metadata)
@@ -242,35 +266,35 @@ function File:read(path)
 end
 
 function File:parse_line(line)
-    local Parser
-    self.LineParsers:foreach(function(LineParser)
-        if not Parser and LineParser.is_a(line) then
-            Parser = LineParser
+    for LineParser in self.LineParsers:iter() do
+        if LineParser.is_a(line) then
+            LineParser(line):add_to_metadata(self.metadata)
+            return
         end
-    end)
-
-    if Parser then
-        Parser(line):add_to_metadata(self.metadata)
     end
 end
 
 function File:set_references_list(references_dict)
-    return Set(references_dict:values():transform(function(reference)
-        return tostring(self.project_root:join(reference))
-    end))
+    local references_list = Set()
+    references_dict:values():foreach(function(references_d)
+        references_list:add(references_d:keys():transform(function(r)
+            return tostring(self.project_root:join(r))
+        end))
+    end)
+
+    return references_list
 end
 
 function File:check_conditions(conditions)
-    local result = true
     if #conditions >= 0 then
-        List(conditions):foreach(function(condition)
-            if result then
-                result = condition:check(self.metadata)
+        for condition in List(conditions):iter() do
+            if not condition:check(self.metadata) then
+                return false
             end
-        end)
+        end
     end
 
-    return result
+    return true
 end
 
 --------------------------------------------------------------------------------
@@ -353,7 +377,7 @@ function Files:filter_by_reference(reference)
 
     self:follow_references()
     self.path_to_file:filterv(function(file)
-        return file.references[tostring(reference)]
+        return file.references:has(tostring(reference))
     end)
 end
 
@@ -367,9 +391,9 @@ function Files:follow_references()
     end)
 
     self.path_to_file:foreach(function(path, file)
-        Set.values(path_references[path]):foreach(function(reference)
+        path_references[path]:foreach(function(reference)
             if path_references[reference] then
-                file.references = file.references + path_references[reference]
+                file.references:add(path_references[reference])
             end
         end)
     end)
@@ -407,7 +431,7 @@ function Files:get_map(args)
 end
 
 function Files:get_files(args)
-    return self.path_to_file:keys():transform(Path):mapm("relative_to", self.dir):transform(tostring)
+    return self.path_to_file:keys():sorted():transform(Path):mapm("relative_to", self.dir):transform(tostring)
 end
 
 function Files:get_random_file()
