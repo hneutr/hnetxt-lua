@@ -1,12 +1,21 @@
 local Path = require("hl.Path")
 
-local dir = Path.home:join("eidola", "people")
+local dir = Path.home:join("corpus")
 
 dir:glob("%.md$"):foreach(function(p)
     local lines = p:readlines()
 
-    if lines[1] == "is a: person" and lines[2] == "is a: person" then
-        lines:pop(2)
+    local modified = false
+    lines:transform(function(line)
+        if line:startswith("@self") then
+            line = line:gsub("^@self", "@ego")
+            modified = true
+        end
+        return line
+    end)
+
+    if modified then
+        print(p)
         p:write(lines)
     end
 end)
