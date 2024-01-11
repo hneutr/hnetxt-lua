@@ -7,6 +7,7 @@ FIGURES_DIR = PY_DATA_DIR / 'figures'
 HOME = Path.home()
 
 DATA_DIR = HOME / '.data'
+DASHBOARDS_DIR = DATA_DIR / 'dashboards'
 
 CONFIG_DIR = HOME / 'dotfiles' / 'hnetxt' / 'constants'
 EMOJI_DIR = CONFIG_DIR / 'emoji'

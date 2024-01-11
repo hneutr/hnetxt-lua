@@ -154,7 +154,7 @@ def scale_y(y):
     return y / xy_scale
 
 
-def weekly_dashboard():
+def plot_dashboard(date=None):
     fig, axes = get_dashboard_layout()
 
     weekly_time_spent(axes['week'])
@@ -401,14 +401,19 @@ def plot_day_lengths(
 #                                                                              #
 #------------------------------------------------------------------------------#
 COLLECTION = {
-    # 'field': track,
-    # 'substances': substances_plot,
-    'weekly-dashboard': weekly_dashboard,
+    'dashboard': {
+        'do': plot_dashboard,
+        'prefix_expansions': {
+            'date': [datetime.strftime(datetime.now(), '%Y%m%d')]
+        },
+    },
 }
 
 runner = hl.runner.PlotRunner(
     collection=COLLECTION,
-    directory=htc.constants.FIGURES_DIR / 'track',
-    # suffix='.pdf',
+    directory=htc.constants.DASHBOARDS_DIR,
 )
 r = runner
+
+if __name__ == '__main__':
+    runner.run('dashboard')
