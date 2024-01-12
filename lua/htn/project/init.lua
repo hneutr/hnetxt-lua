@@ -10,7 +10,11 @@ function M.set(start_path)
         start_path = start_path.match
     end
 
-    vim.b.hnetxt_project_root = tostring(Project.root_from_path(path))
+    local root = Project.root_from_path(path)
+
+    if root ~= nil then
+        vim.b.hnetxt_project_root = tostring(root)
+    end
 end
 
 return M
