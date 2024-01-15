@@ -1,12 +1,14 @@
 string = require("hl.string")
 
 local Dict = require("hl.Dict")
+local List = require("hl.List")
 
 local Object = require("hl.object")
 local Color = require("hn.color")
 local BufferLines = require("hn.buffer_lines")
 
-local List = require("htl.text.list")
+local TextList = require("htl.text.list")
+local NeoList = require("htl.text.NeoList")
 
 --------------------------------------------------------------------------------
 --                                 LineSyntax                                 --
@@ -89,35 +91,22 @@ function LineToggle.set_selected_lines(args)
 end
 
 function LineToggle.get_new_line_class(lines, toggle_line_type_name)
-    local min_indent_line = LineToggle.get_min_indent_line(lines)
+    local min_indent_line = List(lines):sorted(function(a, b)
+        return #a.indent < #b.indent
+    end)[1]
 
-    if min_indent_line then
-        if min_indent_line.name == toggle_line_type_name then
-            return ListLine.get_class(min_indent_line.toggle.to)
-        else
-            return ListLine.get_class(toggle_line_type_name)
-        end
+    if min_indent_line.name == toggle_line_type_name then
+        return ListLine.get_class(min_indent_line.toggle.to)
+    else
+        return ListLine.get_class(toggle_line_type_name)
     end
 end
-
-function LineToggle.get_min_indent_line(lines)
-    local min_indent, min_indent_line = 1000, nil
-    for _, line in ipairs(lines) do
-        if #line.indent < min_indent then
-            min_indent = #line.indent
-            min_indent_line = line
-        end
-    end
-
-    return min_indent_line
-end
-
 
 --------------------------------------------------------------------------------
 --                                    etc                                     --
 --------------------------------------------------------------------------------
 local function get_parser()
-    local parser = List.Parser(vim.b.list_types)
+    local parser = TextList.Parser(vim.b.list_types)
     for name, Class in pairs(parser.classes) do
         Class:implement(LineSyntax)
         Class:implement(LineToggle)
@@ -139,7 +128,6 @@ end
 
 local function join(buffer_id)
     buffer_id = buffer_id or 0
-    local parser = get_parser()
     local cursor_pos  = vim.api.nvim_win_get_cursor(buffer_id)
     local first_line_number = cursor_pos[1] - 1
     local second_line_number = first_line_number + 1
@@ -154,10 +142,8 @@ local function join(buffer_id)
         return
     end
 
-    local first = parser:parse_line(lines[1], first_line_number)
-    local second = parser:parse_line(lines[2], second_line_number)
-
-    first:merge(second)
+    local first = NeoList:parse_line(lines[1])
+    first:merge(NeoList:parse_line(lines[2]))
 
     BufferLines.set({
         buffer = buffer_id,
@@ -167,37 +153,30 @@ local function join(buffer_id)
     })
 end
 
-local function get_parser_lazy()
-    if not vim.b.list_parser then
-        vim.b.list_parser = get_parser()
+local function continue(from_command)
+    local _, lnum, col = unpack(vim.fn.getcurpos())
+
+    local str = vim.fn.getline('.')
+    local next_str = ""
+
+    if not from_command then
+        next_str = str:sub(col)
+        str = str:sub(1, col - 1)
     end
 
-    return vim.b.list_parser
-end
+    local line = NeoList:parse_line(str)
+    local next_line = line:get_next(next_str)
 
-local function continue()
-    local current_line_number = vim.api.nvim_win_get_cursor(0)[1] - 1
-    local previous_line_number = current_line_number - 1
+    vim.api.nvim_buf_set_lines(
+        0,
+        lnum - 1,
+        lnum,
+        false,
+        {tostring(line), tostring(next_line)}
+    )
 
-    local lines = BufferLines.get({
-        start_line = previous_line_number,
-        end_line = current_line_number + 1,
-    })
-
-    for class_name, Class in pairs(get_parser_lazy().classes) do
-        local list_line = Class.get_if_str_is_a(lines[1], previous_line_number)
-
-        if list_line then
-            list_line.text = lines[2]:strip()
-
-            if class_name == 'number' then
-                list_line.number = list_line.number + 1
-            end
-
-            BufferLines.cursor.set({start_line = current_line_number, replacement = {tostring(list_line)}})
-            vim.api.nvim_input("<esc>A")
-        end
-    end
+    vim.api.nvim_win_set_cursor(0, {lnum + 1, 0})
+    vim.api.nvim_input("<esc>A")
 end
 
 local function map_toggles(lhs_prefix)
@@ -212,11 +191,10 @@ local function add_syntax_highlights()
     end
 end
 
-
 return {
     join = join,
     continue = continue,
-    continue_cmd = [[<cmd>lua require('htn.text.list').continue()<cr>]],
+    continue_cmd = [[<cmd>lua require('htn.text.list').continue(true)<cr>]],
     toggle = toggle,
     map_toggles = map_toggles,
     add_syntax_highlights = add_syntax_highlights,

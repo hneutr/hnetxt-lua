@@ -6,7 +6,6 @@ local Colors = require("htc.colors")
 
 local Project = require("htl.project")
 local Registry = require("htl.project.registry")
-local List = require("htl.text.list")
 
 local args = {
     new_project = {"project", default = Path.name(Path.cwd()), args = "1"},
@@ -44,25 +43,6 @@ return {
         root = {
             args.project,
             action = function(args) print(Project(args.project).root) end,
-        },
-        list = {
-            args.project,
-            {"-l --list_type", default = 'question', description = "list type"},
-            action = function(args)
-                local instances = List.Parser.get_instances(args.list_type, Project(args.project).root)
-                local paths = Dict.keys(instances)
-                table.sort(paths)
-
-                for _, path in ipairs(paths) do
-                    local lines = instances[path]
-                    table.sort(lines, function(a, b) return a.line_number < b.line_number end)
-
-                    print(Colors("%{magenta}" .. path .. "%{reset}") .. ":")
-                    for _, instance in ipairs(lines) do
-                        print(Colors("    %{green}" .. instance.line_number .. "%{reset}: " .. instance.text))
-                    end
-                end
-            end,
         },
     }
 }

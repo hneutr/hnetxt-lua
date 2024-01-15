@@ -12,44 +12,40 @@ local Config = require("htl.config")
 --                                    Line                                    --
 --                                                                            --
 --------------------------------------------------------------------------------
-Line = Object:extend()
-Line.defaults = {
+LLine = Object:extend()
+LLine.defaults = {
     text = '',
     line_number = 0,
     indent = '',
 }
-Line.indent_size = 2
-Line.regex = "^(%s*)(.*)$"
+LLine.indent_size = 2
+LLine.regex = "^(%s*)(.*)$"
 
-function Line:new(args)
+function LLine:new(args)
     self = Dict.update(self, args or {}, self.defaults)
 end
 
-function Line:write()
-    BufferLines.set({start_line = self.line_number, replacement = {tostring(self)}})
-end
-
-function Line:__tostring()
+function LLine:__tostring()
     return self.indent .. self.text
 end
 
-function Line:merge(other)
+function LLine:merge(other)
     self.text = self.text:rstrip() .. " " .. other.text:lstrip()
 end
 
-function Line.get_if_str_is_a(str, line_number)
-    local indent, text = str:match(Line.regex)
-    return Line({text = text, line_number = line_number, indent = indent})
+function LLine.get_if_str_is_a(str, line_number)
+    local indent, text = str:match(LLine.regex)
+    return LLine({text = text, line_number = line_number, indent = indent})
 end
 
-function Line:indent_level()
+function LLine:indent_level()
     return self.indent:len() / self.indent_size
 end
 
 --------------------------------------------------------------------------------
 --                                  ListLine                                  --
 --------------------------------------------------------------------------------
-ListLine = Line:extend()
+ListLine = LLine:extend()
 ListLine.defaults = {
     text = '',
     indent = '',
@@ -155,7 +151,7 @@ function Parser:parse_line(str, line_number)
         end
     end
 
-    return Line.get_if_str_is_a(str, line_number)
+    return LLine.get_if_str_is_a(str, line_number)
 end
 
 function Parser:parse(raw_lines)
@@ -193,7 +189,7 @@ end
 
 
 return {
-    Line = Line,
+    Line = LLine,
     ListLine = ListLine,
     NumberedListLine = NumberedListLine,
     Parser = Parser,

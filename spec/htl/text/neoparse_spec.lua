@@ -4,7 +4,6 @@ local Parser = require("htl.text.neoparse")
 
 local Divider = require("htl.text.divider")
 local Header = require("htl.text.header")
-local TextList = require("htl.text.list")
 
 local parser
 

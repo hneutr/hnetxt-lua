@@ -4,7 +4,7 @@ local class = require("pl.class")
 
 local Header = require("htl.text.header")
 local Divider = require("htl.text.divider")
-local TextList = require("htl.text.list")
+local Line = require("htl.text.Line")
 
 class.Parser()
 
@@ -28,7 +28,7 @@ function Parser:get_fold_level(str)
         end
     end
 
-    return TextList.Line.get_if_str_is_a(str):indent_level() + self.text_fold_level
+    return Line.get_indent_level(str) + self.text_fold_level
 end
 
 function Parser:adjust_metadata_frontmatter(lines, levels)
