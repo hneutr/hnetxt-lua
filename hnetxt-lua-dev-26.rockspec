@@ -22,14 +22,21 @@ build = {
         ["hl.object"] = "src/hl/object.lua",
         ["hl.string"] = "src/hl/string.lua",
         ["hl.yaml"] = "src/hl/yaml.lua",
-        ["hl.Dict"] = "src/hl/Dict.lua",
         ["hl.List"] = "src/hl/List.lua",
+        ["hl.Dict"] = "src/hl/Dict.lua",
+        ['hl.Set'] = "src/hl/Set.lua",
         ["hl.Path"] = "src/hl/Path.lua",
         ["hl.DataFrame"] = "src/hl/DataFrame.lua",
 
-        htl = "src/htl/init.lua",
+        ["htl"] = "src/htl/init.lua",
         ["htl.config"] = "src/htl/config.lua",
+
         ["htl.journal"] = "src/htl/journal.lua",
+        ["htl.track"] = "src/htl/track.lua",
+
+        ["htl.snippet"] = "src/htl/snippet.lua",
+        ['htl.metadata'] = "src/htl/metadata.lua",
+
         ["htl.operator"] = "src/htl/operator/init.lua",
         ["htl.operator.operation"] = "src/htl/operator/operation/init.lua",
         ["htl.operator.operation.dir"] = "src/htl/operator/operation/dir.lua",
@@ -51,6 +58,8 @@ build = {
         ["htl.text.location"] = "src/htl/text/location.lua",
         ["htl.text.mark"] = "src/htl/text/mark.lua",
         ["htl.text.reference"] = "src/htl/text/reference.lua",
+        -- neo
+        ["htl.text.neoparse"] = "src/htl/text/neoparse.lua",
 
         ["htl.notes"] = "src/htl/notes/init.lua",
         ["htl.notes.set"] = "src/htl/notes/set/init.lua",
@@ -81,32 +90,20 @@ build = {
         ["htc"] = "src/htc/init.lua",
         ["htc.command"] = "src/htc/command.lua",
         ["htc.util"] = "src/htc/util.lua",
+        ["htc.colors"] = "src/htc/colors.lua",
+        ["htc.colorize"] = "src/htc/colorize.lua",
+
         ["htc.journal"] = "src/htc/journal.lua",
+        ["htc.new"] = "src/htc/new.lua",
+        ["htc.tags"] = "src/htc/tags.lua",
+        ["htc.track"] = "src/htc/track.lua",
+
         ["htc.project"] = "src/htc/project.lua",
         ["htc.move"] = "src/htc/move.lua",
         ["htc.remove"] = "src/htc/remove.lua",
         ["htc.goals"] = "src/htc/goals.lua",
         ["htc.aim"] = "src/htc/aim.lua",
         ["htc.notes"] = "src/htc/notes.lua",
-        ["htc.colors"] = "src/htc/colors.lua",
-        ["htc.colorize"] = "src/htc/colorize.lua",
-        ["htc.new"] = "src/htc/new.lua",
-        ["htc.tags"] = "src/htc/tags.lua",
-
-        -- neo
-        ["htl.text.neoparse"] = "src/htl/text/neoparse.lua",
-
-        -- track
-        ["htl.track"] = "src/htl/track.lua",
-        ["htc.track"] = "src/htc/track.lua",
-
-        -- snippet
-        ["htl.snippet"] = "src/htl/snippet.lua",
-
-        -- metadata
-        ['htl.metadata'] = "src/htl/metadata.lua",
-
-        ['hl.Set'] = "src/hl/Set.lua"
     }
 }
 test = {

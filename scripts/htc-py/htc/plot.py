@@ -172,7 +172,7 @@ def quote_of_the_day(ax):
     htc.dashboard.plot.add_annotate_group(
         ax=ax,
         elements=[
-            htc.dashboard.plot.Header(question_path.read_text()),
+            # htc.dashboard.plot.Header(question_path.read_text()),
             htc.dashboard.plot.Header(
                 "quote of the day",
                 color=htc.track.dashboard_config()['colors']['highlight'],

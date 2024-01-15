@@ -5,6 +5,7 @@ function Path.current_file()
 end
 
 function Path.open(path, open_command)
+    path = tostring(path)
     open_command = open_command or "edit"
 
     if #Path.suffix(path) > 0 then

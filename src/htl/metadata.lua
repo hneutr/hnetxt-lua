@@ -172,10 +172,10 @@ Tag.metadata_key = "tags"
 Tag.prefix = MetadataConfig.tag_prefix
 Tag.delimiter = MetadataConfig.tag_delimiter
 
-function Tag.is_a(str) return str:startswith(Tag.prefix) end
+function Tag.is_a(str) return str:strip():startswith(Tag.prefix) end
 
 function Tag:_init(str)
-    self.val = str:removeprefix(Tag.prefix):split(Tag.delimiter):mapm("strip")
+    self.val = str:strip():removeprefix(Tag.prefix):split(Tag.delimiter):mapm("strip")
 end
 
 function Tag:add_to_metadata(metadata)

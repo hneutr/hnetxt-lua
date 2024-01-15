@@ -35,7 +35,7 @@ return {
     },
     {"-d --dir", default = Path.cwd(), description = "directory", convert=Path.as_path},
     {"-r --reference", description = "print", convert=Path.as_path},
-    {"+f", target = "files", description = "list files", switch = "on"},
+    {"+f", target = "files", description = "list files", switch = "off"},
     {"+p", target = "print", description = "print", switch = "on"},
     {"+x", target = "x_of_the_day", description = "run the x-of-the-day", switch = "on"},
     action = function(args)
@@ -43,6 +43,10 @@ return {
             return set_x_of_the_day()
         end
         
+        if #args.conditions == 0 then
+            args.files = false
+        end
+
         if args.reference and not args.reference:is_relative_to(Path.cwd()) then
             args.reference = Path.cwd():join(args.reference)
         end
