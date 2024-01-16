@@ -7,7 +7,6 @@ local Path = require('hl.Path')
 local Project = require("htl.project")
 local Mirror = require("htl.project.mirror")
 local Header = require("htl.text.header")
-local Parser = require("htl.parse")
 
 local Operator = require("htl.operator")
 local Operation = require("htl.operator.operation")

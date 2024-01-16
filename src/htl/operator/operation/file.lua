@@ -1,7 +1,6 @@
 local Path = require('hl.path')
 
 local Mirror = require("htl.project.mirror")
-local Parser = require("htl.parse")
 local Location = require("htl.text.location")
 
 local Operation = require('htl.operator.operation')

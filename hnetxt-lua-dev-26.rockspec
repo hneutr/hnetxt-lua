@@ -41,10 +41,6 @@ build = {
         ["htl.operator.operation"] = "src/htl/operator/operation/init.lua",
         ["htl.operator.operation.dir"] = "src/htl/operator/operation/dir.lua",
         ["htl.operator.operation.file"] = "src/htl/operator/operation/file.lua",
-        ["htl.operator.operation.mark"] = "src/htl/operator/operation/mark.lua",
-
-        ["htl.parse"] = "src/htl/parse/init.lua",
-        ["htl.parse.fold"] = "src/htl/parse/fold.lua",
 
         ["htl.project"] = "src/htl/project/init.lua",
         ["htl.project.registry"] = "src/htl/project/registry.lua",
