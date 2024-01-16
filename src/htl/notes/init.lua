@@ -1,14 +1,15 @@
 local Path = require("hl.path")
 local Dict = require("hl.Dict")
 local List = require("hl.List")
-local Object = require("hl.object")
+
+local class = require("pl.class")
 
 local Project = require("htl.project")
 local Registry = require("htl.project.registry")
 local Fields = require("htl.notes.field")
 local Sets = require("htl.notes.set")
 
-local Notes = Object:extend()
+class.Notes()
 
 function Notes.sets(path)
     local project = Project.from_path(path)

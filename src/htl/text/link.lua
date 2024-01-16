@@ -1,5 +1,4 @@
 local Dict = require("hl.Dict")
-local Object = require("hl.object")
 local class = require("pl.class")
 
 --------------------------------------------------------------------------------

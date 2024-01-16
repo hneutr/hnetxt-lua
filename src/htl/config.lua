@@ -1,9 +1,8 @@
 local Yaml = require("hl.yaml")
 local Dict = require("hl.Dict")
-local Object = require("hl.object")
 local Path = require("hl.Path")
 
-local Config = Object:extend()
+local Config = {}
 Config.constants_dir = Path.home:join(".config/hnetxt/constants")
 Config.data_dir = Path.home:join(".data")
 Config.constants_suffix = ".yaml"

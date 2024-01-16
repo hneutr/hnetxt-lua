@@ -183,8 +183,6 @@ def quote_of_the_day(ax):
         ]
     )
 
-
-
 def misc_stats(ax):
     htc.dashboard.plot.add_annotate_group(
         ax=ax,

@@ -1,17 +1,17 @@
 local Yaml = require("hl.yaml")
-local string = require("hl.string")
-local Object = require("hl.object")
 local Path = require("hl.Path")
 local List = require("hl.List")
 local Dict = require("hl.Dict")
 
+local class = require("pl.class")
+
 local Config = require("htl.config")
 local Registry = require("htl.project.registry")
 
-local Project = Object:extend()
+class.Project()
 Project.config = Config.get("project")
 
-function Project:new(name)
+function Project:_init(name)
     self.name = name
     self.root = Registry.get_entry_dir(self.name)
 

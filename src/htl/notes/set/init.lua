@@ -1,7 +1,6 @@
 local List = require("hl.List")
 local Dict = require("hl.Dict")
 local Path = require("hl.path")
-local Object = require("hl.object")
 
 local FileSet = require("htl.notes.set.file")
 local TopicSet = require("htl.notes.set.topic")

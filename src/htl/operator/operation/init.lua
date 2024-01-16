@@ -1,4 +1,3 @@
-local Object = require("hl.object")
 local Dict = require("hl.Dict")
 local Path = require('hl.path')
 local Config = require("htl.config")

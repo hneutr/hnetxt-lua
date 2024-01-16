@@ -1,14 +1,14 @@
 local List = require("hl.List")
 local Path = require("hl.path")
-local Object = require("hl.object")
+local class = require("pl.class")
 
 local Project = require("htl.project")
 local Config = require("htl.project.mirror.config")
 
-local Mirror = Object:extend()
+class.Mirror()
 Mirror.type_configs = Config.load()
 
-function Mirror:new(path, type_name)
+function Mirror:_init(path, type_name)
     if not type_name then
         type_name = Mirror.path_type(path)
     end
