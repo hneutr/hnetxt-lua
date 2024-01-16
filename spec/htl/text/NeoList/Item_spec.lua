@@ -31,3 +31,30 @@ describe("str_is_a", function()
         assert.is_false(Item:str_is_a("1. "))
     end)
 end)
+
+describe("convert_lines", function()
+    it("works", function()
+        local original = List({
+            Item("! a"),
+            Item("  ~ b"),
+            Item("    - c")
+        })
+
+        local converted = 
+        assert.are.same(
+            List({
+                Item("? a"),
+                Item("  ? b"),
+                Item("    ? c")
+            }),
+            Item:convert_lines(original, "?")
+        )
+    end)
+end)
+
+describe("get_name", function()
+    it("works", function()
+        assert.are.same("bullet", Item("- a").name)
+        assert.are.same("important", Item("! a").name)
+    end)
+end)

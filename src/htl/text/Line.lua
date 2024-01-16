@@ -3,13 +3,18 @@ local class = require("pl.class")
 class.Line()
 Line.regex = "^(%s*)(.*)$"
 Line.indent_size = 2
+Line.name = 'line'
 
 function Line:_init(str)
     self.indent, self.text = self.parse_indent(str)
 end
 
 function Line:__tostring()
-    return self.indent .. self.text
+    return self:string_from_dict(self)
+end
+
+function Line:string_from_dict(d)
+    return string.format("%s%s", d.indent or "", d.text or "")
 end
 
 function Line.parse_indent(l)
@@ -42,12 +47,19 @@ function Line.str_is_a(l) return true end
 
 function Line:merge(other)
     self.text = self.text:lstrip() .. " " .. other.text
+    return self
 end
 
 function Line:get_next(text)
     local next = getmetatable(self)(tostring(self))
     next.text = text or "" 
     return next
+end
+
+function Line:convert_lines(lines)
+    return lines:map(function(l)
+        return Line(Line:string_from_dict({indent = l.indent, text = l.text}))
+    end)
 end
 
 return Line

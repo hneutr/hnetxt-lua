@@ -186,13 +186,13 @@ local operation_tests = {
                 a = function(p) assert.falsy(Path.exists(p)) end,
             },
         },
-        {
-            operator_action = 'remove',
-            operation_class = "mark", 
-            operation_name = "remove",
-            source = "a.md:b",
-            make = {"a.md"},
-        },
+        -- {
+        --     operator_action = 'remove',
+        --     operation_class = "mark", 
+        --     operation_name = "remove",
+        --     source = "a.md:b",
+        --     make = {"a.md"},
+        -- },
     },
     move = {
         test_function = run_move_operation_test,

@@ -37,3 +37,35 @@ describe("str_is_a", function()
         assert.is_false(NumberedItem:str_is_a("1 a"))
     end)
 end)
+
+describe("convert_lines", function()
+    it("works", function()
+        local original = List({
+            Item("! a"),
+            Item("  ~ b"),
+            Item("    - c"),
+            Item("    - d"),
+            Item("  ~ e"),
+            Item("    - f"),
+            Item("    - g"),
+            Item("! h"),
+            Item("! i")
+        })
+
+        local converted = 
+        assert.are.same(
+            List({
+                NumberedItem("1. a"),
+                NumberedItem("  1. b"),
+                NumberedItem("    1. c"),
+                NumberedItem("    2. d"),
+                NumberedItem("  2. e"),
+                NumberedItem("    1. f"),
+                NumberedItem("    2. g"),
+                NumberedItem("2. h"),
+                NumberedItem("3. i")
+            }),
+            NumberedItem:convert_lines(original)
+        )
+    end)
+end)
