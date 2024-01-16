@@ -56,7 +56,6 @@ build = {
         ["htl.text.Parser"] = "src/htl/text/Parser.lua",
         ["htl.text.Line"] = "src/htl/text/Line.lua",
 
-        ["htl.text.list"] = "src/htl/text/list.lua",
         ["htl.text.NeoList"] = "src/htl/text/NeoList/init.lua",
         ["htl.text.NeoList.Item"] = "src/htl/text/NeoList/Item.lua",
         ["htl.text.NeoList.NumberedItem"] = "src/htl/text/NeoList/NumberedItem.lua",

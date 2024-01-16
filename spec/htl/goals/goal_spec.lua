@@ -1,5 +1,3 @@
-local TextList = require("htl.text.list")
-
 local Goal = require("htl.goals.goal")
 
 local todo_sigil = '◻'

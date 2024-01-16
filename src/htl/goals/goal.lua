@@ -6,17 +6,16 @@ local Set = require("pl.Set")
 
 local Config = require("htl.config")
 
-local TextList = require("htl.text.list")
+local NeoList = require("htl.text.NeoList")
 
 class.Goal()
 Goal.config = Config.get('goals')
-Goal.parser = TextList.Parser()
 Goal.closed_set = Set({'done', 'reject'})
 Goal.open_sigil = Config.get('list').types.todo.sigil
 
 function Goal:_init(line)
     self.line = line
-    self.text_line = self.parser:parse_line(line, 1)
+    self.text_line = NeoList:parse_line(line)
     self.line_type = self.text_line.name
 end
 
