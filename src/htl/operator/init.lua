@@ -4,14 +4,12 @@ local Project = require("htl.project")
 local Operation = require("htl.operator.operation")
 local FileOperation = require("htl.operator.operation.file")
 local DirOperation = require("htl.operator.operation.dir")
-local MarkOperation = require("htl.operator.operation.mark")
 
 local M = {}
 
 M.operation_classes = {
     FileOperation,
     DirOperation,
-    MarkOperation,
 }
 
 --------------------------------------------------------------------------------
@@ -56,12 +54,6 @@ M.operations = {
             check_target = Operation.could_be_dir,
             transform_target = Operation.dir_file_of,
         },
-        ["to mark"] = {
-            check_target = Operation.is_mark,
-            map_mirrors = FileOperation.to_mark.map_mirrors,
-            move = FileOperation.to_mark.move,
-            update_references = FileOperation.to_mark.update_references,
-        },
     },
     dir = {
         remove = {check_target = Operation.is_nil},
@@ -73,19 +65,6 @@ M.operations = {
         ["to files"] = {
             check_target = Operation.is_parent_of,
             map_source_to_target = DirOperation.to_files.map_source_to_target,
-        },
-    },
-    mark = {
-        remove = {check_target = Operation.is_nil},
-        move = {check_target = Operation.is_mark},
-        ["to file"] = {check_target = Operation.could_be_file},
-        ["to dir"] = {
-            check_target = Operation.could_be_dir,
-            transform_target = Operation.dir_file_of,
-        },
-        ["to dir file"] = {
-            check_target = Path.is_dir,
-            transform_target = MarkOperation.to_dir_file.transform_target,
         },
     },
 }

@@ -6,7 +6,6 @@ local Operation = require("htl.operator.operation")
 
 local test_dir = Path.join(tostring(Path.tempdir), "test-dir")
 local test_file = Path.join(test_dir, "test-file.md")
-local test_mark = test_file .. ":mark"
 local test_dir_file = Path.join(test_dir, "@.md")
 local test_subdir = Path.join(test_dir, "test-subdir")
 local test_subfile = Path.join(test_subdir, "test-file.md")
@@ -49,10 +48,6 @@ describe("could_be_file", function()
     it("-: dir", function()
         assert.falsy(Operation.could_be_file("a"))
     end)
-
-    it("-: mark", function()
-        assert.falsy(Operation.could_be_file("a.md:b"))
-    end)
 end)
 
 describe("could_be_dir", function()
@@ -67,10 +62,6 @@ describe("could_be_dir", function()
 
     it("-: file", function()
         assert.falsy(Operation.could_be_dir(test_file))
-    end)
-
-    it("-: mark", function()
-        assert.falsy(Operation.could_be_dir(test_mark))
     end)
 end)
 

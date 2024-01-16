@@ -12,7 +12,6 @@ local Reference = require("htl.text.reference")
 --------------------------------------------------------------------------------
 local M = {}
 M.dir_file_name = Config.get("directory_file").name
-M.is_mark = Location.str_has_label
 
 function M.check_source(source, target) return true end
 function M.check_target(target, source) return true end
@@ -51,11 +50,11 @@ function M.remove(source)
 end
 
 function M.could_be_file(p)
-    return Path.is_file_like(p) and not M.is_mark(p)
+    return Path.is_file_like(p)
 end
 
 function M.could_be_dir(p)
-    return Path.is_dir_like(p) and not Path.exists(p) and not M.is_mark(p)
+    return Path.is_dir_like(p) and not Path.exists(p)
 end
 
 function M.is_dir_file_of(p)

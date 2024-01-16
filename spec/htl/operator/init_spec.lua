@@ -7,7 +7,6 @@ local Operator = require("htl.operator")
 local Operation = require("htl.operator.operation")
 local FileOperation = require("htl.operator.operation.file")
 local DirOperation = require("htl.operator.operation.dir")
-local MarkOperation = require("htl.operator.operation.mark")
 
 local project_root_from_path
 local operation_class_to_test
@@ -186,13 +185,6 @@ local operation_tests = {
                 a = function(p) assert.falsy(Path.exists(p)) end,
             },
         },
-        -- {
-        --     operator_action = 'remove',
-        --     operation_class = "mark", 
-        --     operation_name = "remove",
-        --     source = "a.md:b",
-        --     make = {"a.md"},
-        -- },
     },
     move = {
         test_function = run_move_operation_test,
@@ -239,18 +231,6 @@ local operation_tests = {
                 ["b/@.md"] = function(p) assert(Path.is_file(p)) end,
             },
         },
-        {
-            operation_class = "file", 
-            operation_name = "to mark",
-            subtests = {
-                ["Path.exists(target)"] = {make = {"a.md", "b.md"}},
-                ["! Path.exists(target)"] = {make = {"a.md"}},
-            },
-            source = "a.md",
-            target = "b.md:c",
-            transformed_target = "b.md:c",
-            map = {["a.md"] = "b.md:c"},
-        },
         --------------------------------------[ dir ]-------------------------------------
         {
             operation_class = "dir", 
@@ -292,49 +272,6 @@ local operation_tests = {
                 ["a/b.md"] = function(p) assert(Path.is_file(p)) end,
                 ["a/c.md"] = function(p) assert(Path.is_file(p)) end,
             },
-        },
-        ------------------------------------[ mark ]------------------------------------
-        {
-            operation_class = "mark", 
-            operation_name = "move",
-            source = "a.md:b",
-            target = "c.md:d",
-            subtests = {
-                ["Path.exists(target)"] = {make = {"a.md", "c.md"}},
-                ["! Path.exists(target)"] = {make = {"a.md"}},
-            },
-            transformed_target = "c.md:d",
-            map = {["a.md:b"] = "c.md:d"},
-        },
-        {
-            operation_class = "mark", 
-            operation_name = "to file",
-            source = "a.md:b",
-            target = "c.md",
-            subtests = {
-                ["Path.exists(target)"] = {make = {"a.md", "c.md"}},
-                ["! Path.exists(target)"] = {make = {"a.md"}},
-            },
-            transformed_target = "c.md",
-            map = {["a.md:b"] = "c.md"},
-        },
-        {
-            operation_class = "mark", 
-            operation_name = "to dir",
-            source = "a.md:b",
-            target = "c",
-            make = {"a.md"},
-            transformed_target = "c/@.md",
-            map = {["a.md:b"] = "c/@.md"},
-        },
-        {
-            operation_class = "mark", 
-            operation_name = "to dir file",
-            source = "a.md:b",
-            target = "c",
-            make = {"a.md", "c"},
-            transformed_target = "c/b.md",
-            map = {["a.md:b"] = "c/b.md"},
         },
     },
 }
