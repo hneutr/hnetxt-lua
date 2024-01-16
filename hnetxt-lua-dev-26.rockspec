@@ -50,16 +50,16 @@ build = {
         ["htl.text.divider"] = "src/htl/text/divider.lua",
         ["htl.text.header"] = "src/htl/text/header.lua",
         ["htl.text.link"] = "src/htl/text/link.lua",
-        ["htl.text.list"] = "src/htl/text/list.lua",
         ["htl.text.location"] = "src/htl/text/location.lua",
         ["htl.text.mark"] = "src/htl/text/mark.lua",
         ["htl.text.reference"] = "src/htl/text/reference.lua",
+        ["htl.text.Parser"] = "src/htl/text/Parser.lua",
         ["htl.text.Line"] = "src/htl/text/Line.lua",
+
+        ["htl.text.list"] = "src/htl/text/list.lua",
         ["htl.text.NeoList"] = "src/htl/text/NeoList/init.lua",
         ["htl.text.NeoList.Item"] = "src/htl/text/NeoList/Item.lua",
         ["htl.text.NeoList.NumberedItem"] = "src/htl/text/NeoList/NumberedItem.lua",
-        -- neo
-        ["htl.text.neoparse"] = "src/htl/text/neoparse.lua",
 
         ["htl.notes"] = "src/htl/notes/init.lua",
         ["htl.notes.set"] = "src/htl/notes/set/init.lua",

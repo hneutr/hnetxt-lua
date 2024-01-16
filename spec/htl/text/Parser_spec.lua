@@ -1,6 +1,6 @@
 local List = require("hl.List")
 
-local Parser = require("htl.text.neoparse")
+local Parser = require("htl.text.Parser")
 
 local Divider = require("htl.text.divider")
 local Header = require("htl.text.header")

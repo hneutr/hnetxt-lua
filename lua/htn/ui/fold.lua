@@ -1,7 +1,7 @@
 local BufferLines = require("hn.buffer_lines")
 local Color = require("hn.color")
 
-local Parser = require("htl.text.neoparse")
+local Parser = require("htl.text.Parser")
 local Divider = require("htl.text.divider")
 local metadata_divider = Divider.metadata_divider()
 
