@@ -1,4 +1,4 @@
-local Item = require("htl.text.NeoList.Item")
+local Item = require("htl.text.List.Item")
 
 describe("parse_sigil", function()
     it("base case", function()

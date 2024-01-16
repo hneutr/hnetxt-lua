@@ -1,4 +1,4 @@
-local NumberedItem = require("htl.text.NeoList.NumberedItem")
+local NumberedItem = require("htl.text.List.NumberedItem")
 
 describe("parse_sigil", function()
     it("base case", function()

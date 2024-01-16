@@ -1,5 +1,5 @@
 local class = require("pl.class")
-local Item = require("htl.text.NeoList.Item")
+local Item = require("htl.text.List.Item")
 
 class.NumberedItem(Item)
 NumberedItem.sigil_separator = ". "

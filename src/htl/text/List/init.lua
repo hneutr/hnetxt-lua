@@ -2,17 +2,17 @@ local class = require("pl.class")
 local List = require("hl.List")
 
 local Line = require("htl.text.Line")
-local Item = require("htl.text.NeoList.Item")
-local NumberedItem = require("htl.text.NeoList.NumberedItem")
+local Item = require("htl.text.List.Item")
+local NumberedItem = require("htl.text.List.NumberedItem")
 
-class.NeoList()
-NeoList.LineClasses = List({
+class.TextList()
+TextList.LineClasses = List({
     NumberedItem,
     Item,
     Line,
 })
 
-NeoList.line_class_to_toggle_info = Dict({
+TextList.line_class_to_toggle_info = Dict({
     number = {
         on = NumberedItem,
         off = Item,
@@ -31,7 +31,7 @@ NeoList.line_class_to_toggle_info = Dict({
     }
 })
 
-function NeoList:parse_line(s)
+function TextList:parse_line(s)
     for Class in self.LineClasses:iter() do
         if Class:str_is_a(s) then
             return Class(s)
@@ -39,7 +39,7 @@ function NeoList:parse_line(s)
     end
 end
 
-function NeoList:convert_lines(lines, toggle_line_type_name)
+function TextList:convert_lines(lines, toggle_line_type_name)
     local lines = List(lines):transform(function(l) return self:parse_line(l) end)
     local outmost_line = lines:sorted(function(a, b) return #a.indent < #b.indent end)[1]
 
@@ -58,4 +58,4 @@ function NeoList:convert_lines(lines, toggle_line_type_name)
     return toggle_info[toggle]:convert_lines(lines, sigil)
 end
 
-return NeoList
+return TextList

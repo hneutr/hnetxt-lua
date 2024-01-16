@@ -7,12 +7,12 @@ local Color = require("hn.color")
 local BufferLines = require("hn.buffer_lines")
 local Config = require("htl.config").get('list')
 
-local NeoList = require("htl.text.NeoList")
+local TextList = require("htl.text.List")
 
 local function toggle(mode, toggle_line_type_name)
     BufferLines.selection.set({
         mode = mode,
-        replacement = NeoList:convert_lines(
+        replacement = TextList:convert_lines(
             BufferLines.selection.get({mode = mode}),
             toggle_line_type_name
         ):transform(tostring)
@@ -31,7 +31,7 @@ local function join()
     )
 
     if #lines == 2 then
-        local line = NeoList:parse_line(lines[1]):merge(NeoList:parse_line(lines[2]))
+        local line = TextList:parse_line(lines[1]):merge(TextList:parse_line(lines[2]))
         local lines = vim.api.nvim_buf_set_lines(
             0,
             line_number,
@@ -53,7 +53,7 @@ local function continue(from_command)
         str = str:sub(1, col - 1)
     end
 
-    local line = NeoList:parse_line(str)
+    local line = TextList:parse_line(str)
     local next_line = line:get_next(next_str)
 
     vim.api.nvim_buf_set_lines(

@@ -55,10 +55,9 @@ build = {
         ["htl.text.reference"] = "src/htl/text/reference.lua",
         ["htl.text.Parser"] = "src/htl/text/Parser.lua",
         ["htl.text.Line"] = "src/htl/text/Line.lua",
-
-        ["htl.text.NeoList"] = "src/htl/text/NeoList/init.lua",
-        ["htl.text.NeoList.Item"] = "src/htl/text/NeoList/Item.lua",
-        ["htl.text.NeoList.NumberedItem"] = "src/htl/text/NeoList/NumberedItem.lua",
+        ["htl.text.List"] = "src/htl/text/List/init.lua",
+        ["htl.text.List.Item"] = "src/htl/text/List/Item.lua",
+        ["htl.text.List.NumberedItem"] = "src/htl/text/List/NumberedItem.lua",
 
         ["htl.notes"] = "src/htl/notes/init.lua",
         ["htl.notes.set"] = "src/htl/notes/set/init.lua",
