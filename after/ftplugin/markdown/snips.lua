@@ -35,12 +35,12 @@ local snippets = List({
     divider("dl", "large"),
     divider("dm", "medium"),
     divider("ds", "small"),
-    divider("dS", "tiny"),
+    divider("dxs", "tiny"),
     -- headers
     header("hl", "large"),
     header("hm", "medium"),
     header("hs", "small"),
-    header("hS", "tiny"),
+    header("hxs", "tiny"),
     -- metadata dividers
     divider("m", "large", "metadata"),
     s("date", fmt(

@@ -8,6 +8,7 @@ local BufferLines = require("hn.buffer_lines")
 local Config = require("htl.config").get('list')
 
 local TextList = require("htl.text.List")
+local Item = require("htl.text.List.Item")
 
 local function toggle(mode, toggle_line_type_name)
     BufferLines.selection.set({
@@ -49,8 +50,8 @@ local function continue(from_command)
     local next_str = ""
 
     if not from_command then
-        next_str = str:sub(col)
-        str = str:sub(1, col - 1)
+        next_str = str:sub(col):strip()
+        str = str:sub(1, col - 1):rstrip()
     end
 
     local line = TextList:parse_line(str)
@@ -65,7 +66,12 @@ local function continue(from_command)
     )
 
     vim.api.nvim_win_set_cursor(0, {lnum + 1, 0})
-    vim.api.nvim_input("<esc>A")
+    
+    if line:is_a(Item) then
+        vim.api.nvim_input("<esc>A")
+    else
+        vim.api.nvim_input("<esc>I")
+    end
 end
 
 local function get_list_type_configs()
