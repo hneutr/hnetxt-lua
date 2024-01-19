@@ -76,6 +76,8 @@ build = {
         ["htl.notes.note.statement"] = "src/htl/notes/note/statement.lua",
         ["htl.notes.note.blank"] = "src/htl/notes/note/blank.lua",
 
+        ["htl.goals"] = "src/htl/goals.lua",
+
         ["htl.goals.goal"] = "src/htl/goals/goal.lua",
         ["htl.goals.set"] = "src/htl/goals/set/init.lua",
         ["htl.goals.set.year"] = "src/htl/goals/set/year.lua",
@@ -99,7 +101,6 @@ build = {
         ["htc.project"] = "src/htc/project.lua",
         ["htc.move"] = "src/htc/move.lua",
         ["htc.remove"] = "src/htc/remove.lua",
-        ["htc.goals"] = "src/htc/goals.lua",
         ["htc.aim"] = "src/htc/aim.lua",
         ["htc.notes"] = "src/htc/notes.lua",
     }
