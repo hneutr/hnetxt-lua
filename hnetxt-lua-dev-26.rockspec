@@ -33,6 +33,7 @@ build = {
 
         ["htl.journal"] = "src/htl/journal.lua",
         ["htl.track"] = "src/htl/track.lua",
+        ["htl.goals"] = "src/htl/goals.lua",
 
         ["htl.snippet"] = "src/htl/snippet.lua",
         ['htl.metadata'] = "src/htl/metadata.lua",
@@ -59,25 +60,6 @@ build = {
         ["htl.text.List.Item"] = "src/htl/text/List/Item.lua",
         ["htl.text.List.NumberedItem"] = "src/htl/text/List/NumberedItem.lua",
 
-        -- ["htl.notes"] = "src/htl/notes/init.lua",
-        -- ["htl.notes.set"] = "src/htl/notes/set/init.lua",
-        -- ["htl.notes.set.file"] = "src/htl/notes/set/file.lua",
-        -- ["htl.notes.set.topic"] = "src/htl/notes/set/topic.lua",
-        -- ["htl.notes.set.prompt"] = "src/htl/notes/set/prompt.lua",
-        -- ["htl.notes.set.intention"] = "src/htl/notes/set/intention.lua",
-        -- ["htl.notes.field"] = "src/htl/notes/field/init.lua",
-        -- ["htl.notes.field.string"] = "src/htl/notes/field/string.lua",
-        -- ["htl.notes.field.bool"] = "src/htl/notes/field/bool.lua",
-        -- ["htl.notes.field.date"] = "src/htl/notes/field/date.lua",
-        -- ["htl.notes.field.list"] = "src/htl/notes/field/list.lua",
-        -- ["htl.notes.field.start"] = "src/htl/notes/field/start.lua",
-        -- ["htl.notes.field.end"] = "src/htl/notes/field/end.lua",
-        -- ["htl.notes.note.file"] = "src/htl/notes/note/file.lua",
-        -- ["htl.notes.note.statement"] = "src/htl/notes/note/statement.lua",
-        -- ["htl.notes.note.blank"] = "src/htl/notes/note/blank.lua",
-
-        ["htl.goals"] = "src/htl/goals.lua",
-
         -- cli
         ["htc"] = "src/htc/init.lua",
         ["htc.command"] = "src/htc/command.lua",
@@ -89,12 +71,11 @@ build = {
         ["htc.new"] = "src/htc/new.lua",
         ["htc.tags"] = "src/htc/tags.lua",
         ["htc.track"] = "src/htc/track.lua",
+        ["htc.aim"] = "src/htc/aim.lua",
 
         ["htc.project"] = "src/htc/project.lua",
         ["htc.move"] = "src/htc/move.lua",
         ["htc.remove"] = "src/htc/remove.lua",
-        ["htc.aim"] = "src/htc/aim.lua",
-        ["htc.notes"] = "src/htc/notes.lua",
     }
 }
 test = {
