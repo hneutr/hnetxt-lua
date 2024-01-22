@@ -43,6 +43,21 @@ local function join()
     end
 end
 
+local function handle_comment(line, next_line)
+    local comment_string = vim.opt_local.commentstring:get()
+
+    if comment_string ~= nil and #comment_string > 0 then
+        comment_string = comment_string:gsub("%%s", "")
+
+        if line.text:startswith(comment_string) then 
+            next_line.text = comment_string .. next_line.text 
+            return true
+        end
+    end
+
+    return false
+end
+
 local function continue(from_command)
     local _, lnum, col = unpack(vim.fn.getcurpos())
 
@@ -57,6 +72,8 @@ local function continue(from_command)
     local line = TextList:parse_line(str)
     local next_line = line:get_next(next_str)
 
+    local line_is_a_comment = handle_comment(line, next_line)
+
     vim.api.nvim_buf_set_lines(
         0,
         lnum - 1,
@@ -67,7 +84,7 @@ local function continue(from_command)
 
     vim.api.nvim_win_set_cursor(0, {lnum + 1, 0})
     
-    if line:is_a(Item) then
+    if line:is_a(Item) or line_is_a_comment then
         vim.api.nvim_input("<esc>A")
     else
         vim.api.nvim_input("<esc>I")
