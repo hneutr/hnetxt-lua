@@ -9,7 +9,7 @@ HOME = Path.home()
 DATA_DIR = HOME / '.data'
 DASHBOARDS_DIR = DATA_DIR / 'dashboards'
 
-CONFIG_DIR = HOME / 'dotfiles' / 'hnetxt' / 'constants'
+CONFIG_DIR = HOME / 'lib' / 'hnetxt-lua' / 'scripts' / 'constants'
 EMOJI_DIR = CONFIG_DIR / 'emoji'
 
 X_OF_THE_DAY_DIR = DATA_DIR / 'x-of-the-day'

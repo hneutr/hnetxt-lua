@@ -3,7 +3,7 @@ local Dict = require("hl.Dict")
 local Path = require("hl.Path")
 
 local Config = {}
-Config.constants_dir = Path.home:join(".config/hnetxt/constants")
+Config.constants_dir = Path.home:join("lib/hnetxt-lua/constants")
 Config.data_dir = Path.home:join(".data")
 Config.constants_suffix = ".yaml"
 

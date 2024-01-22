@@ -1,0 +1,11 @@
+size: large
+style: default
+fill: ━
+default: 
+    left: ╺
+    right: ╸
+metadata:
+    left: ━
+    right: ━
+    color: blue
+    fold_level: 20
