@@ -9,10 +9,13 @@ description = {
    license = "MIT"
 }
 dependencies = {
+    "luv",
+   "plenary.nvim",
    "lua >= 5.1",
    "lyaml >= 6.2",
    "inspect >= 3.1",
-   "lua-cjson >= 2.1"
+   "luajit >= 2.1",
+   "lua-cjson >= 2.1",
 }
 build = {
    type = "builtin",
@@ -79,6 +82,10 @@ build = {
         ["htc.project"] = "src/htc/project.lua",
         ["htc.move"] = "src/htc/move.lua",
         ["htc.remove"] = "src/htc/remove.lua",
+
+
+        -- db
+        ["htl.db"] = "src/htl/db.lua",
     }
 }
 test = {
