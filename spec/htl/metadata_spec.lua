@@ -163,11 +163,11 @@ describe("Tag", function()
 
     describe("init", function()
         it("+", function()
-            assert.are.same(List({"a"}), Tag("@a").val)
+            assert.are.same({"a"}, Tag("@a").val)
         end)
 
         it("+: multitag", function()
-            assert.are.same(List({"a", "b"}), Tag("@a.b").val)
+            assert.are.same({"a", "b"}, Tag("@a.b").val)
         end)
     end)
 
@@ -211,13 +211,40 @@ describe("Tag", function()
     describe("gather", function()
         it("works", function()
             local metadata = Dict()
-            Tag.gather(metadata, Dict({tags = {a = { b = {}}}}))
-            Tag.gather(metadata, Dict({tags = {a = { c = {}}}}))
+            Tag.gather(metadata, {tags = {a = { b = {}}}})
+            Tag.gather(metadata, {tags = {a = { c = {}}}})
             assert.are.same(
                 {tags = {a = {b = {}, c = {}}}},
                 metadata
             )
         end)
+    end)
+
+    describe("get_print_lines", function()
+        local m = Dict({
+            a = {
+                b = {},
+                c = {d = {}, e = {}},
+            },
+            f = {},
+            g = {
+                h = {},
+            },
+        })
+    
+        assert.are.same(
+            {
+                "@a",
+                "  .b",
+                "  .c",
+                "    .d",
+                "    .e",
+                "@f",
+                "@g",
+                "  .h",
+            },
+            Tag.get_print_lines(m)
+        )
     end)
 end)
 
@@ -236,7 +263,7 @@ describe("MReference", function()
         it("+", function()
             local r = MReference("a: [b](c)")
             assert.are.same("a", r.key)
-            assert.are.same(List({"c"}), r.vals)
+            assert.are.same({"c"}, r.vals)
         end)
     end)
 

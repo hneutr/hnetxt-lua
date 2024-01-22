@@ -1,6 +1,7 @@
 local Path = require("hl.Path")
 local Dict = require("hl.Dict")
 local List = require("hl.List")
+local Tree = require("hl.Tree")
 local Set = require("hl.Set")
 local Yaml = require("hl.yaml")
 
@@ -191,50 +192,13 @@ function Tag.gather(existing, new)
 end
 
 function Tag.get_print_lines(gathered)
-    local lines = List()
-
-    Tag._get_print_lines(gathered):foreach(function(line)
-        if not line:startswith(" ") then
-            line = Tag.prefix .. line
-        else
-            line = " " .. line
-        end
-
-        return lines:append(line)
+    local tree = Tree(gathered):transform(function(k)
+        return Tag.delimiter .. k
+    end):transformk(function(k)
+        return Tag.prefix .. k:sub(2)
     end)
-
-    return lines
-end
-
-function Tag._get_print_lines(dict)
-    local lines = List()
-    dict:transformk(tostring):keys():sorted():foreach(function(k)
-        local v = Dict(dict[k])
-        local sublines = List()
-        
-        if #v:values() then
-            sublines = Tag._get_print_lines(v)
-        end
-
-        sublines:transform(function(subline)
-            local pad = string.rep(" ", #k)
-            if subline:match("%.") then
-                pad = pad .. " "
-            else
-                pad = pad .. "."
-            end
-            return pad .. subline
-        end)
-
-        if #sublines > 0 then
-            lines:append(k)
-            lines:extend(sublines)
-        else
-            lines:append(k)
-        end
-    end)
-
-    return lines
+    
+    return tostring(tree):split("\n")
 end
 
 --------------------------------------------------------------------------------

@@ -22,10 +22,13 @@ build = {
         ["hl.object"] = "src/hl/object.lua",
         ["hl.string"] = "src/hl/string.lua",
         ["hl.yaml"] = "src/hl/yaml.lua",
+
         ["hl.List"] = "src/hl/List.lua",
         ["hl.Dict"] = "src/hl/Dict.lua",
         ['hl.Set'] = "src/hl/Set.lua",
         ["hl.Path"] = "src/hl/Path.lua",
+        ["hl.Tree"] = "src/hl/Tree.lua",
+        
         ["hl.DataFrame"] = "src/hl/DataFrame.lua",
 
         ["htl"] = "src/htl/init.lua",
