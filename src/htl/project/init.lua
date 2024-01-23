@@ -37,35 +37,6 @@ function Project.create(name, dir, metadata)
     Registry.set_entry(name, dir)
 end
 
-function Project.in_project(path)
-    path = Path(path or Path.cwd())
-
-    if not path:is_dir(p) then
-        path = path:parent()
-    end
-
-    local candidates = List.from({path}, path:parents())
-
-    for _, candidate in ipairs(candidates) do
-        if Project.get_metadata_path(candidate):exists() then
-            return true
-        end
-    end
-
-    return false
-end
-
-function Project.from_path(path)
-    path = Path(path) or Path.cwd()
-    local name = Registry.get_entry_name(path)
-
-    if name then
-        return Project(name)
-    end
-
-    return nil
-end
-
 function Project.root_from_path(path)
     path = Path(path or Path.cwd())
     local name = Registry.get_entry_name(path)

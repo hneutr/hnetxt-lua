@@ -83,9 +83,9 @@ build = {
         ["htc.move"] = "src/htc/move.lua",
         ["htc.remove"] = "src/htc/remove.lua",
 
-
         -- db
-        ["htl.db"] = "src/htl/db.lua",
+        ["htl.db"] = "src/htl/db/init.lua",
+        ["htl.db.projects"] = "src/htl/db/projects.lua",
     }
 }
 test = {

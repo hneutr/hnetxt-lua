@@ -5,6 +5,8 @@ local Path = require("hl.Path")
 local Dict = require("hl.Dict")
 local Set = require("hl.Set")
 
+local db = require("htl.db").setup()
+
 local Metadata = require("htl.metadata")
 local Tag = Metadata.Tag
 local Field = Metadata.Field
@@ -350,6 +352,8 @@ describe("Files", function()
                 "",
                 "xyz",
             })
+
+            stub()
 
             local files = Files({dir = dir, reference = c})
 
