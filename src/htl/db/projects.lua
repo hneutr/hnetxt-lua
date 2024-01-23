@@ -56,7 +56,7 @@ function M:get_root(path)
 end
 
 function M.tostring(p)
-    return string.format("{title=%s, path=%s, created=%s}", p.title, p.title, p.created)
+    return string.format("{title=%s, path=%s, created=%s}", p.title, p.path, p.created)
 end
 
 return M
