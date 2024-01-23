@@ -49,8 +49,6 @@ build = {
         ["htl.operator.operation.dir"] = "src/htl/operator/operation/dir.lua",
         ["htl.operator.operation.file"] = "src/htl/operator/operation/file.lua",
 
-        ["htl.project"] = "src/htl/project/init.lua",
-        ["htl.project.registry"] = "src/htl/project/registry.lua",
         ["htl.project.mirror"] = "src/htl/project/mirror/init.lua",
         ["htl.project.mirror.config"] = "src/htl/project/mirror/config.lua",
 
@@ -74,12 +72,12 @@ build = {
         ["htc.colorize"] = "src/htc/colorize.lua",
 
         ["htc.journal"] = "src/htc/journal.lua",
-        ["htc.new"] = "src/htc/new.lua",
-        ["htc.tags"] = "src/htc/tags.lua",
         ["htc.track"] = "src/htc/track.lua",
         ["htc.aim"] = "src/htc/aim.lua",
-
+        ["htc.new"] = "src/htc/new.lua",
+        ["htc.tags"] = "src/htc/tags.lua",
         ["htc.project"] = "src/htc/project.lua",
+
         ["htc.move"] = "src/htc/move.lua",
         ["htc.remove"] = "src/htc/remove.lua",
 
