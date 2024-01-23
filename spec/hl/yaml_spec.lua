@@ -1,4 +1,5 @@
 local yaml = require('hl.yaml')
+local Dict = require("hl.Dict")
 local Path = require("hl.Path")
 
 local test_file = Path.join(tostring(Path.tempdir), "yaml-test.md")
@@ -13,7 +14,7 @@ end)
 
 describe("dump", function()
     it("outputs a clean string", function()
-        assert.are.same("a: 1\nb: 2\n", yaml.dump({a = 1, b = 2}))
+        assert.are.same("a: 1\n", yaml.dump(Dict({a = 1})))
     end)
 end)
 

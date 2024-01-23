@@ -73,7 +73,7 @@ describe("foreachk", function()
 
         d:foreachk(function(k) l:append(k) end)
 
-        assert.are.same({'a', 'b'}, l)
+        assert.are.same({'a', 'b'}, l:sorted())
     end)
 end)
 
@@ -84,7 +84,7 @@ describe("foreachv", function()
 
         d:foreachv(function(v) l:append(v) end)
 
-        assert.are.same({1, 2}, l)
+        assert.are.same({1, 2}, l:sorted())
     end)
 end)
 

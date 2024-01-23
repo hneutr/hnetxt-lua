@@ -1,15 +1,12 @@
 local sqlite = require("sqlite.db")
--- local tbl = require("sqlite.tbl")
+local tbl = require("sqlite.tbl")
 
 -- local strftime = sqlite.lib.strftime
 
 local Config = require("htl.config")
--- local uri = "/tmp/bm_db_v1"
 
-return {
-    uri = Config.data_dir:join(Config.get("db").path)
-}
---M.uri = Config.data_dir:join(Config.get("db").path)
+local M = {}
+M.uri = Config.data_dir:join(Config.get("db").path)
 
 ----[[ Datashapes ---------------------------------------------
 --@class BMCollection
@@ -223,4 +220,4 @@ return {
 --    })
 --end
 
---return M
+return M

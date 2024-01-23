@@ -21,7 +21,7 @@ describe("prune", function()
         t:set({"b"})
         assert.are.same(
             List({"a", "b"}),
-            t:prune()
+            t:prune():sorted()
         )
     end)
 

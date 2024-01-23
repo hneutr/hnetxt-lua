@@ -354,7 +354,7 @@ describe("Files", function()
             local files = Files({dir = dir, reference = c})
 
             local expected = List({a, b}):transform(tostring)
-            assert.are.same(expected, files.path_to_file:keys())
+            assert.are.same(expected, files.path_to_file:keys():sorted())
         end)
     end)    
 end)
