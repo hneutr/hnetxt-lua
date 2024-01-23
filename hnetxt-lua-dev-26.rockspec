@@ -44,6 +44,11 @@ build = {
         ["htl.snippet"] = "src/htl/snippet.lua",
         ['htl.metadata'] = "src/htl/metadata.lua",
 
+        -- db
+        ["htl.db"] = "src/htl/db/init.lua",
+        ["htl.db.projects"] = "src/htl/db/projects.lua",
+
+        -- to revise
         ["htl.operator"] = "src/htl/operator/init.lua",
         ["htl.operator.operation"] = "src/htl/operator/operation/init.lua",
         ["htl.operator.operation.dir"] = "src/htl/operator/operation/dir.lua",
@@ -54,15 +59,16 @@ build = {
 
         ["htl.text.divider"] = "src/htl/text/divider.lua",
         ["htl.text.header"] = "src/htl/text/header.lua",
-        ["htl.text.link"] = "src/htl/text/link.lua",
-        ["htl.text.location"] = "src/htl/text/location.lua",
-        ["htl.text.mark"] = "src/htl/text/mark.lua",
-        ["htl.text.reference"] = "src/htl/text/reference.lua",
         ["htl.text.Parser"] = "src/htl/text/Parser.lua",
         ["htl.text.Line"] = "src/htl/text/Line.lua",
         ["htl.text.List"] = "src/htl/text/List/init.lua",
         ["htl.text.List.Item"] = "src/htl/text/List/Item.lua",
         ["htl.text.List.NumberedItem"] = "src/htl/text/List/NumberedItem.lua",
+
+        ["htl.text.link"] = "src/htl/text/link.lua",
+        ["htl.text.location"] = "src/htl/text/location.lua",
+        ["htl.text.mark"] = "src/htl/text/mark.lua",
+        ["htl.text.reference"] = "src/htl/text/reference.lua",
 
         -- cli
         ["htc"] = "src/htc/init.lua",
@@ -79,9 +85,6 @@ build = {
         ["htc.move"] = "src/htc/move.lua",
         ["htc.remove"] = "src/htc/remove.lua",
 
-        -- db
-        ["htl.db"] = "src/htl/db/init.lua",
-        ["htl.db.projects"] = "src/htl/db/projects.lua",
     }
 }
 test = {
