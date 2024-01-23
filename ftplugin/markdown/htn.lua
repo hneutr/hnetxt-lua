@@ -28,10 +28,13 @@ vim.api.nvim_create_autocmd(
         pattern=pattern,
         group=buffer_group,
         callback=function()
-            vim.bo.autoindent = false
-            vim.bo.cindent = false
+            vim.opt_local.autoindent = false
+            vim.opt_local.cindent = false
+
+            vim.opt_local.textwidth = 0
 
             vim.opt.fillchars = {fold = " "}
+
             vim.opt_local.foldenable = true
             vim.opt_local.foldlevel = 19
             vim.opt_local.foldnestmax = 20
