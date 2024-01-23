@@ -6,7 +6,7 @@ local Path = require("hl.Path")
 local Config = require("htl.config")
 
 local db = require("htl.db")
-local projects = db.setup().projects
+local projects = db.get()['projects']
 
 Dict(Yaml.read(Config.data_dir:join("projects", "registry.yaml"))):foreach(function(title, path)
     path = Path(path)

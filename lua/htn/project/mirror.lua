@@ -1,6 +1,5 @@
 local Path = require('hn.path')
 
-local class = require("pl.class")
 local Mirror = require("htl.project.mirror")
 
 function Mirror.get_mappings()

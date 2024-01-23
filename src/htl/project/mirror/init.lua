@@ -2,7 +2,7 @@ local List = require("hl.List")
 local Path = require("hl.path")
 local class = require("pl.class")
 
-local Project = require("htl.project")
+local db = require("htl.db")
 local Config = require("htl.project.mirror.config")
 
 class.Mirror()
@@ -17,8 +17,8 @@ function Mirror:_init(path, type_name)
 
     self = Dict.update(self, self.type_configs[type_name])
 
-    self.root = Project.root_from_path(path)
-
+    
+    self.root = db.get()['projects'].get_path(path)
     self.dir = Path.join(self.root, self.dir)
 
     if Path.is_relative_to(path, self.dir) then
@@ -75,7 +75,7 @@ function Mirror.get_all_mirrored_paths(path, existing_only)
 end
 
 function Mirror.path_type(path)
-    local root = Project.root_from_path(path)
+    local root = db.get()['projects'].get_path(path)
     local project_path = Path.relative_to(path, root)
 
     for type_name, type_config in pairs(Mirror.type_configs) do

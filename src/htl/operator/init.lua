@@ -1,6 +1,7 @@
 local Path = require("hl.path")
 
-local Project = require("htl.project")
+local db = require("htl.db")
+
 local Operation = require("htl.operator.operation")
 local FileOperation = require("htl.operator.operation.file")
 local DirOperation = require("htl.operator.operation.dir")
@@ -101,7 +102,7 @@ end
 
 function M.move(source, target)
     local operation = M.get_operation(source, target)
-    local dir = Project.root_from_path(source)
+    local dir = db.get()['projects'].get_path(source)
 
     target = operation.transform_target(target, source)
     local map = operation.map_source_to_target(source, target)

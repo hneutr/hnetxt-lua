@@ -1,10 +1,11 @@
 local List = require("hl.List")
 local Path = require("hl.Path")
 local Link = require("htl.text.link")
-local Project = require("htl.project")
 local Dict = require("hl.Dict")
 local class = require("pl.class")
 local Yaml = require("hl.yaml")
+
+local db = require("htl.db")
 
 class.Snippet()
 Snippet.definitions = require("htl.config").get_dir("snippets")
@@ -12,6 +13,7 @@ Snippet.FIELD_SEPARATOR = ":"
 
 function Snippet:_init(path)
     self.path = path
+
     self.raw_metadata, self.text = unpack(Yaml.read_document(path, true))
 
     self.metadata = self:parse(self.raw_metadata)
@@ -66,7 +68,7 @@ function Snippet:parse_line(line)
         value = value:strip()
 
         if Link.str_is_a(value) then
-            value = Snippet(Project.root_from_path(self.path):join(Link.from_str(value).location))
+            value = Snippet(db.get()['projects'].get_path(self.path):join(Link.from_str(value).location))
         end
     else
         field = line

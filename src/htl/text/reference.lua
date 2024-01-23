@@ -2,14 +2,14 @@ string = require("hl.string")
 io = require("hl.io")
 local Dict = require("hl.Dict")
 local Path = require("hl.path")
-local Dict = require("hl.Dict")
 
 local class = require("pl.class")
+
+local db = require("htl.db")
 
 local Config = require("htl.config")
 local Link = require("htl.text.link")
 local Location = require("htl.text.location")
-local Project = require("htl.project")
 
 
 --------------------------------------------------------------------------------
@@ -139,7 +139,7 @@ end
 --          - point references to marks in old → new
 --------------------------------------------------------------------------------
 function Reference.update_locations(location_changes, dir)
-    dir = tostring(dir or Project.root_from_path())
+    dir = tostring(dir or db.get().projects.get_path())
     local relative_location_changes = {}
     for k, v in pairs(location_changes or {}) do
         if Path.is_relative_to(k, dir) then

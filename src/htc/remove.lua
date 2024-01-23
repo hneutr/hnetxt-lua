@@ -1,6 +1,5 @@
 local Path = require("hl.path")
 local Operator = require("htl.operator")
-local Notes = require("htl.project.")
 
 return {
     description = "rm within a project",

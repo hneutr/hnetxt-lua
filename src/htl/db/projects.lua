@@ -40,8 +40,9 @@ function M:get_by_title(title)
     return row
 end
 
-function M:get_path(path)
+function M.get_path(path)
     path = Path(path)
+    
     local projects = M:get():sorted(function(a, b)
         return #tostring(a.path) > #tostring(b.path)
     end):filter(function(p)

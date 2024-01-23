@@ -2,9 +2,9 @@ local Path = require("hl.Path")
 local Dict = require("hl.Dict")
 local List = require("hl.List")
 local Set = require("pl.Set")
-local Snippet = require("htl.snippet")
-local Config = require("htl.config")
 
+local Config = require("htl.config")
+local Snippet = require("htl.snippet")
 local Metadata = require("htl.metadata")
 
 --------------------------------------------------------------------------------

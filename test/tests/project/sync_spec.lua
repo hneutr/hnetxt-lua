@@ -2,7 +2,7 @@ local stub = require('luassert.stub')
 local Path = require("hn.path")
 
 local Reference = require("htl.text.reference")
-local Project = require("htl.project")
+local projects = require("htl.db.projects")
 
 local test_dir = Path.join(tostring(Path.tempdir), "test-dir")
 local test_file = Path.join(test_dir, "test-file.md")
@@ -13,15 +13,16 @@ describe("sync", function()
     before_each(function()
         Path.rmdir(test_dir, true)
         Path.mkdir(test_dir)
-        stub(Project, "root_from_path")
-        Project.root_from_path.returns(test_dir)
+
+        stub(projects, 'get_path')
+        projects.get_path.returns(test_dir)
 
         vim.b.hnetxt_project_root = test_dir
     end)
 
     after_each(function()
         Path.rmdir(test_dir, true)
-        Project.root_from_path:revert()
+        projects.get_path:revert()
     end)
 
     describe("on enter", function()

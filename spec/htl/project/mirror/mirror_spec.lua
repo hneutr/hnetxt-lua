@@ -1,11 +1,11 @@
+local stub = require('luassert.stub')
+
 local Dict = require("hl.Dict")
 local List = require("hl.List")
 local Path = require("hl.path")
 
 local Mirror = require("htl.project.mirror")
-local Project = require("htl.project")
-
-local project_root_from_path
+local projects = require("htl.db.projects")
 
 local root = "root"
 
@@ -32,12 +32,12 @@ local source_meta_fragments_project_path = Path.join(fragments_project_dir, sour
 local source_meta_fragments_path = Path.join(root, source_meta_fragments_project_path)
 
 before_each(function()
-    project_root_from_path = Project.root_from_path
-    Project.root_from_path = function() return root end
+    stub(projects, 'get_path')
+    projects.get_path.returns(root)
 end)
 
 after_each(function()
-    Project.root_from_path = project_root_from_path
+    projects.get_path:revert()
 end)
 
 describe("makes a type", function()

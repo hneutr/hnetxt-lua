@@ -1,14 +1,14 @@
+local stub = require('luassert.stub')
 local Dict = require("hl.Dict")
 local List = require("hl.List")
 local Path = require("hl.Path")
 
-local Project = require("htl.project")
+local projects = require("htl.db.projects")
 local Operator = require("htl.operator")
 local Operation = require("htl.operator.operation")
 local FileOperation = require("htl.operator.operation.file")
 local DirOperation = require("htl.operator.operation.dir")
 
-local project_root_from_path
 local operation_class_to_test
 local operation_to_test
 
@@ -277,14 +277,16 @@ local operation_tests = {
 }
 
 before_each(function()
+    stub(projects, 'get_path')
+    projects.get_path.returns(test_dir)
+
     Path.rmdir(test_dir, true)
-    stub(Project, 'root_from_path')
-    Project.root_from_path.returns(test_dir)
 end)
 
 after_each(function()
+    projects.get_path:revert()
+
     Path.rmdir(test_dir, true)
-    Project.root_from_path:revert()
 end)
 
 describe("operations", function()

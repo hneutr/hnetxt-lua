@@ -4,7 +4,7 @@ local stub = require('luassert.stub')
 
 local Path = require('hl.Path')
 
-local Project = require("htl.project")
+local projects = require("htl.db.projects")
 local Mirror = require("htl.project.mirror")
 local Header = require("htl.text.header")
 
@@ -16,13 +16,14 @@ local test_dir = Path.join(tostring(Path.tempdir), "test-dir")
 
 before_each(function()
     Path.rmdir(test_dir, true)
-    stub(Project, 'root_from_path')
-    Project.root_from_path.returns(test_dir)
+    
+    stub(projects, 'get_path')
+    projects.get_path.returns(test_dir)
 end)
 
 after_each(function()
     Path.rmdir(test_dir, true)
-    Project.root_from_path:revert()
+    projects.get_path:revert()
 end)
 
 describe("end to end", function()
