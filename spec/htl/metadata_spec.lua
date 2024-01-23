@@ -1,11 +1,10 @@
 local stub = require('luassert.stub')
-local Project = require("htl.project")
 
 local Path = require("hl.Path")
 local Dict = require("hl.Dict")
 local Set = require("hl.Set")
 
-local db = require("htl.db").setup()
+local projects = require("htl.db.projects")
 
 local Metadata = require("htl.metadata")
 local Tag = Metadata.Tag
@@ -18,14 +17,15 @@ local Files = Metadata.Files
 local dir = Path.tempdir:join("metadata-test")
 
 before_each(function()
+    stub(projects, 'get_path')
+    projects.get_path.returns(dir)
+
     dir:rmdir(true)
-    stub(Project, 'root_from_path')
-    Project.root_from_path.returns(dir)
 end)
 
 after_each(function()
     dir:rmdir(true)
-    Project.root_from_path:revert()
+    projects.get_path:revert()
 end)
 
 

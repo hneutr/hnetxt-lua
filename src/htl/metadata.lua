@@ -7,11 +7,11 @@ local Yaml = require("hl.yaml")
 
 local class = require("pl.class")
 
+local db = require("htl.db")
 local Link = require("htl.text.Link")
 local Config = require("htl.config")
 local MetadataConfig = Config.get("metadata")
 local Divider = require("htl.text.divider")
-local Project = require("htl.project")
 
 --[[
 so, we keep the parsing exactly the same
@@ -303,7 +303,7 @@ Files.Parsers = List({Field, MReference, Tag})
 
 function Files:_init(args)
     self.dir = Path(args.dir)
-    self.project_root = Project.root_from_path(self.dir)
+    self.project_root = db.get()['projects'].get_path(self.dir)
     self.path_to_file = self.read_files(self.dir, self.project_root)
     self:filter(args)
 end

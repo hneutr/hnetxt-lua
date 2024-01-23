@@ -40,12 +40,13 @@ function M:get_by_title(title)
     return row
 end
 
-function M:get_root(path)
+function M:get_path(path)
     path = Path(path)
     local projects = M:get():sorted(function(a, b)
         return #tostring(a.path) > #tostring(b.path)
     end):filter(function(p)
-        return path:is_relative_to(p.path)
+        local test = path:is_relative_to(p.path)
+        return p ~= nil and path:is_relative_to(p.path)
     end)
 
     if #projects == 0 then

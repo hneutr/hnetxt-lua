@@ -36,7 +36,7 @@ describe("insert", function()
     end)
 end)
 
-describe("get_root", function()
+describe("get_path", function()
     local p1 = {title = "test1", path = d1}
     local p2 = {title = "test2", path = d2}
 
@@ -44,13 +44,14 @@ describe("get_root", function()
         projects:insert(p1)
         projects:insert(p2)
         
-        assert.are.same(d1, projects:get_root(f1))
-        assert.are.same(d2, projects:get_root(f2))
+        assert.are.same(d1, projects:get_path(f1))
+        assert.are.same(d2, projects:get_path(f2))
     end)
     
     it("no match", function()
         projects:insert(p1)
         
-        assert.is_nil(projects:get_root(f2))
+        assert.is_nil(projects:get_path(f2))
     end)
 end)
+

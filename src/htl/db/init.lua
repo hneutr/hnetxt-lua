@@ -4,8 +4,6 @@ local Path = require("hl.Path")
 
 local Config = require("htl.config")
 
--- local strftime = sqlite.lib.strftime
-
 local M = {}
 M.uri = Config.data_dir:join(Config.get("db").path)
 M.test_uri = Path.tempdir:join(Config.get("db").path)
@@ -16,13 +14,22 @@ end
 
 function M.after_test()
     M.test_uri:unlink()
+    M.con = nil
 end
 
 function M.setup(uri)
-    return sqlite({
+    M.con = sqlite({
         uri = tostring(uri or M.uri),
         projects = require("htl.db.projects"),
     })
+end
+
+function M.get()
+    if not M.con then
+        M.setup()
+    end
+
+    return M.con
 end
 
 return M
