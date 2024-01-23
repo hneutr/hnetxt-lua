@@ -68,7 +68,6 @@ build = {
         ["htc"] = "src/htc/init.lua",
         ["htc.command"] = "src/htc/command.lua",
         ["htc.util"] = "src/htc/util.lua",
-        ["htc.colors"] = "src/htc/colors.lua",
         ["htc.colorize"] = "src/htc/colorize.lua",
 
         ["htc.journal"] = "src/htc/journal.lua",
