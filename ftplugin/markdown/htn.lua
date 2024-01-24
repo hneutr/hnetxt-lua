@@ -20,13 +20,11 @@ if project_root ~= nil then
 end
 
 -----------------------------------[ folds ]------------------------------------
-local buffer_group = vim.api.nvim_create_augroup('hnetxt_buffer', {clear = true})
-
 vim.api.nvim_create_autocmd(
     {"VimEnter", "BufEnter"},
     {
         pattern=pattern,
-        group=buffer_group,
+        group=vim.api.nvim_create_augroup('hnetxt_buffer', {clear = true}),
         callback=function()
             vim.opt_local.autoindent = false
             vim.opt_local.cindent = false
@@ -34,19 +32,29 @@ vim.api.nvim_create_autocmd(
             vim.opt_local.textwidth = 0
             vim.opt_local.shiftwidth = 2
 
-            vim.opt.fillchars = {fold = " "}
-
-            vim.opt_local.foldenable = true
-            vim.opt_local.foldlevel = 19
-            vim.opt_local.foldnestmax = 20
-            vim.opt_local.foldminlines = 0
-            vim.opt_local.foldmethod = 'expr'
-            vim.opt_local.foldexpr = 'hnetxt_nvim#foldexpr()'
-            vim.opt_local.foldtext = "hnetxt_nvim#foldtext()"
-
             if vim.b.project_spellfile then
                 vim.bo.spellfile = vim.bo.spellfile .. "," .. vim.b.project_spellfile
             end
+
+        end
+    }
+)
+
+vim.api.nvim_create_autocmd(
+    {"VimEnter", "WinNew"},
+    {
+        pattern=pattern,
+        group=vim.api.nvim_create_augroup('hnetxt_window', {clear = true}),
+        callback=function()
+            vim.opt.fillchars = {fold = " "}
+
+            vim.opt.foldmethod = 'expr'
+            vim.opt.foldexpr = 'hnetxt_nvim#foldexpr()'
+            vim.opt.foldtext = "hnetxt_nvim#foldtext()"
+            vim.opt.foldlevel = 19
+            vim.opt.foldnestmax = 20
+            vim.opt.foldminlines = 0
+            vim.opt.foldenable = true
         end
     }
 )

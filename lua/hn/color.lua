@@ -1,30 +1,5 @@
 local List = require("hl.list")
 
--- https://github.com/altercation/vim-colors-solarized
-local solarized = {
-    cterm = {
-        black    = 0,
-        white    = 7,
-        gray     = 10,
-
-        red      = 1,
-        orange   = 9,
-        yellow   = 3,
-        green    = 2,
-        blue     = 4,
-        cyan     = 6,
-        magenta  = 5,
-        violet   = 13,
-
-        brblack  = 8,
-        brwhite  = 15,
-
-        bryellow = 11,
-        brblue   = 12,
-        brcyan   = 14,
-    },
-}
-
 local mocha = require("catppuccin.palettes").get_palette("mocha")
 local macchiato = require("catppuccin.palettes").get_palette("macchiato")
 
