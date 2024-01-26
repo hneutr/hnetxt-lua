@@ -7,7 +7,7 @@ NumberedItem.sigil_separator = ". "
 function NumberedItem:str_is_a(s)
     local sigil, _ = self:parse_sigil(s)
 
-    if sigil:match("%d+$") then
+    if sigil:match("^%d+$") then
         return true
     end
 
