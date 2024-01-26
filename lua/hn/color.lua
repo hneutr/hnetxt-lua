@@ -46,7 +46,7 @@ function M.set_highlight(args)
 
     for _, key in ipairs({'fg', 'bg'}) do
         if val[key] ~= nil then
-            val[key] = M.C[table.removekey(val, key)]
+            val[key] = M.C[val[key]]
         end
     end
 

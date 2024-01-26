@@ -36,6 +36,10 @@ describe("str_is_a", function()
     it("-: digit but no '.'", function()
         assert.is_false(NumberedItem:str_is_a("1 a"))
     end)
+
+    it("digit not immediately followed by a period", function()
+        assert.is_false(NumberedItem:str_is_a("  2 a."))
+    end)
 end)
 
 describe("convert_lines", function()
