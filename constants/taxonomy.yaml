@@ -1,0 +1,30 @@
+file_name: ".taxonomy"
+global_taxonomy:
+  entity:
+    being:
+      person:
+    group:
+      state:
+      organization:
+  region:
+    place:
+      planet:
+      asteroid belt:
+      asteroid:
+      city:
+      space station:
+      star:
+  thing:
+    space ship:
+    orifice:
+  abstraction:
+    phenomenon:
+    species:
+      subspecies:
+    quality:
+    substance:
+    technology:
+    substance:
+    term:
+  event:
+    period:

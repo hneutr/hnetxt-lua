@@ -66,6 +66,7 @@ Field.indent_step = 2
 function Field.is_a(str)
     return str:match(Field.delimiter) and not str:endswith(Field.delimiter) and not str:strip():startswith("-")
 end
+
 function Field:parse(str)
     local key, vals = unpack(str:split(self.delimiter, 1):mapm("strip"))
     return {key, List(vals:split(self.or_delimiter))}
@@ -135,6 +136,30 @@ end
 -- TODO: this function is intended for use with detecting nested fields/tags
 function Field.line_level_up(str)
     return math.max(0, Field.line_level(str) - Field.indent_step)
+end
+
+--------------------------------------------------------------------------------
+--                                  IsAField                                  --
+--------------------------------------------------------------------------------
+class.IsAField(Field)
+function IsAField.is_a(str)
+    return Field.is_a(str) and Field:parse(str)[1] == "is a"
+end
+
+function IsAField:check_metadata(metadata, taxonomy)
+    if metadata:has(self.metadata_key, self.key) then
+        local vals_set = Set(self.vals)
+        self.vals:foreach(function(val)
+            if taxonomy[val] then
+                vals_set = vals_set + taxonomy[val]
+            end
+        end)
+
+        local shared = vals_set * Set(metadata:get(self.metadata_key, self.key):keys())
+        return not shared:isempty()
+    end
+
+    return false
 end
 
 --------------------------------------------------------------------------------
@@ -249,10 +274,10 @@ function File:set_references_list(references_dict)
     return references_list
 end
 
-function File:check_conditions(conditions)
+function File:check_conditions(conditions, taxonomy)
     if #conditions >= 0 then
         for condition in List(conditions):iter() do
-            if not condition:check(self.metadata) then
+            if not condition:check(self.metadata, taxonomy) then
                 return false
             end
         end
@@ -265,7 +290,7 @@ end
 --                                 condition                                  --
 --------------------------------------------------------------------------------
 class.Condition()
-Condition.Parsers = List({Tag, Field, BlankField})
+Condition.Parsers = List({Tag, IsAField, Field, BlankField})
 Condition.exclusion_suffix = MetadataConfig.exclusion_suffix
 
 function Condition:_init(str)
@@ -285,14 +310,65 @@ function Condition:parse(str)
     end)
 end
 
-function Condition:check(file)
-    local result = self.parser:check_metadata(file)
+function Condition:check(file, taxonomy)
+    local result = self.parser:check_metadata(file, taxonomy)
 
     if self.is_exclusion then
         result = not result
     end
 
     return result
+end
+
+--------------------------------------------------------------------------------
+--                                  Taxonomy                                  --
+--------------------------------------------------------------------------------
+class.Taxonomy()
+Taxonomy.config = Config.get("taxonomy")
+Taxonomy.file_name = Taxonomy.config.file_name
+Taxonomy.global_taxonomy = Dict(Taxonomy.config.global_taxonomy)
+
+function Taxonomy:_init(project_root)
+    self.tree = Dict.from(self.global_taxonomy, self:get_local_taxonomy(project_root))
+    self.children = self:set_children(self.tree)
+end
+
+function Taxonomy:get_local_taxonomy(project_root)
+    local local_taxonomy_path = project_root:join(self.file_name)
+    local taxonomy = {}
+    if local_taxonomy_path:exists() then
+        taxonomy = Yaml.read(local_taxonomy_path)
+    end
+
+    return Dict(taxonomy)
+end
+
+function Taxonomy:set_children(tree, parents, children)
+    if parents == nil then
+        parents = List()
+    end
+
+    if children == nil then
+        children = Dict()
+    end
+
+    Dict(tree):foreach(function(key, subtree)
+        children[key] = List()
+
+        parents:foreach(function(p)
+            children[p]:append(key)
+        end)
+
+        if subtree then
+            self:set_children(subtree, parents:clone():append(key), children)
+        end
+    end)
+
+    children:foreachv(function(v)
+        v:sort()
+    end)
+
+    return children
 end
 
 --------------------------------------------------------------------------------
@@ -305,6 +381,8 @@ function Files:_init(args)
     self.dir = Path(args.dir)
     self.project_root = db.get()['projects'].get_path(self.dir)
     self.path_to_file = self.read_files(self.dir, self.project_root)
+    self.taxonomy = Taxonomy(self.project_root)
+    
     self:filter(args)
 end
 
@@ -330,7 +408,7 @@ function Files:filter_by_conditions(conditions)
     List(conditions):transform(Condition)
 
     self.path_to_file:filterv(function(file)
-        return file:check_conditions(conditions)
+        return file:check_conditions(conditions, self.taxonomy.children)
     end)
 end
 
@@ -406,12 +484,15 @@ function Files:get_random_file()
     return Path(paths[index])
 end
 
+
 return {
     Field = Field,
+    IsAField = IsAField,
     BlankField = BlankField,
     Tag = Tag,
     MReference = MReference,
     Condition = Condition,
     File = File,
     Files = Files,
+    Taxonomy = Taxonomy,
 }

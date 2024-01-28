@@ -9,10 +9,12 @@ local projects = require("htl.db.projects")
 local Metadata = require("htl.metadata")
 local Tag = Metadata.Tag
 local Field = Metadata.Field
+local IsAField = Metadata.IsAField
 local MReference = Metadata.MReference
 local BlankField = Metadata.BlankField
 local File = Metadata.File
 local Files = Metadata.Files
+local Taxonomy = Metadata.Taxonomy
 
 local dir = Path.tempdir:join("metadata-test")
 
@@ -363,10 +365,53 @@ describe("Files", function()
     end)    
 end)
 
+describe("IsAField", function()
+    describe("is_a", function()
+        it("+", function()
+            assert(IsAField.is_a("is a: b")) 
+        end)
+        it("-", function()
+            assert.falsy(IsAField.is_a("a: b")) 
+        end)
+    end)
+
+    describe("check_metadata", function()
+        it("+: exact match", function()
+            local f = IsAField("is a: b")
+            local metadata = Dict()
+            f:add_to_metadata(metadata)
+            assert(f:check_metadata(metadata, Dict()))
+        end)
+
+        it("+: multiple options", function()
+            local f = IsAField("is a: b|c")
+            local metadata = Dict({fields = Dict({["is a"] = Dict({c = {}})})})
+            assert(f:check_metadata(metadata, Dict()))
+        end)
+
+        it("+: taxonomy match", function()
+            local f = IsAField("is a: b|c")
+            local metadata = Dict({fields = Dict({["is a"] = Dict({d = {}})})})
+            assert(f:check_metadata(metadata, Dict({c = List("d")})))
+        end)
+
+        it("-: nonmatch", function()
+            local f = IsAField("is a: b|c")
+            local metadata = Dict({fields = Dict({["is a"] = Dict({d = {}})})})
+            
+            assert.is_false(f:check_metadata(metadata, Dict({c = List("e")})))
+        end)
+    end)
+end)
+
 describe("Condition", function()
     describe("init", function()
         it("Tag", function()
             assert.are.same(Tag("a.b"), Condition("@a.b").parser)
+        end)
+        
+        it("IsAField", function()
+            assert.are.same(IsAField("is a: b"), Condition("is a: b").parser)
         end)
         
         it("Field", function()
@@ -382,5 +427,52 @@ describe("Condition", function()
             assert.are.same(BlankField("a"), c.parser)
             assert(c.is_exclusion)
         end)
+    end)
+end)
+
+describe("Taxonomy", function()
+    local taxonomy_path = dir:join(".taxonomy")
+
+    it("reads local taxonomy", function()
+        taxonomy_path:write({
+            "a:",
+            "   b:",
+            "   c:",
+            "       d:",
+            "e:"
+        })
+        assert.are.same(
+            {
+                a = {
+                    b = {},
+                    c = {
+                        d = {}
+                    },
+                },
+                e = {}
+            },
+            Taxonomy:get_local_taxonomy(dir)
+        )
+    end)
+
+    it("set_children", function()
+        assert.are.same(
+            {
+                a = {"b", "c", "d"},
+                b = {},
+                c = {"d"},
+                d = {},
+                e = {},
+            },
+            Taxonomy:set_children(Dict({
+                a = {
+                    b = {},
+                    c = {
+                        d = {}
+                    },
+                },
+                e = {}
+            }))
+        )
     end)
 end)
