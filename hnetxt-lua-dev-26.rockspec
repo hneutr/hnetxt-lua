@@ -22,7 +22,6 @@ build = {
     modules = {
         ["hl"] = "src/hl/init.lua",
         ["hl.io"] = "src/hl/io.lua",
-        ["hl.object"] = "src/hl/object.lua",
         ["hl.string"] = "src/hl/string.lua",
         ["hl.yaml"] = "src/hl/yaml.lua",
 
