@@ -1,4 +1,5 @@
 local BufferLines = require("hn.buffer_lines")
+local Path = require("hn.path")
 
 local Reference = require("htl.text.reference")
 local Location = require("htn.text.location")
@@ -18,7 +19,12 @@ function M._do(fn)
         actions[key] = function(selected) fn(selected[1], action) end
     end
 
-    require('fzf-lua').fzf_exec(Location.get_all_locations(vim.b.hnetxt_project_root), {actions = actions})
+    local dir = Path.parent(Path.current_file())
+    if vim.b.htn_project then
+        dir = vim.b.htn_project.path
+    end
+
+    require('fzf-lua').fzf_exec(Location.get_all_locations(dir), {actions = actions})
 end
 
 function M.goto()

@@ -219,6 +219,11 @@ describe("escape", function()
             assert.are.same("%" .. char, string.escape(char))
         end
     end)
+
+    it("longer string", function()
+        assert.are.same("%-%*", string.escape("-*"))
+        assert.are.same(" %-> ", string.escape(" -> "))
+    end)
 end)
 
 describe("keys", function()

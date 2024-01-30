@@ -1,19 +1,28 @@
 local Path = require("hl.Path")
 local Location = require("htl.text.location")
 local Mark = require("htl.text.mark")
+local db = require("htl.db")
+local projects = require("htl.db.projects")
+local urls = require("htl.db.urls")
 
-local test_dir = Path.join(tostring(Path.tempdir), "test-dir")
-local test_file = Path.join(test_dir, "test-file.md")
+local d1 = Path.tempdir:join("dir-1")
+local sd1 = d1:join("subdir-1")
 
-local test_subdir = Path.join(test_dir, "test-subdir")
-local test_subfile = Path.join(test_subdir, "test-subfile.md")
+local f1 = d1:join("file-1.md")
+local f2 = d1:join("file-2.md")
+local f3 = sd1:join("file-3.md")
+
+local p1 = {title = "test", path = d1, created = "19930120"}
 
 before_each(function()
-    Path.rmdir(test_dir, true)
+    db.before_test()
+
+    d1:rmdir(true)
+    projects:insert(p1)
 end)
 
 after_each(function()
-    Path.rmdir(test_dir, true)
+    db.after_test()
 end)
 
 describe("__tostring", function() 
@@ -85,18 +94,14 @@ end)
 
 describe("get_file_locations", function()
     it("works", function()
-        Path.touch(test_file)
-        Path.touch(test_subfile)
-
-        local actual = Location.get_file_locations(test_dir)
-        table.sort(actual, function(a, b) return #a.path < #b.path end)
+        urls:insert({path = f1})
+        urls:insert({path = f2})
 
         assert.are.same(
-            {
-                Location({path = test_file}),
-                Location({path = test_subfile})
-            },
-            actual
+            {f1, f2},
+            Location.get_file_locations(d1):sorted(function(a, b)
+                return tostring(a) < tostring(b)
+            end)
         )
     end)
 end)
@@ -104,72 +109,41 @@ end)
 describe("get_mark_locations", function() 
     it("1 mark", function()
         local mark = Mark({label = 'a'})
-        Path.write(test_file, tostring(mark))
+        f1:write(tostring(mark))
+        
         assert.are.same(
-            {Location({path = test_file, label = 'a'})},
-            Location.get_mark_locations(test_dir)
+            {Path(Location({path = f1, label = 'a'}))},
+            Location.get_mark_locations(d1)
         )
     end)
 
     it("multiple marks, 1 file", function()
         local mark_a = Mark({label = 'a'})
         local mark_b = Mark({label = 'b'})
-        Path.write(test_file, {tostring(mark_a), "not a mark", tostring(mark_b)})
+        f1:write({tostring(mark_a), "not a mark", tostring(mark_b)})
         assert.are.same(
             {
-                Location({path = test_file, label = 'a'}),
-                Location({path = test_file, label = 'b'})
+                Path(Location({path = f1, label = 'a'})),
+                Path(Location({path = f1, label = 'b'}))
             },
-            Location.get_mark_locations(test_dir)
+            Location.get_mark_locations(d1)
         )
     end)
 
     it("multiple marks, multiple files", function()
         local mark_a = Mark({label = 'a'})
         local mark_b = Mark({label = 'b'})
-        Path.write(test_file, {tostring(mark_a), "not a mark"})
-        Path.write(test_subfile, {"not a mark", tostring(mark_b)})
-
-        local actual = Location.get_mark_locations(test_dir)
-        table.sort(actual, function(a, b) return #a.path < #b.path end)
+        f1:write({tostring(mark_a), "not a mark"})
+        f3:write({"not a mark", tostring(mark_b)})
 
         assert.are.same(
             {
-                Location({path = test_file, label = 'a'}),
-                Location({path = test_subfile, label = 'b'})
+                Path(Location({path = f1, label = 'a'})),
+                Path(Location({path = f3, label = 'b'}))
             },
-            actual
+            Location.get_mark_locations(d1):sorted(function(a, b)
+                return tostring(a) < tostring(b)
+            end)
         )
-    end)
-end)
-
-describe("get_all_locations", function()
-    local locations
-
-    before_each(function()
-        local mark_a = Mark({label = 'a'})
-        local mark_b = Mark({label = 'b'})
-        Path.write(test_file, {tostring(mark_a), "not a mark"})
-        Path.write(test_subfile, {"not a mark", tostring(mark_b)})
-
-        locations = {
-            Location({path = test_file}),
-            Location({path = test_file, label = 'a'}),
-            Location({path = test_subfile}),
-            Location({path = test_subfile, label = 'b'})
-        }
-    end)
-
-    it("default", function()
-        for i, location in ipairs(locations) do
-            location:relative_to(test_dir)
-            locations[i] = tostring(location)
-        end
-
-        assert.are.same(locations, Location.get_all_locations(test_dir))
-    end)
-
-    it("not as_str, not relative_to_dir", function()
-        assert.are.same(locations, Location.get_all_locations(test_dir, {as_str = false, relative_to_dir = false}))
     end)
 end)

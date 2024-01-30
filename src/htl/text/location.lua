@@ -4,6 +4,7 @@ local class = require("pl.class")
 local List = require("hl.List")
 local Path = require("hl.path")
 local Config = require("htl.config")
+local db = require("htl.db")
 
 --------------------------------------------------------------------------------
 --                                                                            --
@@ -22,10 +23,10 @@ Location.defaults = {
     label = '',
 }
 Location.get_mark_locations_cmd = [[rg '\[.*\]\(\)' --no-heading ]]
-Location.get_files_cmd = [[fd -tf '' ]]
 
 function Location:_init(args)
     self = Dict.update(self, args or {}, Location.defaults)
+    self.path = tostring(self.path)
 end
 
 function Location:__tostring()
@@ -66,10 +67,15 @@ function Location.from_str(str, args)
 end
 
 function Location.get_file_locations(dir)
-    return List(io.command(Location.get_files_cmd .. tostring(dir)):splitlines()):filter(function(line)
-        return #line > 0
-    end):map(function(line)
-        return Location({path = line})
+    local project = db.get()['projects'].get_by_path(dir)
+
+    local query
+    if project then
+        query = {where = {project = project.title}}
+    end
+
+    return db.get()['urls']:get(query):transform(function(url)
+        return url.path
     end)
 end
 
@@ -79,27 +85,18 @@ function Location.get_mark_locations(dir)
     end):map(function(line)
         local path, mark_str = line:match(Location.regex)
         local mark = Mark.from_str(mark_str)
-        return Location({path = path, label = mark.label})
+        return Path(Location({path = path, label = mark.label}))
     end)
 end
 
-function Location.get_all_locations(dir, args)
-    args = Dict.from(args, {as_str = true, relative_to_dir = true})
-
-    local locations = List.from(Location.get_file_locations(dir), Location.get_mark_locations(dir))
-
-    locations:sort(function(a, b) return #tostring(a) < #tostring(b) end)
-
-    return locations:map(function(location)
-        if args.relative_to_dir then
-            location:relative_to(dir)
-        end
-
-        if args.as_str then
-            location = tostring(location)
-        end
-        
-        return location
+function Location.get_all_locations(dir)
+    return List.from(
+        Location.get_file_locations(dir),
+        Location.get_mark_locations(dir)
+    ):transform(function(path)
+        return tostring(path:relative_to(dir))
+    end):sorted(function(a, b)
+        return #tostring(a) < #tostring(b)
     end)
 end
 

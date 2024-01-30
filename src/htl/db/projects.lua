@@ -34,13 +34,7 @@ function M:get(q)
     end, q))
 end
 
-function M:get_by_title(title)
-    local row = M:where({title = title})
-    row.path = Path(row.path)
-    return row
-end
-
-function M.get_path(path)
+function M.get_by_path(path)
     path = Path(path)
     
     local projects = M:get():sorted(function(a, b)
@@ -54,7 +48,17 @@ function M.get_path(path)
         return
     end
 
-    return projects[1].path
+    return projects[1]
+end
+
+function M.get_path(path)
+    local project = M.get_by_path(path) or {}
+    return project.path
+end
+
+function M.get_title(path)
+    local project = M.get_by_path(path) or {}
+    return project.title
 end
 
 function M.tostring(p)

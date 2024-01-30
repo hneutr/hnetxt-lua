@@ -21,6 +21,7 @@ function M.setup(uri)
     M.con = sqlite({
         uri = tostring(uri or M.uri),
         projects = require("htl.db.projects"),
+        urls = require("htl.db.urls"),
     })
 end
 

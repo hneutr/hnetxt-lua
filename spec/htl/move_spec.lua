@@ -1,0 +1,109 @@
+local stub = require("luassert.stub")
+
+local Path = require("hl.path")
+
+local db = require("htl.db")
+local projects = require("htl.db.projects")
+local urls = require("htl.db.urls")
+
+local Move = require("htl.move")
+
+local d1 = Path.tempdir:join("dir-1")
+local d2 = Path.tempdir:join("dir-2")
+
+local f1 = d1:join("file-1.md")
+local f2 = d1:join("file-2.md")
+
+local f3 = d2:join("file-1.md")
+local f4 = d2:join("file-2.md")
+
+local p1 = {title = "test", path = d1, created = "19930120"}
+local pwd = os.getenv("PWD")
+
+before_each(function()
+    d1:rmdir()
+    d2:rmdir()
+    db.before_test()
+    projects:insert(p1)
+    stub(os, "getenv")
+    os.getenv.on_call_with("PWD").returns(tostring(d1))
+end)
+
+after_each(function()
+    db.after_test()
+    os.getenv:revert()
+end)
+
+describe("command", function()
+    it("works", function()
+        assert.are.same(
+            string.format("%s %s %s", Move.command_str, f1, f2), Move:command(f1, f2)
+        )
+    end)
+
+    it("relative arguments", function()
+        assert.are.same(
+            string.format("%s %s %s", Move.command_str, f1, f2), Move:command(f1:name(), f2:name())
+        )
+    end)
+end)
+
+describe("line_is_valid", function()
+    it("+", function()
+        assert(Move:line_is_valid("a -> b"))
+    end)
+
+    it("-", function()
+        assert.is_falsy(Move:line_is_valid("usage: mv [-f | -i | -n] [-hv] source target"))
+    end)
+end)
+
+describe("parse_line", function()
+    it("+", function()
+        assert.are.same(
+            {source = Path("a"), target = Path("b")},
+            Move:parse_line("a -> b")
+        )
+    end)
+end)
+
+describe("handle_dir_move", function()
+    it("file to file", function()
+        f1:touch()
+        f2:touch()
+        local move = {source = f1, target = f2}
+        assert.are.same(
+            {move},
+            Move:handle_dir_move(move)
+        )
+    end)
+
+    it("dir to dir", function()
+        d1:mkdir()
+        f3:touch()
+        f4:touch()
+
+        assert.are.same(
+            {
+                {source = f1, target = f3},
+                {source = f2, target = f4},
+            },
+            Move:handle_dir_move({source = d1, target = d2}):sorted(function(a, b)
+                return tostring(a.source) < tostring(b.source)
+            end)
+        )
+    end)
+end)
+
+describe("update", function()
+    it("works", function()
+        urls:insert({path = f1, label = "a"})
+        
+        Move:update(List({
+            {source = f1, target = f3}
+        }))
+
+        assert.is_nil(urls:where({path = f1}))
+        assert.are.same("a", urls:where({path = f3}).label)
+    end)
+end)

@@ -30,7 +30,7 @@ end
 function M.set()
     local mappings = List({all_mappings.new_entry})
 
-    if vim.b.hnetxt_project_root then
+    if vim.b.htn_project then
         mappings:append(all_mappings.nearest_location)
         mappings:extend(Mirror.get_mappings())
     end
