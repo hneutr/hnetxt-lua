@@ -1,4 +1,3 @@
-local stub = require("luassert.stub")
 local Path = require("hl.Path")
 
 local db = require("htl.db")

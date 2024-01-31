@@ -47,6 +47,7 @@ build = {
         ["htl.db"] = "src/htl/db/init.lua",
         ["htl.db.projects"] = "src/htl/db/projects.lua",
         ["htl.db.urls"] = "src/htl/db/urls.lua",
+        ["htl.db.mirrors"] = "src/htl/db/mirrors.lua",
 
         -- to revise
         ["htl.operator"] = "src/htl/operator/init.lua",

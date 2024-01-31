@@ -22,5 +22,4 @@ function Mirror.open(mirror_type, open_command)
     Path.open(path, open_command)
 end
 
-
 return Mirror

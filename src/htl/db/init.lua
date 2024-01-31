@@ -22,6 +22,7 @@ function M.setup(uri)
         uri = tostring(uri or M.uri),
         projects = require("htl.db.projects"),
         urls = require("htl.db.urls"),
+        mirrors = require("htl.db.mirrors"),
     })
 end
 

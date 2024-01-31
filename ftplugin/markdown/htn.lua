@@ -34,7 +34,10 @@ if project then
     project.path = tostring(project.path)
     vim.b.hnetxt_project_root = project.path
     vim.b.htn_project = project
-    db.get()['urls']:add_if_missing(current_file)
+
+    if db.get()['mirrors']:is_source(current_file) then
+        db.get()['urls']:add_if_missing(current_file)
+    end
 end
 
 --------------------------------------------------------------------------------

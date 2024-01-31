@@ -33,18 +33,13 @@ function M.update_references(map, mirrors_map, dir)
     Reference.update_locations(Dict.from(map or {}, mirrors_map or {}), dir)
 end
 
-function M.remove(source)
-    local paths = {source}
-    for _, path in pairs(paths) do
-        for _, mirror_path in ipairs(Mirror.get_all_mirrored_paths(path)) do
-            Path.unlink(mirror_path)
-        end
+function M.remove(path)
+    Mirror.get_all_mirrored_paths(path):foreach(Path.unlink)
 
-        if Path.is_dir(path) then
-            Path.rmdir(path, true)
-        else
-            Path.unlink(path)
-        end
+    if Path.is_dir(path) then
+        Path.rmdir(path, true)
+    else
+        Path.unlink(path)
     end
 end
 

@@ -1,0 +1,12 @@
+scratch:
+    keymap_prefix: s
+    dir_prefix: .chaff
+alternatives: 
+    keymap_prefix: a
+    dir_prefix: .notes
+outlines: 
+    keymap_prefix: o
+    dir_prefix: .notes
+meta: 
+    keymap_prefix: m
+    dir_prefix: .notes
