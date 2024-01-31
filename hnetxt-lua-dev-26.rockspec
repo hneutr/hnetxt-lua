@@ -20,73 +20,72 @@ dependencies = {
 build = {
    type = "builtin",
     modules = {
-        ["hl"] = "lua/hl/init.lua",
-        ["hl.io"] = "lua/hl/io.lua",
-        ["hl.string"] = "lua/hl/string.lua",
-        ["hl.yaml"] = "lua/hl/yaml.lua",
+        ["hl"] = "src/hl/init.lua",
+        ["hl.io"] = "src/hl/io.lua",
+        ["hl.string"] = "src/hl/string.lua",
+        ["hl.yaml"] = "src/hl/yaml.lua",
 
-        ["hl.List"] = "lua/hl/List.lua",
-        ["hl.Dict"] = "lua/hl/Dict.lua",
-        ['hl.Set'] = "lua/hl/Set.lua",
-        ["hl.Path"] = "lua/hl/Path.lua",
-        ["hl.Tree"] = "lua/hl/Tree.lua",
+        ["hl.List"] = "src/hl/List.lua",
+        ["hl.Dict"] = "src/hl/Dict.lua",
+        ['hl.Set'] = "src/hl/Set.lua",
+        ["hl.Path"] = "src/hl/Path.lua",
+        ["hl.Tree"] = "src/hl/Tree.lua",
         
-        ["hl.DataFrame"] = "lua/hl/DataFrame.lua",
+        ["hl.DataFrame"] = "src/hl/DataFrame.lua",
 
-        ["htl"] = "lua/htl/init.lua",
-        ["htl.config"] = "lua/htl/config.lua",
+        ["htl"] = "src/htl/init.lua",
+        ["htl.config"] = "src/htl/config.lua",
 
-        ["htl.journal"] = "lua/htl/journal.lua",
-        ["htl.track"] = "lua/htl/track.lua",
-        ["htl.goals"] = "lua/htl/goals.lua",
+        ["htl.journal"] = "src/htl/journal.lua",
+        ["htl.track"] = "src/htl/track.lua",
+        ["htl.goals"] = "src/htl/goals.lua",
 
-        ["htl.snippet"] = "lua/htl/snippet.lua",
-        ['htl.metadata'] = "lua/htl/metadata.lua",
+        ["htl.snippet"] = "src/htl/snippet.lua",
+        ['htl.metadata'] = "src/htl/metadata.lua",
 
         -- db
-        ["htl.db"] = "lua/htl/db/init.lua",
-        ["htl.db.projects"] = "lua/htl/db/projects.lua",
-        ["htl.db.urls"] = "lua/htl/db/urls.lua",
+        ["htl.db"] = "src/htl/db/init.lua",
+        ["htl.db.projects"] = "src/htl/db/projects.lua",
+        ["htl.db.urls"] = "src/htl/db/urls.lua",
 
         -- to revise
-        ["htl.operator"] = "lua/htl/operator/init.lua",
-        ["htl.operator.operation"] = "lua/htl/operator/operation/init.lua",
-        ["htl.operator.operation.dir"] = "lua/htl/operator/operation/dir.lua",
-        ["htl.operator.operation.file"] = "lua/htl/operator/operation/file.lua",
+        ["htl.operator"] = "src/htl/operator/init.lua",
+        ["htl.operator.operation"] = "src/htl/operator/operation/init.lua",
+        ["htl.operator.operation.dir"] = "src/htl/operator/operation/dir.lua",
+        ["htl.operator.operation.file"] = "src/htl/operator/operation/file.lua",
 
-        ["htl.project.mirror"] = "lua/htl/project/mirror/init.lua",
-        ["htl.project.mirror.config"] = "lua/htl/project/mirror/config.lua",
+        ["htl.mirror"] = "src/htl/mirror.lua",
 
-        ["htl.text.divider"] = "lua/htl/text/divider.lua",
-        ["htl.text.header"] = "lua/htl/text/header.lua",
-        ["htl.text.Parser"] = "lua/htl/text/Parser.lua",
-        ["htl.text.Line"] = "lua/htl/text/Line.lua",
-        ["htl.text.List"] = "lua/htl/text/List/init.lua",
-        ["htl.text.List.Item"] = "lua/htl/text/List/Item.lua",
-        ["htl.text.List.NumberedItem"] = "lua/htl/text/List/NumberedItem.lua",
+        ["htl.text.divider"] = "src/htl/text/divider.lua",
+        ["htl.text.header"] = "src/htl/text/header.lua",
+        ["htl.text.Parser"] = "src/htl/text/Parser.lua",
+        ["htl.text.Line"] = "src/htl/text/Line.lua",
+        ["htl.text.List"] = "src/htl/text/List/init.lua",
+        ["htl.text.List.Item"] = "src/htl/text/List/Item.lua",
+        ["htl.text.List.NumberedItem"] = "src/htl/text/List/NumberedItem.lua",
 
-        ["htl.text.link"] = "lua/htl/text/link.lua",
-        ["htl.text.location"] = "lua/htl/text/location.lua",
-        ["htl.text.mark"] = "lua/htl/text/mark.lua",
-        ["htl.text.reference"] = "lua/htl/text/reference.lua",
+        ["htl.text.link"] = "src/htl/text/link.lua",
+        ["htl.text.location"] = "src/htl/text/location.lua",
+        ["htl.text.mark"] = "src/htl/text/mark.lua",
+        ["htl.text.reference"] = "src/htl/text/reference.lua",
 
         -- cli
-        ["htc"] = "lua/htc/init.lua",
-        ["htc.command"] = "lua/htc/command.lua",
-        ["htc.colorize"] = "lua/htc/colorize.lua",
+        ["htc"] = "src/htc/init.lua",
+        ["htc.command"] = "src/htc/command.lua",
+        ["htc.colorize"] = "src/htc/colorize.lua",
 
-        ["htc.journal"] = "lua/htc/journal.lua",
-        ["htc.track"] = "lua/htc/track.lua",
-        ["htc.aim"] = "lua/htc/aim.lua",
-        ["htc.new"] = "lua/htc/new.lua",
-        ["htc.tags"] = "lua/htc/tags.lua",
-        ["htc.project"] = "lua/htc/project.lua",
+        ["htc.journal"] = "src/htc/journal.lua",
+        ["htc.track"] = "src/htc/track.lua",
+        ["htc.aim"] = "src/htc/aim.lua",
+        ["htc.new"] = "src/htc/new.lua",
+        ["htc.tags"] = "src/htc/tags.lua",
+        ["htc.project"] = "src/htc/project.lua",
 
-        ["htc.move"] = "lua/htc/move.lua",
-        ["htc.remove"] = "lua/htc/remove.lua",
+        ["htc.move"] = "src/htc/move.lua",
+        ["htc.remove"] = "src/htc/remove.lua",
 
         -- to start using after `htc.operator.*` is gone
-        ["htl.move"] = "lua/htl/move.lua",
+        ["htl.move"] = "src/htl/move.lua",
     }
 }
 test = {

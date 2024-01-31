@@ -1,11 +1,11 @@
 local Path = require('hn.path')
 
-local Mirror = require("htl.project.mirror")
+local Mirror = require("htl.mirror")
 
 function Mirror.get_mappings()
     local mappings = List()
 
-    for mirror_type, config in pairs(Mirror.type_configs) do
+    for mirror_type, config in pairs(Mirror.configs) do
         if config.keymap_prefix then
             mappings:append({
                 lhs_prefix = vim.b.hnetxt_opener_prefix .. config.keymap_prefix,

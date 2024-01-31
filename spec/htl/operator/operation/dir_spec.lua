@@ -3,7 +3,7 @@ local stub = require('luassert.stub')
 local Path = require('hl.path')
 
 local projects = require("htl.db.projects")
-local Mirror = require("htl.project.mirror")
+local Mirror = require("htl.mirror")
 
 local Operator = require("htl.operator")
 local DirOperation = require("htl.operator.operation.dir")

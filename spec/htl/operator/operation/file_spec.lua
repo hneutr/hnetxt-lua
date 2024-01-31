@@ -5,7 +5,7 @@ local stub = require('luassert.stub')
 local Path = require('hl.Path')
 
 local projects = require("htl.db.projects")
-local Mirror = require("htl.project.mirror")
+local Mirror = require("htl.mirror")
 local Header = require("htl.text.header")
 
 local Operator = require("htl.operator")

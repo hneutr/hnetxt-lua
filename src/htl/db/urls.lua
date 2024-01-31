@@ -10,6 +10,7 @@ local M = tbl("urls", {
     project = {
         type = "text",
         reference = "projects.title",
+        on_delete = "cascade", --- delete if project gets deleted
     },
     path = {"text", required = true},
 })
@@ -61,6 +62,16 @@ function M:add_if_missing(path)
     if not M:where({path = path}) then
         M:insert({path = path})
     end
+end
+
+function M:clean()
+    local ids_to_delete =  M:get():filter(function(url)
+        return not url.path:exists()
+    end):transform(function(url)
+        return url.id
+    end)
+
+    M:remove({id = ids_to_delete})
 end
 
 return M

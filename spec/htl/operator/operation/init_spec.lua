@@ -1,6 +1,6 @@
 local Dict = require("hl.Dict")
 local Path = require("hl.Path")
-local Mirror = require("htl.project.mirror")
+local Mirror = require("htl.mirror")
 
 local Operation = require("htl.operator.operation")
 

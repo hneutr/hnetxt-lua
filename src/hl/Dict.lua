@@ -118,7 +118,7 @@ function Dict.fromlist(l)
 end
 
 function Dict.default(dict, key, val)
-    if not dict[key] then
+    if dict[key] == nil then
         dict[key] = val
     end
 

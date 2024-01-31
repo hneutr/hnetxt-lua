@@ -1,22 +1,10 @@
-categories:
-    sources:
-        dir: ""
-        categories_to_mirror: []
-    notes:
-        dir: .notes
-        categories_to_mirror:
-            - sources
-    chaff:
-        dir: .chaff
-        categories_to_mirror:
-            - sources
-            - notes
-types:
+category_mirrors:
+    sources: []
+    notes: [sources]
+    chaff: [sources, notes]
+mirrors:
     source:
         category: sources
-    fragments:
-        keymap_prefix: f
-        category: chaff
     scratch:
         keymap_prefix: s
         category: chaff

@@ -121,3 +121,23 @@ describe("add_if_missing", function()
         assert.is_not.Nil(urls:where(row))
     end)
 end)
+
+describe("clean", function()
+    it("non-existent file", function()
+        f1:touch()
+        local row = {path = f1}
+        urls:insert(row)
+        assert.is_not.Nil(urls:where(row))
+        f1:unlink()
+        urls:clean()
+        assert.is_nil(urls:where(row))
+    end)
+
+    it("deleted project", function()
+        local row = {path = f1}
+        urls:insert(row)
+        assert.is_not.Nil(urls:where(row))
+        projects:remove({title = p1.title})
+        assert.is_nil(urls:where(row))
+    end)
+end)

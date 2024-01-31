@@ -2,7 +2,7 @@ local Dict = require("hl.Dict")
 local Path = require('hl.path')
 local Config = require("htl.config")
 
-local Mirror = require("htl.project.mirror")
+local Mirror = require("htl.mirror")
 local Location = require("htl.text.location")
 local Reference = require("htl.text.reference")
 
