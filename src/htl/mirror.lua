@@ -41,11 +41,11 @@ end
 Mirror.configs = Mirror.load()
 
 function Mirror:_init(path)
-    self.mirror_name = Mirror.path_type(path)
+    self.path = path
+    self.mirror_name = Mirror.path_type(self.path)
 
     self = Dict.update(self, self.configs[self.mirror_name])
 
-    self.path = path
     self.root = db.get()['projects'].get_path(self.path)
     self.dir = Path.join(self.root, self.dir)
 
@@ -54,17 +54,17 @@ function Mirror:_init(path)
     end
 end
 
-function Mirror:get_mirror_path(mirror_name)
+function Mirror:get_mirror_path(mirror)
     return Path.join(
         self.root,
-        self.configs[mirror_name].dir,
+        self.configs[mirror].dir,
         Path.relative_to(self.path, self.root)
     )
 end
 
 function Mirror:get_mirror_paths()
-    return self.mirrors:map(function(mirror_name)
-        return self:get_mirror_path(mirror_name)
+    return self.mirrors:map(function(m)
+        return self:get_mirror_path(m)
     end):filter(function(path)
         return Path.exists(path)
     end)
@@ -84,14 +84,16 @@ end
 
 function Mirror.path_type(path)
     local root = db.get()['projects'].get_path(path)
+
     local project_path = path
+
     if Path.is_relative_to(project_path, root) then
         project_path = Path.relative_to(path, root)
     end
 
-    for mirror_name, type_config in pairs(Mirror.configs) do
+    for name, type_config in pairs(Mirror.configs) do
         if Path.is_relative_to(project_path, type_config.dir) then
-            return mirror_name
+            return name
         end
     end
 
