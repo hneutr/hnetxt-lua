@@ -113,6 +113,8 @@ function M:insert_kind(source, kind)
         urls:insert({path = source})
     end
     
+    print(require("inspect")("MUST FILTER TO _FILE_ URLS; add conception of `kind`=file/link to urls"))
+    print("also show mirrors that exist for a file on the right hand side of the statusline using the keymap char")
     local id = urls:get({path = source}):transform(function(url)
         return url.id
     end):sort()[1]
