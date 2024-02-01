@@ -1,4 +1,4 @@
-exclusion_suffix: "!"
+exclusion_suffix: "-"
 tag_prefix: "@"
 tag_delimiter: "."
 field_delimiter: ":"

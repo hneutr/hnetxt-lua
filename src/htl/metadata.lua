@@ -112,7 +112,9 @@ end
 function Field.get_print_lines(gathered)
     local lines = List()
 
-    gathered:keys():sorted():foreach(function(key)
+    gathered:keys():sorted(function(a, b)
+        return a:lower() < b:lower()
+    end):foreach(function(key)
         local sublines = gathered[key]:values():sorted():transform(function(v)
             return Field.indent .. tostring(v)
         end)
@@ -473,7 +475,9 @@ function Files:get_map(args)
 end
 
 function Files:get_files(args)
-    return self.path_to_file:keys():sorted():transform(Path):mapm("relative_to", self.dir):transform(tostring)
+    return self.path_to_file:keys():sorted(function(a, b)
+        return a:lower() < b:lower()
+    end):transform(Path):mapm("relative_to", self.dir):transform(tostring)
 end
 
 function Files:get_random_file()

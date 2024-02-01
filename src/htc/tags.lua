@@ -43,7 +43,7 @@ return {
             return set_x_of_the_day()
         end
         
-        if #args.conditions == 0 then
+        if #args.conditions == 0 and not args.reference then
             args.files = false
         end
 
