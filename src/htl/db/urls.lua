@@ -71,7 +71,9 @@ function M:clean()
         return url.id
     end)
 
-    M:remove({id = ids_to_delete})
+    if #ids_to_delete > 0 then
+        M:remove({id = ids_to_delete})
+    end
 end
 
 return M

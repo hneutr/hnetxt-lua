@@ -75,15 +75,10 @@ build = {
         ["htc.command"] = "src/htc/command.lua",
         ["htc.colorize"] = "src/htc/colorize.lua",
 
-        ["htc.journal"] = "src/htc/journal.lua",
-        ["htc.track"] = "src/htc/track.lua",
-        ["htc.aim"] = "src/htc/aim.lua",
+        -- ["htc.track"] = "src/htc/track.lua",
         ["htc.new"] = "src/htc/new.lua",
         ["htc.tags"] = "src/htc/tags.lua",
         ["htc.project"] = "src/htc/project.lua",
-
-        ["htc.move"] = "src/htc/move.lua",
-        ["htc.remove"] = "src/htc/remove.lua",
 
         -- to start using after `htc.operator.*` is gone
         ["htl.move"] = "src/htl/move.lua",

@@ -423,7 +423,7 @@ describe("Condition", function()
         end)
 
         it("exclusion", function()
-            local c = Condition("a!")
+            local c = Condition("a-")
             assert.are.same(BlankField("a"), c.parser)
             assert(c.is_exclusion)
         end)

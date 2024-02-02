@@ -34,4 +34,10 @@ function M.get()
     return M.con
 end
 
+function M.clean()
+    local con = M.get()
+    con.urls:clean()
+    con.mirrors:clean()
+end
+
 return M

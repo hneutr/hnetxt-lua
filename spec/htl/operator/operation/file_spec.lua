@@ -45,7 +45,7 @@ describe("end to end", function()
 
         local b_content_new = {"text", "[ref to a](c.md)", "more text"}
 
-        Operator.move(a_path, c_path)
+        Operator.move({source = a_path, target = c_path})
 
         assert.falsy(Path.exists(a_path))
         assert.falsy(Path.exists(a_mirror_path))

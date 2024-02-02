@@ -210,5 +210,4 @@ function Command:add(parent, settings, name)
     return object
 end
 
-
 return Command

@@ -1,23 +1,65 @@
 require("approot")("/Users/hne/lib/hnetxt-lua/")
 
 local argparse = require("argparse")
+
 local Command = require("htc.command")
 local List = require("hl.List")
-
-local groups = {
-    {name = "Commands", commands = {"move", "remove", "journal", "aim", "new", "tags", "track"}},
-    {name = "Command groups", commands = {"project"}},
-}
+local Dict = require("hl.Dict")
+local Path = require("hl.path")
+local db = require("htl.db")
 
 local parser = argparse("hnetxt")
 
-function add_command(name)
-    local config = require(string.format("htc.%s", name))
-    return Command():add(parser, config, name)
-end
+local Operator = require("htl.operator")
+-- local Move = require("htl.move")
 
-for _, group in ipairs(groups) do
-    parser:group(group.name, unpack(List(group.commands):map(add_command)))
-end
+local commands = List()
+Dict({
+    new = require("htc.new"),
+    tags = require("htc.tags"),
+    project = require("htc.project"),
+    clean = {
+        description = "clean the db",
+        action = function()
+            db.clean()
+        end
+    },
+    move = {
+        description = "mv within a project",
+        {"source", description = "what to move", args = "1", convert = Path.resolve},
+        {"target", description = "where to move it", args = "1", convert = Path.resolve},
+        -- Move(args.source, args.target)
+        action = Operator.move,
+    },
+    remove = {
+        description = "rm within a project",
+        action = Operator.remove,
+        {"source", description = "what to remove", args = "1", convert = Path.resolve},
+    },
+    journal = {
+        description = "print the journal path",
+        action = function() print(require("htl.journal")()) end,
+    },
+    aim = {
+        description = "print the goals path",
+        action = function() print(require("htl.goals")()) end,
+    },
+    track = {
+        description = "print the tracking path",
+        {"date", description = "date (YYYYMMDD); default today", default = os.date('%Y%m%d')},
+        action = function(args)
+            local date = args.date
+            if type(date) == "string" then
+                if date:startswith('m') then
+                    date = tonumber(os.date('%Y%m%d')) - tonumber(date:removeprefix('m'))
+                end
+            end
 
-parser:parse()
+            print(require("htl.track")():touch(date))
+        end,
+    },
+}):foreach(function(name, config)
+    commands:append(Command:add(parser, config, name))
+end)
+
+parser:group("commands", unpack(commands)):parse()

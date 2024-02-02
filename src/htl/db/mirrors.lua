@@ -142,4 +142,16 @@ function M:get_source_path(path)
     return path
 end
 
+function M:clean()
+    local ids_to_delete = M:get():filter(function(mirror)
+        return not mirror.path:exists() or not mirror.source:exists()
+    end):transform(function(mirror)
+        return mirror.id
+    end)
+
+    if #ids_to_delete > 0 then
+        M:remove({id = ids_to_delete})
+    end
+end
+
 return M

@@ -100,7 +100,9 @@ function M.get_operation(source, target)
     return nil
 end
 
-function M.move(source, target)
+function M.move(args)
+    local source = args.source
+    local target = args.target
     local operation = M.get_operation(source, target)
     local dir = db.get()['projects'].get_path(source)
 
@@ -110,13 +112,18 @@ function M.move(source, target)
 
     operation.move(map, mirrors_map)
     operation.update_references(map, mirrors_map, dir)
+
+    db.clean()
 end
 
-function M.remove(source)
+function M.remove(args)
+    local source = args.source
     if Path.exists(source) then
         local operation = M.get_operation_class(source)
         operation.remove(source)
     end
+
+    db.clean()
 end
 
 return M
