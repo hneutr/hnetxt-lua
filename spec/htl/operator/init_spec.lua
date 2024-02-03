@@ -106,14 +106,8 @@ local function run_move_operation_test(spec)
         assert.are.same(spec.map, map)
     end
 
-    local mirrors_map = operation.map_mirrors(map)
-
-    if spec.mirrors_map then
-        assert.are.same(spec.mirrors_map, mirrors_map)
-    end
-
     if spec.results then
-        operation.move(map, mirrors_map)
+        operation.move(map)
 
         for k, fn in pairs(spec.results) do
             fn(k)

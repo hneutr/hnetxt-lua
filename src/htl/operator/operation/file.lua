@@ -8,8 +8,8 @@ local M = Dict.from(Operation)
 M.type = "file"
 M.check_source = Path.is_file
 
-function M.move(map, mirrors_map)
-    map = Dict.from(map or {}, mirrors_map or {})
+function M.move(map)
+    map = Dict.from(map or {})
 
     for source, target in pairs(map) do
         Path.write(target, Path.read(source))

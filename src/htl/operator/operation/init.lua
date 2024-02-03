@@ -2,7 +2,6 @@ local Dict = require("hl.Dict")
 local Path = require('hl.path')
 local Config = require("htl.config")
 
-local Mirror = require("htl.mirror")
 local Location = require("htl.text.location")
 local Reference = require("htl.text.reference")
 
@@ -16,26 +15,12 @@ function M.check_source(source, target) return true end
 function M.check_target(target, source) return true end
 function M.transform_target(target, source) return target end
 function M.map_source_to_target(source, target) return {[source] = target} end
-function M.map_mirrors(map)
-    local mirrors_map = {}
-    for source, target in pairs(map) do
-        mirrors_map = Dict.from(mirrors_map, Mirror.find_updates(source, target))
-    end
-
-    for source, target in pairs(map) do
-        mirrors_map[source] = nil
-    end
-
-    return mirrors_map
-end
-function M.move(map, mirrors_map) end
-function M.update_references(map, mirrors_map, dir)
-    Reference.update_locations(Dict.from(map or {}, mirrors_map or {}), dir)
+function M.move(map) end
+function M.update_references(map, dir)
+    Reference.update_locations(Dict.from(map or {}), dir)
 end
 
 function M.remove(path)
-    Mirror.get_all_mirrored_paths(path):foreach(Path.unlink)
-
     if Path.is_dir(path) then
         Path.rmdir(path, true)
     else

@@ -27,29 +27,47 @@ function get_old_mirror_kind(path)
     return false
 end
 
-local to_remove = List()
-local migration_map = List()
+local ps = {where = {title = "chasefeel"}}
+ps = {}
+projects:get(ps):foreach(function(project)
+    local to_remove = List()
+    local to_move = List()
 
-urls:get({where = {project = "chasefeel"}}):sort(function(a, b)
-    return tostring(a.path) < tostring(b.path)
-end):foreach(function(url)
-    local path = url.path
-    local old_mirrors = Mirror(path):get_mirror_paths()
+    urls:get({where = {project = project.title}}):sort(function(a, b)
+        return tostring(a.path) < tostring(b.path)
+    end):foreach(function(url)
+        local path = url.path
+        local old_mirrors = Mirror(path):get_mirror_paths()
 
-    if #old_mirrors > 0 then
-        old_mirrors:foreach(function(old)
-            local kind = get_old_mirror_kind(old)
+        if #old_mirrors > 0 then
+            old_mirrors:foreach(function(old)
+                local kind = get_old_mirror_kind(old)
 
-            if kind then
-                local new = mirrors:get_mirror_path(path, kind)
-                migration_map:append({source = old, target = new})
-            else
-                to_remove:append(old)
-            end
-        end)
-    end
-end)
+                if kind then
+                    local new = mirrors:get_mirror_path(path, kind)
+                    new:unlink()
+                    to_move:append({source = old, target = new})
+                else
+                    to_remove:append(old)
+                end
+            end)
+        end
+    end)
 
-migration_map:foreach(function(m)
-    print(string.format("%s → %s", m.source:relative_to(proj.path), m.target:relative_to(proj.path)))
+    to_move:foreach(function(m)
+        -- print(string.format("%s → %s"))
+        m.source:rename(m.target)
+    end)
+    print(string.format("%s:", project.title))
+    print(string.format("  to move: %d", #to_move))
+    print(string.format("  to remove: %d", #to_remove))
+
+    local config = mirrors:get_project_config(project.path)
+    config.mirrors:foreachv(function(dir)
+        if dir:exists() then
+            dir:iterdir({files = false, recursive = false}):foreach(function(subdir)
+                subdir:rmdir(true)
+            end)
+        end
+    end)
 end)

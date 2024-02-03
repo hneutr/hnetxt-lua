@@ -1,6 +1,5 @@
 local Dict = require("hl.Dict")
 local Path = require("hl.Path")
-local Mirror = require("htl.mirror")
 
 local Operation = require("htl.operator.operation")
 
@@ -19,25 +18,6 @@ after_each(function()
     mock:revert(Path)
 
     Path.rmdir(test_dir, true)
-end)
-
-describe("map_mirrors", function()
-    before_each(function()
-        stub(Mirror, 'find_updates')
-    end)
-
-    after_each(function()
-        Mirror.find_updates:revert()
-    end)
-
-    it("works", function()
-        local ab = {['.x/a'] = '.x/b'}
-        local cd = {['.x/c'] = '.x/d'}
-        Mirror.find_updates.on_call_with('a', 'b').returns(ab)
-        Mirror.find_updates.on_call_with('c', 'd').returns(cd)
-
-        assert.are.same(Dict.from(ab, cd), Operation.map_mirrors({a = 'b', c = 'd'}))
-    end)
 end)
 
 describe("could_be_file", function()

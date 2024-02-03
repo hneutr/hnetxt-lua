@@ -33,8 +33,10 @@ Dict({
     },
     remove = {
         description = "rm within a project",
-        action = Operator.remove,
         {"source", description = "what to remove", args = "1", convert = Path.resolve},
+        action = function(args)
+            db.get()['urls']:remove({where = {path = Path(args.source)}})
+        end,
     },
     journal = {
         description = "print the journal path",

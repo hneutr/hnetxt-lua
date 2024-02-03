@@ -49,14 +49,6 @@ build = {
         ["htl.db.urls"] = "src/htl/db/urls.lua",
         ["htl.db.mirrors"] = "src/htl/db/mirrors.lua",
 
-        -- to revise
-        ["htl.operator"] = "src/htl/operator/init.lua",
-        ["htl.operator.operation"] = "src/htl/operator/operation/init.lua",
-        ["htl.operator.operation.dir"] = "src/htl/operator/operation/dir.lua",
-        ["htl.operator.operation.file"] = "src/htl/operator/operation/file.lua",
-
-        ["htl.mirror"] = "src/htl/mirror.lua",
-
         ["htl.text.divider"] = "src/htl/text/divider.lua",
         ["htl.text.header"] = "src/htl/text/header.lua",
         ["htl.text.Parser"] = "src/htl/text/Parser.lua",
@@ -65,10 +57,17 @@ build = {
         ["htl.text.List.Item"] = "src/htl/text/List/Item.lua",
         ["htl.text.List.NumberedItem"] = "src/htl/text/List/NumberedItem.lua",
 
+        -- to revise
         ["htl.text.link"] = "src/htl/text/link.lua",
         ["htl.text.location"] = "src/htl/text/location.lua",
         ["htl.text.mark"] = "src/htl/text/mark.lua",
         ["htl.text.reference"] = "src/htl/text/reference.lua",
+
+        -- to revise
+        ["htl.operator"] = "src/htl/operator/init.lua",
+        ["htl.operator.operation"] = "src/htl/operator/operation/init.lua",
+        ["htl.operator.operation.dir"] = "src/htl/operator/operation/dir.lua",
+        ["htl.operator.operation.file"] = "src/htl/operator/operation/file.lua",
 
         -- cli
         ["htc"] = "src/htc/init.lua",

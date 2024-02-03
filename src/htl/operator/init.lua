@@ -108,10 +108,9 @@ function M.move(args)
 
     target = operation.transform_target(target, source)
     local map = operation.map_source_to_target(source, target)
-    local mirrors_map = operation.map_mirrors(map)
 
-    operation.move(map, mirrors_map)
-    operation.update_references(map, mirrors_map, dir)
+    operation.move(map)
+    operation.update_references(map, dir)
 
     local urls = db.get()['urls']
     for source, target in pairs(map) do

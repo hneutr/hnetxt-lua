@@ -5,7 +5,6 @@ local db = require("htl.db")
 
 local projects = require("htl.db.projects")
 local urls = require("htl.db.urls")
-local Mirror = require("htl.mirror")
 
 local Operator = require("htl.operator")
 local DirOperation = require("htl.operator.operation.dir")
@@ -84,16 +83,10 @@ describe("end to end", function()
         local file_path_old = Path.join(dir_path_old, "x.md")
         local file_path_new = Path.join(dir_path_new, "x.md")
 
-        local mirror_path_old = Mirror(file_path_old):get_mirror_path("scratch")
-        local mirror_path_new = Mirror(file_path_new):get_mirror_path("scratch")
-
         local ref_path = Path.join(test_dir, "c.md")
 
         local content = {"this is", "file a"}
         Path.write(file_path_old, content)
-
-        local mirror_content = {"mirror content"}
-        Path.write(mirror_path_old, mirror_content)
 
         local ref_content_old = {"text", "[ref to a](a/x.md)", "more text"}
         local ref_content_new = {"text", "[ref to a](b/x.md)", "more text"}
@@ -104,7 +97,6 @@ describe("end to end", function()
         assert.falsy(Path.exists(dir_path_old))
 
         assert.are.same(content, Path.readlines(file_path_new))
-        assert.are.same(mirror_content, Path.readlines(mirror_path_new))
         assert.are.same(ref_content_new, Path.readlines(ref_path))
     end)
 end)

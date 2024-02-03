@@ -16,8 +16,8 @@ function M.map_source_to_target(source, target)
     return map
 end
 
-function M.move(map, mirrors_map)
-    map = Dict.from(map or {}, mirrors_map or {})
+function M.move(map)
+    map = Dict.from(map or {})
 
     local dirs = {}
     for source, target in pairs(map) do
