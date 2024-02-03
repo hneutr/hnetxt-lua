@@ -35,7 +35,22 @@ Dict({
         description = "rm within a project",
         {"source", description = "what to remove", args = "1", convert = Path.resolve},
         action = function(args)
-            db.get()['urls']:remove({where = {path = Path(args.source)}})
+            local source = Path(args.source)
+
+            local url = db.get()['urls']:where({path = source})
+
+            if url then
+                db.get()['mirrors']:remove({url = url.id})
+                db.get()['urls']:remove({id = url.id})
+            end
+
+            local mirror = db.get()['mirrors']:where({path = source})
+
+            if mirror then
+                db.get()['mirrors']:remove({id = mirror.id})
+            end
+
+            source:unlink()
         end,
     },
     journal = {

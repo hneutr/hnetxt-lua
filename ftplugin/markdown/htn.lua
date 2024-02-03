@@ -1,3 +1,4 @@
+local ui = require("htn.ui")
 local Path = require('hn.path')
 local db = require("htl.db")
 local Fold = require('htn.ui.fold')
@@ -27,10 +28,8 @@ if project then
     vim.opt_local.spellfile:append(tostring(project_spellfile))
 
     -- statusline
-    if current_file:is_relative_to(project_root) then
-        vim.opt_local.statusline = tostring(current_file:relative_to(project_root))
-    end
-
+    vim.opt_local.statusline = ui.statusline(current_file, project_root)
+    
     project.path = tostring(project.path)
     vim.b.hnetxt_project_root = project.path
     vim.b.htn_project = project
