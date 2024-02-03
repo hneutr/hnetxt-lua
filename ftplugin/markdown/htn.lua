@@ -27,13 +27,13 @@ if project then
 
     vim.opt_local.spellfile:append(tostring(project_spellfile))
 
-    -- statusline
-    vim.opt_local.statusline = ui.statusline(current_file, project_root)
-    
     project.path = tostring(project.path)
     vim.b.hnetxt_project_root = project.path
     vim.b.htn_project = project
 
+    -- statusline
+    vim.opt_local.statusline = ui.statusline(current_file, project_root)
+    
     if db.get()['mirrors']:is_source(current_file) then
         db.get()['urls']:add_if_missing(current_file)
     end
@@ -58,25 +58,4 @@ vim.api.nvim_create_autocmd(
         group=vim.api.nvim_create_augroup('htn-fold', {clear = true}),
         callback=Fold.set_line_info,
     }
-)
-
-------------------------------------[ sync ]------------------------------------
-local Sync = require('htn.project.sync')
--- vim.b.hnetxt_sync = true
-
-local group = vim.api.nvim_create_augroup('hnetxt_sync', {clear = true})
-
-vim.api.nvim_create_autocmd(
-    {"BufEnter"},
-    {pattern=pattern, group=group, callback=Sync.if_active(Sync.buf_enter)}
-)
-
-vim.api.nvim_create_autocmd(
-    {'TextChanged', 'InsertLeave'},
-    {pattern=pattern, group=group, callback=Sync.if_active(Sync.buf_change)}
-)
-
-vim.api.nvim_create_autocmd(
-    {'BufLeave', 'VimLeave'},
-    {pattern=pattern, group=group, callback=Sync.if_active(Sync.buf_leave)}
 )

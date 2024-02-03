@@ -5,6 +5,7 @@ local db = require("htl.db")
 local Operation = require("htl.operator.operation")
 local FileOperation = require("htl.operator.operation.file")
 local DirOperation = require("htl.operator.operation.dir")
+local Reference = require("htl.text.reference")
 
 local M = {}
 
@@ -110,21 +111,12 @@ function M.move(args)
     local map = operation.map_source_to_target(source, target)
 
     operation.move(map)
-    operation.update_references(map, dir)
+
+    Reference.update_locations(map, dir)
 
     local urls = db.get()['urls']
     for source, target in pairs(map) do
         urls:move(source, target)
-    end
-
-    db.clean()
-end
-
-function M.remove(args)
-    local source = args.source
-    if Path.exists(source) then
-        local operation = M.get_operation_class(source)
-        operation.remove(source)
     end
 
     db.clean()

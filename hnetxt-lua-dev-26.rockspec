@@ -76,6 +76,7 @@ build = {
         ["htc.tags"] = "src/htc/tags.lua",
         ["htc.project"] = "src/htc/project.lua",
 
+        ["htl.text.NLink"] = "src/htl/text/NLink.lua",
         -- to start using after `htc.operator.*` is gone
         ["htl.move"] = "src/htl/move.lua",
     }

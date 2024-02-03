@@ -115,25 +115,6 @@ local function run_move_operation_test(spec)
     end
 end
 
-local function run_remove_operation_test(spec)
-    local source = spec.source
-
-    assert.are.same(
-        spec.operation_class,
-        Operator.get_operation_class(source).type
-    )
-
-    local operation = Operator.get_operation(source)
-
-    if spec.results then
-        operation.remove(source)
-
-        for k, fn in pairs(spec.results) do
-            fn(k)
-        end
-    end
-end
-
 local function run_operation_test(spec, subtest_name)
     local test_name = string.format("%s.%s", spec.operation_class, spec.operation_name)
 
@@ -157,29 +138,6 @@ local function run_operation_test(spec, subtest_name)
 end
 
 local operation_tests = {
-    remove = {
-        test_function = run_remove_operation_test,
-        {
-            operation_class = "file", 
-            operation_name = "remove",
-            operator_action = 'remove',
-            make = {"a.md"},
-            source = "a.md",
-            results = {
-                ["a.md"] = function(p) assert.falsy(Path.exists(p)) end,
-            },
-        },
-        {
-            operator_action = 'remove',
-            operation_class = "dir", 
-            operation_name = "remove",
-            source = "a",
-            make = {"a", "a/b.md"},
-            results = {
-                a = function(p) assert.falsy(Path.exists(p)) end,
-            },
-        },
-    },
     move = {
         test_function = run_move_operation_test,
         ------------------------------------[ file ]------------------------------------

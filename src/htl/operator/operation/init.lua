@@ -16,9 +16,6 @@ function M.check_target(target, source) return true end
 function M.transform_target(target, source) return target end
 function M.map_source_to_target(source, target) return {[source] = target} end
 function M.move(map) end
-function M.update_references(map, dir)
-    Reference.update_locations(Dict.from(map or {}), dir)
-end
 
 function M.remove(path)
     if Path.is_dir(path) then

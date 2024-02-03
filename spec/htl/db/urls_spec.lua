@@ -3,6 +3,7 @@ local Path = require("hl.Path")
 local db = require("htl.db")
 local projects = require("htl.db.projects")
 local urls = require("htl.db.urls")
+local DefinitionLink = require("htl.text.NLink").DefinitionLink
 
 local d1 = Path.tempdir:join("dir-1")
 local d2 = Path.tempdir:join("dir-2")
@@ -138,5 +139,68 @@ describe("clean", function()
         assert.is_not.Nil(urls:where(row))
         projects:remove({title = p1.title})
         assert.is_nil(urls:where(row))
+    end)
+
+    it("unanchored file", function()
+        local row = {path = urls.unanchored_path}
+        urls:insert(row)
+        assert.is_not.Nil(urls:where(row))
+        urls:clean()
+        assert.is_nil(urls:where(row))
+    end)
+end)
+
+describe("new_link", function()
+    it("picks the newest link", function()
+        urls:insert({path = f1, resource_type = "link"})
+        local link_id = urls:new_link(f1)
+        
+        assert.are.same(
+            link_id,
+            urls:get():sort(function(a, b)
+                return a.id > b.id
+            end)[1]
+        )
+    end)
+end)
+
+describe("update_link_urls", function()
+    it("updates a label", function()
+        local id = urls:new_link(f1).id
+        urls:update({
+            where = {id = id},
+            set = {label = "old"},
+        })
+
+        urls:update_link_urls(f1, List({
+            string.format("[new](:%d:)", id),
+        }))
+
+        assert.are.same("new", urls:where({id = id}).label)
+    end)
+
+    it("moves a link", function()
+        local id = urls:new_link(f1).id
+        urls:update({
+            where = {id = id},
+            set = {label = "a"},
+        })
+
+        urls:update_link_urls(f2, List({
+            string.format("[a](:%d:)", id),
+        }))
+
+        assert.are.same(f2, urls:where({id = id}).path)
+    end)
+
+    it("unanchors a link", function()
+        local id = urls:new_link(f1).id
+        urls:update({
+            where = {id = id},
+            set = {label = "a"},
+        })
+
+        urls:update_link_urls(f1, List())
+        assert.are.same(urls.unanchored_path, urls:where({id = id}).path)
     end)
 end)

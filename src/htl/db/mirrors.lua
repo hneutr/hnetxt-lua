@@ -86,6 +86,8 @@ function M:get_mirror_kind(path)
 end
 
 function M:get_mirror(path, kind)
+    kind = kind or M:get_mirror_kind(path)
+
     local url = M:get_source(path)
 
     if not M:where({url = url.id, kind = kind}) then
@@ -119,6 +121,20 @@ function M:get_mirrors(path)
     end
 
     return {}
+end
+
+function M.get_kind_string(mirror)
+    return M.configs.generic[mirror.kind].statusline_name or mirror.kind
+end
+
+function M:get_mirrors_string(path)
+    if M:is_source(path) then
+        return M:get_mirrors(path):filter(function(mirror)
+            return not M.configs.generic[mirror.kind].exclude_from_statusline
+        end):transform(M.get_kind_string):sorted():join(" | ")
+    end
+
+    return ""
 end
 
 --------------------------------------------------------------------------------
