@@ -22,7 +22,7 @@ local M = tbl("mirrors", {
 --                                  configs                                   --
 --------------------------------------------------------------------------------
 M.configs = Dict({
-    generic = Dict(Config.get("neomirror")),
+    generic = Dict(Config.get("mirror")),
     projects = Dict(),
     path_to_project = Dict()
 })

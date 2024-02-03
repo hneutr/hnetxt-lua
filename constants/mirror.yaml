@@ -1,19 +1,13 @@
-category_mirrors:
-    sources: []
-    notes: [sources]
-    chaff: [sources, notes]
-mirrors:
-    source:
-        category: sources
-    scratch:
-        keymap_prefix: s
-        category: chaff
-    alternatives: 
-        keymap_prefix: a
-        category: notes
-    outlines: 
-        keymap_prefix: o
-        category: notes
-    meta: 
-        keymap_prefix: m
-        category: notes
+scratch:
+    mapkey: s
+    dir_prefix: .chaff
+    exclude_from_statusline: true
+alternatives: 
+    mapkey: a
+    dir_prefix: .notes
+outlines: 
+    mapkey: o
+    dir_prefix: .notes
+meta: 
+    mapkey: m
+    dir_prefix: .notes
