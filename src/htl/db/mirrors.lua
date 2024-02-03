@@ -71,6 +71,20 @@ function M:is_mirror(path)
     return false
 end
 
+function M:get_mirror_kind(path)
+    local config = M:get_project_config(path)
+
+    if config then
+        for kind in config.mirrors:keys():iter() do
+            if path:is_relative_to(config.mirrors[kind]) then
+                return kind
+            end
+        end
+    end
+
+    return
+end
+
 function M:get_mirror(path, kind)
     local url = M:get_source(path)
 

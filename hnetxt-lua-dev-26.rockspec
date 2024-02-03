@@ -43,7 +43,6 @@ build = {
         ["htl.snippet"] = "src/htl/snippet.lua",
         ['htl.metadata'] = "src/htl/metadata.lua",
 
-        -- db
         ["htl.db"] = "src/htl/db/init.lua",
         ["htl.db.projects"] = "src/htl/db/projects.lua",
         ["htl.db.urls"] = "src/htl/db/urls.lua",
