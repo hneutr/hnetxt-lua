@@ -179,6 +179,20 @@ describe("update_link_urls", function()
         assert.are.same("new", urls:where({id = id}).label)
     end)
 
+    it("updates a path", function()
+        local id = urls:new_link(f1).id
+        urls:update({
+            where = {id = id},
+            set = {label = "a"},
+        })
+
+        urls:update_link_urls(f2, List({
+            string.format("[a](:%d:)", id),
+        }))
+
+        assert.are.same(f2, urls:where({id = id}).path)
+    end)
+
     it("moves a link", function()
         local id = urls:new_link(f1).id
         urls:update({

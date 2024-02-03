@@ -29,4 +29,10 @@ function M.statusline(path, project_root)
     return statusline
 end
 
+function M.spellfile(root)
+    local spellfile = root:join(".spell", "en.utf-8.add")
+    spellfile:parent():mkdir()
+    return tostring(spellfile)
+end
+
 return M

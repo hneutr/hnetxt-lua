@@ -100,24 +100,24 @@ end
 function M:update_link_urls(path, lines)
     local observed_ids = List()
 
-    lines:transform(function(l)
-        return DefinitionLink:from_str(l)
-    end):filter(function(l)
-        return l
-    end):foreach(function(l)
-        local id = tonumber(l.url)
-        observed_ids:append(id)
-        M:update({
-            where = {id = id},
-            set = {
-                path = tostring(path),
-                label = l.label,
-                resource_type = "link",
-            },
-        })
-    end)
+    for line in lines:iter() do
+        local link = DefinitionLink:from_str(line)
 
-    local unobserved_ids = M:get({path = path, resource_type = "link"}):transform(function(u)
+        if link then
+            local id = tonumber(link.url)
+            observed_ids:append(id)
+            M:update({
+                where = {id = id},
+                set = {
+                    path = tostring(path),
+                    label = link.label,
+                    resource_type = "link",
+                },
+            })
+        end
+    end
+
+    local unobserved_ids = M:get({where = {path = path, resource_type = "link"}}):transform(function(u)
         return u.id
     end):filter(function(id)
         return not observed_ids:contains(id)

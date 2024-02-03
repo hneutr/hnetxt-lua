@@ -120,7 +120,7 @@ function M:get_mirrors(path)
         return M:get({where = {url = url.id}})
     end
 
-    return {}
+    return List({})
 end
 
 function M.get_kind_string(mirror)

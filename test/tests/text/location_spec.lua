@@ -13,7 +13,7 @@ describe("goto", function()
     local buf
 
     before_each(function()
-        vim.b.hnetxt_project_root = nil
+        vim.b.htn_project.path = nil
 
         current_file = Path.current_file
         Path.current_file = function() return "file" end
@@ -23,7 +23,7 @@ describe("goto", function()
     end)
 
     after_each(function()
-        vim.b.hnetxt_project_root = nil
+        vim.b.htn_project.path = nil
 
         Path.current_file = current_file
 
@@ -55,7 +55,7 @@ describe("goto", function()
     end)
 
     it("str: +; project_root: +; Path.open: +; Mark.goto: -", function()
-        vim.b.hnetxt_project_root = "dir"
+        vim.b.htn_project.path = "dir"
         Location.goto(open_command, "[a](f1)")
 
         assert.stub(Path.open).was_called()

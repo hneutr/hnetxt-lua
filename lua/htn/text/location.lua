@@ -12,7 +12,7 @@ function Location.goto(open_command, str)
         str = Link.get_nearest(current_line, cursor_col).location
     end
 
-    local location = Location.from_str(str, {relative_to = vim.b.hnetxt_project_root})
+    local location = Location.from_str(str, {relative_to = vim.b.htn_project.path})
 
     if location.path ~= tostring(Path.this()) then
         Path.open(location.path, open_command)

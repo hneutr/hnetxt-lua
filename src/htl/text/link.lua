@@ -1,24 +1,17 @@
 local Dict = require("hl.Dict")
 local class = require("pl.class")
+local List = require("hl.List")
 
---------------------------------------------------------------------------------
---                                    Link                                     
---------------------------------------------------------------------------------
--- format: [label](location)
--- preceded by: any
--- followed by: any
---------------------------------------------------------------------------------
 class.Link()
-Link.regex = "%s*(.-)%[(.-)%]%((.-)%)(.*)"
-Link.defaults = {
-    label = '',
-    location = '',
-    before = '',
-    after = '',
-}
+Link.regex = "(.-)%[(.-)%]%((.-)%)(.*)"
 
 function Link:_init(args)
-    self = Dict.update(self, args, self.defaults)
+    self = Dict.update(self, args, {
+        label = '',
+        location = '',
+        before = '',
+        after = '',
+    })
 end
 
 function Link.str_is_a(str)
@@ -36,42 +29,22 @@ function Link.from_str(str, Class)
 end
 
 function Link.get_nearest(str, position)
-    local _start, _end = 0, 1
+    local distance_to_link = Dict()
 
-    local starts = {}
-    local ends = {}
-    local start_to_link = {}
-    local end_to_link = {}
+    local dist = 1
+    while Link.str_is_a(str) do
+        local link = Link.from_str(str)
 
-    while true do
-        if Link.str_is_a(str) then
-            local link = Link.from_str(str)
+        dist = dist + #link.before 
+        distance_to_link[math.abs(dist - position)] = link
+        dist = dist + #tostring(link) + 1
+        distance_to_link[math.abs(dist - position)] = link
 
-            _start = _end + #link.before
-            start_to_link[_start] = link
-            starts[#starts + 1] = _start
-
-            _end = _start + #tostring(link) + 1
-            end_to_link[_end] = link
-            ends[#ends + 1] = _end
-
-            str = link.after
-        else
-            break
-        end
+        str = link.after
     end
 
-    table.sort(starts, function(a, b) return math.abs(a - position) < math.abs(b - position) end)
-    table.sort(ends, function(a, b) return math.abs(a - position) < math.abs(b - position) end)
-
-    local nearest_start = starts[1]
-    local nearest_end = ends[1]
-
-    if math.abs(nearest_start - position) <= math.abs(nearest_end - position) then
-        return start_to_link[nearest_start]
-    else
-        return end_to_link[nearest_end]
-    end
+    local nearest_index = distance_to_link:keys():sort()[1]
+    return distance_to_link[nearest_index]
 end
 
 return Link

@@ -2,6 +2,8 @@ local ui = require("htn.ui")
 local Path = require('hn.path')
 local db = require("htl.db")
 local Fold = require('htn.ui.fold')
+local BufferLines = require("hn.buffer_lines")
+local List = require("hl.List")
 
 local pattern = "*.md"
 
@@ -19,21 +21,12 @@ local current_file = Path.this()
 local project = db.get()['projects'].get_by_path(current_file)
 
 if project then
-    local project_root = project.path
-
-    -- spellfile
-    local project_spellfile = project_root:join(".spell", "en.utf-8.add")
-    project_spellfile:parent():mkdir()
-
-    vim.opt_local.spellfile:append(tostring(project_spellfile))
-
+    vim.opt_local.spellfile:append(ui.spellfile(project.path))
+    vim.opt_local.statusline = ui.statusline(current_file, project.path)
+    
     project.path = tostring(project.path)
-    vim.b.hnetxt_project_root = project.path
     vim.b.htn_project = project
 
-    -- statusline
-    vim.opt_local.statusline = ui.statusline(current_file, project_root)
-    
     if db.get()['mirrors']:is_source(current_file) then
         db.get()['urls']:add_if_missing(current_file)
     end
@@ -59,3 +52,18 @@ vim.api.nvim_create_autocmd(
         callback=Fold.set_line_info,
     }
 )
+
+--------------------------------------------------------------------------------
+--                                link updates                                --
+--------------------------------------------------------------------------------
+vim.api.nvim_create_autocmd(
+    {'VimEnter', 'WinEnter', 'BufEnter', 'VimLeave', 'WinLeave', 'BufLeave'},
+    {
+        pattern=pattern,
+        group=vim.api.nvim_create_augroup('htn-link-update', {clear = true}),
+        callback=function()
+            db.get().urls:update_link_urls(Path.this(), List(BufferLines.get()))
+        end,
+    }
+)
+
