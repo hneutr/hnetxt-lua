@@ -1,12 +1,12 @@
 scratch:
-    keymap_prefix: s
+    mapkey: s
     dir_prefix: .chaff
 alternatives: 
-    keymap_prefix: a
+    mapkey: a
     dir_prefix: .notes
 outlines: 
-    keymap_prefix: o
+    mapkey: o
     dir_prefix: .notes
 meta: 
-    keymap_prefix: m
+    mapkey: m
     dir_prefix: .notes

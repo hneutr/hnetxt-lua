@@ -113,6 +113,11 @@ function M.move(args)
     operation.move(map, mirrors_map)
     operation.update_references(map, mirrors_map, dir)
 
+    local urls = db.get()['urls']
+    for source, target in pairs(map) do
+        urls:move(source, target)
+    end
+
     db.clean()
 end
 

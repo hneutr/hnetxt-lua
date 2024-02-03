@@ -10,25 +10,39 @@ local M = tbl("urls", {
     project = {
         type = "text",
         reference = "projects.title",
-        on_delete = "cascade", --- delete if project gets deleted
+        on_delete = "cascade", -- delete if project gets deleted
     },
     path = {"text", required = true},
+    created = {"date", required = true},
+    resource_type = {"text", required = true},
 })
 
 M.uuid = uuid
 
 function M:insert(row)
-    row = Dict.from({}, row)
+    local resource_type = row.resource_type
 
-    if row.path ~= nil then
-        row.path = tostring(row.path)
+    if not resource_type then
+        if row.label then
+            resource_type = "link"
+        else
+            resource_type = "file"
+        end
     end
 
-    if not row.project then
-        row.project = projects.get_title(row.path)
-    end
+    M:__insert({
+        path = tostring(row.path),
+        project = row.project or projects.get_title(row.path),
+        created = sqlite.lib.strftime("%s", "now"),
+        label = row.label,
+        resource_type = resource_type,
+    })
+end
 
-    M:__insert(row)
+function M:add_if_missing(path)
+    if not M:where({path = path, resource_type = 'file'}) then
+        M:insert({path = path, resource_type = 'file'})
+    end
 end
 
 function M:where(q)
@@ -56,12 +70,6 @@ function M:get(q)
 
         return url
     end, q))
-end
-
-function M:add_if_missing(path)
-    if not M:where({path = path}) then
-        M:insert({path = path})
-    end
 end
 
 function M:clean()

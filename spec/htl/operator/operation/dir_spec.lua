@@ -1,8 +1,10 @@
 local stub = require('luassert.stub')
 
 local Path = require('hl.path')
+local db = require("htl.db")
 
 local projects = require("htl.db.projects")
+local urls = require("htl.db.urls")
 local Mirror = require("htl.mirror")
 
 local Operator = require("htl.operator")
@@ -13,13 +15,21 @@ local test_dir = Path.join(tostring(Path.tempdir), "test-dir")
 before_each(function()
     Path.rmdir(test_dir, true)
 
+    db.before_test()
+    db.get()
+
     stub(projects, 'get_path')
     projects.get_path.returns(test_dir)
+
+    stub(urls, 'move')
 end)
 
 after_each(function()
     Path.rmdir(test_dir, true)
+    db.after_test()
+
     projects.get_path:revert()
+    urls.move:revert()
 end)
 
 describe("map_source_to_target", function()

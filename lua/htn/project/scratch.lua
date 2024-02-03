@@ -1,6 +1,6 @@
 local BufferLines = require("hn.buffer_lines")
 local Path = require('hn.path')
-local Mirror = require('htn.project.mirror')
+local db = require("htl.db")
 
 return function(mode)
     local lines = BufferLines.selection.get({mode = mode})
@@ -10,7 +10,7 @@ return function(mode)
       table.insert(lines, "")
     end
 
-    local path = Mirror(Path.current_file()):get_mirror_path('scratch')
+    local path = db.get()['mirrors']:get_mirror_path(Path.this(), "scratch")
 
     if Path.exists(path) then
         lines[#lines + 1] = Path.read(path)

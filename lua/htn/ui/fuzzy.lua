@@ -19,7 +19,8 @@ function M._do(fn)
         actions[key] = function(selected) fn(selected[1], action) end
     end
 
-    local dir = Path.parent(Path.current_file())
+    local dir = Path.this():parent()
+
     if vim.b.htn_project then
         dir = vim.b.htn_project.path
     end

@@ -4,7 +4,7 @@ local Fold = require('htn.ui.fold')
 
 local pattern = "*.md"
 
-vim.b.hnetxt_opener_prefix = "<leader>o"
+vim.b.htn_mirror_prefix = "<leader>o"
 
 vim.opt_local.autoindent = false
 vim.opt_local.cindent = false
@@ -14,7 +14,7 @@ vim.opt_local.shiftwidth = 2
 --------------------------------------------------------------------------------
 --                               project stuff                                --
 --------------------------------------------------------------------------------
-local current_file = Path(Path.current_file())
+local current_file = Path.this()
 local project = db.get()['projects'].get_by_path(current_file)
 
 if project then

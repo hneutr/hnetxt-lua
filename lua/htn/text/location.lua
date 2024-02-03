@@ -5,7 +5,6 @@ local Location = require("htl.text.location")
 local Link = require("htl.text.link")
 local Mark = require("htn.text.mark")
 
-
 function Location.goto(open_command, str)
     if not str then
         local current_line = BufferLines.cursor.get()
@@ -15,7 +14,7 @@ function Location.goto(open_command, str)
 
     local location = Location.from_str(str, {relative_to = vim.b.hnetxt_project_root})
 
-    if location.path ~= Path.current_file() then
+    if location.path ~= tostring(Path.this()) then
         Path.open(location.path, open_command)
     end
 
@@ -23,7 +22,6 @@ function Location.goto(open_command, str)
         Mark.goto(location.label)
     end
 end
-
 
 function Location.update(old_location, new_location)
     local old = old_location:gsub('/', '\\/')

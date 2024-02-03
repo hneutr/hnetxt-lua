@@ -9,7 +9,6 @@ local Config = require("htl.config")
 
 local M = tbl("mirrors", {
     id = true,
-    source = {"text", required = true},
     path = {"text", required = true},
     kind = {"text", required = true},
     url = {
@@ -58,73 +57,54 @@ end
 --------------------------------------------------------------------------------
 --                                   mirror                                   --
 --------------------------------------------------------------------------------
-function M:get_mirror_kind(path)
+function M:is_mirror(path)
     local config = M:get_project_config(path)
 
     if config then
         for kind in config.mirrors:keys():iter() do
             if path:is_relative_to(config.mirrors[kind]) then
-                return kind
+                return true
             end
         end
     end
 
-    return
+    return false
 end
 
-function M:is_mirror(path)
-    return M:get_mirror_kind(path) ~= nil
-end
+function M:get_mirror(path, kind)
+    local url = M:get_source(path)
 
-function M:get(q)
-    return List(M:map(function(mirror)
-        mirror.path = Path(mirror.path)
-        return mirror
-    end, q))
+    if not M:where({url = url.id, kind = kind}) then
+        M:insert_kind(url, kind)
+    end
+
+    return M:where({url = url.id, kind = kind})
 end
 
 function M:get_mirror_path(path, kind)
-    local source = M:get_source_path(path)
-
-    if not M:where({source = source, kind = kind}) then
-        M:insert_kind(source, kind)
-    end
-
-    local mirror = M:where({source = source, kind = kind})
-
-    if mirror then
-        return mirror.path
-    end
-
-    return 
+    local mirror = M:get_mirror(path, kind) or {}
+    return mirror.path
 end
 
-function M:get_mirror_paths(source)
-    return M:get({where = {source = tostring(source)}}):transform(function(mirror)
-        return mirror.path
-    end)
-end
-
-function M:insert_kind(source, kind)
-    local config = M:get_project_config(source)
+function M:insert_kind(url, kind)
+    local config = M:get_project_config(url.path)
     local kind_path = config.mirrors[kind]
-
-    if not urls:where({path = source}) then
-        urls:insert({path = source})
-    end
     
-    print(require("inspect")("MUST FILTER TO _FILE_ URLS; add conception of `kind`=file/link to urls"))
-    print("also show mirrors that exist for a file on the right hand side of the statusline using the keymap char")
-    local id = urls:get({path = source}):transform(function(url)
-        return url.id
-    end):sort()[1]
-
     M:__insert({
-        source = tostring(source),
-        path = tostring(kind_path:join(id .. ".md")),
+        path = tostring(kind_path:join(url.id .. ".md")),
         kind = kind,
-        url = id,
+        url = url.id,
     })
+end
+
+function M:get_mirrors(path)
+    local url = M:get_source(path)
+
+    if url then
+        return M:get({where = {url = url.id}})
+    end
+
+    return {}
 end
 
 --------------------------------------------------------------------------------
@@ -134,17 +114,30 @@ function M:is_source(path)
     return not M:is_mirror(path)
 end
 
-function M:get_source_path(path)
+function M:get_source(path)
+    local q = {}
     if M:is_mirror(path) then
-        return urls:where({id = tonumber(path:stem())}).path
+        q.id = tonumber(path:stem())
+    else
+        q.path = path
     end
 
-    return path
+    return urls:where(q)
+end
+
+--------------------------------------------------------------------------------
+--                                    misc                                    --
+--------------------------------------------------------------------------------
+function M:get(q)
+    return List(M:map(function(mirror)
+        mirror.path = Path(mirror.path)
+        return mirror
+    end, q))
 end
 
 function M:clean()
     local ids_to_delete = M:get():filter(function(mirror)
-        return not mirror.path:exists() or not mirror.source:exists()
+        return not mirror.path:exists()
     end):transform(function(mirror)
         return mirror.id
     end)
