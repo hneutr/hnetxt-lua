@@ -52,6 +52,9 @@ function make_path(str, project)
         str = str:gsub("%./", "")
     end
 
+    if str:match("%.%./") then
+        str = str:gsub("%.%./", "")
+    end
     if caps_case:contains(str) then
         local p = Path(str)
         local stem = p:stem():split("-"):transform(function(s)
@@ -65,8 +68,6 @@ function make_path(str, project)
 end
 
 function parse_link(str, url, before)
-    print(require("inspect")(str))
-    print(require("inspect")(url))
     local link = Link:from_str(str)
     link.before = link.before .. (before or "")
 
@@ -177,7 +178,7 @@ function handle_link_loc(loc, refs)
         local lines = ref_path:readlines()
 
         List(ref_line_numbers):foreach(function(line_number)
-            print("before: |" .. lines[line_number] .. "|")
+            print("before: " .. lines[line_number])
             local link = parse_link(lines[line_number], loc.raw)
             link.url = url.id
             print("after: " .. tostring(link))
@@ -186,7 +187,6 @@ function handle_link_loc(loc, refs)
 
         ref_path:write(lines)
     end)
-    os.exit()
 end
 
 function print_and_update_tally(filtered, label, old_count)
@@ -211,6 +211,14 @@ projects:get(ps):foreach(function(project)
     referenced_locs:filterk(function(loc) return not is_uuid(loc) end)
     n = print_and_update_tally(referenced_locs, "uuid", n)
 
+    referenced_locs:filterk(function(loc)
+        if loc:endswith(":") then
+            return not is_uuid(loc:removesuffix(":"))
+        end
+        return true
+    end)
+    n = print_and_update_tally(referenced_locs, "uuid", n)
+
     referenced_locs:filterk(function(loc) return not loc:startswith("http") end)
     n = print_and_update_tally(referenced_locs, "http", n)
 
@@ -228,7 +236,6 @@ projects:get(ps):foreach(function(project)
 
     referenced_locs:keys():sorted():foreach(function(loc)
         local link_loc = parse_loc(loc, project)
-        -- if link_loc and link_loc.label == "the hemoth" then
         if link_loc then
             handle_link_loc(link_loc, referenced_locs[loc])
             referenced_locs[loc] = nil
@@ -236,7 +243,13 @@ projects:get(ps):foreach(function(project)
     end)
 
     n = print_and_update_tally(referenced_locs, "link", n)
-    -- unhandled:keys():foreach(print)
+
+    print(require("inspect")(n))
+    -- referenced_locs:keys():foreach(print)
+    referenced_locs:keys():sorted():foreach(function(k)
+        print(k)
+        print(require("inspect")(referenced_locs[k]))
+    end)
 
     -- path_locs:sorted(function(a, b) return tostring(a) < tostring(b) end):foreach(print)
     -- print(require("inspect")(definitions))
