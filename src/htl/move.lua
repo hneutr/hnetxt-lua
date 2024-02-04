@@ -15,20 +15,19 @@ Move.separator = " -> "
 
 function Move:_init(source, target)
     self.moves = self:run(source, target)
-    self.update(self.moves)
+    self:update(self.moves)
 end
 
 function Move:command(source, target)
     return List({
         self.command_str,
-        Path(source):resolve(),
-        Path(target):resolve(),
+        tostring(Path(source):resolve()),
+        tostring(Path(target):resolve()),
     }):join(" ")
 end
 
 function Move:run(source, target)
     local moves = List()
-
     io.list_command(self:command(source, target)):filter(function(line)
         return self:line_is_valid(line)
     end):foreach(function(line)

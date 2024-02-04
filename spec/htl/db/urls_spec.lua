@@ -20,6 +20,7 @@ local p2 = {title = "test2", path = d2, created = "19930121"}
 
 before_each(function()
     d1:rmdir()
+    d2:rmdir()
     db.before_test()
     projects:insert(p1)
     projects:insert(p2)

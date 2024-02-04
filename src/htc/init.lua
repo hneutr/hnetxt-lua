@@ -11,7 +11,7 @@ local db = require("htl.db")
 local parser = argparse("hnetxt")
 
 local Operator = require("htl.operator")
--- local Move = require("htl.move")
+local Move = require("htl.move")
 
 local commands = List()
 Dict({
@@ -28,8 +28,9 @@ Dict({
         description = "mv within a project",
         {"source", description = "what to move", args = "1", convert = Path.resolve},
         {"target", description = "where to move it", args = "1", convert = Path.resolve},
-        -- Move(args.source, args.target)
-        action = Operator.move,
+        action = function(args)
+            Move(args.source, args.target)
+        end,
     },
     remove = {
         description = "rm within a project",
@@ -41,8 +42,9 @@ Dict({
 
             if url then
                 db.get()['mirrors']:remove({url = url.id})
-                db.get()['urls']:remove({id = url.id})
             end
+
+            db.get()['urls']:remove({path = source})
 
             local mirror = db.get()['mirrors']:where({path = source})
 
