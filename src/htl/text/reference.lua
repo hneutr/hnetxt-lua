@@ -11,6 +11,9 @@ local Config = require("htl.config")
 local Link = require("htl.text.link")
 local Location = require("htl.text.location")
 
+local NLink = require("htl.text.NLink")
+local LLink = NLink.Link
+
 
 --------------------------------------------------------------------------------
 --                                  Reference                                  
@@ -59,33 +62,6 @@ function Reference.from_str(str)
     return Reference({label = label, location = Location.from_str(location_str), before = before, after = after})
 end
 
-function Reference.get_referenced_mark_locations(dir)
-    dir = tostring(dir)
-    local locations = {}
-    local locations_list = {}
-    for _, line in ipairs(io.command(Reference.get_referenced_marks_cmd .. dir):splitlines()) do
-        while Reference.str_is_a(line) do
-            local reference = Reference.from_str(line)
-
-            if not reference.location.path:startswith("http") then
-                if #reference.location.label > 0 then
-                    local location_str = tostring(reference.location)
-
-                    if not locations[location_str] then
-                        locations_list[#locations_list + 1] = reference.location
-                    end
-
-                    locations[location_str] = true
-                end
-            end
-
-            line = reference.after
-        end
-    end
-
-    return locations_list
-end
-
 --------------------------------------------------------------------------------
 -- get_referenced_locations
 -- ------------------------
@@ -127,79 +103,37 @@ function Reference.get_referenced_locations(dir)
     return references_by_location
 end
 
---------------------------------------------------------------------------------
--- update
--- ------
--- takes a dict of location changes in format: {old = new}
---
--- for each location change, updates references to those locations:
---      - if `old` is a mark (ie #old.label > 0) then:
---          - point old references → new
---      - if `old` is a file (ie #old.label == 0):
---          - point old references → new
---          - point references to marks in old → new
---------------------------------------------------------------------------------
-function Reference.update_locations(location_changes, dir)
-    dir = tostring(dir or db.get().projects.get_path())
-    local relative_location_changes = {}
-    for k, v in pairs(location_changes or {}) do
-        if Path.is_relative_to(k, dir) then
-            k = Path.relative_to(k, dir)
-        end
-        if Path.is_relative_to(v, dir) then
-            v = Path.relative_to(v, dir)
+function Reference:get(dir)
+    local cmd = List({self.get_references_cmd, dir}):join("")
+    
+    local url_to_references = Dict()
+
+    io.list_command(cmd):foreach(function(line)
+        local path, line_number, str = unpack(line:split(":", 2))
+        path = Path(path)
+
+        if not path:is_relative_to(dir) and dir:join(path):exists() then
+            path = dir:join(path)
         end
 
-        relative_location_changes[k] = v
-    end
-    local old_locations = Dict.keys(relative_location_changes)
-
-    -- sort from longest to shortest so that file updates don't "clobber" mark updates
-    table.sort(old_locations, function(a, b) return #a > #b end)
-
-    local content_updates = {}
-    local references_by_location = Reference.get_referenced_locations(dir)
-    for _, old_location in ipairs(old_locations) do
-        references_by_location, content_updates = unpack(Reference.update_location(
-            old_location,
-            relative_location_changes[old_location],
-            references_by_location,
-            content_updates
-        ))
-    end
-
-    for path, content in pairs(content_updates) do
-        Path(path):write(content)
-    end
-end
-
-function Reference.update_location(old_location, new_location, references_by_location, content_updates)
-    old_location = tostring(old_location)
-    new_location = tostring(new_location)
-    local old_location_is_file = not Location.str_has_label(old_location)
-    for referenced_location, references in pairs(references_by_location) do
-        local update = old_location == referenced_location
-        update = update or (old_location_is_file and referenced_location:startswith(old_location)) 
-
-        if update then
-            for reference_path, reference_lines in pairs(references) do
-                if not content_updates[reference_path] then
-                    content_updates[reference_path] = Path.readlines(reference_path)
-                end
-
-                for _, reference_line in ipairs(reference_lines) do
-                    content_updates[reference_path][reference_line] = string.gsub(
-                        content_updates[reference_path][reference_line],
-                        old_location:escape(),
-                        new_location
-                    )
-                end
+        local link = LLink:from_str(str)
+        while link do
+            local url = link.url
+            if not url_to_references[url] then
+                url_to_references[url] = Dict()
             end
-            references_by_location[referenced_location] = nil
-        end
-    end
 
-    return {references_by_location, content_updates}
+            if not url_to_references[url][tostring(path)] then
+                url_to_references[url][tostring(path)] = List()
+            end
+
+            url_to_references[url][tostring(path)]:append(tonumber(line_number))
+
+            link = LLink:from_str(link.after)
+        end
+    end)
+
+    return url_to_references
 end
 
 return Reference

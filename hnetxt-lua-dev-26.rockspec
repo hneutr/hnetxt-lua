@@ -39,7 +39,7 @@ build = {
         ["htl.journal"] = "src/htl/journal.lua",
         ["htl.track"] = "src/htl/track.lua",
         ["htl.goals"] = "src/htl/goals.lua",
-
+        ["htl.move"] = "src/htl/move.lua",
         ["htl.snippet"] = "src/htl/snippet.lua",
         ['htl.metadata'] = "src/htl/metadata.lua",
 
@@ -55,6 +55,7 @@ build = {
         ["htl.text.List"] = "src/htl/text/List/init.lua",
         ["htl.text.List.Item"] = "src/htl/text/List/Item.lua",
         ["htl.text.List.NumberedItem"] = "src/htl/text/List/NumberedItem.lua",
+        ["htl.text.NLink"] = "src/htl/text/NLink.lua",
 
         -- cli
         ["htc"] = "src/htc/init.lua",
@@ -63,11 +64,6 @@ build = {
         ["htc.new"] = "src/htc/new.lua",
         ["htc.tags"] = "src/htc/tags.lua",
         ["htc.project"] = "src/htc/project.lua",
-
-        ["htl.text.NLink"] = "src/htl/text/NLink.lua",
-        -- to start using after `htc.operator.*` is gone
-        ["htl.move"] = "src/htl/move.lua",
-
 
         -- revision territory
         ["htl.text.link"] = "src/htl/text/link.lua",
