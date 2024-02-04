@@ -85,9 +85,15 @@ end
 --------------------------------------------------------------------------------
 function parse_path_loc(loc, project)
     if not loc:match(urls.path_label_delimiter) then
-        local path = make_path(loc, project)
+        local path = Path(loc)
+
         if path:exists() then
             return path
+        else
+            path = make_path(loc, project)
+            if path:exists() then
+                return path
+            end
         end
     end
 end
@@ -199,29 +205,22 @@ function print_and_update_tally(filtered, label, old_count)
     return new_count
 end
 
-local ps = {where = {title = "chasefeel"}}
--- ps = {}
+local ps = {where = {title = "diving"}}
+ps = {}
 projects:get(ps):foreach(function(project)
     local references = List()
     local definitions = List()
 
     local referenced_locs = Dict(Reference.get_referenced_locations(project.path))
-    local n = print_and_update_tally(referenced_locs, "start")
 
     referenced_locs:filterk(function(loc) return not is_uuid(loc) end)
-    n = print_and_update_tally(referenced_locs, "uuid", n)
-
     referenced_locs:filterk(function(loc)
         if loc:endswith(":") then
             return not is_uuid(loc:removesuffix(":"))
         end
         return true
     end)
-    n = print_and_update_tally(referenced_locs, "uuid", n)
-
     referenced_locs:filterk(function(loc) return not loc:startswith("http") end)
-    n = print_and_update_tally(referenced_locs, "http", n)
-
     local referenced_path_locs = Dict()
     referenced_locs:foreach(function(loc, refs)
         if parse_path_loc(loc, project) then
@@ -232,8 +231,6 @@ projects:get(ps):foreach(function(project)
 
     local unhandled = handle_path_locs(referenced_path_locs, project)
 
-    n = print_and_update_tally(referenced_locs, "path", n)
-
     referenced_locs:keys():sorted():foreach(function(loc)
         local link_loc = parse_loc(loc, project)
         if link_loc then
@@ -242,14 +239,17 @@ projects:get(ps):foreach(function(project)
         end
     end)
 
-    n = print_and_update_tally(referenced_locs, "link", n)
-
-    print(require("inspect")(n))
-    -- referenced_locs:keys():foreach(print)
     referenced_locs:keys():sorted():foreach(function(k)
         print(k)
+        local url = urls:where({path = k})
+        if url then
+            print(url.id)
+        end
+        
         print(require("inspect")(referenced_locs[k]))
     end)
+
+    print(project.path)
 
     -- path_locs:sorted(function(a, b) return tostring(a) < tostring(b) end):foreach(print)
     -- print(require("inspect")(definitions))
