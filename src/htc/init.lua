@@ -10,7 +10,6 @@ local db = require("htl.db")
 
 local parser = argparse("hnetxt")
 
-local Operator = require("htl.operator")
 local Move = require("htl.move")
 
 local commands = List()
@@ -29,6 +28,9 @@ Dict({
         {"source", description = "what to move", args = "1", convert = Path.resolve},
         {"target", description = "where to move it", args = "1", convert = Path.resolve},
         action = function(args)
+            print("THIS IS FUCKED")
+            print("YOU HAVE TO FIX THIS")
+            os.exit()
             Move(args.source, args.target)
         end,
     },
