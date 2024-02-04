@@ -1,8 +1,7 @@
 local BufferLines = require("hn.buffer_lines")
 local Path = require("hn.path")
-
-local Reference = require("htl.text.reference")
-local Location = require("htn.text.location")
+local db = require("htl.db")
+local ui = require("htn.ui")
 
 local fuzzy_actions = {
     ["default"] = "edit",
@@ -25,16 +24,16 @@ function M._do(fn)
         dir = vim.b.htn_project.path
     end
 
-    require('fzf-lua').fzf_exec(Location.get_all_locations(dir), {actions = actions})
+    require('fzf-lua').fzf_exec(db.get().urls:get_fuzzy_paths(dir), {actions = actions})
 end
 
 function M.goto()
-    M._do(function(location, action) Location.goto(action, location) end)
+    M._do(function(path, action) ui.goto(action, path) end)
 end
 
 function M.put()
-    M._do(function(location)
-        vim.api.nvim_put({tostring(Reference({location = Location.from_str(location)}))} , 'c', 1, 0)
+    M._do(function(path)
+        vim.api.nvim_put({ui.get_reference(path)} , 'c', 1, 0)
     end)
 end
 
@@ -42,7 +41,7 @@ function M.insert()
     M._do(M.insert_selection)
 end
 
-function M.insert_selection(location)
+function M.insert_selection(path)
     local line = BufferLines.cursor.get()
     local line_number, column = unpack(vim.api.nvim_win_get_cursor(0))
 
@@ -55,7 +54,7 @@ function M.insert_selection(location)
         insert_command = 'a'
     end
 
-    local content = tostring(Reference({location = Location.from_str(location)}))
+    local content = ui.get_reference(path)
 
     local new_line = line:sub(1, column) .. content .. line:sub(column + 1)
     local new_column = column + #content

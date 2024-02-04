@@ -56,14 +56,15 @@ vim.api.nvim_create_autocmd(
 --------------------------------------------------------------------------------
 --                                link updates                                --
 --------------------------------------------------------------------------------
-vim.api.nvim_create_autocmd(
-    {'VimEnter', 'WinEnter', 'BufEnter', 'VimLeave', 'WinLeave', 'BufLeave'},
-    {
-        pattern=pattern,
-        group=vim.api.nvim_create_augroup('htn-link-update', {clear = true}),
-        callback=function()
-            db.get().urls:update_link_urls(Path.this(), List(BufferLines.get()))
-        end,
-    }
-)
-
+if vim.b.htn_project then
+    vim.api.nvim_create_autocmd(
+        {'VimEnter', 'WinEnter', 'BufEnter', 'VimLeave', 'WinLeave', 'BufLeave'},
+        {
+            pattern=pattern,
+            group=vim.api.nvim_create_augroup('htn-link-update', {clear = true}),
+            callback=function()
+                db.get().urls:update_link_urls(Path.this(), List(BufferLines.get()))
+            end,
+        }
+    )
+end

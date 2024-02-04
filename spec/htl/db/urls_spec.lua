@@ -100,7 +100,7 @@ describe("get", function()
         urls:insert({path = f2})
 
         assert.are.same(
-            {"a", "file 2"},
+            {"a"},
             urls:get():transform(function(u)
                 return u.label
             end):sorted()
@@ -217,4 +217,8 @@ describe("update_link_urls", function()
         urls:update_link_urls(f1, List())
         assert.are.same(urls.unanchored_path, urls:where({id = id}).path)
     end)
+end)
+
+describe("get_fuzzy_string", function()
+    
 end)

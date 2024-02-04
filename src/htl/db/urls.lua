@@ -3,7 +3,11 @@ local List = require("hl.List")
 local sqlite = require("sqlite.db")
 local projects = require("htl.db.projects")
 local tbl = require("sqlite.tbl")
-local DefinitionLink = require("htl.text.NLink").DefinitionLink
+local NLink = require("htl.text.NLink")
+local Link = NLink.Link
+local DefinitionLink = NLink.DefinitionLink
+local Config = require("htl.config")
+
 
 local M = tbl("urls", {
     id = true,
@@ -19,6 +23,7 @@ local M = tbl("urls", {
 })
 
 M.unanchored_path = Path("__unanchored__")
+M.path_label_delimiter = Config.get("location").path_label_delimiter
 
 function M:insert(row)
     local resource_type = row.resource_type
@@ -64,10 +69,6 @@ end
 function M:get(q)
     return List(M:map(function(url)
         url.path = Path(url.path)
-
-        if url.label == nil then
-            url.label = url.path:stem():gsub("-", " ")
-        end
 
         return url
     end, q))
@@ -129,6 +130,55 @@ function M:update_link_urls(path, lines)
             set = {path = tostring(M.unanchored_path)},
         })
     end
+end
+
+function M:get_fuzzy_path(url)
+    local path = url.path
+    
+    if url.resource_type == 'link' and #url.label > 0 then
+        path = path:with_name(path:name() .. M.path_label_delimiter .. url.label)
+    end
+
+    return path
+end
+
+function M:get_fuzzy_paths(dir)
+    local project = projects.get_by_path(dir)
+
+    local query
+    if project then
+        query = {where = {project = project.title}}
+    end
+
+    local urls = M:get(query):filter(function(url)
+        return url.path ~= M.unanchored_path
+    end)
+    
+    return urls:transform(function(url)
+        return tostring(M:get_fuzzy_path(url):relative_to(project.path))
+    end):sorted(function(a, b)
+        return #a < #b
+    end)
+end
+
+function M:get_from_fuzzy_path(path, dir)
+    local q = {path = path}
+    if path:match(M.path_label_delimiter) then
+        q.path, q.label = unpack(path:split(M.path_label_delimiter, 1))
+    end
+
+    if dir then
+        q.path = Path(dir):join(q.path)
+    end
+
+    return M:where(q)
+end
+
+function M:get_reference(url)
+    return Link({
+        label = url.label or url.path:stem():gsub("-", " "),
+        url = url.id,
+    })
 end
 
 return M

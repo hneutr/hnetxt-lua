@@ -42,6 +42,16 @@ function Location.from_str(str, args)
     return Location({path = path, label = label})
 end
 
+function Location.get_mark_locations(dir)
+    return List(io.command(Location.get_mark_locations_cmd .. tostring(dir)):splitlines()):filter(function(line)
+        return #line > 0
+    end):map(function(line)
+        local path, mark_str = line:match(Location.regex)
+        local mark = Link.from_str(mark_str)
+        return Path(Location({path = path, label = mark.label}))
+    end)
+end
+
 function Location.get_file_locations(dir)
     local project = db.get()['projects'].get_by_path(dir)
 
@@ -52,16 +62,6 @@ function Location.get_file_locations(dir)
 
     return db.get()['urls']:get(query):transform(function(url)
         return url.path
-    end)
-end
-
-function Location.get_mark_locations(dir)
-    return List(io.command(Location.get_mark_locations_cmd .. tostring(dir)):splitlines()):filter(function(line)
-        return #line > 0
-    end):map(function(line)
-        local path, mark_str = line:match(Location.regex)
-        local mark = Link.from_str(mark_str)
-        return Path(Location({path = path, label = mark.label}))
     end)
 end
 

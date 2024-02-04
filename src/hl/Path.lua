@@ -266,7 +266,13 @@ function Path.stem(p)
 end
 
 Path.with_name = Path.make_fn_match_input(function(p, name)
-    return Path(p):parent():join(name)
+    p = Path(p)
+
+    if #p:parents() > 0 then
+        return p:parent():join(name)
+    end
+
+    return Path(name)
 end)
 
 Path.with_stem = Path.make_fn_match_input(function(p, stem)
