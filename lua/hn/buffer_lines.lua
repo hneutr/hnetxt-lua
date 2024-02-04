@@ -1,19 +1,19 @@
+local Dict = require("hl.Dict")
+
 local M = {}
 
 --------------------------------------------------------------------------------
 --                              generic line ops                              --
 --------------------------------------------------------------------------------
 function M._do(args)
-    defaults = {
+    local a = Dict.from(args or {}, {
         action = nil,
         buffer = 0,
         start_line = 0,
         end_line = vim.fn.line('$'), 
         strict_indexing = false,
         replacement = nil,
-    }
-
-    local a = _G.default_args(args, defaults)
+    })
 
     local value
 
@@ -27,18 +27,15 @@ function M._do(args)
 end
 
 function M.get(args)
-    args = _G.default_args(args, {action = 'get'})
-    return M._do(args)
+    return M._do(Dict.from(args or {}, {action = 'get'}))
 end
 
 function M.set(args)
-    args = _G.default_args(args, {action = 'set'})
-    return M._do(args)
+    return M._do(Dict.from(args or {}, {action = 'set'}))
 end
 
 function M.cut(args)
-    args = _G.default_args(args, {action = 'set', replacement = {}})
-    return M._do(args)
+    return M._do(Dict.from(args or {}, {action = 'set', replacement = {}}))
 end
 
 --------------------------------------------------------------------------------
@@ -47,7 +44,7 @@ end
 M.selection = {}
 
 function M.selection.range(args)
-    args = _G.default_args(args, { mode = 'n', buffer = 0})
+    args = Dict.from(args or {}, {mode = 'n', buffer = 0})
 
     local start_line, end_line
 
@@ -68,7 +65,7 @@ function M.selection.range(args)
 end
 
 function M.selection._set_range(args)
-    return _G.default_args(args, M.selection.range(args))
+    return Dict.from(args or {}, M.selection.range(args))
 end
 
 function M.selection.get(args)

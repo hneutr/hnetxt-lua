@@ -31,6 +31,7 @@ function Reference:_init(args)
 end
 
 function Reference.default_label(label, location)
+    label = label or ""
     if #label == 0 then
         if #location.label > 0 then
             label = location.label

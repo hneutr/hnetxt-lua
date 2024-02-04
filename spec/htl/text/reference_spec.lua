@@ -1,7 +1,6 @@
 local Path = require("hl.Path")
 
 local Config = require("htl.config")
-local Mark = require("htl.text.mark")
 local Reference = require("htl.text.reference")
 local Location = require("htl.text.location")
 

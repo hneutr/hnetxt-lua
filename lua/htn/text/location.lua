@@ -3,7 +3,6 @@ local Path = require("hn.path")
 
 local Location = require("htl.text.location")
 local Link = require("htl.text.link")
-local Mark = require("htn.text.mark")
 
 function Location.goto(open_command, str)
     if not str then
@@ -12,27 +11,21 @@ function Location.goto(open_command, str)
         str = Link.get_nearest(current_line, cursor_col).location
     end
 
-    local location = Location.from_str(str, {relative_to = vim.b.htn_project.path})
+    local project = vim.b.htn_project or {}
+    local location = Location.from_str(str, {relative_to = project.path})
 
     if location.path ~= tostring(Path.this()) then
         Path.open(location.path, open_command)
     end
 
     if #location.label > 0 then
-        Mark.goto(location.label)
+        local line = Link.find_label(label, BufferLines.get())
+
+        if line then
+            vim.api.nvim_win_set_cursor(0, {line, 0})
+            vim.cmd("normal zz")
+        end
     end
-end
-
-function Location.update(old_location, new_location)
-    local old = old_location:gsub('/', '\\/')
-    local new = new_location:gsub('/', '\\/')
-
-    local cursor = vim.api.nvim_win_get_cursor(0)
-
-    local cmd = "%s/\\](" .. old .. ")/\\](" .. new .. ")/g"
-    pcall(function() vim.cmd(cmd) return end)
-
-    vim.api.nvim_win_set_cursor(0, cursor)
 end
 
 return Location

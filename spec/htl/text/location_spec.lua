@@ -1,6 +1,6 @@
 local Path = require("hl.Path")
 local Location = require("htl.text.location")
-local Mark = require("htl.text.mark")
+local Link = require("htl.text.link")
 local db = require("htl.db")
 local projects = require("htl.db.projects")
 local urls = require("htl.db.urls")
@@ -45,20 +45,6 @@ describe("str_has_label", function()
 
     it("-", function()
         assert.falsy(Location.str_has_label("a/b"))
-    end)
-end)
-
-describe("relative_to", function()
-    it("is relative to: changes path", function()
-        local location = Location({path = '/a/b/c'})
-        location:relative_to("/a/b")
-        assert.are.same("c", location.path)
-    end)
-
-    it("not relative to: doesn't change path", function()
-        local location = Location({path = '/a/b/c'})
-        location:relative_to("/x/y")
-        assert.are.same("/a/b/c", location.path)
     end)
 end)
 
@@ -108,8 +94,7 @@ end)
 
 describe("get_mark_locations", function() 
     it("1 mark", function()
-        local mark = Mark({label = 'a'})
-        f1:write(tostring(mark))
+        f1:write(tostring(Link({label = 'a'})))
         
         assert.are.same(
             {Path(Location({path = f1, label = 'a'}))},
@@ -118,8 +103,8 @@ describe("get_mark_locations", function()
     end)
 
     it("multiple marks, 1 file", function()
-        local mark_a = Mark({label = 'a'})
-        local mark_b = Mark({label = 'b'})
+        local mark_a = Link({label = 'a'})
+        local mark_b = Link({label = 'b'})
         f1:write({tostring(mark_a), "not a mark", tostring(mark_b)})
         assert.are.same(
             {
@@ -131,8 +116,8 @@ describe("get_mark_locations", function()
     end)
 
     it("multiple marks, multiple files", function()
-        local mark_a = Mark({label = 'a'})
-        local mark_b = Mark({label = 'b'})
+        local mark_a = Link({label = 'a'})
+        local mark_b = Link({label = 'b'})
         f1:write({tostring(mark_a), "not a mark"})
         f3:write({"not a mark", tostring(mark_b)})
 

@@ -1,7 +1,7 @@
 local stub = require('luassert.stub')
 
 local Location = require("htn.text.location")
-local Mark = require("htn.text.mark")
+local Link = require("htl.text.link")
 
 local Path = require("hn.path")
 
@@ -13,25 +13,25 @@ describe("goto", function()
     local buf
 
     before_each(function()
-        vim.b.htn_project.path = nil
+        vim.b.htn_project = {}
 
-        current_file = Path.current_file
-        Path.current_file = function() return "file" end
+        current_file = Path.this
+        Path.this = function() return "file" end
 
         stub(Path, "open")
-        stub(Mark, "goto")
+        stub(Link, "find_label")
     end)
 
     after_each(function()
-        vim.b.htn_project.path = nil
+        vim.b.htn_project = {}
 
-        Path.current_file = current_file
+        Path.this = this
 
         Path.open:revert()
-        Mark.goto:revert()
+        Link.find_label:revert()
     end)
 
-    it("str: -; Path.open: -; Mark.goto: +", function()
+    it("str: -; Path.open: -; Link.find_label: +", function()
         local lines = {
             "a",
             "b",
@@ -51,14 +51,14 @@ describe("goto", function()
         Location.goto(open_command)
 
         assert.stub(Path.open).was_not_called()
-        assert.stub(Mark.goto).was_called_with("m3")
+        assert.stub(Link.find_label).was_called()
     end)
 
-    it("str: +; project_root: +; Path.open: +; Mark.goto: -", function()
+    it("str: +; project_root: +; Path.open: +; Link.find_label: -", function()
         vim.b.htn_project.path = "dir"
         Location.goto(open_command, "[a](f1)")
 
         assert.stub(Path.open).was_called()
-        assert.stub(Mark.goto).was_not_called()
+        assert.stub(Link.find_label).was_not_called()
     end)
 end)

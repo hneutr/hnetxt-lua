@@ -1,6 +1,13 @@
+local Path = require("hn.path")
 local List = require("hl.List")
 local db = require("htl.db")
-local mirrors = db.get()['mirrors']
+local NLink = require("htl.text.NLink")
+local Link = NLink.Link
+local DefinitionLink = NLink.DefinitionLink
+local BufferLines = require("hn.buffer_lines")
+
+local mirrors = db.get().mirrors
+local urls = db.get().urls
 
 local M = {}
 
@@ -33,6 +40,30 @@ function M.spellfile(root)
     local spellfile = root:join(".spell", "en.utf-8.add")
     spellfile:parent():mkdir()
     return tostring(spellfile)
+end
+
+function M.goto(open_command, url_id)
+    if not url_id then
+        local cursor_col = vim.api.nvim_win_get_cursor(0)[2]
+        url_id = Link:get_nearest(vim.fn.getline('.'), cursor_col).url
+    end
+
+    local url = urls:where({id = url_id})
+    
+    if url.path ~= Path.this() then
+        Path.open(url.path, open_command)
+    end
+
+    if url.resource_type == 'link' then
+        for line_number, line in ipairs(BufferLines.get()) do
+            local link = DefinitionLink:from_str(line)
+            if link and tonumber(link.url) == url.id then
+                vim.api.nvim_win_set_cursor(0, {line_number, 0})
+                vim.cmd("normal zz")
+                return
+            end
+        end
+    end
 end
 
 return M

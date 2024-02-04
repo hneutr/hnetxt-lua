@@ -6,7 +6,7 @@ class.Link()
 Link.regex = "(.-)%[(.-)%]%((.-)%)(.*)"
 
 function Link:_init(args)
-    self = Dict.update(self, args, {
+    self = Dict.update(self, args or {}, {
         label = '',
         location = '',
         before = '',
@@ -22,10 +22,14 @@ function Link:__tostring()
     return "[" .. self.label .. "](" .. self.location .. ")"
 end
 
-function Link.from_str(str, Class)
-    Class = Class or Link
+function Link.from_str(str)
     local before, label, location, after = str:match(Link.regex)
-    return Class({label = label, location = location, before = before, after = after})
+    return Link({
+        label = label,
+        location = location,
+        before = before,
+        after = after,
+    })
 end
 
 function Link.get_nearest(str, position)
@@ -45,6 +49,20 @@ function Link.get_nearest(str, position)
 
     local nearest_index = distance_to_link:keys():sort()[1]
     return distance_to_link[nearest_index]
+end
+
+function Link.find_label(label, lines)
+    for i, line in ipairs(lines) do
+        if #line > 0 then
+            if Link.str_is_a(line) then
+                local link = Link.from_str(line)
+                if link.label == label and #link.location == 0 then
+                    return i
+                end
+            end
+        end
+    end
+    return nil
 end
 
 return Link

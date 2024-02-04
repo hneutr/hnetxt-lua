@@ -31,18 +31,12 @@ M.operation_classes = {
 --         - rename:      a.md     → b.md?   = b.md
 --         - move:        a.md     → b       = b/a.md
 --         - to dir:      a.md     → b!      = b/@.md
---         - to mark:     a.md     → b.md:c? = b.md:c
 --     dir:
 --         - rename:      a        → b!      = b
 --         - move:        a        → b       = b/a
 --         - to files:    a/b      → a       = a/*
 --                        a/b/@.md           = a/b.md
 --                        a/b/c.md           = a/c.md
---     mark:
---         - move:        a.md:b   → c.md:d? = c.md:d
---         - to file:     a.md:b   → c.md?   = c.md
---         - to dir:      a.md:b   → c!      = c/@.md
---         - to dir file: a.md:b   → c       = c/b.md
 --------------------------------------------------------------------------------
 M.operations = {
     file = {

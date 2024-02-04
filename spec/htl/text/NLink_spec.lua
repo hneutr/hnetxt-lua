@@ -23,6 +23,53 @@ describe("Link", function()
             assert.are.same(str, tostring(Link:from_str(str)))
         end)
     end)
+
+    describe("get_nearest", function()
+        it("1 link: cursor in link", function()
+            local l = "a [b](c) d"
+            assert.are.same("c", Link:get_nearest(l, l:find("b")).url)
+        end)
+
+        it("1 link: cursor before link", function()
+            local l = "a [b](c) d"
+            assert.equal("c", Link:get_nearest(l, l:find("a")).url)
+        end)
+
+        it("1 link: cursor after link", function()
+            local l = "a [b](c) d"
+            assert.equal("c", Link:get_nearest(l, l:find("d")).url)
+        end)
+
+        it("2 links: cursor before link 1", function()
+            local l = "a [b](c) d [e](f) g"
+            assert.equal("c", Link:get_nearest(l, l:find("a")).url)
+        end)
+
+        it("2 links: cursor in link 1", function()
+            local l = "a [b](c) d [e](f) g"
+            assert.equal("c", Link:get_nearest(l, l:find("b")).url)
+        end)
+
+        it("2 links: cursor in between links", function()
+            local l = "a [b](c) d [e](f) g"
+            assert.equal("c", Link:get_nearest(l, l:find("d")).url)
+        end)
+
+        it("2 links: cursor in link 2", function()
+            local l = "a [b](c) d [e](f) g"
+            assert.equal("f", Link:get_nearest(l, l:find("e")).url)
+        end)
+
+        it("2 links: cursor in after link 2", function()
+            local l = "a [b](c) d [e](f) g"
+            assert.equal("f", Link:get_nearest(l, l:find("g")).url)
+        end)
+
+        it("3 links: cursor between link 2 and 3", function()
+            local l = "a [b](c) d [e](f) g [h](i) j"
+            assert.equal("f", Link:get_nearest(l, l:find("g")).url)
+        end)
+    end)
 end)
 
 describe("DefinitionLink", function()

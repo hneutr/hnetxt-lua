@@ -107,3 +107,17 @@ describe("get_nearest", function()
         assert.equal(expected, tostring(Link.get_nearest(line, position)))
     end)
 end)
+
+describe("find_label", function() 
+    it("-: not present", function()
+        assert.falsy(Link.find_label("a", {}))
+    end)
+
+    it("+", function()
+        assert.are.same(3, Link.find_label("a", {"a", "", "[a]()"}))
+    end)
+
+    it("+: multiple marks and refs", function()
+        assert.are.same(5, Link.find_label("a", {"[a](b)", "c", "[d]()", "", "[a]()"}))
+    end)
+end)
