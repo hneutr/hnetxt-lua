@@ -414,6 +414,10 @@ function Path.rmdir(p, force)
     end
 end
 
+function Path.from_commandline(path)
+    return Path(path):resolve()
+end
+
 Path.root = Path(Path.sep)
 Path.home = Path(os.getenv("HOME"))
 Path.tempdir = Path.root:join("tmp")

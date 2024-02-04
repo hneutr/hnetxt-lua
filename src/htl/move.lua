@@ -19,11 +19,7 @@ function Move:_init(source, target)
 end
 
 function Move:command(source, target)
-    return List({
-        self.command_str,
-        tostring(Path(source):resolve()),
-        tostring(Path(target):resolve()),
-    }):join(" ")
+    return List({self.command_str, Path(source), Path(target)}):join(" ")
 end
 
 function Move:run(source, target)

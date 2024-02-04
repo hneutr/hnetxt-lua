@@ -60,8 +60,9 @@ function M:where(q)
 end
 
 function M:move(source, target)
+    M:add_if_missing(source)
     M:update({
-        where = {path = source},
+        where = {path = tostring(source)},
         set = {path = tostring(target)},
     })
 end

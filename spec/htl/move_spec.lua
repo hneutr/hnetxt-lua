@@ -40,12 +40,6 @@ describe("command", function()
             string.format("%s %s %s", Move.command_str, f1, f2), Move:command(f1, f2)
         )
     end)
-
-    it("relative arguments", function()
-        assert.are.same(
-            string.format("%s %s %s", Move.command_str, f1, f2), Move:command(f1:name(), f2:name())
-        )
-    end)
 end)
 
 describe("line_is_valid", function()

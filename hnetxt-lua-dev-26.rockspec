@@ -73,11 +73,6 @@ build = {
         ["htl.text.link"] = "src/htl/text/link.lua",
         ["htl.text.location"] = "src/htl/text/location.lua",
         ["htl.text.reference"] = "src/htl/text/reference.lua",
-
-        ["htl.operator"] = "src/htl/operator/init.lua",
-        ["htl.operator.operation"] = "src/htl/operator/operation/init.lua",
-        ["htl.operator.operation.dir"] = "src/htl/operator/operation/dir.lua",
-        ["htl.operator.operation.file"] = "src/htl/operator/operation/file.lua",
     }
 }
 test = {
