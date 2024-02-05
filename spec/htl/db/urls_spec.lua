@@ -3,7 +3,6 @@ local Path = require("hl.Path")
 local db = require("htl.db")
 local projects = require("htl.db.projects")
 local urls = require("htl.db.urls")
-local DefinitionLink = require("htl.text.NLink").DefinitionLink
 
 local d1 = Path.tempdir:join("dir-1")
 local d2 = Path.tempdir:join("dir-2")

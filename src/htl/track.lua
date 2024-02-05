@@ -1,5 +1,4 @@
 local cjson = require("cjson")
-local DataFrame = require("hl.DataFrame")
 local Path = require("hl.Path")
 local List = require("hl.List")
 local Dict = require("hl.Dict")
@@ -139,17 +138,6 @@ function Track:entries()
     return self.data_dir:iterdir({dirs = false}):filter(function(p)
         return p ~= self:csv_path()
     end)
-end
-
-function Track:create_csv()
-    local rows = List()
-    self.data_dir:iterdir({dirs = false}):foreach(function(p)
-        if p ~= self:csv_path() then
-            rows:extend(self:list_path_to_rows(p))
-        end
-    end)
-
-    DataFrame.to_csv(rows, self:csv_path(), {cols = {"date", "activity", "value"}})
 end
 
 return Track

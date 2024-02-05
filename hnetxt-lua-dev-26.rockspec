@@ -24,15 +24,12 @@ build = {
         ["hl.io"] = "src/hl/io.lua",
         ["hl.string"] = "src/hl/string.lua",
         ["hl.yaml"] = "src/hl/yaml.lua",
-
         ["hl.List"] = "src/hl/List.lua",
         ["hl.Dict"] = "src/hl/Dict.lua",
         ['hl.Set'] = "src/hl/Set.lua",
         ["hl.Path"] = "src/hl/Path.lua",
         ["hl.Tree"] = "src/hl/Tree.lua",
         
-        ["hl.DataFrame"] = "src/hl/DataFrame.lua",
-
         ["htl"] = "src/htl/init.lua",
         ["htl.config"] = "src/htl/config.lua",
 
@@ -56,6 +53,8 @@ build = {
         ["htl.text.List.Item"] = "src/htl/text/List/Item.lua",
         ["htl.text.List.NumberedItem"] = "src/htl/text/List/NumberedItem.lua",
         ["htl.text.NLink"] = "src/htl/text/NLink.lua",
+        -- ["htl.text.Link"] = "src/htl/text/Link.lua",
+        ["htl.text.URLDefinition"] = "src/htl/text/URLDefinition.lua",
 
         -- cli
         ["htc"] = "src/htc/init.lua",

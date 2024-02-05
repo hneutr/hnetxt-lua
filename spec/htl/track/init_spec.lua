@@ -100,18 +100,3 @@ describe("list_path_to_rows", function()
         )
     end)
 end)
-
-describe("create_csv", function()
-    it("works", function()
-        track.activities.a = {datatype = 'string'}
-
-        local l1 = track:activity_to_list_line("a", true)
-        local l2 = track:activity_to_list_line("a", 123)
-
-        track:list_path():write({l1})
-        track:list_path("19900120"):write({l2})
-
-        track:create_csv()
-        assert.are.same(3, #track:csv_path():readlines())
-    end)
-end)

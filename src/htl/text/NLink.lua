@@ -113,13 +113,6 @@ function NLink:get_references(dir)
 end
 
 
-class.DefinitionLink(NLink)
-DefinitionLink.url_delimiters = {
-    open = "(" .. Config.get("link").delimiter,
-    close = Config.get("link").delimiter .. ")",
-}
-
 return {
     Link = NLink,
-    DefinitionLink = DefinitionLink,
 }

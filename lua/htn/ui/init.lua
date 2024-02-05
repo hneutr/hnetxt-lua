@@ -1,9 +1,8 @@
 local Path = require("hn.path")
 local List = require("hl.List")
 local db = require("htl.db")
-local NLink = require("htl.text.NLink")
-local Link = NLink.Link
-local DefinitionLink = NLink.DefinitionLink
+local Link = require("htl.text.NLink").Link
+local URLDefinition = require("htl.text.URLDefinition")
 local BufferLines = require("hn.buffer_lines")
 
 local mirrors = db.get().mirrors
@@ -64,7 +63,7 @@ function M.goto(open_command, fuzzy_path)
 
         if url.resource_type == 'link' then
             for line_number, line in ipairs(BufferLines.get()) do
-                local link = DefinitionLink:from_str(line)
+                local link = URLDefinition:from_str(line)
                 if link and tonumber(link.url) == url.id then
                     vim.api.nvim_win_set_cursor(0, {line_number, 0})
                     vim.cmd("normal zz")

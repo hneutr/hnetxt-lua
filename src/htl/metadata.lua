@@ -179,13 +179,13 @@ function BlankField:check_metadata(metadata)
 end
 
 --------------------------------------------------------------------------------
---                                 MReference                                 --
+--                                 Reference                                  --
 --------------------------------------------------------------------------------
-class.MReference(Field)
-MReference.metadata_key = "references"
-function MReference.is_a(str) return Field.is_a(str) and Link:str_is_a(str) end
+class.Reference(Field)
+Reference.metadata_key = "references"
+function Reference.is_a(str) return Field.is_a(str) and Link:str_is_a(str) end
 
-function MReference:_init(str)
+function Reference:_init(str)
     self.key, self.vals = unpack(self:parse(str))
     self.vals:transform(function(val)
         return Link:from_str(val).url
@@ -232,7 +232,7 @@ end
 --                                    File                                    --
 --------------------------------------------------------------------------------
 class.File()
-File.LineParsers = List({Tag, MReference, Field})
+File.LineParsers = List({Tag, Reference, Field})
 File.metadata_divider = tostring(Divider("large", "metadata"))
 function File:_init(path, project_root)
     self.path = path
@@ -377,7 +377,7 @@ end
 --                                   Files                                    --
 --------------------------------------------------------------------------------
 class.Files()
-Files.Parsers = List({Field, MReference, Tag})
+Files.Parsers = List({Field, Reference, Tag})
 
 function Files:_init(args)
     self.dir = Path(args.dir)
@@ -495,7 +495,7 @@ return {
     IsAField = IsAField,
     BlankField = BlankField,
     Tag = Tag,
-    MReference = MReference,
+    Reference = Reference,
     Condition = Condition,
     File = File,
     Files = Files,

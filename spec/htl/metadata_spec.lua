@@ -10,7 +10,7 @@ local Metadata = require("htl.metadata")
 local Tag = Metadata.Tag
 local Field = Metadata.Field
 local IsAField = Metadata.IsAField
-local MReference = Metadata.MReference
+local Reference = Metadata.Reference
 local BlankField = Metadata.BlankField
 local File = Metadata.File
 local Files = Metadata.Files
@@ -252,20 +252,20 @@ describe("Tag", function()
     end)
 end)
 
-describe("MReference", function()
+describe("Reference", function()
     describe("is_a", function()
         it("+", function()
-            assert(MReference.is_a("a: [b](c)")) 
+            assert(Reference.is_a("a: [b](c)")) 
         end)
 
         it("-", function()
-            assert.falsy(MReference.is_a("a: b")) 
+            assert.falsy(Reference.is_a("a: b")) 
         end)
     end)
 
     describe("init", function()
         it("+", function()
-            local r = MReference("a: [b](c)")
+            local r = Reference("a: [b](c)")
             assert.are.same("a", r.key)
             assert.are.same({"c"}, r.vals)
         end)
@@ -274,7 +274,7 @@ describe("MReference", function()
     describe("add_to_metadata", function()
         it("works", function()
             local metadata = Dict()
-            MReference("a: [b](c)"):add_to_metadata(metadata)
+            Reference("a: [b](c)"):add_to_metadata(metadata)
 
             local expected = Dict()
             expected:set({"references", "a", "c"})
@@ -284,7 +284,7 @@ describe("MReference", function()
 
     describe("check_metadata", function()
         it("+", function()
-            local reference = MReference("a: [b](c)")
+            local reference = Reference("a: [b](c)")
             local metadata = Dict()
             reference:add_to_metadata(metadata)
             assert(reference:check_metadata(metadata))
@@ -292,8 +292,8 @@ describe("MReference", function()
 
         it("-", function()
             local metadata = Dict()
-            MReference("a: [b](c)"):add_to_metadata(metadata)
-            assert.falsy(MReference("e: [f](g)"):check_metadata(metadata))
+            Reference("a: [b](c)"):add_to_metadata(metadata)
+            assert.falsy(Reference("e: [f](g)"):check_metadata(metadata))
         end)
     end)
 end)

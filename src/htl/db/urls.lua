@@ -5,7 +5,7 @@ local projects = require("htl.db.projects")
 local tbl = require("sqlite.tbl")
 local NLink = require("htl.text.NLink")
 local Link = NLink.Link
-local DefinitionLink = NLink.DefinitionLink
+local URLDefinition = require("htl.text.URLDefinition")
 local Config = require("htl.config")
 
 
@@ -103,7 +103,7 @@ function M:update_link_urls(path, lines)
     local observed_ids = List()
 
     for line in lines:iter() do
-        local link = DefinitionLink:from_str(line)
+        local link = URLDefinition:from_str(line)
 
         if link then
             local id = tonumber(link.url)
