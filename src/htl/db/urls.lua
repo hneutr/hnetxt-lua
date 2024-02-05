@@ -1,10 +1,10 @@
 local Dict = require("hl.Dict")
 local List = require("hl.List")
 local sqlite = require("sqlite.db")
-local projects = require("htl.db.projects")
 local tbl = require("sqlite.tbl")
-local NLink = require("htl.text.NLink")
-local Link = NLink.Link
+
+local projects = require("htl.db.projects")
+local Link = require("htl.text.Link")
 local URLDefinition = require("htl.text.URLDefinition")
 local Config = require("htl.config")
 

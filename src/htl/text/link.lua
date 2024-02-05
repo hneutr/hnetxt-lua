@@ -1,68 +1,115 @@
-local Dict = require("hl.Dict")
+io = require("hl.io")
+string = require("hl.string")
 local class = require("pl.class")
 local List = require("hl.List")
+local Dict = require("hl.Dict")
+
+local Config = require("htl.config")
 
 class.Link()
-Link.regex = "(.-)%[(.-)%]%((.-)%)(.*)"
+Link.delimiter = Config.get("link").delimiter
+Link.label_delimiters = {open = "[", close = "]"}
+Link.url_delimiters = {open = "(", close = ")"}
+Link.get_references_cmd = [[rg '\[.*\]\(.+\)' --no-heading --line-number --hidden]]
 
 function Link:_init(args)
-    self = Dict.update(self, args or {}, {
-        label = '',
-        location = '',
+    Dict.update(self, args or {}, {
         before = '',
+        label = '',
+        url = '',
         after = '',
     })
 end
 
-function Link.str_is_a(str)
-    return str:match(Link.regex) ~= nil
+function Link:regex()
+    return List({
+        "(.-)", -- before
+        self.label_delimiters.open:escape(),
+        "(.-)", -- label
+        self.label_delimiters.close:escape(),
+        self.url_delimiters.open:escape(),
+        "(.-)", -- url
+        self.url_delimiters.close:escape(),
+        "(.*)", -- after
+    }):join("")
 end
 
 function Link:__tostring()
-    return "[" .. self.label .. "](" .. self.location .. ")"
+    return self.before .. self:bare_link_string() .. self.after
 end
 
-function Link.from_str(str)
-    local before, label, location, after = str:match(Link.regex)
-    return Link({
-        label = label,
-        location = location,
-        before = before,
-        after = after,
-    })
+function Link:bare_link_string()
+    return List({
+        self.label_delimiters.open .. self.label .. self.label_delimiters.close,
+        self.url_delimiters.open .. self.url .. self.url_delimiters.close,
+    }):join("")
 end
 
-function Link.get_nearest(str, position)
+function Link:str_is_a(str)
+    return str:match(self:regex())
+end
+
+function Link:from_str(str)
+    local before, label, url, after = str:match(self:regex())
+
+    if before and label and url and after then
+        return self({
+            before = before,
+            label = label,
+            url = url,
+            after = after,
+        })
+    end
+
+    return
+end
+
+function Link:get_nearest(str, position)
     local distance_to_link = Dict()
 
     local dist = 1
-    while Link.str_is_a(str) do
-        local link = Link.from_str(str)
-
+    local link = self:from_str(str)
+    while link do
         dist = dist + #link.before 
         distance_to_link[math.abs(dist - position)] = link
-        dist = dist + #tostring(link) + 1
+        dist = dist + #link:bare_link_string() + 1
         distance_to_link[math.abs(dist - position)] = link
-
-        str = link.after
+        link = self:from_str(link.after)
     end
 
-    local nearest_index = distance_to_link:keys():sort()[1]
-    return distance_to_link[nearest_index]
+    return distance_to_link[distance_to_link:keys():sort()[1]]
 end
 
-function Link.find_label(label, lines)
-    for i, line in ipairs(lines) do
-        if #line > 0 then
-            if Link.str_is_a(line) then
-                local link = Link.from_str(line)
-                if link.label == label and #link.location == 0 then
-                    return i
-                end
-            end
+function Link:get_references(dir)
+    local cmd = List({self.get_references_cmd, dir}):join(" ")
+    
+    local url_to_references = Dict()
+    io.list_command(cmd):foreach(function(line)
+        local path, line_number, str = unpack(line:split(":", 2))
+        path = Path(path)
+
+        if not path:is_relative_to(dir) and dir:join(path):exists() then
+            path = dir:join(path)
         end
-    end
-    return nil
+
+        local link = self:from_str(str)
+        while link do
+            local url = link.url
+            if not url_to_references[url] then
+                url_to_references[url] = Dict()
+            end
+
+            if not url_to_references[url][tostring(path)] then
+                url_to_references[url][tostring(path)] = List()
+            end
+
+            url_to_references[url][tostring(path)]:append(tonumber(line_number))
+
+            link = self:from_str(link.after)
+        end
+    end)
+
+    return url_to_references
 end
 
 return Link

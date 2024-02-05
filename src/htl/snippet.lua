@@ -4,7 +4,7 @@ local Dict = require("hl.Dict")
 local class = require("pl.class")
 local Yaml = require("hl.yaml")
 
-local Link = require("htl.text.NLink").Link
+local Link = require("htl.text.Link")
 local db = require("htl.db")
 
 class.Snippet()

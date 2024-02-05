@@ -8,7 +8,7 @@ local Yaml = require("hl.yaml")
 local class = require("pl.class")
 
 local db = require("htl.db")
-local Link = require("htl.text.NLink").Link
+local Link = require("htl.text.Link")
 local Config = require("htl.config")
 local MetadataConfig = Config.get("metadata")
 local Divider = require("htl.text.divider")

@@ -1,6 +1,6 @@
 local class = require("pl.class")
 
-local Link = require("htl.text.NLink").Link
+local Link = require("htl.text.Link")
 
 class.URLDefinition(Link)
 URLDefinition.url_delimiters = {

@@ -1,123 +1,141 @@
 local Link = require("htl.text.Link")
 
+describe("str_is_a", function() 
+    it("+: []()", function()
+        assert.is_truthy(Link:str_is_a("[]()"))
+    end)
+
+    it("+: a[b](c)d", function()
+        assert.is_truthy(Link:str_is_a("a[b](c)d"))
+    end)
+
+    it("-: [] ()", function()
+        assert.is_falsy(Link:str_is_a("[] ()"))
+    end)
+end)
+
 describe("__tostring", function() 
     it("works", function()
-        local one = Link({label = 'a', location = 'b'})
-        local two = Link({label = 'c', location = 'd'})
-        assert.equals("[a](b)", tostring(one))
-        assert.equals("[c](d)", tostring(two))
-    end)
-end)
-
-describe("from_str", function() 
-    it("plain", function()
-        local actual = Link.from_str("[a](b)")
-        local expected = Link{ label = 'a', location = 'b', before = '', after = '' }
-        assert.are.same(actual, expected)
-    end)
-
-    it("empty", function()
-        local actual = Link.from_str("[]()")
-        local expected = Link{ label = '', location = '', before = '', after = '' }
-        assert.are.same(actual, expected)
-    end)
-
-    it("+ before and after", function()
-        local actual = Link.from_str("before [a](b) after")
-        local expected = Link{ label = 'a', location = 'b', before = 'before ', after = ' after' }
-
-        assert.are.same(actual, expected)
-    end)
-
-    it("another link after", function()
-        local actual = Link.from_str("before [a](b) [c](d)")
-        local expected = Link{ label = 'a', location = 'b', before = 'before ', after = ' [c](d)' }
-
-        assert.are.same(actual, expected)
-    end)
-end)
-
-describe("str_is_a", function() 
-    it("negative case", function()
-        assert.is_false(Link.str_is_a("not a link"))
+        local str = "a[b](c)d"
+        assert.are.same(str, tostring(Link:from_str(str)))
     end)
 end)
 
 describe("get_nearest", function()
     it("1 link: cursor in link", function()
-        local line = "a [b](c) d"
-        local position = line:find("a")
-        local expected = "[b](c)"
-        assert.equal(expected, tostring(Link.get_nearest(line, position)))
+        local l = "a [b](c) d"
+        assert.are.same("c", Link:get_nearest(l, l:find("b")).url)
     end)
 
     it("1 link: cursor before link", function()
-        local line = "a [b](c) d"
-        local position = line:find("a")
-        local expected = "[b](c)"
-        assert.equal(expected, tostring(Link.get_nearest(line, position)))
+        local l = "a [b](c) d"
+        assert.equal("c", Link:get_nearest(l, l:find("a")).url)
     end)
 
     it("1 link: cursor after link", function()
-        local line = "a [b](c) d"
-        local position = line:find("d")
-        local expected = "[b](c)"
-        assert.equal(expected, tostring(Link.get_nearest(line, position)))
+        local l = "a [b](c) d"
+        assert.equal("c", Link:get_nearest(l, l:find("d")).url)
     end)
 
     it("2 links: cursor before link 1", function()
-        local line = "a [b](c) d [e](f) g"
-        local position = line:find("a")
-        local expected = "[b](c)"
-        assert.equal(expected, tostring(Link.get_nearest(line, position)))
+        local l = "a [b](c) d [e](f) g"
+        assert.equal("c", Link:get_nearest(l, l:find("a")).url)
     end)
 
     it("2 links: cursor in link 1", function()
-        local line = "a [b](c) d [e](f) g"
-        local position = line:find("b")
-        local expected = "[b](c)"
-        assert.equal(expected, tostring(Link.get_nearest(line, position)))
+        local l = "a [b](c) d [e](f) g"
+        assert.equal("c", Link:get_nearest(l, l:find("b")).url)
     end)
 
     it("2 links: cursor in between links", function()
-        local line = "a [b](c) d [e](f) g"
-        local position = line:find("d")
-        local expected = "[b](c)"
-        assert.equal(expected, tostring(Link.get_nearest(line, position)))
+        local l = "a [b](c) d [e](f) g"
+        assert.equal("c", Link:get_nearest(l, l:find("d")).url)
     end)
 
     it("2 links: cursor in link 2", function()
-        local line = "a [b](c) d [e](f) g"
-        local position = line:find("e")
-        local expected = "[e](f)"
-        assert.equal(expected, tostring(Link.get_nearest(line, position)))
+        local l = "a [b](c) d [e](f) g"
+        assert.equal("f", Link:get_nearest(l, l:find("e")).url)
     end)
 
     it("2 links: cursor in after link 2", function()
-        local line = "a [b](c) d [e](f) g"
-        local position = line:find("g")
-        local expected = "[e](f)"
-        assert.equal(expected, tostring(Link.get_nearest(line, position)))
+        local l = "a [b](c) d [e](f) g"
+        assert.equal("f", Link:get_nearest(l, l:find("g")).url)
     end)
 
     it("3 links: cursor between link 2 and 3", function()
-        local line = "a [b](c) d [e](f) g [h](i) j"
-        local position = line:find("g")
-        local expected = "[e](f)"
-        assert.equal(expected, tostring(Link.get_nearest(line, position)))
+        local l = "a [b](c) d [e](f) g [h](i) j"
+        assert.equal("f", Link:get_nearest(l, l:find("g")).url)
     end)
 end)
 
-describe("find_label", function() 
-    it("-: not present", function()
-        assert.falsy(Link.find_label("a", {}))
+describe("get_references", function() 
+    local dir1 = Path.tempdir:join("test-dir")
+    local f1 = dir1:join("file-1.md")
+    local f2 = dir1:join("file-2.md")
+    local f3 = dir1:join(".file-3.md")
+
+    local r1 = Link({label = "ref1", url = 1})
+    local r2 = Link({label = "ref2", url = 2})
+
+    before_each(function()
+        dir1:rmdir(true)
     end)
 
-    it("+", function()
-        assert.are.same(3, Link.find_label("a", {"a", "", "[a]()"}))
+    after_each(function()
+        dir1:rmdir(true)
     end)
 
-    it("+: multiple marks and refs", function()
-        assert.are.same(5, Link.find_label("a", {"[a](b)", "c", "[d]()", "", "[a]()"}))
+    it("1 ref", function()
+        f1:write({r1})
+        assert.are.same(
+            {["1"] = {[tostring(f1)] = {1}}},
+            Link:get_references(dir1)
+        )
+    end)
+
+    it("hidden file", function()
+        f3:write({r1})
+        assert.are.same(
+            {["1"] = {[tostring(f3)] = {1}}},
+            Link:get_references(dir1)
+        )
+    end)
+
+    it("2 refs", function()
+        f1:write({r1, r2})
+        assert.are.same(
+            {
+                ["1"] = {[tostring(f1)] = {1}},
+                ["2"] = {[tostring(f1)] = {2}},
+            },
+            Link:get_references(dir1)
+        )
+    end)
+
+    it("2 refs, 1 line", function()
+        f1:write(tostring(r1) .. tostring(r2))
+        assert.are.same(
+            {
+                ["1"] = {[tostring(f1)] = {1}},
+                ["2"] = {[tostring(f1)] = {1}},
+            },
+            Link:get_references(dir1)
+        )
+    end)
+
+    it("multiple files", function()
+        f1:write({r1, r2})
+        f2:write({r1})
+
+        assert.are.same(
+            {
+                ["1"] = {
+                    [tostring(f1)] = {1},
+                    [tostring(f2)] = {1},
+                },
+                ["2"] = {[tostring(f1)] = {2}},
+            },
+            Link:get_references(dir1)
+        )
     end)
 end)

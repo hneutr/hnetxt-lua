@@ -1,7 +1,7 @@
 local Path = require("hn.path")
 local List = require("hl.List")
 local db = require("htl.db")
-local Link = require("htl.text.NLink").Link
+local Link = require("htl.text.Link")
 local URLDefinition = require("htl.text.URLDefinition")
 local BufferLines = require("hn.buffer_lines")
 
