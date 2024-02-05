@@ -145,27 +145,30 @@ local function add_syntax_highlights()
     end)
 end
 
-local function map_toggles(lhs_prefix)
-    local lhs_prefix = lhs_prefix or ''
+local function toggle_mappings()
+    local mappings = Dict({n = Dict(), v = Dict()})
+
     get_list_type_configs():filter(function(config)
         return config.toggle_key
     end):foreach(function(config)
         List({'n', 'v'}):foreach(function(mode)
-            vim.keymap.set(
+            mappings[mode][vim.g.list_toggle_prefix .. config.toggle_key] = string.format(
+                [[:lua require('htn.text.list').toggle('%s', '%s')<cr>]],
                 mode,
-                lhs_prefix .. config.toggle_key,
-                string.format([[:lua require('htn.text.list').toggle('%s', '%s')<cr>]], mode, config.name),
-                {silent = true, buffer = true}
+                config.name
             )
         end)
     end)
+
+    return mappings
 end
+
 
 return {
     join = join,
     continue = continue,
     continue_cmd = [[<cmd>lua require('htn.text.list').continue(true)<cr>]],
     toggle = toggle,
-    map_toggles = map_toggles,
+    toggle_mappings = toggle_mappings,
     add_syntax_highlights = add_syntax_highlights,
 }

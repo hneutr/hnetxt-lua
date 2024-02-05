@@ -234,9 +234,8 @@ end
 class.File()
 File.LineParsers = List({Tag, Reference, Field})
 File.metadata_divider = tostring(Divider("large", "metadata"))
-function File:_init(path, project_root)
+function File:_init(path)
     self.path = path
-    self.project_root = project_root
     self.metadata = Dict()
     self:read(self.path):foreach(function(line)
         self:parse_line(line)
@@ -267,21 +266,24 @@ end
 
 function File:set_references_list(references_dict)
     local references_list = Set()
+    local referenced_ids = List()
     references_dict:values():foreach(function(references_d)
-        references_list:add(references_d:keys():transform(function(r)
-            return tostring(self.project_root:join(r))
-        end))
+        referenced_ids:extend(references_d:keys())
     end)
+
+    if #referenced_ids > 0 then
+        db.get().urls:get({where = {id = referenced_ids}}):foreach(function(url)
+            references_list:add_val(tostring(url.path))
+        end)
+    end
 
     return references_list
 end
 
 function File:check_conditions(conditions, taxonomy)
-    if #conditions >= 0 then
-        for condition in List(conditions):iter() do
-            if not condition:check(self.metadata, taxonomy) then
-                return false
-            end
+    for condition in List(conditions):iter() do
+        if not condition:check(self.metadata, taxonomy) then
+            return false
         end
     end
 
@@ -381,17 +383,17 @@ Files.Parsers = List({Field, Reference, Tag})
 
 function Files:_init(args)
     self.dir = Path(args.dir)
-    self.project_root = db.get()['projects'].get_path(self.dir)
-    self.path_to_file = self.read_files(self.dir, self.project_root)
+    self.project_root = db.get().projects.get_path(self.dir)
+    self.path_to_file = self.read_files(self.dir)
     self.taxonomy = Taxonomy(self.project_root)
     
     self:filter(args)
 end
 
-function Files.read_files(dir, project_root)
+function Files.read_files(dir)
     local path_to_file = Dict()
     dir:glob("%.md$"):foreach(function(path)
-        path_to_file[tostring(path)] = File(path, project_root)
+        path_to_file[tostring(path)] = File(path)
     end)
     return path_to_file
 end
@@ -415,11 +417,6 @@ function Files:filter_by_conditions(conditions)
 end
 
 function Files:filter_by_reference(reference)
-    print("must fix to use urls")
-    if not reference:is_relative_to(self.project_root) then
-        reference = reference:relative_to(self.project_root)
-    end
-
     self:follow_references()
     self.path_to_file:filterv(function(file)
         return file.references:has(tostring(reference))
@@ -431,7 +428,7 @@ function Files:follow_references()
 
     self.project_root:glob("%.md$"):foreach(function(path)
         local path_str = tostring(path)
-        local file = self.path_to_file[path_str] or File(path, self.project_root)
+        local file = self.path_to_file[path_str] or File(path)
         path_references[path_str] = file.references or Set()
     end)
 

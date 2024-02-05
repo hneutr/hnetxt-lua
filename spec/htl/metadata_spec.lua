@@ -4,6 +4,8 @@ local Path = require("hl.Path")
 local Dict = require("hl.Dict")
 local Set = require("hl.Set")
 
+local db = require("htl.db")
+local urls = require("htl.db.urls")
 local projects = require("htl.db.projects")
 
 local Metadata = require("htl.metadata")
@@ -17,17 +19,21 @@ local Files = Metadata.Files
 local Taxonomy = Metadata.Taxonomy
 
 local dir = Path.tempdir:join("metadata-test")
+local p1 = {path = dir, title = "test"}
 
 before_each(function()
-    stub(projects, 'get_path')
-    projects.get_path.returns(dir)
-
+    db.before_test()
     dir:rmdir(true)
+
+    projects:insert(p1)
+    -- stub(projects, 'get_path')
+    -- projects.get_path.returns(dir)
 end)
 
 after_each(function()
     dir:rmdir(true)
-    projects.get_path:revert()
+    db.after_test()
+    -- projects.get_path:revert()
 end)
 
 
@@ -299,11 +305,13 @@ describe("Reference", function()
 end)
 
 describe("File", function()
-    local file = dir:join("test-file.md")
+    local f1 = dir:join("file-1.md")
+    local f2 = dir:join("file-2.md")
+    local f3 = dir:join("file-3.md")
 
     describe("init", function()
         it("works", function()
-            file:write({
+            f1:write({
                 "a: b",
                 "@c.d",
                 "e: [f](g)",
@@ -315,52 +323,71 @@ describe("File", function()
             expected:set({"tags", "c", "d"})
             expected:set({"fields", "a", "b"})
             expected:set({"references", "e", "g"})
-            assert.are.same(expected, File(file, dir).metadata)
+            assert.are.same(expected, File(f1, dir).metadata)
         end)
     end)
 
     describe("set_references_list", function()
         it("works", function()
-            file:write({
-                "a: [b](c)",
-                "d: [b](c)",
-                "e: [f](g)",
+            local r1 = {path = f1}
+            local r2 = {path = f2}
+            urls:insert(r1)
+            urls:insert(r2)
+
+            local u1 = urls:where(r1).id
+            local u2 = urls:where(r2).id
+
+            f3:write({
+                string.format("a: [b](%s)", u1),
+                string.format("c: [d](%s)", u1),
+                string.format("e: [f](%s)", u2),
                 "",
                 "xyz",
             })
             
-            local expected = Set({tostring(dir:join("c")), tostring(dir:join("g"))})
-            local actual = File(file, dir).references
-            assert.are.same(expected, actual)
+            assert.are.same(
+                Set({tostring(f1), tostring(f2)}),
+                File(f3, dir).references
+            )
         end)
     end)
 end)
 
 describe("Files", function()
-    local a = dir:join("a.md")
-    local b = dir:join("b.md")
-    local c = dir:join("c.md")
+    local f1 = dir:join("file-1.md")
+    local f2 = dir:join("file-2.md")
+    local f3 = dir:join("file-3.md")
 
     describe("init", function()
         it("works", function()
-            
-            a:write({
-                "z: [_](c.md)",
+            local r1 = {path = f1}
+            local r2 = {path = f2}
+            local r3 = {path = f3}
+
+            urls:insert(r1)
+            urls:insert(r2)
+            urls:insert(r3)
+
+            local u1 = urls:where(r1).id
+            local u2 = urls:where(r2).id
+            local u3 = urls:where(r3).id
+
+            f1:write({
+                string.format("z: [_](%s)", u3),
                 "",
                 "xyz",
             })
-            b:write({
-                "z: [_](a.md)",
+
+            f2:write({
+                string.format("z: [_](%s)", u1),
                 "",
                 "xyz",
             })
 
-            stub()
-
-            local files = Files({dir = dir, reference = c})
-
-            local expected = List({a, b}):transform(tostring)
-            assert.are.same(expected, files.path_to_file:keys():sorted())
+            assert.are.same(
+                List({f1, f2}):transform(tostring),
+                Files({dir = dir, reference = f3}).path_to_file:keys():sorted()
+            )
         end)
     end)    
 end)

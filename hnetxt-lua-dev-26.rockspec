@@ -62,6 +62,7 @@ build = {
         ["htc.new"] = "src/htc/new.lua",
         ["htc.tags"] = "src/htc/tags.lua",
         ["htc.project"] = "src/htc/project.lua",
+        ["htc.remove"] = "src/htc/remove.lua",
     }
 }
 test = {

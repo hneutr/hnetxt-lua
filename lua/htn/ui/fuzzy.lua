@@ -1,6 +1,9 @@
-local BufferLines = require("hn.buffer_lines")
-local Path = require("hn.path")
+local Path = require("hl.Path")
+
 local db = require("htl.db")
+
+local BufferLines = require("hn.buffer_lines")
+
 local ui = require("htn.ui")
 
 local fuzzy_actions = {

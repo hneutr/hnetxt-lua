@@ -5,11 +5,13 @@ local f = ls.function_node
 local t = ls.text_node
 local i = ls.insert_node
 
-local Path = require('hn.path')
-local Header = require("htn.text.header")
-local Divider = require("htn.text.divider")
+local Path = require('hl.Path')
+
 local Snippet = require("htl.snippet")
 local db = require("htl.db")
+
+local Header = require("htn.text.header")
+local Divider = require("htn.text.divider")
 
 
 local today = function() return vim.fn.strftime("%Y%m%d") end

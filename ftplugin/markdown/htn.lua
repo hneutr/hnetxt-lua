@@ -1,9 +1,12 @@
-local ui = require("htn.ui")
-local Path = require('hn.path')
-local db = require("htl.db")
-local Fold = require('htn.ui.fold')
-local BufferLines = require("hn.buffer_lines")
 local List = require("hl.List")
+local Path = require('hl.Path')
+
+local db = require("htl.db")
+
+local BufferLines = require("hn.buffer_lines")
+
+local ui = require("htn.ui")
+local Fold = require('htn.ui.fold')
 
 local pattern = "*.md"
 
@@ -18,7 +21,7 @@ vim.opt_local.shiftwidth = 2
 --                               project stuff                                --
 --------------------------------------------------------------------------------
 local current_file = Path.this()
-local project = db.get()['projects'].get_by_path(current_file)
+local project = db.get().projects.get_by_path(current_file)
 
 if project then
     vim.opt_local.spellfile:append(ui.spellfile(project.path))
@@ -68,3 +71,10 @@ if vim.b.htn_project then
         }
     )
 end
+
+--------------------------------------------------------------------------------
+--                                  commands                                  --
+--------------------------------------------------------------------------------
+vim.api.nvim_buf_create_user_command(0, "Journal", function() require("htl.journal")():open() end, {})
+vim.api.nvim_buf_create_user_command(0, "Aim", function() require("htl.goals")():open() end, {})
+vim.api.nvim_buf_create_user_command(0, "Track", function() require("htl.track")():touch():open() end, {})

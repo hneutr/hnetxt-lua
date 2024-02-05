@@ -1,7 +1,6 @@
 local Path = require("hl.Path")
 local Dict = require("hl.Dict")
 local List = require("hl.List")
-local Set = require("pl.Set")
 
 local Config = require("htl.config")
 local Snippet = require("htl.snippet")
@@ -30,13 +29,13 @@ return {
         "conditions",
         args = "*",
         default = {},
-        description = "the conditions to meet (fields:value?/@tag.subtag/exclusion!)", 
+        description = "the conditions to meet (fields:value?/@tag.subtag/exclusion-)", 
         action="concat",
     },
-    {"-d --dir", default = Path.cwd(), description = "directory", convert=Path.as_path},
-    {"-r --reference", description = "print", convert=Path.as_path},
+    {"-d --dir", default = Path.cwd(), convert=Path.from_commandline},
+    {"-r --reference", description = "list files referencing this", convert=Path.from_commandline},
     {"+f", target = "files", description = "list files", switch = "off"},
-    {"+p", target = "print", description = "print", switch = "on"},
+    {"+p", target = "print", switch = "on"},
     {"+x", target = "x_of_the_day", description = "run the x-of-the-day", switch = "on"},
     action = function(args)
         if args.x_of_the_day then
@@ -45,10 +44,6 @@ return {
         
         if #args.conditions == 0 and not args.reference then
             args.files = false
-        end
-
-        if args.reference and not args.reference:is_relative_to(Path.cwd()) then
-            args.reference = Path.cwd():join(args.reference)
         end
 
         local files = Metadata.Files(args)

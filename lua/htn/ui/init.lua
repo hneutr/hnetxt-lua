@@ -1,14 +1,26 @@
-local Path = require("hn.path")
+local Path = require("hl.Path")
+local Dict = require("hl.Dict")
 local List = require("hl.List")
+
 local db = require("htl.db")
 local Link = require("htl.text.Link")
 local URLDefinition = require("htl.text.URLDefinition")
+
 local BufferLines = require("hn.buffer_lines")
 
 local mirrors = db.get().mirrors
 local urls = db.get().urls
 
 local M = {}
+
+M.suffix_to_open_cmd = Dict({
+    e = 'e',
+    o = 'e',
+    l = 'vs',
+    v = 'vs',
+    j = 'sp',
+    s = 'sp'
+})
 
 function M.get_statusline_path_string(path, project_root)
     if mirrors:is_mirror(path) then
@@ -74,10 +86,49 @@ function M.goto(open_command, fuzzy_path)
     end
 end
 
+function M.goto_map_fn(open_cmd) return function() M.goto(open_cmd) end end
+
 function M.get_reference(fuzzy_path)
     local project = vim.b.htn_project or {}
     local url = urls:get_from_fuzzy_path(fuzzy_path, project.path)
     return tostring(urls:get_reference(url))
 end
+
+function M.mirror_mappings()
+    if not vim.g.htn_mirror_mappings then
+        local mappings = Dict()
+        db.get().mirrors.configs.generic:foreach(function(kind, conf)
+            M.suffix_to_open_cmd:foreach(function(suffix, open_cmd)
+                mappings[vim.b.htn_mirror_prefix .. conf.mapkey .. suffix] = function()
+                    db.get().mirrors:get_mirror_path(Path.this(), kind):open(open_cmd)
+                end
+            end)
+        end)
+
+        vim.g.htn_mirror_mappings = mappings
+    end
+
+    return Dict(vim.g.htn_mirror_mappings)
+end
+
+function M.scratch(mode)
+    local lines = List(BufferLines.selection.get({mode = mode}))
+    BufferLines.selection.cut({mode = mode})
+
+    if lines[#lines] ~= "" then
+        lines:append("")
+    end
+
+    local path = db.get().mirrors:get_mirror_path(Path.this(), "scratch")
+
+    if path:exists() then
+        lines:append(path:read())
+    end
+
+    path:write(lines)
+end
+
+M.scratch_map_fn = function() M.scratch('n') end
+M.scratch_map_visual_cmd = [[:'<,'>lua require('htn.ui').scratch('v')<cr>]]
 
 return M

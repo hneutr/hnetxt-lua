@@ -1,38 +1,44 @@
+local Fold = require("htn.ui.fold")
+
 local args = {silent = true, buffer = true}
 
-require("htn.text.list").map_toggles(vim.g.mapleader .. "t")
-
--- header jumping
-local Fold = require("htn.ui.fold")
-vim.keymap.set("n", "<c-p>", function() Fold.jump_to_header(-1) end, args)
-vim.keymap.set("n", "<c-n>", function() Fold.jump_to_header(1) end, args)
+local mappings = Dict(
+    {
+        n = Dict({
+            ["<c-p>"] = Fold.jump_to_header(-1),
+            ["<c-n>"] = Fold.jump_to_header(1),
+        }),
+        v = Dict({}),
+        i = Dict({}),
+    },
+    require("htn.text.list").toggle_mappings()
+)
 
 if vim.b.htn_project then
-    local Scratch = require("htn.project.scratch")
     local Fuzzy = require("htn.ui.fuzzy")
     local ui = require("htn.ui")
 
     -- fuzzy
-    vim.keymap.set("n", " df", Fuzzy.goto, args)
-    vim.keymap.set("n", "<c-/>", Fuzzy.put, args)
-    vim.keymap.set("i", "<c-/>", Fuzzy.insert, args)
+    mappings.n["<leader>df"] = Fuzzy.goto
+    mappings.n["<c-/>"] = Fuzzy.put
+    mappings.i["<c-/>"] = Fuzzy.insert
 
     -- scratch
-    vim.keymap.set("n", " s", function() Scratch('n') end, args)
-    vim.keymap.set("v", " s", [[:'<,'>lua require('htn.project.scratch')('v')<cr>]], args)
+    mappings.n["<leader>s"] = ui.scratch_map_fn
+    mappings.v["<leader>s"] = ui.scratch_map_visual_cmd
 
-    -- urls
-    Dict({
-        ["<M-l>"] = "vsplit",
-        ["<M-j>"] = "split",
-        ["<M-e>"] = "edit",
-        ["<M-t>"] = "tabedit",
-    }):foreach(function(lhs, open_cmd)
-        vim.keymap.set("n", lhs, function() ui.goto(open_cmd) end, args)
-    end)
+    -- url opening
+    mappings.n["<M-l>"] = ui.goto_map_fn("vsplit")
+    mappings.n["<M-j>"] = ui.goto_map_fn("split")
+    mappings.n["<M-e>"] = ui.goto_map_fn("edit")
+    mappings.n["<M-t>"] = ui.goto_map_fn("tabedit")
 
     -- mirrors
-    require("htn.ui.mirror")():foreach(function(lhs, rhs)
-        vim.keymap.set("n", lhs, rhs, args)
-    end)
+    mappings.n:update(ui.mirror_mappings())
 end
+
+mappings:foreach(function(mode, mode_mappings)
+    mode_mappings:foreach(function(rhs, lhs)
+        vim.keymap.set(mode, rhs, lhs, args)
+    end)
+end)

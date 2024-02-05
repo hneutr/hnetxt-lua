@@ -31,22 +31,10 @@ Dict({
     remove = {
         description = "rm within a project",
         {"path", args = "1", convert = Path.from_commandline},
-        action = function(args)
-            local url = urls:where({path = args.path, resource_type = "file"})
-            if url then
-                mirrors:remove({url = url.id})
-            end
-
-            urls:remove({path = args.path})
-
-            local mirror = mirrors:where({path = args.path})
-
-            if mirror then
-                mirrors:remove({id = mirror.id})
-            end
-
-            args.path:unlink()
-        end,
+        {"+r", target = "recursive", description = "delte recursively", switch = "on"},
+        {"+d", target = "directories", description = "delete directories", switch = "on"},
+        {"+f", target = "force", description = "force", switch = "on"},
+        action = require("htc.remove").run,
     },
     journal = {
         description = "print the journal path",

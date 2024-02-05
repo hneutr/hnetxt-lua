@@ -37,22 +37,24 @@ function M.add_syntax_highlights()
 end
 
 function M.jump_to_header(direction)
-    local lnum = vim.api.nvim_win_get_cursor(0)[1]
-    local header_indexes = List(vim.b.header_indexes)
-    header_indexes:put(1)
-    header_indexes:append(vim.fn.line('$'))
+    return function()
+        local lnum = vim.api.nvim_win_get_cursor(0)[1]
+        local header_indexes = List(vim.b.header_indexes)
+        header_indexes:put(1)
+        header_indexes:append(vim.fn.line('$'))
 
-    local candidates
+        local candidates
 
-    if direction == 1 then
-        candidates = header_indexes:filter(function(hi) return hi > lnum end)
-    else
-        candidates = header_indexes:filter(function(hi) return hi < lnum end):reverse()
-    end
+        if direction == 1 then
+            candidates = header_indexes:filter(function(hi) return hi > lnum end)
+        else
+            candidates = header_indexes:filter(function(hi) return hi < lnum end):reverse()
+        end
 
-    if #candidates > 0 then
-        vim.api.nvim_win_set_cursor(0, {candidates[1], 0})
-        vim.cmd("normal zz")
+        if #candidates > 0 then
+            vim.api.nvim_win_set_cursor(0, {candidates[1], 0})
+            vim.cmd("normal zz")
+        end
     end
 end
 
