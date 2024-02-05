@@ -1,3 +1,4 @@
+io = require("hl.io")
 string = require("hl.string")
 local class = require("pl.class")
 local List = require("hl.List")
@@ -9,6 +10,7 @@ class.NLink()
 NLink.delimiter = Config.get("link").delimiter
 NLink.label_delimiters = {open = "[", close = "]"}
 NLink.url_delimiters = {open = "(", close = ")"}
+NLink.get_references_cmd = [[rg '\[.*\]\(.+\)' --no-heading --line-number --hidden]]
 
 function NLink:_init(args)
     Dict.update(self, args or {}, {
@@ -34,12 +36,6 @@ end
 
 function NLink:__tostring()
     return self.before .. self:bare_link_string() .. self.after
-    -- return List({
-    --     self.before,
-    --     self.label_delimiters.open .. self.label .. self.label_delimiters.close,
-    --     self.url_delimiters.open .. self.url .. self.url_delimiters.close,
-    --     self.after,
-    -- }):join("")
 end
 
 function NLink:bare_link_string()
@@ -83,6 +79,39 @@ function NLink:get_nearest(str, position)
 
     return distance_to_link[distance_to_link:keys():sort()[1]]
 end
+
+function NLink:get_references(dir)
+    local cmd = List({self.get_references_cmd, dir}):join(" ")
+    
+    local url_to_references = Dict()
+    io.list_command(cmd):foreach(function(line)
+        local path, line_number, str = unpack(line:split(":", 2))
+        path = Path(path)
+
+        if not path:is_relative_to(dir) and dir:join(path):exists() then
+            path = dir:join(path)
+        end
+
+        local link = self:from_str(str)
+        while link do
+            local url = link.url
+            if not url_to_references[url] then
+                url_to_references[url] = Dict()
+            end
+
+            if not url_to_references[url][tostring(path)] then
+                url_to_references[url][tostring(path)] = List()
+            end
+
+            url_to_references[url][tostring(path)]:append(tonumber(line_number))
+
+            link = self:from_str(link.after)
+        end
+    end)
+
+    return url_to_references
+end
+
 
 class.DefinitionLink(NLink)
 DefinitionLink.url_delimiters = {

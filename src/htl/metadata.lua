@@ -8,7 +8,7 @@ local Yaml = require("hl.yaml")
 local class = require("pl.class")
 
 local db = require("htl.db")
-local Link = require("htl.text.Link")
+local Link = require("htl.text.NLink").Link
 local Config = require("htl.config")
 local MetadataConfig = Config.get("metadata")
 local Divider = require("htl.text.divider")
@@ -183,12 +183,12 @@ end
 --------------------------------------------------------------------------------
 class.MReference(Field)
 MReference.metadata_key = "references"
-function MReference.is_a(str) return Field.is_a(str) and Link.str_is_a(str) end
+function MReference.is_a(str) return Field.is_a(str) and Link:str_is_a(str) end
 
 function MReference:_init(str)
     self.key, self.vals = unpack(self:parse(str))
     self.vals:transform(function(val)
-        return Link.from_str(val).location
+        return Link:from_str(val).url
     end)
 end
 
@@ -415,6 +415,7 @@ function Files:filter_by_conditions(conditions)
 end
 
 function Files:filter_by_reference(reference)
+    print("must fix to use urls")
     if not reference:is_relative_to(self.project_root) then
         reference = reference:relative_to(self.project_root)
     end

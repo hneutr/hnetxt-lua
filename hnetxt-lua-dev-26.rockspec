@@ -67,8 +67,6 @@ build = {
 
         -- revision territory
         ["htl.text.link"] = "src/htl/text/link.lua",
-        ["htl.text.location"] = "src/htl/text/location.lua",
-        ["htl.text.reference"] = "src/htl/text/reference.lua",
     }
 }
 test = {

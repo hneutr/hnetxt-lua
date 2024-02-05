@@ -58,7 +58,7 @@ Dict({
     },
     track = {
         description = "print the tracking path",
-        {"date", description = "date (YYYYMMDD); default=today", default = os.date('%Y%m%d')},
+        {"date", description = "date (YYYYMMDD); default today", default = os.date('%Y%m%d')},
         action = function(args)
             local date = args.date
             if type(date) == "string" then

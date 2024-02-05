@@ -1,10 +1,10 @@
 local List = require("hl.List")
 local Path = require("hl.Path")
-local Link = require("htl.text.link")
 local Dict = require("hl.Dict")
 local class = require("pl.class")
 local Yaml = require("hl.yaml")
 
+local Link = require("htl.text.NLink").Link
 local db = require("htl.db")
 
 class.Snippet()
@@ -62,13 +62,13 @@ end
 function Snippet:parse_line(line)
     local field, value
 
-    if line:match(":") then
-        field, value = unpack(line:split(":", 1))
+    if line:match(Snippet.FIELD_SEPARATOR) then
+        field, value = unpack(line:split(Snippet.FIELD_SEPARATOR, 1))
         field = field:strip()
         value = value:strip()
 
-        if Link.str_is_a(value) then
-            value = Snippet(db.get()['projects'].get_path(self.path):join(Link.from_str(value).location))
+        if Link:str_is_a(value) then
+            value = Snippet(db.get().urls:where({id = Link:from_str(value).url}).path)
         end
     else
         field = line
