@@ -64,9 +64,6 @@ build = {
         ["htc.new"] = "src/htc/new.lua",
         ["htc.tags"] = "src/htc/tags.lua",
         ["htc.project"] = "src/htc/project.lua",
-
-        -- revision territory
-        ["htl.text.link"] = "src/htl/text/link.lua",
     }
 }
 test = {
