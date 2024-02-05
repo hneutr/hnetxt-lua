@@ -1,17 +1,12 @@
 require("approot")("/Users/hne/lib/hnetxt-lua/")
 
-local argparse = require("argparse")
-
 local Command = require("htc.command")
 local List = require("hl.List")
 local Dict = require("hl.Dict")
 local Path = require("hl.path")
 local db = require("htl.db")
-local urls = require("htl.db.urls")
-local mirrors = require("htl.db.mirrors")
-local Move = require("htl.move")
 
-local parser = argparse("hnetxt")
+local parser = require("argparse")("hnetxt")
 
 local commands = List()
 Dict({
@@ -26,7 +21,7 @@ Dict({
         description = "mv within a project",
         {"source", args = "1", convert = Path.from_commandline},
         {"target", args = "1", convert = Path.from_commandline},
-        action = function(args) Move(args.source, args.target) end,
+        action = require("htc.move").run,
     },
     remove = {
         description = "rm within a project",

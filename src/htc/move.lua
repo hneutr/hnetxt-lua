@@ -8,44 +8,43 @@ local List = require("hl.List")
 local Dict = require("hl.Dict")
 
 local db = require("htl.db")
+local urls = require("htl.db.urls")
 
-class.Move()
-Move.command_str = "/bin/mv -v"
-Move.separator = " -> "
+local M = {}
+M.command_str = "/bin/mv -v"
+M.separator = " -> "
 
-function Move:_init(source, target)
-    self.moves = self:run(source, target)
-    self:update(self.moves)
-end
+function M.run(args)
+    local source = args.source
+    local target = args.target
 
-function Move:command(source, target)
-    return List({self.command_str, Path(source), Path(target)}):join(" ")
-end
-
-function Move:run(source, target)
     local moves = List()
-    io.list_command(self:command(source, target)):filter(function(line)
-        return self:line_is_valid(line)
+    io.list_command(M:command(source, target)):filter(function(line)
+        return M:line_is_valid(line)
     end):foreach(function(line)
-        moves:extend(self:handle_dir_move(self:parse_line(line)))
+        moves:extend(M:handle_dir_move(M:parse_line(line)))
     end)
 
-    return moves
+    M:update(moves)
 end
 
-function Move:line_is_valid(line)
-    return line:match(string.escape(self.separator))
+function M:command(source, target)
+    return List({M.command_str, Path(source), Path(target)}):join(" ")
 end
 
-function Move:parse_line(line)
-    local source, target = unpack(line:split(self.separator, 1))
+function M:line_is_valid(line)
+    return line:match(string.escape(M.separator))
+end
+
+function M:parse_line(line)
+    local source, target = unpack(line:split(M.separator, 1))
     return Dict({
         source = Path(source),
         target = Path(target),
     })
 end
 
-function Move:handle_dir_move(move)
+function M:handle_dir_move(move)
     local moves = List()
     if move.target:is_dir() then
         move.target:iterdir({dirs = false}):foreach(function(target)
@@ -61,11 +60,10 @@ function Move:handle_dir_move(move)
     return moves
 end
 
-function Move:update(moves)
-    local urls = db.get()['urls']
+function M:update(moves)
     moves:foreach(function(move)
         urls:move(move.source, move.target)
     end)
 end
 
-return Move
+return M

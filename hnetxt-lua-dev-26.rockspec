@@ -36,7 +36,6 @@ build = {
         ["htl.journal"] = "src/htl/journal.lua",
         ["htl.track"] = "src/htl/track.lua",
         ["htl.goals"] = "src/htl/goals.lua",
-        ["htl.move"] = "src/htl/move.lua",
         ["htl.snippet"] = "src/htl/snippet.lua",
         ['htl.metadata'] = "src/htl/metadata.lua",
 
@@ -63,6 +62,7 @@ build = {
         ["htc.tags"] = "src/htc/tags.lua",
         ["htc.project"] = "src/htc/project.lua",
         ["htc.remove"] = "src/htc/remove.lua",
+        ["htc.move"] = "src/htc/move.lua",
     }
 }
 test = {
