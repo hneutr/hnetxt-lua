@@ -8,8 +8,8 @@ local URLDefinition = require("htl.text.URLDefinition")
 
 local BufferLines = require("hn.buffer_lines")
 
-local mirrors = db.get().mirrors
-local urls = db.get().urls
+local urls = require("htl.db.urls")
+local mirrors = require("htl.db.mirrors")
 
 local M = {}
 
@@ -92,6 +92,59 @@ function M.get_reference(fuzzy_path)
     local project = vim.b.htn_project or {}
     local url = urls:get_from_fuzzy_path(fuzzy_path, project.path)
     return tostring(urls:get_reference(url))
+end
+
+function M.LinkToFile()
+    print("this doesn't work yet")
+    local cursor_col = vim.api.nvim_win_get_cursor(0)[2]
+    local url_id = URLDefinition:get_nearest(vim.fn.getline('.'), cursor_col).url
+
+    if url_id then
+        url_id = tonumber(url_id)
+    else
+        return
+    end
+
+    local old_url_id = urls:where({path = Path.this(), resource_type = "file"}).id
+    
+    if mirrors:where({url = old_url_id}) then
+        mirrors:update({
+            where = {url = old_url_id},
+            set = {url = url_id}
+        })
+    end
+
+    urls:remove({id = old_url_id})
+    urls:update({
+        where = {id = url_id},
+        set = {resource_type = "file", label = ""}
+    })
+end
+
+function M.FileToLink()
+    print("this doesn't work yet")
+    local path = Path.this()
+    local file_q = {path = path, resource_type = "file"}
+    local url = urls:where(file_q)
+
+    urls:update({
+        where = {id = url.id},
+        set = {
+            resource_type = "link",
+            label = url.path:stem():gsub("-", " "),
+        }
+    })
+
+    urls:add_if_missing(path)
+
+    if mirrors:where({url = url.id}) then
+        mirrors:update({
+            where = {url = url.id},
+            set = {url = urls:where(file_q).id}
+        })
+    end
+    
+    vim.api.nvim_put({tostring(urls:get_reference(url))} , 'c', 1, 0)
 end
 
 function M.mirror_mappings()

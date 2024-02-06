@@ -1,5 +1,7 @@
 local List = require("hl.List")
+local Dict = require("hl.Dict")
 local Path = require('hl.Path')
+local ui = require("htn.ui")
 
 local db = require("htl.db")
 
@@ -75,6 +77,17 @@ end
 --------------------------------------------------------------------------------
 --                                  commands                                  --
 --------------------------------------------------------------------------------
-vim.api.nvim_buf_create_user_command(0, "Journal", function() require("htl.journal")():open() end, {})
-vim.api.nvim_buf_create_user_command(0, "Aim", function() require("htl.goals")():open() end, {})
-vim.api.nvim_buf_create_user_command(0, "Track", function() require("htl.track")():touch():open() end, {})
+local commands = Dict({
+    Journal = function() require("htl.journal")():open() end,
+    Aim = function() require("htl.goals")():open() end,
+    Track = function() require("htl.track")():touch():open() end,
+})
+
+-- if vim.b.htn_project then
+--     commands.FileToLink = ui.FileToLink
+--     commands.LinkToFile = ui.LinkToFile
+-- end
+
+commands:foreach(function(name, fn)
+    vim.api.nvim_buf_create_user_command(0, name, fn, {})
+end)

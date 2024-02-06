@@ -136,7 +136,7 @@ end
 function M:get_fuzzy_path(url)
     local path = url.path
     
-    if url.resource_type == 'link' and #url.label > 0 then
+    if url.resource_type == 'link' and url.label ~= nil and #url.label > 0 then
         path = path:with_name(path:name() .. M.path_label_delimiter .. url.label)
     end
 
