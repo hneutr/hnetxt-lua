@@ -6,7 +6,7 @@ local db = require("htl.db")
 local projects = require("htl.db.projects")
 local urls = require("htl.db.urls")
 
-local Move = require("htl.move")
+local Move = require("htc.move")
 
 local d1 = Path.tempdir:join("dir-1")
 local d2 = Path.tempdir:join("dir-2")

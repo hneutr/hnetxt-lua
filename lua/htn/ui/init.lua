@@ -36,7 +36,10 @@ function M.get_statusline_path_string(path, project_root)
     return tostring(path)
 end
 
-function M.statusline(path, project_root)
+function M.statusline()
+    vim.g.blah = 1
+    local path = Path.this()
+    local project_root = Path(vim.b.htn_project.path)
     local statusline = M.get_statusline_path_string(path, project_root)
     local mirrors_string = mirrors:get_mirrors_string(path)
 
@@ -45,6 +48,17 @@ function M.statusline(path, project_root)
     end
     
     return statusline
+end
+
+function M.set_file_url(path)
+    path = path or Path.this()
+    if mirrors:is_source(path) then
+        urls:add_if_missing(path)
+    end
+end
+
+function M.update_link_urls()
+    urls:update_link_urls(Path.this(), List(BufferLines.get()))
 end
 
 function M.spellfile(root)
