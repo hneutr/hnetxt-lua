@@ -23,7 +23,7 @@ local M = tbl("urls", {
 })
 
 M.unanchored_path = Path("__unanchored__")
-M.path_label_delimiter = Config.get("location").path_label_delimiter
+M.link_delimiter = Config.get("link").delimiter
 
 function M:insert(row)
     local resource_type = row.resource_type
@@ -137,7 +137,7 @@ function M:get_fuzzy_path(url)
     local path = url.path
     
     if url.resource_type == 'link' and url.label ~= nil and #url.label > 0 then
-        path = path:with_name(path:name() .. M.path_label_delimiter .. url.label)
+        path = path:with_name(path:name() .. M.link_delimiter .. url.label)
     end
 
     return path
@@ -164,8 +164,8 @@ end
 
 function M:get_from_fuzzy_path(path, dir)
     local q = {path = path}
-    if path:match(M.path_label_delimiter) then
-        q.path, q.label = unpack(path:split(M.path_label_delimiter, 1))
+    if path:match(M.link_delimiter) then
+        q.path, q.label = unpack(path:split(M.link_delimiter, 1))
     end
 
     if dir then

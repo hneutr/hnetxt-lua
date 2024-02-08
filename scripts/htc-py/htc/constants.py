@@ -10,7 +10,7 @@ DATA_DIR = HOME / '.data'
 DASHBOARDS_DIR = DATA_DIR / 'dashboards'
 
 CONFIG_DIR = HOME / 'lib' / 'hnetxt-lua' / 'constants'
-EMOJI_DIR = CONFIG_DIR / 'emoji'
+EMOJI_DIR = PY_DATA_DIR / 'emoji'
 
 X_OF_THE_DAY_DIR = DATA_DIR / 'x-of-the-day'
 QUOTE_OF_THE_DAY_DIR = X_OF_THE_DAY_DIR / 'quote'
