@@ -1,0 +1,36 @@
+data_dir:
+  path: ".data"
+  parent: root
+lib_dir:
+  path: "lib/hnetxt-lua"
+  parent: root
+constants_dir:
+  path: constants
+  parent: lib_dir
+db_file:
+  path: .htl-0.0.0.db
+  parent: data_dir
+intentions_dir:
+  path: intentions
+  parent: data_dir
+daily_intentions_file:
+  path: daily.md
+  parent: intentions_dir
+goals_dir:
+  path: goals
+  parent: data_dir
+journals_dir:
+  path: "corpus/ego/journal"
+  parent: root
+track_dir:
+  path: "track-log"
+  parent: data_dir
+x_of_the_day_dir:
+  path: "x-of-the-day"
+  parent: data_dir
+snippets_dir:
+  path: snippets
+  parent: constants_dir
+chaff_dir:
+  path: "chaff"
+  parent: data_dir

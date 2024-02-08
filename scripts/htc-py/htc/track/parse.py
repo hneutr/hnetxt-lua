@@ -5,7 +5,7 @@ from datetime import datetime
 import htc.config
 import htc.constants
 
-ENTRY_DIR = htc.constants.DATA_DIR / htc.config.get('track')['data_dir']
+ENTRY_DIR = htc.constants.DATA_DIR / htc.config.get('paths')['track_dir']['path']
 TEST_ENTRY_DIR = htc.constants.TEST_DATA_DIR
 SEPARATOR = htc.config.get('track')['separator']
 

@@ -1,8 +1,6 @@
 local stub = require("luassert.stub")
 local Path = require("hl.Path")
 
-local Config = require("htl.config")
-
 local db = require("htl.db")
 local projects = require("htl.db.projects")
 local urls = require("htl.db.urls")
@@ -27,12 +25,10 @@ before_each(function()
     d1:rmdir()
     d2:rmdir()
 
-    stub(Config, 'get')
-    Config.get.returns(test_config)
-
-    mirrors = require("htl.db.mirrors")
-
     db.before_test()
+    mirrors = require("htl.db.mirrors")
+    mirrors.configs.generic = test_config
+
     projects:insert(p1)
     projects:insert(p2)
 
@@ -42,7 +38,6 @@ end)
 
 after_each(function()
     db.after_test()
-    Config.get:revert()
 end)
 
 describe("set_project_config", function()

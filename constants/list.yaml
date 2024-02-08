@@ -17,7 +17,6 @@ types:
     todo:
         sigil: '◻'
         toggle_key: t
-        fold: true
     done:
         sigil: '✓'
         toggle_key: d
@@ -54,7 +53,6 @@ types:
                 fg: yellow
             text:
                 italic: true
-        fold: true
     important:
         sigil: "!"
         toggle_key: i
@@ -64,16 +62,3 @@ types:
             text:
                 bold: true
 default_type: bullet
-default_types:
-    - bullet
-    - dot
-    - number 
-    - todo
-    - done
-    - reject
-extra_types:
-    - question
-    - important
-    - maybe
-    # - possibility
-    # - detail

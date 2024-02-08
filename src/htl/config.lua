@@ -1,23 +1,66 @@
 local Yaml = require("hl.yaml")
 local Dict = require("hl.Dict")
 local Path = require("hl.Path")
+local List = require("hl.List")
 
-local Config = {}
-Config.constants_dir = Path.home:join("lib/hnetxt-lua/constants")
-Config.data_dir = Path.home:join(".data")
-Config.constants_suffix = ".yaml"
+local M = {}
+M.constants_dir = Path.home:join("lib/hnetxt-lua/constants")
+M.constants_suffix = ".yaml"
+M.root = Path.home
+M.test_root = Path.tempdir:join("test-root")
 
-function Config.get(constants_type)
-    local path = Config.constants_dir:join(constants_type):with_suffix(Config.constants_suffix)
+function M.get(constants_type)
+    local path = M.constants_dir:join(constants_type):with_suffix(M.constants_suffix)
     return Yaml.read(path)
 end
 
-function Config.get_dir(constants_type)
+function M.get_dir(constants_type)
     local d = Dict()
-    Config.constants_dir:join(constants_type):glob("%.yaml$"):foreach(function(p)
+    M.constants_dir:join(constants_type):glob("%.yaml$"):foreach(function(p)
         d[p:stem()] = Yaml.read(p)
     end)
     return d
 end
 
-return Config
+function M.setup_paths(configs)
+end
+
+function M.get_path(key, configs)
+    if not M.paths[key] then
+        M.paths[key] = M.get_path(configs[key].parent, configs):join(configs[key].path)
+    end
+
+    return M.paths[key]
+end
+
+function M.setup()
+    M.paths = Dict({root = M.root})
+
+    local path_configs = Dict(M.get("paths"))
+    path_configs:keys():foreach(function(key)
+        M.get_path(key, path_configs)
+    end)
+end
+
+function M.before_test()
+    M.root = M.test_root
+    M.setup()
+
+    M.paths:foreach(function(k, v)
+        if k:endswith("_file") then
+            v:touch()
+        elseif k:endswith("_dir") then
+            v:mkdir()
+        end
+    end)
+end
+
+function M.after_test()
+    M.test_root:rmdir(true)
+    M.root = Path.home
+    M.setup()
+end
+
+M.setup()
+
+return M

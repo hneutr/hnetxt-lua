@@ -2,15 +2,15 @@ local Dict = require("hl.Dict")
 local List = require("hl.List")
 local class = require("pl.class")
 
-local Config = require("htl.config")
+local Config = require("htl.Config")
 
 class.Divider()
 Divider.config = Config.get("divider")
 Divider.sizes = Config.get("sizes")
 
 function Divider:_init(size, style)
-    self = Dict.update(self, {size = size, style = style}, Divider.config)
-    self = Dict.update(self, self.config[self.style], Divider.sizes[self.size])
+    self = Dict.update(self, {size = size, style = style}, self.config)
+    self = Dict.update(self, self.config[self.style], self.sizes[self.size])
 end
 
 function Divider:__tostring()

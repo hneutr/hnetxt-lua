@@ -5,7 +5,8 @@ local List = require("hl.List")
 
 local Color = require("hn.color")
 local BufferLines = require("hn.buffer_lines")
-local Config = require("htl.config").get('list')
+local Config = require("htl.Config")
+local ListTypes = Config.get("list")
 
 local TextList = require("htl.text.List")
 local Item = require("htl.text.List.Item")
@@ -93,7 +94,7 @@ end
 
 local function get_list_type_configs()
     local type_configs = List()
-    Dict(Config.types):foreach(function(name, config)
+    Dict(ListTypes):foreach(function(name, config)
         type_configs:append(
             Dict.from(
                 config, 

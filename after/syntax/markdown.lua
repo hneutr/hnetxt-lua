@@ -8,7 +8,8 @@ require("htn.text.list").add_syntax_highlights()
 require("htn.ui.fold").add_syntax_highlights()
 
 local Color = require("hn.color")
-local Syntax = require("htl.config").get('syntax')
+local Config = require("htl.Config")
+local Syntax = Config.get('syntax')
 
 local syntax_elements = Dict(Syntax)
 

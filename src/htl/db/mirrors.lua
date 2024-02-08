@@ -5,7 +5,7 @@ local tbl = require("sqlite.tbl")
 local projects = require("htl.db.projects")
 local urls = require("htl.db.urls")
 
-local Config = require("htl.config")
+local Config = require("htl.Config")
 
 local M = tbl("mirrors", {
     id = true,

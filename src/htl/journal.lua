@@ -1,9 +1,8 @@
-local Path = require("hl.path")
-local Config = require("htl.config").get("journal")
+local Config = require("htl.Config")
 
 return function()
     local date = os.date("%Y%m%d")
-    local path = Path(Config.global_dir):join(date .. ".md")
+    local path = Config.paths.journals_dir:join(date .. ".md")
 
     if not path:exists() then
         path:write({

@@ -3,12 +3,13 @@ local Path = require("hl.Path")
 local Dict = require("hl.Dict")
 local class = require("pl.class")
 local Yaml = require("hl.yaml")
+local Config = require("htl.Config")
 
 local Link = require("htl.text.Link")
 local db = require("htl.db")
 
 class.Snippet()
-Snippet.definitions = require("htl.config").get_dir("snippets")
+Snippet.definitions = Config.get_dir("snippets")
 Snippet.FIELD_SEPARATOR = ":"
 
 function Snippet:_init(path)

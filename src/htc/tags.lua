@@ -2,7 +2,7 @@ local Path = require("hl.Path")
 local Dict = require("hl.Dict")
 local List = require("hl.List")
 
-local Config = require("htl.config")
+local Config = require("htl.Config")
 local Snippet = require("htl.snippet")
 local Metadata = require("htl.metadata")
 
@@ -10,11 +10,8 @@ local Metadata = require("htl.metadata")
 --                                x of the day                                --
 --------------------------------------------------------------------------------
 function set_x_of_the_day()
-    local config = Config.get("x-of-the-day")
-    local data_dir = Config.data_dir:join(config.data_dir)
-
-    List(config.commands):foreach(function(command)
-        local output_path = data_dir:join(command.name, os.date("%Y%m%d"))
+    List(Config.get("x-of-the-day").commands):foreach(function(command)
+        local output_path = Config.paths.x_of_the_day_dir:join(command.name, os.date("%Y%m%d"))
 
         if not output_path:exists() then
             local path = Files(command):get_random_file()

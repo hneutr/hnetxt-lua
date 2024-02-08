@@ -6,7 +6,7 @@ local tbl = require("sqlite.tbl")
 local projects = require("htl.db.projects")
 local Link = require("htl.text.Link")
 local URLDefinition = require("htl.text.URLDefinition")
-local Config = require("htl.config")
+local Config = require("htl.Config")
 
 
 local M = tbl("urls", {

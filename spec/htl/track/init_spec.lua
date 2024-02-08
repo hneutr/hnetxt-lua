@@ -35,40 +35,6 @@ describe("activity_to_list_line", function()
     end)
 end)
 
-describe("list_line_to_row", function()
-    local key = "test"
-
-    it("empty", function()
-        assert.is_nil(track:list_line_to_row(track:activity_to_list_line(key)))
-    end)
-
-    it("true", function()
-        track.activities[key] = {datatype = 'boolean'}
-        assert.are.same(
-            {activity = key, value = true, date = track.default_date()},
-            track:list_line_to_row(track:activity_to_list_line(key, true))
-        )
-    end)
-
-    it("false", function()
-        track.activities[key] = {datatype = 'boolean'}
-
-        assert.are.same(
-            {activity = key, value = false, date = track.default_date()},
-            track:list_line_to_row(track:activity_to_list_line(key, false))
-        )
-    end)
-
-    it("number", function()
-        track.activities[key] = {datatype = 'number'}
-
-        assert.are.same(
-            {activity = key, value = 1234, date = track.default_date()},
-            track:list_line_to_row(track:activity_to_list_line(key, 1234))
-        )
-    end)
-end)
-
 describe("touch", function()
     it("doesn't overwrite", function()
         track:list_path():touch()
@@ -80,23 +46,5 @@ describe("touch", function()
     it("writes", function()
         track:touch()
         assert.are.same(track:list_lines(), track:list_path():readlines())
-    end)
-end)
-
-describe("list_path_to_rows", function()
-    it("works", function()
-        local l1 = track:activity_to_list_line("a", true)
-        local l2 = track:activity_to_list_line("b", false)
-        local l3 = track:activity_to_list_line("c")
-
-        track:list_path():write({l1, l2, l3})
-
-        local r1 = track:list_line_to_row(l1)
-        local r2 = track:list_line_to_row(l2)
-
-        assert.are.same(
-            {r1, r2},
-            track:list_path_to_rows(track:list_path())
-        )
     end)
 end)

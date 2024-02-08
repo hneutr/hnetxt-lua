@@ -1,15 +1,14 @@
-local cjson = require("cjson")
 local Path = require("hl.Path")
 local List = require("hl.List")
 local Dict = require("hl.Dict")
 local class = require("pl.class")
 
-local Config = require("htl.config")
+local Config = require("htl.Config")
 
 class.Track()
 
 Track.config = Config.get('track')
-Track.data_dir = Config.data_dir:join(Track.config.data_dir)
+Track.data_dir = Config.paths.track_dir
 
 function Track:_init()
     self = Dict.update(self, Track.config)
@@ -49,14 +48,6 @@ function Track:list_path(date)
     return self.data_dir:join(self.default_date(date) .. ".md")
 end
 
-function Track:date_from_list_path(list_path)
-    return tonumber(list_path:stem())
-end
-
-function Track:csv_path()
-    return self.data_dir:join(self.config.csv_name)
-end
-
 function Track:activity_to_list_line(activity, value)
     if value == nil then
         local config = self.activities[activity] or {}
@@ -88,56 +79,6 @@ function Track:touch(date)
     end
 
     return list_path
-end
-
-function Track:list_line_to_row(line, date)
-    if #line == 0 then
-        return
-    end
-
-    local activity, value = unpack(line:rsplit(self.separator, 1))
-
-    value = self:parse_value(activity, value)
-
-    if value ~= nil then
-        return {activity = activity, value = value, date = self.default_date(date)}
-    end
-end
-
-function Track:parse_value(activity, value)
-    value = value:strip()
-
-    local config = self.activities[activity] or {datatype = 'number'}
-    local datatype = config.datatype
-
-    if #value == 0 then
-        return
-    end
-
-    if datatype == 'number' then
-        value = tonumber(value)
-    elseif datatype == 'boolean' then
-        if value == 'true' then
-            value = true
-        elseif value == 'false' then
-            value = false
-        end
-    end
-
-    return value
-end
-
-function Track:list_path_to_rows(list_path)
-    local date = self:date_from_list_path(list_path)
-    return list_path:readlines():transform(function(line)
-        return self:list_line_to_row(line, date)
-    end):filter(function(r) return r ~= nil end)
-end
-
-function Track:entries()
-    return self.data_dir:iterdir({dirs = false}):filter(function(p)
-        return p ~= self:csv_path()
-    end)
 end
 
 return Track

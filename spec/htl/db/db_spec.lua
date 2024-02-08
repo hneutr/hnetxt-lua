@@ -1,14 +1,20 @@
 local Path = require("hl.Path")
 
-local db = require("htl.db")
+local db
 
-local test_project = Path.tempdir:join("test-project")
+-- before_each(function()
+--     db = require("htl.db")
+--     db.before_test()
+-- end)
 
-before_each(function()
-    test_project:rmdir()
-    db.before_test()
-end)
+-- after_each(function()
+--     db.after_test()
+-- end)
 
-after_each(function()
-    db.after_test()
+describe("it", function()
+    it("works", function()
+        -- db = require("htl.db")
+        -- print(db.blah)
+        -- db = nil
+    end)
 end)

@@ -31,7 +31,7 @@ build = {
         ["hl.Tree"] = "src/hl/Tree.lua",
         
         ["htl"] = "src/htl/init.lua",
-        ["htl.config"] = "src/htl/config.lua",
+        ["htl.Config"] = "src/htl/config.lua",
 
         ["htl.journal"] = "src/htl/journal.lua",
         ["htl.track"] = "src/htl/track.lua",

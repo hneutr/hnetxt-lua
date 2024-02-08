@@ -9,7 +9,7 @@ local class = require("pl.class")
 
 local db = require("htl.db")
 local Link = require("htl.text.Link")
-local Config = require("htl.config")
+local Config = require("htl.Config")
 local MetadataConfig = Config.get("metadata")
 local Divider = require("htl.text.divider")
 

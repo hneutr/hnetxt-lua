@@ -4,7 +4,7 @@ local class = require("pl.class")
 local List = require("hl.List")
 local Dict = require("hl.Dict")
 
-local Config = require("htl.config")
+local Config = require("htl.Config")
 
 class.Link()
 Link.delimiter = Config.get("link").delimiter
