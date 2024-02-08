@@ -1,10 +1,11 @@
 local stub = require("luassert.stub")
 local Path = require("hl.Path")
 
+local Config = require("htl.Config")
 local db = require("htl.db")
 local projects = require("htl.db.projects")
 local urls = require("htl.db.urls")
-local mirrors
+local mirrors = require("htl.db.mirrors")
 
 local d1 = Path.tempdir:join("dir-1")
 local d2 = Path.tempdir:join("dir-2")
@@ -19,14 +20,14 @@ local test_config = Dict({
     a = {dir_prefix = ".x"},
     b = {dir_prefix = ".x"},
     c = {dir_prefix = ".y"},
+    -- d = {dir_prefix = ".y", relative_to = "data_dir"},
 })
 
 before_each(function()
-    d1:rmdir()
-    d2:rmdir()
+    d1:rmdir(true)
+    d2:rmdir(true)
 
     db.before_test()
-    mirrors = require("htl.db.mirrors")
     mirrors.configs.generic = test_config
 
     projects:insert(p1)
@@ -51,6 +52,7 @@ describe("set_project_config", function()
                     a = p:join('.x', 'a'),
                     b = p:join('.x', 'b'),
                     c = p:join('.y', 'c'),
+                    -- d = Config.paths.data_dir:join('.y', 'd'),
                 },
                 mirrors:get_project_config(f).mirrors
             )

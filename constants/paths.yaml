@@ -31,6 +31,3 @@ x_of_the_day_dir:
 snippets_dir:
   path: snippets
   parent: constants_dir
-chaff_dir:
-  path: "chaff"
-  parent: data_dir

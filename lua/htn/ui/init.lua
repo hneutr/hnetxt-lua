@@ -37,7 +37,6 @@ function M.get_statusline_path_string(path, project_root)
 end
 
 function M.statusline()
-    vim.g.blah = 1
     local path = Path.this()
     local project_root = Path(vim.b.htn_project.path)
     local statusline = M.get_statusline_path_string(path, project_root)

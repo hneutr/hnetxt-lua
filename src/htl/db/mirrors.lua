@@ -48,6 +48,14 @@ function M:set_project_config(project)
     local config = Dict(project)
     config.mirrors = Dict()
     M.configs.generic:foreach(function(key, mirror_config)
+        -- local dir
+
+        -- if mirror_config.relative_to then
+        --     dir = Config.paths[mirror_config.relative_to]
+        -- else
+        --     dir = project.path
+        -- end
+        -- config.mirrors[key] = dir:join(mirror_config.dir_prefix, key)
         config.mirrors[key] = project.path:join(mirror_config.dir_prefix, key)
     end)
 

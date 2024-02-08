@@ -60,7 +60,7 @@ if project then
 
     autocommands.htn_statusline = List({
         {
-            events = {'VimEnter', 'WinEnter'},
+            events = {'VimEnter', 'WinEnter', "BufEnter"},
             callback = function() vim.opt_local.statusline = ui.statusline() end,
         }
     })
