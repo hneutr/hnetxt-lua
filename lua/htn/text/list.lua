@@ -6,7 +6,7 @@ local List = require("hl.List")
 local Color = require("hn.color")
 local BufferLines = require("hn.buffer_lines")
 local Config = require("htl.Config")
-local ListTypes = Config.get("list")
+local ListTypes = Config.get("list").types
 
 local TextList = require("htl.text.List")
 local Item = require("htl.text.List.Item")
