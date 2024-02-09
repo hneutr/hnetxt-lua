@@ -60,11 +60,17 @@ function M:where(q)
 end
 
 function M:move(source, target)
+    local update = {path = tostring(target)}
+    local project = projects:get_by_path(target)
+
+    if project then
+        update.project = project.title
+    else
+        project = ""
+    end
+    
     M:add_if_missing(source)
-    M:update({
-        where = {path = tostring(source)},
-        set = {path = tostring(target)},
-    })
+    M:update({where = {path = tostring(source)}, set = update})
 end
 
 function M:get(q)
