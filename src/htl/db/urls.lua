@@ -182,8 +182,19 @@ function M:get_from_fuzzy_path(path, dir)
 end
 
 function M:get_reference(url)
+    local label = url.label
+
+    if not label then
+        local stem = url.path:stem()
+        if stem == "@" then
+            stem = url.path:parent():stem()
+        end
+
+        label = stem:gsub("-", " ")
+    end
+
     return Link({
-        label = url.label or url.path:stem():gsub("-", " "),
+        label = label,
         url = url.id,
     })
 end
