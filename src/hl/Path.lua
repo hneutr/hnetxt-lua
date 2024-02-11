@@ -310,14 +310,14 @@ Path.relative_to = Path.make_fn_match_input(function(p, p2)
 end)
 
 Path.resolve = Path.make_fn_match_input(function(p)
-    p = Path.expanduser(p)
     p = Path.as_path(p)
+    p = Path.expanduser(p)
 
-    if p:parts()[1] == "." then
-        p = p:removeprefix(".")
+    if p:startswith("./") then
+        p = p:removeprefix("./")
     end
 
-    if not p:is_relative_to(Path.cwd()) then
+    if not p:is_relative_to(Path.root) and not p:is_relative_to(Path.cwd()) then
         p = Path.cwd():join(p)
     end
 
