@@ -46,7 +46,7 @@ end
 function Line.str_is_a(l) return true end
 
 function Line:merge(other)
-    self.text = self.text:lstrip() .. " " .. other.text
+    self.text = self.text:rstrip() .. " " .. other.text:lstrip()
     return self
 end
 

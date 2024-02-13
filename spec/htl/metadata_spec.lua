@@ -26,14 +26,11 @@ before_each(function()
     dir:rmdir(true)
 
     projects:insert(p1)
-    -- stub(projects, 'get_path')
-    -- projects.get_path.returns(dir)
 end)
 
 after_each(function()
     dir:rmdir(true)
     db.after_test()
-    -- projects.get_path:revert()
 end)
 
 
