@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>golf.hne.dashboard.plist</string>
+    <key>Program</key>
+        <string>/Users/hne/lib/hnetxt-lua/scripts/jobs/plot-dashboard.sh</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/Cellar/pyenv-virtualenv/1.2.1/shims:/Users/hne/.pyenv/shims:/opt/homebrew:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>SHELL</key>
+        <string>/bin/zsh</string>
+        <key>HOME</key>
+        <string>/Users/hne</string>
+        <key>DOTFILES</key>
+        <string>/Users/hne/dotfiles</string>
+    </dict>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/hne/lib/hnetxt-lua/scripts/htc-py</string>
+
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key><integer>6</integer>
+        <key>Minute</key><integer>1</integer>
+    </dict>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/hne/.data/.jobs/err/dashboard.txt</string>
+    <key>StandardOutPath</key>
+    <string>/Users/hne/.data/.jobs/out/dashboard.txt</string>
+</dict>
+</plist>

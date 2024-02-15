@@ -53,6 +53,12 @@ Dict({
             print(require("htl.track")():touch(date))
         end,
     },
+    xtest = {
+        description = "print the goals path",
+        action = function()
+            print(os.time())
+        end,
+    },
 }):foreach(function(name, config)
     commands:append(Command:add(parser, config, name))
 end)
