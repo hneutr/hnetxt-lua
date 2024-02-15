@@ -508,7 +508,6 @@ function Files:get_random_file()
     return Path(paths[index])
 end
 
-
 return {
     Field = Field,
     IsAField = IsAField,

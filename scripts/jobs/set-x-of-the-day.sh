@@ -1,3 +1,3 @@
 #!/bin/zsh
 source /Users/hne/.zshrc
-hnetxt tags -x
+hnetxt x_of_the_day

@@ -1,10 +1,15 @@
 require("approot")("/Users/hne/lib/hnetxt-lua/")
 
-local Command = require("htc.command")
 local List = require("hl.List")
 local Dict = require("hl.Dict")
-local Path = require("hl.path")
+local Path = require("hl.Path")
+
 local db = require("htl.db")
+local Config = require("htl.Config")
+local Metadata = require("htl.Metadata")
+local Snippet = require("htl.snippet")
+
+local Command = require("htc.command")
 
 local parser = require("argparse")("hnetxt")
 
@@ -53,10 +58,26 @@ Dict({
             print(require("htl.track")():touch(date))
         end,
     },
-    xtest = {
-        description = "print the goals path",
-        action = function()
-            print(os.time())
+    x_of_the_day = {
+        description = "set the x-of-the-day files",
+        {"+r", target = "rerun", description = "rerun", switch = "on"},
+        action = function(args)
+            local today = os.date("%Y%m%d")
+
+            local sources = List()
+            Dict(Config.get("x-of-the-day")):foreach(function(key, command)
+                local path = Config.paths.x_of_the_day_dir:join(key, today)
+
+                if not path:exists() or args.rerun then
+                    local source = Metadata.Files(command):get_random_file()
+                    path:write(tostring(Snippet(source)))
+                    sources:append(string.format("%s: %s", key, source))
+                end
+            end)
+
+            if #sources > 0 then
+                Config.paths.x_of_the_day_dir:join(".sources", today):write(sources)
+            end
         end,
     },
 }):foreach(function(name, config)
