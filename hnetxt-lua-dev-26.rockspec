@@ -64,7 +64,8 @@ build = {
         ["htc.remove"] = "src/htc/remove.lua",
         ["htc.move"] = "src/htc/move.lua",
 
-        ["htl.metadata.Parser"] = "src/htl/metadata/Parser.lua",
+        -- new metadata
+        ["htl.db.metadata"] = "src/htl/db/metadata.lua",
 
     }
 }

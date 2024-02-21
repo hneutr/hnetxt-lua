@@ -3,6 +3,7 @@ tag_prefix: "@"
 tag_delimiter: "."
 field_delimiter: ":"
 field_or_delimiter: "|"
+indent_size: "  "
 excluded_fields:
 - date
 - on page

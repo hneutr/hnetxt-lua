@@ -255,28 +255,6 @@ function File:read(path)
     return lines
 end
 
-function File:get_new_metadata_dict()
-    return Dict({
-        key = "",
-        value = "",
-        fields = Dict(),
-        tags = Dict(),
-    })
-end
-
-function File:new_read(path)
-    local metadata_by_indent = Dict({
-        [""] = File:get_new_metadata_dict(),
-    })
-
-    self:read(self.path):foreach(function(line)
-        local indent, line = line:match("(%s?)(.*)")
-        local next_indent = indent .. "  "
-    end)
-    
-    return
-end
-
 function File:parse_line(line)
     for LineParser in self.LineParsers:iter() do
         if LineParser.is_a(line) then
