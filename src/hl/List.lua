@@ -60,4 +60,8 @@ function List:any()
     return false
 end
 
+function List:col(col)
+    return self:map(function(item) return item[col] end)
+end
+
 return List

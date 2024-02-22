@@ -76,7 +76,6 @@ end
 function M:get(q)
     return List(M:map(function(url)
         url.path = Path(url.path)
-
         return url
     end, q))
 end

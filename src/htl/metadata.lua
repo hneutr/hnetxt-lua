@@ -115,7 +115,7 @@ function Field.get_print_lines(gathered)
     gathered:keys():sorted(function(a, b)
         return a:lower() < b:lower()
     end):foreach(function(key)
-        local sublines = gathered[key]:values():sorted():transform(function(v)
+        local sublines = gathered[key]:vals():sorted():transform(function(v)
             return Field.indent .. tostring(v)
         end)
 
@@ -273,7 +273,7 @@ function File:set_references_list(references_dict)
 
     if #referenced_ids > 0 then
         db.get().urls:get({where = {id = referenced_ids}}):foreach(function(url)
-            references_list:add_val(tostring(url.path))
+            references_list:add(tostring(url.path))
         end)
     end
 
@@ -338,10 +338,13 @@ function Taxonomy:_init(project_root)
 end
 
 function Taxonomy:get_local_taxonomy(project_root)
-    local local_taxonomy_path = project_root:join(self.file_name)
     local taxonomy = {}
-    if local_taxonomy_path:exists() then
-        taxonomy = Yaml.read(local_taxonomy_path)
+    if project_root then
+        local local_taxonomy_path = project_root:join(self.file_name)
+
+        if local_taxonomy_path:exists() then
+            taxonomy = Yaml.read(local_taxonomy_path)
+        end
     end
 
     return Dict(taxonomy)

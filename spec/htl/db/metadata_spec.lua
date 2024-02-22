@@ -267,3 +267,92 @@ describe("get_urls", function()
         )
     end)
 end)
+
+describe("get_subkeys_by_val", function()
+    it("val = nil: agnostic", function()
+        assert.are.same(
+            {__agnostic = {"c"}},
+            metadata:get_subkeys_by_val({
+                {key = "c", parent_val = nil},
+                {key = "c", parent_val = "x"},
+            })
+        )
+    end)
+
+    it("> 1 val: agnostic", function()
+        assert.are.same(
+            {__agnostic = {"c"}},
+            metadata:get_subkeys_by_val({
+                {key = "c", parent_val = "x"},
+                {key = "c", parent_val = "y"},
+            })
+        )
+    end)
+
+    it("1 val: specific", function()
+        assert.are.same(
+            {x = {"c"}},
+            metadata:get_subkeys_by_val({
+                {key = "c", parent_val = "x"},
+                {key = "c", parent_val = "x"},
+            })
+        )
+    end)
+
+    it("2 keys, same val", function()
+        assert.are.same(
+            {x = {"a", "b"}},
+            metadata:get_subkeys_by_val({
+                {key = "a", parent_val = "x"},
+                {key = "b", parent_val = "x"},
+            })
+        )
+    end)
+end)
+
+-- describe("get_print_lines", function()
+--     it("probably doesn't work", function()
+--         metadata:insert_dict(
+--             metadata:parse(
+--                 List({
+--                     "a: b",
+--                     "  @x",
+--                     "  @y",
+--                     "w: v",
+--                 })
+--             ),
+--             u1
+--         )
+
+--         metadata:insert_dict(
+--             metadata:parse(
+--                 List({
+--                     "a: c",
+--                     "  @x",
+--                     "  @z",
+--                     "  i: k",
+--                     "w: v",
+--                     "date: 1",
+--                 })
+--             ),
+--             u2
+--         )
+
+--         metadata:insert_dict(
+--             metadata:parse(
+--                 List({
+--                     "a: b",
+--                     "  @x",
+--                     "w: v",
+--                     "@t",
+--                 })
+--             ),
+--             u3
+--         )
+
+--         local o = metadata.get_dict({u1, u2, u3})
+--         print(1)
+--         print(o)
+--         print(1)
+--     end)
+-- end)

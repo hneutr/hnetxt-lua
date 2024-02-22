@@ -166,4 +166,23 @@ function Dict:has(key, ...)
     return has
 end
 
+function Dict:__tostring()
+    local lines = List()
+
+    self:keys():sorted():transform(function(k)
+        lines:extend(string.format("%s = %s", k, tostring(self[k])):split("\n"))
+    end)
+    
+    lines:transform(function(l) return "  " .. l end)
+
+    if #lines == 0 then
+        lines:append("{}")
+    else
+        lines:put("{")
+        lines:append("}")
+    end
+
+    return lines:join("\n")
+end
+
 return Dict

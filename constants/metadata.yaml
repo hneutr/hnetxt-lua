@@ -4,6 +4,7 @@ tag_delimiter: "."
 field_delimiter: ":"
 field_or_delimiter: "|"
 indent_size: "  "
+frontmatter_delimiter: "\n\n"
 excluded_fields:
 - date
 - on page

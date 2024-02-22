@@ -14,51 +14,53 @@ end
 
 function Set.add_val(self, val)
     self._vals[val] = true
+    return self
 end
 
-function Set.remove_val(self, val)
+function Set.remove(self, val)
     self._vals[val] = nil
+    return self
 end
 
 function Set.has(self, val)
     return self._vals[val] or false
 end
 
-function Set.values(self)
+function Set.vals(self)
     return self._vals:keys()
 end
 
 function Set.__tostring(self)
-    return '{' .. self:values():join(", ") .. '}'
+    return '{' .. self:vals():join(", ") .. '}'
 end
 
 function Set.union(self, other)
-    local other_values
+    local other_vals
 
     if type(other) == 'table' then
         local mt = getmetatable(other)
         if mt == Set then
-            other_values = other:values()
+            other_vals = other:vals()
         else
-            other_values = other
+            other_vals = other
         end
     else
-        other_values = {other}
+        other_vals = {other}
     end
 
-    return Set(self:values():extend(other_values))
+    return Set(self:vals():extend(other_vals))
 end
 
 Set.__add = Set.union
 
 function Set.intersection(self, other)
-    return Set(self:values():clone():filter(function(val) return other:has(val) end))
+    return Set(self:vals():clone():filter(function(val) return other:has(val) end))
 end
 
 Set.__mul = Set.intersection
 
 function Set.difference(self, other)
-    return Set(self:values():clone():filter(function(val) return not other:has(val) end))
+    return Set(self:vals():clone():filter(function(val) return not other:has(val) end))
 end
 
 Set.__sub = Set.difference
@@ -72,7 +74,7 @@ end
 Set.__pow = Set.symmetric_difference
 
 function Set.issubset(self, other)
-    for k in pairs(self:values()) do
+    for k in pairs(self:vals()) do
         if not other:has(k) then
             return false
         end
@@ -84,7 +86,7 @@ end
 Set.__lt = Set.issubset
 
 function Set.len(self)
-    return #self:values()
+    return #self:vals()
 end
 
 Set.__len = Set.len
@@ -102,25 +104,25 @@ function Set.isdisjoint(self, other)
 end
 
 function Set:add(other)
-    local other_values
+    local other_vals
     if type(other) == 'table' then
         local mt = getmetatable(other)
         if mt == Set then
-            other_values = other:values()
+            other_vals = other:vals()
         else
-            other_values = other
+            other_vals = other
         end
     else
-        other_values = {other}
+        other_vals = {other}
     end
 
-    List(other_values):foreach(function(val)
+    List(other_vals):foreach(function(val)
         self:add_val(val)
     end)
 end
 
 function Set:foreach(...)
-    self:values():foreach(...)
+    self:vals():foreach(...)
 end
 
 return Set

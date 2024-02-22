@@ -66,7 +66,6 @@ build = {
 
         -- new metadata
         ["htl.db.metadata"] = "src/htl/db/metadata.lua",
-
     }
 }
 test = {

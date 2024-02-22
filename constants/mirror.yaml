@@ -13,3 +13,7 @@ outlines:
 meta: 
     mapkey: m
     dir_prefix: .notes
+metadata:
+    mapkey: d
+    dir_prefix: .metadata
+    exclude_from_statusline: true

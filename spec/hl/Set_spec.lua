@@ -1,8 +1,8 @@
 local Set = require("hl.Set")
 
-describe("values", function()
+describe("vals", function()
     it("works", function()
-        assert.are.same({1, 2, 3}, Set({1, 2, 3}):values())
+        assert.are.same({1, 2, 3}, Set({1, 2, 3}):vals())
     end)
 end)
 
