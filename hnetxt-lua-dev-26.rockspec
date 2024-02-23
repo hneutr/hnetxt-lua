@@ -43,6 +43,7 @@ build = {
         ["htl.db.projects"] = "src/htl/db/projects.lua",
         ["htl.db.urls"] = "src/htl/db/urls.lua",
         ["htl.db.mirrors"] = "src/htl/db/mirrors.lua",
+        ["htl.db.metadata"] = "src/htl/db/metadata.lua",
 
         ["htl.text.divider"] = "src/htl/text/divider.lua",
         ["htl.text.header"] = "src/htl/text/header.lua",
@@ -63,9 +64,6 @@ build = {
         ["htc.project"] = "src/htc/project.lua",
         ["htc.remove"] = "src/htc/remove.lua",
         ["htc.move"] = "src/htc/move.lua",
-
-        -- new metadata
-        ["htl.db.metadata"] = "src/htl/db/metadata.lua",
     }
 }
 test = {

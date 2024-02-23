@@ -5,6 +5,7 @@ local ui = require("htn.ui")
 
 local db = require("htl.db")
 local urls = require("htl.db.urls")
+local metadata = require('htl.db.metadata')
 
 local BufferLines = require("hn.buffer_lines")
 
@@ -61,6 +62,15 @@ if project then
         {
             events = {'VimEnter', 'WinEnter', 'BufEnter', 'VimLeave', 'WinLeave', 'BufLeave'},
             callback = ui.update_link_urls,
+        }
+    })
+
+    autocommands.htn_link_update = List({
+        {
+            events = {'VimLeave', 'WinLeave', 'BufLeave'},
+            callback = function()
+                metadata:save_file_metadata(Path.this())
+            end
         }
     })
 
