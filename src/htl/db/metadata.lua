@@ -12,6 +12,8 @@ local Link = require("htl.text.Link")
 local Config = require("htl.Config")
 local Divider = require("htl.text.divider")
 
+local Taxonomy = require("htl.metadata").Taxonomy
+
 local M = tbl("metadata", {
     id = true,
     key = {
@@ -33,9 +35,69 @@ local M = tbl("metadata", {
     datatype = "text",
 })
 
+--[[
+what we're going to do is this:
+- use the taxonomy to gather things
+
+`The Solity`:
+is a: space station
+    governed by: Luc Acastor
+    radial distance: .05x
+    built by: Luc Acastor
+
+`Marand`:
+is a: planet
+    governed by: The Marandine Umbrae
+    radial distance: .1x
+
+----------------------------------------
+
+is a:
+    place >
+        governed by:
+            Luc Acastor
+            The Marandine Umbrae
+        radial distance:
+            .05x
+            .1x
+        = space station
+            built by:
+                Luc Acastor
+        = planet
+
+----------------------------------------
+
+take the list of `is a` values:
+
+make a dictionary:
+    is_a_key_to_fields['key'] = Set(fields)
+
+for each key in the is_a taxonomy:
+    add the intersection of all of the subtypes to the key
+        remove the intersected keys from the subtypes
+
+eg:
+    at start:
+        is_a_dict = {
+            space station = Set({"governed by", "radial distance", "built by"}),
+            planet = Set({"governed by", "radial distance"})
+        }
+
+    then set `place`:
+        is_a_dict = {
+            space station = Set({"built by"}),
+            planet = Set()
+            place = Set({"governed by", "radial distance"})
+        }
+
+- we're only going to do this for the is_a field
+- all other fields will be handled as is: no more "agnostic" bullshit
+]]
+
 M.config = Config.get("metadata")
+M.config.excluded_fields = Set(M.config.excluded_fields)
 M.agnostic_val = '__agnostic'
-M.metadata_divider = tostring(Divider("large", "metadata"))
+M.metadata_dividers = List({"", tostring(Divider("large", "metadata"))})
 M.exclude_startswith = "-"
 
 function M:parse(lines)
@@ -184,7 +246,7 @@ function M:separate_metadata(lines)
         return not l:strip():startswith(M.exclude_startswith)
     end)
 
-    List({"", M.metadata_divider}):foreach(function(chop)
+    M.metadata_dividers:foreach(function(chop)
         local index = lines:index(chop)
         if index then 
             lines = lines:chop(index, #lines)
@@ -237,7 +299,7 @@ function M:dict_to_string(dict)
     lines:pop()
 
     lines:transform(function(l)
-        -- l = l:sub(#M.config.indent_size + 1)
+        l = l:sub(#M.config.indent_size + 1)
         l = l:removesuffix(" = {}")
 
         -- if l:endswith(" = {") then
@@ -260,25 +322,6 @@ function M:dict_to_string(dict)
     end):join("\n")
 end
 
-function M.get_dict(urls, include_references)
-    local rows = M:get({where = {url = urls}})
-
-    if not include_references then
-        rows = rows:filter(function(row) return row.datatype ~= 'reference' end)
-    end
-
-    local ids = rows:col('id')
-
-    local starting_keys = Set(rows:filter(function(r) return r.parent == nil end):col('key'))
-
-    local d = Dict()
-    starting_keys:difference(Set(M.config.excluded_fields)):foreach(function(key)
-        d[M:key_string(key)] = M.get_key_subdict(M:get({where = {key = key, id = ids}}))
-    end)
-    
-    return M:dict_to_string(d)
-end
-
 function M:key_string(key)
     if not key:startswith(M.config.tag_prefix) then
         key = string.format("*%s", key)
@@ -290,10 +333,47 @@ function M:val_string(val)
     return string.format("=%s", val)
 end
 
-function M.get_key_subdict(rows)
-    local subrows = M.annotate_parent_vals(M:get({where = {parent = rows:col('id')}}), rows)
+function M.get_dict(urls, include_references)
+    local args = {urls = urls, include_references = include_references}
+    local rows = M.get_rows(args)
 
-    local subkeys_by_val = M:get_subkeys_by_val(subrows)
+    print("hello")
+
+    local starting_keys = Set(rows:filter(function(row)
+        return row.parent == nil and not M.config.excluded_fields:has(row.key)
+    end):col('key'))
+
+    local d = Dict()
+    starting_keys:foreach(function(key)
+        print(key)
+        d[M:key_string(key)] = M.get_key_dict(key, args)
+    end)
+    
+    return M:dict_to_string(d)
+end
+
+function M.get_rows(args, key, ids)
+    local rows = M:get({where = {url = args.urls, key = key, id = ids}})
+        
+    if not args.include_references then
+        rows = rows:filter(function(row) return row.datatype ~= 'reference' end)
+    end
+    
+    return rows
+end
+
+function M.get_key_dict(key, args, ids)
+    local rows = M.get_rows(args, key, ids)
+
+    local subrows = List()
+    local subkeys_by_val = Dict()
+    local subrowless_vals = Set(rows:col('val')):remove(false)
+
+    if #rows > 0 then
+        subrows = M.annotate_parent_vals(M:get({where = {parent = rows:col('id')}}), rows)
+        subkeys_by_val = M:get_subkeys_by_val(subrows)
+        subrowless_vals = subrowless_vals - Set(subrows:col('parent_val'))
+    end
 
     local lines_by_val = Dict()
     subkeys_by_val:foreach(function(val, subkeys)
@@ -305,40 +385,37 @@ function M.get_key_subdict(rows)
             set_keys:append(M:val_string(val))
         end
         
+        local ids = val_rows:col('id')
         subkeys:foreach(function(subkey)
-            local subkey_rows = M:get({where = {key = subkey, id = val_rows:col('id')}})
             local subkey_setkeys = set_keys:clone():append(M:key_string(subkey))
-            lines_by_val:set(subkey_setkeys, M.get_key_subdict(subkey_rows))
+            lines_by_val:set(subkey_setkeys, M.get_key_dict(subkey, args, ids))
         end)
     end)
 
-    local subrowless_vals = Set(rows:col('val')):remove(false) - Set(subrows:col('parent_val'))
-    subrowless_vals:vals():foreach(function(v)
-        lines_by_val[string.format(M:val_string(v))] = Dict()
-    end)
+    subrowless_vals:vals():foreach(function(v) lines_by_val[M:val_string(v)] = Dict() end)
 
     return lines_by_val
 end
 
--- TODO: actually call this
-function M:should_print_val_lines(rows)
-    local n_urls = Set(rows:col('url')):len()
+-- -- TODO: actually call this
+-- function M:should_print_val_lines(rows)
+--     local n_urls = Set(rows:col('url')):len()
 
-    local n_vals = Set(rows:col('val')):len()
+--     local n_vals = Set(rows:col('val')):len()
     
-    local has_nil_val = false
-    rows:foreach(function(r)
-        if r.val == nil then
-            has_nil_val = true
-        end
-    end)
+--     local has_nil_val = false
+--     rows:foreach(function(r)
+--         if r.val == nil then
+--             has_nil_val = true
+--         end
+--     end)
 
-    if has_nil_val then
-        n_vals = n_vals + 1
-    end
+--     if has_nil_val then
+--         n_vals = n_vals + 1
+--     end
 
-    return n_vals ~= 1 and n_vals ~= n_urls
-end
+--     return n_vals ~= 1 and n_vals ~= n_urls
+-- end
 
 function M.annotate_parent_vals(rows, parents)
     local id_to_parent_val = Dict()

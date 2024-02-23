@@ -21,5 +21,5 @@ end):foreach(function(url)
     metadata:save_file_metadata(url.path)
 end)
 
-Set(metadata:get():col('key')):vals():sorted():foreach(print)
-print(metadata:dict_to_string(metadata.get_dict(u)))
+-- Set(metadata:get():col('key')):vals():sorted():foreach(print)
+print(metadata.get_dict(u))
