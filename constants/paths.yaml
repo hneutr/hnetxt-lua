@@ -31,3 +31,6 @@ x_of_the_day_dir:
 snippets_dir:
   path: snippets
   parent: constants_dir
+mirrors_dir:
+  path: .mirrors
+  parent: data_dir

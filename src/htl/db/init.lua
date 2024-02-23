@@ -18,7 +18,6 @@ function M.setup()
         uri = tostring(Config.paths.db_file),
         projects = require("htl.db.projects"),
         urls = require("htl.db.urls"),
-        mirrors = require("htl.db.mirrors"),
         metadata = require("htl.db.metadata"),
     })
 end
@@ -34,7 +33,6 @@ end
 function M.clean()
     local con = M.get()
     con.urls:clean()
-    con.mirrors:clean()
 end
 
 return M

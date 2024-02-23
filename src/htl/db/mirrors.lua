@@ -1,188 +1,92 @@
 local Dict = require("hl.Dict")
-local sqlite = require("sqlite.db")
-local tbl = require("sqlite.tbl")
 
-local projects = require("htl.db.projects")
 local urls = require("htl.db.urls")
-
 local Config = require("htl.Config")
 
-local M = tbl("mirrors", {
-    id = true,
-    path = {"text", required = true},
-    kind = {"text", required = true},
-    url = {
-        type = "integer",
-        reference = "urls.id",
-        on_delete = "cascade",
-    },
-})
+local M = {}
 
 --------------------------------------------------------------------------------
 --                                  configs                                   --
 --------------------------------------------------------------------------------
 M.configs = Dict({
     generic = Dict(Config.get("mirror")),
-    projects = Dict(),
-    path_to_project = Dict()
 })
 
-function M:get_project_config(path)
-    local project = M.configs.path_to_project[tostring(path)]
-    if not project then
-        project = projects.get_by_path(path)
+function M:get_absolute_config()
+    if not M.configs.absolute then
+        M.configs.absolute = Dict()
+        M.configs.generic:keys():foreach(function(key)
+            M.configs.absolute[key] = Config.paths['mirrors_dir']:join(key)
+        end)
     end
 
-    if not project then
-        return Dict()
-    end
-
-    if not M.configs.projects[project.title] then
-        M:set_project_config(project)
-    end
-
-    return M.configs.projects[project.title]
+    return M.configs.absolute
 end
 
-function M:set_project_config(project)
-    local config = Dict(project)
-    config.mirrors = Dict()
-    M.configs.generic:foreach(function(key, mirror_config)
-        -- local dir
-
-        -- if mirror_config.relative_to then
-        --     dir = Config.paths[mirror_config.relative_to]
-        -- else
-        --     dir = project.path
-        -- end
-        -- config.mirrors[key] = dir:join(mirror_config.dir_prefix, key)
-        config.mirrors[key] = project.path:join(mirror_config.dir_prefix, key)
-    end)
-
-    M.configs.projects[project.title] = config
-end
-
---------------------------------------------------------------------------------
---                                   mirror                                   --
---------------------------------------------------------------------------------
 function M:is_mirror(path)
-    local config = M:get_project_config(path)
-
-    if config then
-        for kind in config.mirrors:keys():iter() do
-            if path:is_relative_to(config.mirrors[kind]) then
-                return true
-            end
-        end
-    end
-
-    return false
+    return M:get_mirror_kind(path) ~= nil
 end
 
 function M:get_mirror_kind(path)
-    local config = M:get_project_config(path)
+    local config = M:get_absolute_config()
 
-    if config then
-        for kind in config.mirrors:keys():iter() do
-            if path:is_relative_to(config.mirrors[kind]) then
-                return kind
-            end
+    for kind in config:keys():iter() do
+        if path:is_relative_to(config[kind]) then
+            return kind
         end
     end
 
     return
 end
 
-function M:get_mirror(path, kind)
-    kind = kind or M:get_mirror_kind(path)
-
-    local url = M:get_source(path)
-
-    if not M:where({url = url.id, kind = kind}) then
-        M:insert_kind(url, kind)
-    end
-
-    return M:where({url = url.id, kind = kind})
-end
-
 function M:get_mirror_path(path, kind)
-    local mirror = M:get_mirror(path, kind) or {}
-    return mirror.path
-end
+    path = M:get_source(path) or {}
+    path = path.path
 
-function M:insert_kind(url, kind)
-    local config = M:get_project_config(url.path)
-    local kind_path = config.mirrors[kind]
-    
-    M:__insert({
-        path = tostring(kind_path:join(url.id .. ".md")),
-        kind = kind,
-        url = url.id,
-    })
-end
-
-function M:get_mirrors(path)
-    local url = M:get_source(path)
+    local url = urls:where({path = path, resource_type = 'file'})
 
     if url then
-        return M:get({where = {url = url.id}})
+        return M:get_absolute_config()[kind]:join(string.format("%s.md", tostring(url.id)))
     end
-
-    return List({})
 end
 
-function M.get_kind_string(mirror)
-    return M.configs.generic[mirror.kind].statusline_name or mirror.kind
+function M:get_mirror_paths(path)
+    local mirrors = Dict()
+    M:get_absolute_config():keys():foreach(function(kind)
+        local mirror = M:get_mirror_path(path, kind)
+
+        if mirror and mirror:exists() then
+            mirrors[kind] = mirror
+        end
+    end)
+
+    return mirrors
 end
 
-function M:get_mirrors_string(path)
-    if M:is_source(path) then
-        return M:get_mirrors(path):filter(function(mirror)
-            return not M.configs.generic[mirror.kind].exclude_from_statusline
-        end):transform(M.get_kind_string):sorted():join(" | ")
-    end
-
-    return ""
-end
-
---------------------------------------------------------------------------------
---                                   source                                   --
---------------------------------------------------------------------------------
 function M:is_source(path)
     return not M:is_mirror(path)
 end
 
 function M:get_source(path)
-    local q = {}
-    if M:is_mirror(path) then
-        q.id = tonumber(path:stem())
-    else
-        q.path = path
+    if M:is_source(path) then
+        return urls:where({path = path})
+    elseif M:is_mirror(path) then
+        return urls:where({id = tonumber(path:stem())})
     end
-
-    return urls:where(q)
 end
 
---------------------------------------------------------------------------------
---                                    misc                                    --
---------------------------------------------------------------------------------
-function M:get(q)
-    return List(M:map(function(mirror)
-        mirror.path = Path(mirror.path)
-        return mirror
-    end, q))
+function M.get_kind_string(kind)
+    return M.configs.generic[kind].statusline_name or kind
 end
 
-function M:clean()
-    local ids_to_delete = M:get():filter(function(mirror)
-        return not mirror.path:exists()
-    end):transform(function(mirror)
-        return mirror.id
-    end)
-
-    if #ids_to_delete > 0 then
-        M:remove({id = ids_to_delete})
+function M:get_mirrors_string(path)
+    if M:is_source(path) then
+        return M:get_mirror_paths(path):keys():filter(function(kind)
+            return not M.configs.generic[kind].exclude_from_statusline
+        end):transform(M.get_kind_string):sorted():join(" | ")
     end
+
+    return ""
 end
 
 return M

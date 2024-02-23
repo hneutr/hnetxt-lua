@@ -4,7 +4,6 @@ local Path = require('hl.Path')
 local ui = require("htn.ui")
 
 local db = require("htl.db")
-local mirrors = require("htl.db.mirrors")
 local urls = require("htl.db.urls")
 
 local BufferLines = require("hn.buffer_lines")
@@ -58,17 +57,6 @@ if project then
 
     ui.set_file_url(current_file)
 
-    autocommands.htn_statusline = List({
-        {
-            events = {'VimEnter', 'WinEnter', "BufEnter"},
-            callback = function()
-                if vim.b.htn_project then
-                    vim.opt_local.statusline = ui.statusline()
-                end
-            end,
-        }
-    })
-
     autocommands.htn_link_update = List({
         {
             events = {'VimEnter', 'WinEnter', 'BufEnter', 'VimLeave', 'WinLeave', 'BufLeave'},
@@ -79,6 +67,15 @@ if project then
     -- commands.FileToLink = ui.FileToLink
     -- commands.LinkToFile = ui.LinkToFile
 end
+
+autocommands.htn_statusline = List({
+    {
+        events = {'VimEnter', 'WinEnter', "BufEnter"},
+        callback = function()
+            vim.opt_local.statusline = ui.statusline()
+        end,
+    }
+})
 
 commands:foreach(function(name, fn)
     vim.api.nvim_buf_create_user_command(0, name, fn, {})

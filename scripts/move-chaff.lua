@@ -10,36 +10,27 @@ local Config = require("htl.Config")
 
 local updates = List()
 projects:get():foreach(function(project)
-    local root = project.path
+    local made_changes = false
+    local new_conf = mirrors:get_absolute_config()
+    mirrors:get_project_config(project.path).mirrors:foreach(function(kind, old_dir)
+        local new_dir = new_conf[kind]
 
-    local old_scratch_dir = mirrors:get_project_config(root).mirrors.scratch
+        if not new_dir:exists() then
+            new_dir:mkdir()
+        end
 
-    if old_scratch_dir:exists() then
-        old_scratch_dir:iterdir({dirs = false}):sorted(function(a, b)
-            return tostring(a) < tostring(b)
-        end):foreach(function(old_path)
-            local new_path = Config.paths.data_dir:join(old_path:relative_to(root))
+        if old_dir:exists() then
+            old_dir:iterdir({dirs = false}):foreach(function(old_path)
+                local new_path = new_dir:join(old_path:relative_to(old_dir))
+                
+                new_path:write(old_path:read())
+                old_path:unlink()
+                made_changes = true
+            end)
+        end
+    end)
 
-            -- new_path:parent():mkdir()
-            -- old_path:rename(new_path)
-
-            -- if mirrors:where({path = new_path}) then
-            --     mirrors:update({
-            --         -- where = {path = tostring(new_path)},
-            --         -- set = {path = tostring(old_path)},
-            --     })
-            -- end
-            
-            -- updates:append({old = old_path, new = new_path})
-        end)
+    if made_changes then
+        print(project.path)
     end
-    -- updates:foreach(function(u)
-    --     print(string.format("%s: %s", u.old, u.new))
-    -- end)
-    os.exit()
 end)
-
-
--- mirrors:get({where = {kind = "scratch"}}):foreach(function(mirror)
---     print(mirror.path)
--- end)

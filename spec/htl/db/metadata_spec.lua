@@ -22,7 +22,6 @@ local u2
 local u3
 local u4
 
-
 before_each(function()
     db.before_test()
 
@@ -309,50 +308,3 @@ describe("get_subkeys_by_val", function()
         )
     end)
 end)
-
--- describe("get_print_lines", function()
---     it("probably doesn't work", function()
---         metadata:insert_dict(
---             metadata:parse(
---                 List({
---                     "a: b",
---                     "  @x",
---                     "  @y",
---                     "w: v",
---                 })
---             ),
---             u1
---         )
-
---         metadata:insert_dict(
---             metadata:parse(
---                 List({
---                     "a: c",
---                     "  @x",
---                     "  @z",
---                     "  i: k",
---                     "w: v",
---                     "date: 1",
---                 })
---             ),
---             u2
---         )
-
---         metadata:insert_dict(
---             metadata:parse(
---                 List({
---                     "a: b",
---                     "  @x",
---                     "w: v",
---                     "@t",
---                 })
---             ),
---             u3
---         )
-
---         local o = metadata.get_dict({u1, u2, u3})
---         print(1)
---         print(o)
---         print(1)
---     end)
--- end)

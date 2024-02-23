@@ -9,6 +9,7 @@ local URLDefinition = require("htl.text.URLDefinition")
 local BufferLines = require("hn.buffer_lines")
 
 local urls = require("htl.db.urls")
+local projects = require("htl.db.projects")
 local mirrors = require("htl.db.mirrors")
 
 local M = {}
@@ -22,24 +23,42 @@ M.suffix_to_open_cmd = Dict({
     s = 'sp'
 })
 
-function M.get_statusline_path_string(path, project_root)
+function M.get_statusline_path_string(path)
     if mirrors:is_mirror(path) then
-        local mirror = mirrors:get_mirror(path)
-        path = mirrors:get_source(path).path
-        path = path:with_name(path:name() .. ": " .. mirrors.get_kind_string(mirror))
+        local kind_string = mirrors.get_kind_string(mirrors:get_mirror_kind(path))
+
+        local source = mirrors:get_source(path)
+        local source_path = source.path:with_suffix("")
+
+        if source.project then
+            local project = projects:where({title = source.project})
+            source_path = string.format(
+                "[%s] %s",
+                project.title,
+                source_path:relative_to(project.path)
+            )
+        end
+
+        return string.format(
+            "%s: %s",
+            source_path,
+            kind_string
+        )
     end
 
-    if path:is_relative_to(project_root) then
-        path = path:relative_to(project_root)
+    if vim.b.htn_project then
+        local project_root = vim.b.htn_project.path
+        if path:is_relative_to(project_root) then
+            path = path:relative_to(project_root)
+        end
     end
 
-    return tostring(path)
+    return tostring(path:with_suffix(""))
 end
 
 function M.statusline()
     local path = Path.this()
-    local project_root = Path(vim.b.htn_project.path)
-    local statusline = M.get_statusline_path_string(path, project_root)
+    local statusline = M.get_statusline_path_string(path)
     local mirrors_string = mirrors:get_mirrors_string(path)
 
     if #mirrors_string > 0 then 
@@ -120,13 +139,6 @@ function M.LinkToFile()
 
     local old_url_id = urls:where({path = Path.this(), resource_type = "file"}).id
     
-    if mirrors:where({url = old_url_id}) then
-        mirrors:update({
-            where = {url = old_url_id},
-            set = {url = url_id}
-        })
-    end
-
     urls:remove({id = old_url_id})
     urls:update({
         where = {id = url_id},
@@ -150,23 +162,16 @@ function M.FileToLink()
 
     urls:add_if_missing(path)
 
-    if mirrors:where({url = url.id}) then
-        mirrors:update({
-            where = {url = url.id},
-            set = {url = urls:where(file_q).id}
-        })
-    end
-    
     vim.api.nvim_put({tostring(urls:get_reference(url))} , 'c', 1, 0)
 end
 
 function M.mirror_mappings()
     if not vim.g.htn_mirror_mappings then
         local mappings = Dict()
-        db.get().mirrors.configs.generic:foreach(function(kind, conf)
+        mirrors.configs.generic:foreach(function(kind, conf)
             M.suffix_to_open_cmd:foreach(function(suffix, open_cmd)
                 mappings[vim.b.htn_mirror_prefix .. conf.mapkey .. suffix] = function()
-                    db.get().mirrors:get_mirror_path(Path.this(), kind):open(open_cmd)
+                    mirrors:get_mirror_path(Path.this(), kind):open(open_cmd)
                 end
             end)
         end)
@@ -185,7 +190,7 @@ function M.scratch(mode)
         lines:append("")
     end
 
-    local path = db.get().mirrors:get_mirror_path(Path.this(), "scratch")
+    local path = mirrors:get_mirror_path(Path.this(), "scratch")
 
     if path:exists() then
         lines:append(path:read())

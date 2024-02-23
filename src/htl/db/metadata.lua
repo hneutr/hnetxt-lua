@@ -10,6 +10,7 @@ local urls = require("htl.db.urls")
 local mirrors = require("htl.db.mirrors")
 local Link = require("htl.text.Link")
 local Config = require("htl.Config")
+local Divider = require("htl.text.divider")
 
 local M = tbl("metadata", {
     id = true,
@@ -34,6 +35,8 @@ local M = tbl("metadata", {
 
 M.config = Config.get("metadata")
 M.agnostic_val = '__agnostic'
+M.metadata_divider = tostring(Divider("large", "metadata"))
+M.exclude_startswith = "-"
 
 function M:parse(lines)
     local metadata = Dict({
@@ -176,15 +179,39 @@ function M.parse_condition(str)
     return condition
 end
 
+function M:separate_metadata(lines)
+    lines = lines:filter(function(l)
+        return not l:strip():startswith(M.exclude_startswith)
+    end)
+
+    List({"", M.metadata_divider}):foreach(function(chop)
+        local index = lines:index(chop)
+        if index then 
+            lines = lines:chop(index, #lines)
+        end
+    end)
+
+    for i, line in ipairs(lines) do
+        local is_tag = line:strip():startswith(M.config.tag_prefix)
+        local probably_field = line:strip():match(M.config.field_delimiter) and #line < 120
+
+        if not (is_tag or probably_field) then
+            return lines:chop(i, #lines)
+        end
+    end
+
+    return lines
+end
+
 function M:get_metadata_lines(path)
-    local s = path:read():split(M.config.frontmatter_delimiter, 1)[1]
+    local lines = M:separate_metadata(path:readlines())
 
     local metadata_path = mirrors:get_mirror_path(path, "metadata")
     if metadata_path:exists() then
-        s = string.format("%s\n%s", s, metadata_path:read())
+        lines:extend(metadata_path:readlines())
     end
 
-    return s:split("\n")
+    return lines:filter(function(line) return #line > 0 end)
 end
 
 function M:save_file_metadata(path)
@@ -192,7 +219,8 @@ function M:save_file_metadata(path)
 
     if url then
         M:remove({url = url.id})
-        M:insert_dict(M:parse(M:get_metadata_lines(path)), url.id)
+        local lines = M:get_metadata_lines(path)
+        M:insert_dict(M:parse(lines), url.id)
     end
 end
 
@@ -209,20 +237,20 @@ function M:dict_to_string(dict)
     lines:pop()
 
     lines:transform(function(l)
-        l = l:sub(#M.config.indent_size + 1)
+        -- l = l:sub(#M.config.indent_size + 1)
         l = l:removesuffix(" = {}")
 
-        if l:endswith(" = {") then
-            l = l:removesuffix(" = {")
+        -- if l:endswith(" = {") then
+        --     l = l:removesuffix(" = {")
 
-            if l:match("%*") then
-                l = l:gsub("%*", "") .. ":"
-            end
-        end
+        --     if l:match("%*") then
+        --         l = l:gsub("%*", "") .. ":"
+        --     end
+        -- end
 
-        if l:endswith("}") then
-            l = ""
-        end
+        -- if l:endswith("}") then
+        --     l = ""
+        -- end
         
         return l
     end)

@@ -56,14 +56,13 @@ describe("remove_file", function()
         local m1 = mirrors:get_mirror_path(f1, kind)
 
         local q = {path = m1}
-        assert(mirrors:where(q))
 
         m1:touch()
         assert(m1:exists())
 
         remove:remove_file(f1)
 
-        assert.is_falsy(mirrors:where(q))
+        assert.is_falsy(m1:exists())
     end)
 
     it("mirror", function()
@@ -72,13 +71,12 @@ describe("remove_file", function()
         local m1 = mirrors:get_mirror_path(f1, kind)
 
         local q = {path = m1}
-        assert(mirrors:where(q))
 
         m1:touch()
         assert(m1:exists())
 
         remove:remove_file(m1)
-        assert.is_falsy(mirrors:where(q))
+        assert.is_falsy(m1:exists())
         assert(f1:exists())
     end)
 end)

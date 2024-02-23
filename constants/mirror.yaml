@@ -2,7 +2,6 @@ scratch:
     mapkey: s
     dir_prefix: .chaff
     exclude_from_statusline: true
-    # relative_to: data_dir
 alternatives: 
     mapkey: a
     dir_prefix: .notes
@@ -16,4 +15,3 @@ meta:
 metadata:
     mapkey: d
     dir_prefix: .metadata
-    exclude_from_statusline: true
