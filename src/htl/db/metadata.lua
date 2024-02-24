@@ -109,10 +109,18 @@ function M:get_is_a_dict(is_a_rows)
     end)
 
     local def_to_ids = Dict()
-    M:construct_taxonomy_key_map(def_to_keys):foreach(function(def, keys)
+    def_to_keys = M:construct_taxonomy_key_map(def_to_keys)
+    
+    def_to_keys:foreach(function(def, keys)
         keys:foreach(function(key)
-            def_to_ids:default(def, List()):extend(key_to_ids)
+            def_to_ids:default(def, List()):extend(key_to_ids[key])
         end)
+    end)
+
+    -- print(def_to_keys)
+    -- print(key_to_ids)
+    return def_to_ids:filterv(function(l)
+        return #l > 0
     end)
 end
 
@@ -129,28 +137,31 @@ function M:construct_taxonomy_key_map(def_to_keys)
     local unchecked = def_to_keys:keys()
 
     while #unchecked > 0 do
-        local to_check = unchecked:sort(function(a, b) return order[a] < order[b] end):pop()
+        local to_check = unchecked:sort(function(a, b) return (order[a] or 0) < (order[b] or 0) end):pop()
         local parent = taxonomy.parents[to_check]
-        local children = taxonomy.children[parent]:filter(function(c) return def_to_keys[c] end)
 
-        local child_keys = Set()
-        children:foreach(function(child)
-            def_to_keys[child]:foreach(function(key)
-                if child_keys:has(key) then
-                    def_to_keys:default(parent, Set()):add(key)
-                end
-                
-                child_keys:add(key)
-            end)
-        end)
+        if parent then
+            local children = taxonomy.children[parent]:filter(function(c) return def_to_keys[c] end)
 
-        if def_to_keys[parent] then
+            local child_keys = Set()
             children:foreach(function(child)
-                def_to_keys[child] = def_to_keys[child] - def_to_keys[parent]
+                def_to_keys[child]:foreach(function(key)
+                    if child_keys:has(key) then
+                        def_to_keys:default(parent, Set()):add(key)
+                    end
+                    
+                    child_keys:add(key)
+                end)
             end)
-        end
 
-        unchecked = unchecked:filter(function(u) return not children:contains(u) end)
+            if def_to_keys[parent] then
+                children:foreach(function(child)
+                    def_to_keys[child] = def_to_keys[child] - def_to_keys[parent]
+                end)
+            end
+
+            unchecked = unchecked:filter(function(u) return not children:contains(u) end)
+        end
     end
 
     def_to_keys:transformv(function(keys) return keys:vals():sorted() end)
@@ -485,25 +496,24 @@ function M.get_subdict(query)
 
         local key_d = Dict()
 
-        -- if key == M.config.is_a_key then
-        --     key_d = M:get_is_a_dict(key_rows)
-        -- else
-        if 1 then
+        if key == M.config.is_a_key then
+            key_d = M.get_is_a_subdict(query, key_rows)
+        else
             local ids = M:get({where = {parent = key_rows:col('id')}}):col('id')
             if #ids > 0 then
                 query.where.id = ids
                 key_d = M.get_subdict(query)
             end
+
+            key_rows:col('val'):sorted():transform(function(v)
+                return M.val_string:for_dict(v)
+            end):filter(function(v)
+                return v and #v > 0
+            end):foreach(function(v)
+                key_d:set({v})
+            end)
         end
         
-
-        key_rows:col('val'):sorted():transform(function(v)
-            return M.val_string:for_dict(v)
-        end):filter(function(v)
-            return v and #v > 0
-        end):foreach(function(v)
-            key_d:set({v})
-        end)
 
         if #key_d:keys() > 0 then
             d[M.key_string:for_dict(key)] = key_d
@@ -513,26 +523,26 @@ function M.get_subdict(query)
     return d
 end
 
+function M.get_is_a_subdict(query, rows)
+    local def_to_ids = M:get_is_a_dict(rows)
 
+    local d = Dict()
+    local taxonomy = M.get_taxonomy()
+    def_to_ids:keys():sorted(function(a, b)
+        return taxonomy:get_precedence(a) < taxonomy:get_precedence(b)
+    end):foreach(function(def)
+        query.where.id = def_to_ids[def]
 
--- -- TODO: actually call this
--- function M:should_print_val_lines(rows)
---     local n_urls = Set(rows:col('url')):len()
+        local parents = List()
+        while def_to_ids[def] ~= nil do
+            parents:put(M.key_string:for_dict(def))
+            def = taxonomy.parents[def]
+        end
 
---     local n_vals = Set(rows:col('val')):len()
-    
---     local has_nil_val = false
---     rows:foreach(function(r)
---         if r.val == nil then
---             has_nil_val = true
---         end
---     end)
+        d:set(parents, M.get_subdict(query))
+    end)
 
---     if has_nil_val then
---         n_vals = n_vals + 1
---     end
-
---     return n_vals ~= 1 and n_vals ~= n_urls
--- end
+    return d
+end
 
 return M
