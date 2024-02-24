@@ -335,6 +335,7 @@ Taxonomy.global_taxonomy = Dict(Taxonomy.config.global_taxonomy)
 function Taxonomy:_init(project_root)
     self.tree = Dict.from(self.global_taxonomy, self:get_local_taxonomy(project_root))
     self.children = self:set_children(self.tree)
+    self.parents = self:set_parents(self.tree)
 end
 
 function Taxonomy:get_local_taxonomy(project_root)
@@ -376,6 +377,33 @@ function Taxonomy:set_children(tree, parents, children)
     end)
 
     return children
+end
+
+function Taxonomy:set_parents(tree, parents, parent)
+    if parents == nil then
+        parents = Dict()
+    end
+
+    Dict(tree):foreach(function(child, subtree)
+        parents[child] = parent
+
+        if subtree then
+            self:set_parents(subtree, parents, child)
+        end
+    end)
+
+    return parents
+end
+
+function Taxonomy:get_precedence(key)
+    local precedence = 0
+
+    while key do
+        key = self.parents[key]
+        precedence = precedence + 1
+    end
+
+    return precedence
 end
 
 --------------------------------------------------------------------------------

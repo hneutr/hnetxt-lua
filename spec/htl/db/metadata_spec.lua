@@ -1,7 +1,9 @@
+local stub = require('luassert.stub')
 local List = require("hl.List")
 local Path = require("hl.Path")
 
 local metadata = require("htl.db.metadata")
+local Taxonomy = require("htl.metadata").Taxonomy
 
 local db = require("htl.db")
 local projects = require("htl.db.projects")
@@ -38,10 +40,30 @@ before_each(function()
     u2 = urls:where({path = f2}).id
     u3 = urls:where({path = f3}).id
     u4 = urls:where({path = f4}).id
+
+    Taxonomy.global_taxonomy = Dict({
+        a = {
+            b = {
+                c = {},
+                d = {},
+            },
+        },
+        e = {
+            f = {}
+        },
+        g = {
+            h = {
+                i = {},
+                j = {},
+            },
+            k = {},
+        },
+    })
 end)
 
 after_each(function()
     db.after_test()
+    Taxonomy.global_taxonomy = Dict(Taxonomy.config.global_taxonomy)
 end)
 
 describe("parse", function()
@@ -89,12 +111,12 @@ end)
 describe("parse_val", function()
     it("no val", function()
         local val, datatype = metadata:parse_val()
-        assert.are.same({}, {val, datatype})
+        assert.are.same({nil, "primitive"}, {val, datatype})
     end)
 
     it("non-link val", function()
         local val, datatype = metadata:parse_val("abc")
-        assert.are.same({"abc"}, {val, datatype})
+        assert.are.same({"abc", "primitive"}, {val, datatype})
     end)
 
     it("link val", function()
@@ -188,6 +210,11 @@ describe("parse_condition", function()
         local condition = metadata.parse_condition("a:x|y")
         assert.are.same("a", condition.key)
         assert.are.same({"x", "y"}, condition.vals)
+    end)
+
+    it("is_a", function()
+        local condition = metadata.parse_condition("is a: a|e")
+        assert.are.same({"a", "b", "c", "d", "e", "f"}, condition.vals:sorted())
     end)
 end)
 
@@ -309,6 +336,53 @@ describe("get_subkeys_by_val", function()
     end)
 end)
 
+describe("construct_taxonomy_key_map", function()
+    it("2 children, 1 common key", function()
+        assert.are.same(
+            {
+                b = {"x"},
+                c = {"y"},
+                d = {"z"},
+            },
+            metadata:construct_taxonomy_key_map({
+                c = Set({"x", "y"}),
+                d = Set({"x", "z"}),
+            })
+        )
+    end)
+
+    it("child + parent, 1 common key", function()
+        assert.are.same(
+            {
+                b = {"x", "y"},
+                c = {"z"},
+            },
+            metadata:construct_taxonomy_key_map({
+                b = Set({"x", "y"}),
+                c = Set({"x", "z"}),
+            })
+        )
+    end)
+
+    it("checks upward", function()
+        assert.are.same(
+            {
+                g = {"g"},
+                h = {"h"},
+                i = {"i"},
+                j = {"j"},
+                k = {"k"},
+            },
+            metadata:construct_taxonomy_key_map({
+                i = Set({"g", "h", "i"}),
+                j = Set({"g", "h", "j"}),
+                k = Set({"g", "k"})
+            })
+        )
+    end)
+end)
+
+
 describe("get_print_lines", function()
     it("probably doesn't work", function()
         metadata:insert_dict(
@@ -355,3 +429,4 @@ describe("get_print_lines", function()
         print(1)
     end)
 end)
+

@@ -185,4 +185,18 @@ function Dict:__tostring()
     return lines:join("\n")
 end
 
+function Dict:raw()
+    local raw = {}
+
+    self:foreach(function(k, v)
+        if type(v) ~= 'table' then
+            v = Dict(v):raw()
+        end
+
+        raw[k] = v
+    end)
+
+    return raw
+end
+
 return Dict

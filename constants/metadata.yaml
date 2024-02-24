@@ -5,6 +5,7 @@ field_delimiter: ":"
 field_or_delimiter: "|"
 indent_size: "  "
 frontmatter_delimiter: "\n\n"
+is_a_key: "is a"
 excluded_fields:
 - date
 - on page
