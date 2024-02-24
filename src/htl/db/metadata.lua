@@ -12,6 +12,7 @@ local Link = require("htl.text.Link")
 local Config = require("htl.Config")
 local Divider = require("htl.text.divider")
 
+local Colorize = require("htc.Colorize")
 local Taxonomy = require("htl.metadata").Taxonomy
 
 local M = tbl("metadata", {
@@ -34,72 +35,16 @@ local M = tbl("metadata", {
     },
     datatype = {
         type = "text",
-        default = "primitive",
     },
 })
-
---[[
-`The Solity`:
-is a: space station
-    governed by: Luc Acastor
-    radial distance: .05x
-    built by: Luc Acastor
-
-`Marand`:
-is a: planet
-    governed by: The Marandine Umbrae
-    radial distance: .1x
-
-----------------------------------------
-
-is a:
-    place >
-        governed by:
-            Luc Acastor
-            The Marandine Umbrae
-        radial distance:
-            .05x
-            .1x
-        = space station
-            built by:
-                Luc Acastor
-        = planet
-
-----------------------------------------
-
-take the list of `is a` values:
-
-make a dictionary:
-    is_a_key_to_fields['key'] = Set(fields)
-
-for each key in the is_a taxonomy:
-    add the intersection of all of the subtypes to the key
-        remove the intersected keys from the subtypes
-
-eg:
-    at start:
-        is_a_dict = {
-            space station = Set({"governed by", "radial distance", "built by"}),
-            planet = Set({"governed by", "radial distance"})
-        }
-
-    then set `place`:
-        is_a_dict = {
-            space station = Set({"built by"}),
-            planet = Set()
-            place = Set({"governed by", "radial distance"})
-        }
-
-- we're only going to do this for the is_a field
-- all other fields will be handled as is: no more "agnostic" bullshit
-
-]]
 
 M.config = Config.get("metadata")
 M.config.excluded_fields = Set(M.config.excluded_fields)
 M.agnostic_val = '__agnostic'
 M.metadata_dividers = List({"", tostring(Divider("large", "metadata"))})
 M.exclude_startswith = "-"
+M.root_key = "__root"
+M.max_width = 118
 
 --------------------------------------------------------------------------------
 --                                                                            --
@@ -128,6 +73,19 @@ function M.add_taxonomy_vals(vals)
     return vals:union(taxonomy_vals):vals()
 end
 
+function M.annotate_parent_vals(rows, parents)
+    local id_to_parent_val = Dict()
+    List(parents):foreach(function(row)
+        id_to_parent_val[row.id] = row.val
+    end)
+
+    List(rows):foreach(function(row)
+        row.parent_val = id_to_parent_val[row.parent]
+    end)
+
+    return rows
+end
+
 --[[
 TODO:
 - tag handing: group tags by @level1.level2.etc
@@ -138,13 +96,8 @@ TODO:
                 ******************
                 - save the ids of those fields, so that you can print their children with it
                 ******************
-        - define each IsA's definition_keys as the intersection of its childrens' keys
-            - don't over specify!
-                - if a definition doesn't show up and there's only 1 child, don't define it
 ]]
-function M:get_is_a_dict(query)
-    query.where.key = M.config.is_a_key
-    local is_a_rows = M:get(query)
+function M:get_is_a_dict(is_a_rows)
     local rows = M.annotate_parent_vals(M:get({where = {parent = is_a_rows:col('id')}}), is_a_rows)
     
     local def_to_keys = Dict()
@@ -155,7 +108,12 @@ function M:get_is_a_dict(query)
         key_to_ids:default(row.key, List()):append(row.id)
     end)
 
-    def_to_keys = M:construct_taxonomy_key_map(def_to_keys)
+    local def_to_ids = Dict()
+    M:construct_taxonomy_key_map(def_to_keys):foreach(function(def, keys)
+        keys:foreach(function(key)
+            def_to_ids:default(def, List()):extend(key_to_ids)
+        end)
+    end)
 end
 
 function M:construct_taxonomy_key_map(def_to_keys)
@@ -286,6 +244,16 @@ function M:parse(lines)
 end
 
 function M:insert_dict(dict, url, parent_field)
+    if not parent_field then
+        local root = {key = M.root_key, url = url, datatype = 'root'}
+
+        if not M:where(root) then
+            M:insert(root)
+        end
+        
+        parent_field = M:where(root).id
+    end
+
     Dict(dict):foreach(function(key, data)
         local val, datatype = M:parse_val(data.val)
         local row = {
@@ -411,101 +379,141 @@ end
 --                                                                            --
 --                                                                            --
 --------------------------------------------------------------------------------
-function M:dict_to_string(dict)
-    local lines = tostring(dict):split("\n")
-    lines:pop(1)
-    lines:pop()
+function M:dict_string(dict)
+    local field_ends = List({" = {}", " = {"})
+    local line_types = List({M.key_string, M.val_string})
 
-    lines:transform(function(l)
+    return tostring(dict):split("\n"):transform(function(l)
         l = l:sub(#M.config.indent_size + 1)
-        l = l:removesuffix(" = {}")
 
-        -- if l:endswith(" = {") then
-        --     l = l:removesuffix(" = {")
+        field_ends:foreach(function(field_end)
+            if l:endswith(field_end) then
+                l = l:removesuffix(field_end)
 
-        --     if l:match("%*") then
-        --         l = l:gsub("%*", "") .. ":"
-        --     end
-        -- end
+            end
+        end)
 
-        -- if l:endswith("}") then
-        --     l = ""
-        -- end
-        
+        for line_type in line_types:iter() do
+            if line_type:is_a(l) then
+                return line_type:for_terminal(l)
+            end
+        end
+
         return l
-    end)
-
-    return lines:filter(function(l)
-        return #l > 0
+    end):filter(function(l)
+        return not List({
+            #l == 0,
+            l:endswith("}"),
+            l:endswith("{"),
+        }):any()
     end):join("\n")
 end
 
-function M:key_string(key)
-    if not key:startswith(M.config.tag_prefix) then
-        key = string.format("*%s", key)
+
+--------------------------------------------------------------------------------
+--                                key strings                                 --
+--------------------------------------------------------------------------------
+M.key_string = {
+    match = "%=",
+    color = "yellow",
+}
+
+function M.key_string:is_a(s) return s:match(self.match) end
+function M.key_string:for_terminal(s)
+    s = s:gsub(self.match, "")
+    return Colorize(s, self.color) .. ":"
+end
+
+function M.key_string:for_dict(s)
+    if not s:startswith(M.config.tag_prefix) then
+        s = string.format("=%s", s)
     end
-    return key
+    return s
 end
 
-function M:val_string(val)
-    return string.format("=%s", val)
+--------------------------------------------------------------------------------
+--                                val strings                                 --
+--------------------------------------------------------------------------------
+M.val_string = {
+    match = "%*",
+    color = "blue",
+}
+
+function M.val_string:is_a(s) return s:match(self.match) end
+function M.val_string:for_terminal(s)
+    local indent, s = s:match("(%s*)(.*)")
+    return indent .. Colorize("- ", self.color) .. s:gsub(self.match, "")
 end
 
+function M.val_string:for_dict(s)
+    if s and #s > 0 then
+        return string.format("*%s", s)
+    end
+end
+
+
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                big printing                                --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
 function M.get_dict(urls, include_references)
     local query = {where = {url = urls}}
+
+    query.where.datatype = "root"
+    local root_ids = M:get(query):col('id')
+
+    query.where.id = M:get({where = {parent = root_ids}}):col('id')
     
     if not include_references then
         query.where.datatype = "primitive"
     end
     
-    local rows = M:get(query)
+    return M:dict_string(M.get_subdict(query))
+end
 
-    local starting_keys = Set(rows:filter(function(row)
-        return row.parent == nil and not M.config.excluded_fields:has(row.key)
-    end):col('key'))
+function M.get_subdict(query)
+    local rows = M:get(query)
 
     local d = Dict()
-    starting_keys:foreach(function(key)
-        d[M:key_string(key)] = M.get_subdict(key, query)
-    end)
-    
-    return M:dict_to_string(d)
-end
+    Set(rows:col('key')):vals():sorted():filter(function(key)
+        return not M.config.excluded_fields:has(key)
+    end):foreach(function(key)
+        local key_rows = rows:filter(function(r) return r.key == key end)
 
-function M.get_subdict(key, query)
-    query.where.key = key
-    local rows = M:get(query)
-    local subrows = List()
-    local subkeys_by_val = Dict()
-    local subrowless_vals = Set(rows:col('val')):remove(false)
+        local key_d = Dict()
 
-    if #rows > 0 then
-        subrows = M.annotate_parent_vals(M:get({where = {parent = rows:col('id')}}), rows)
-        subkeys_by_val = M:get_subkeys_by_val(subrows)
-        subrowless_vals = subrowless_vals - Set(subrows:col('parent_val'))
-    end
-
-    local lines_by_val = Dict()
-    subkeys_by_val:foreach(function(val, subkeys)
-        local val_rows = subrows
-        local set_keys = List()
-
-        if val ~= M.agnostic_val then
-            val_rows = val_rows:filter(function(r) return r.parent_val == val end)
-            set_keys:append(M:val_string(val))
+        -- if key == M.config.is_a_key then
+        --     key_d = M:get_is_a_dict(key_rows)
+        -- else
+        if 1 then
+            local ids = M:get({where = {parent = key_rows:col('id')}}):col('id')
+            if #ids > 0 then
+                query.where.id = ids
+                key_d = M.get_subdict(query)
+            end
         end
         
-        query.where.id = val_rows:col('id')
 
-        subkeys:foreach(function(subkey)
-            lines_by_val:set(set_keys:from({M:key_string(subkey)}), M.get_subdict(key, query))
+        key_rows:col('val'):sorted():transform(function(v)
+            return M.val_string:for_dict(v)
+        end):filter(function(v)
+            return v and #v > 0
+        end):foreach(function(v)
+            key_d:set({v})
         end)
+
+        if #key_d:keys() > 0 then
+            d[M.key_string:for_dict(key)] = key_d
+        end
     end)
-
-    subrowless_vals:vals():foreach(function(v) lines_by_val[M:val_string(v)] = Dict() end)
-
-    return lines_by_val
+    
+    return d
 end
+
+
 
 -- -- TODO: actually call this
 -- function M:should_print_val_lines(rows)
@@ -526,44 +534,5 @@ end
 
 --     return n_vals ~= 1 and n_vals ~= n_urls
 -- end
-
-function M.annotate_parent_vals(rows, parents)
-    local id_to_parent_val = Dict()
-    List(parents):foreach(function(row)
-        id_to_parent_val[row.id] = row.val
-    end)
-
-    List(rows):foreach(function(row)
-        row.parent_val = id_to_parent_val[row.parent]
-    end)
-
-    return rows
-end
-
---[[
-a subkey is value-agnostic if it appears under either:
-- val = nil
-- > 1 val
-]]
-function M:get_subkeys_by_val(rows)
-    local subkey_to_val = Dict()
-    List(rows):foreach(function(row)
-        local val = row.parent_val or M.agnostic_val
-        if val == nil or subkey_to_val:default(row.key, val) ~= val then
-            subkey_to_val[row.key] = M.agnostic_val
-        end
-    end)
-
-    List(M.config.excluded_fields):foreach(function(e)
-        subkey_to_val[e] = nil
-    end)
-
-    local val_to_subkeys = Dict()
-    subkey_to_val:foreach(function(subkey, val)
-        val_to_subkeys:default(val, List()):append(subkey):sort()
-    end)
-
-    return val_to_subkeys
-end
 
 return M

@@ -160,14 +160,16 @@ describe("insert_dict", function()
             u1
         )
 
+        local root = metadata:where({key = metadata.root_key, url = url})
+
         local y = metadata:where({key = "@y", url = url})
         assert.is_not.Nil(y)
-        assert.is_nil(y.parent)
+        assert.are.same(y.parent, root.id)
         assert.is_nil(y.val)
         
         local a = metadata:where({key = "a", url = url})
         assert.is_not.Nil(a)
-        assert.is_nil(a.parent)
+        assert.are.same(a.parent, root.id)
         assert.is_nil(y.val)
 
         assert.is_not.Nil(metadata:where({key = "@x", url = url, parent = a.id}))
@@ -414,7 +416,7 @@ describe("get_print_lines", function()
         metadata:insert_dict(
             metadata:parse(
                 List({
-                    "a: b",
+                    "is a: b",
                     "  @x",
                     "w: v",
                     "@t",

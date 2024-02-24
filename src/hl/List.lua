@@ -61,7 +61,11 @@ function List:any()
 end
 
 function List:col(col)
-    return self:map(function(item) return item[col] end)
+    local l = List()
+    for i, item in ipairs(self) do
+        l:insert(i, item[col])
+    end
+    return l
 end
 
 return List

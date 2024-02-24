@@ -2,9 +2,13 @@ require("approot")("/Users/hne/lib/hnetxt-lua/")
 
 local List = require("hl.List")
 local Dict = require("hl.Dict")
+local Set = require("hl.Set")
 local Path = require("hl.Path")
 
 local db = require("htl.db")
+local projects = require("htl.db.projects")
+local urls = require("htl.db.urls")
+
 local Config = require("htl.Config")
 local Metadata = require("htl.Metadata")
 local Snippet = require("htl.snippet")
@@ -79,6 +83,25 @@ Dict({
                 Config.paths.x_of_the_day_dir:join(".sources", today):write(sources)
             end
         end,
+    },
+    test = {
+        description = "blahh",
+        action = function(args)
+            local metadata = require("htl.db.metadata")
+
+            metadata:remove()
+
+            local u = List()
+            urls:get({
+                where = {project = "chasefeel"},
+                contains = {path = "/Users/hne/Documents/text/written/fiction/chasefeel/glossary/*"}
+            }):foreach(function(url)
+                u:append(url.id)
+                metadata:save_file_metadata(url.path)
+            end)
+
+            print(metadata.get_dict(u))
+        end
     },
 }):foreach(function(name, config)
     commands:append(Command:add(parser, config, name))
