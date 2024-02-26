@@ -100,7 +100,7 @@ Dict({
                 metadata:save_file_metadata(url.path)
             end)
 
-            print(metadata.get_dict(u))
+            print(metadata.get_dict(u, false))
         end
     },
 }):foreach(function(name, config)

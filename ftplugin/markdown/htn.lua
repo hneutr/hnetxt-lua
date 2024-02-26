@@ -65,18 +65,19 @@ if project then
         }
     })
 
-    autocommands.htn_link_update = List({
-        {
-            events = {'VimLeave', 'WinLeave', 'BufLeave'},
-            callback = function()
-                metadata:save_file_metadata(Path.this())
-            end
-        }
-    })
-
     -- commands.FileToLink = ui.FileToLink
     -- commands.LinkToFile = ui.LinkToFile
 end
+
+autocommands.htn_link_update = List({
+    {
+        events = {'VimLeave', 'WinLeave', 'BufLeave'},
+        callback = function()
+            metadata:save_file_metadata(Path.this())
+        end,
+    }
+})
+
 
 autocommands.htn_statusline = List({
     {

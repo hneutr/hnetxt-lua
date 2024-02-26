@@ -11,15 +11,9 @@ local urls = require("htl.db.urls")
 metadata:remove()
 
 local u = List()
-urls:get({
-    where = {project = "chasefeel"},
-    contains = {path = "/Users/hne/Documents/text/written/fiction/chasefeel/glossary/*"}
-}):sorted(function(a, b)
+urls:get():sorted(function(a, b)
     return tostring(a.path) > tostring(b.path)
 end):foreach(function(url)
     u:append(url.id)
     metadata:save_file_metadata(url.path)
 end)
-
--- Set(metadata:get():col('key')):vals():sorted():foreach(print)
-print(metadata.get_dict(u))

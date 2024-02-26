@@ -4,6 +4,7 @@ local tbl = require("sqlite.tbl")
 local Dict = require("hl.Dict")
 local List = require("hl.List")
 local Set = require("hl.Set")
+local class = require("pl.class")
 
 local db = require("htl.db")
 local urls = require("htl.db.urls")
@@ -14,6 +15,11 @@ local Divider = require("htl.text.divider")
 
 local Colorize = require("htc.Colorize")
 local Taxonomy = require("htl.metadata").Taxonomy
+
+--[[
+TODO:
+- tag handing: group tags by @level1.level2.etc
+]]
 
 local M = tbl("metadata", {
     id = true,
@@ -40,7 +46,6 @@ local M = tbl("metadata", {
 
 M.config = Config.get("metadata")
 M.config.excluded_fields = Set(M.config.excluded_fields)
-M.agnostic_val = '__agnostic'
 M.metadata_dividers = List({"", tostring(Divider("large", "metadata"))})
 M.exclude_startswith = "-"
 M.root_key = "__root"
@@ -86,17 +91,6 @@ function M.annotate_parent_vals(rows, parents)
     return rows
 end
 
---[[
-TODO:
-- tag handing: group tags by @level1.level2.etc
-- handle taxonomization:
-    - construct the definition_keys map:
-        - for each IsA value:
-            - set definition_keys[IsA] = all the fields under the row
-                ******************
-                - save the ids of those fields, so that you can print their children with it
-                ******************
-]]
 function M:get_is_a_dict(is_a_rows)
     local rows = M.annotate_parent_vals(M:get({where = {parent = is_a_rows:col('id')}}), is_a_rows)
     
@@ -117,11 +111,7 @@ function M:get_is_a_dict(is_a_rows)
         end)
     end)
 
-    -- print(def_to_keys)
-    -- print(key_to_ids)
-    return def_to_ids:filterv(function(l)
-        return #l > 0
-    end)
+    return def_to_ids:filterv(function(l) return #l > 0 end)
 end
 
 function M:construct_taxonomy_key_map(def_to_keys)
@@ -137,7 +127,10 @@ function M:construct_taxonomy_key_map(def_to_keys)
     local unchecked = def_to_keys:keys()
 
     while #unchecked > 0 do
-        local to_check = unchecked:sort(function(a, b) return (order[a] or 0) < (order[b] or 0) end):pop()
+        local to_check = unchecked:sort(function(a, b)
+            return (order[a] or 0) < (order[b] or 0)
+        end):pop()
+
         local parent = taxonomy.parents[to_check]
 
         if parent then
@@ -222,9 +215,7 @@ function M:save_file_metadata(path)
 end
 
 function M:parse(lines)
-    local metadata = Dict({
-        metadata = Dict(),
-    })
+    local metadata = Dict({metadata = Dict()})
 
     local parents_by_indent = Dict({[""] = List()})
 
@@ -245,10 +236,7 @@ function M:parse(lines)
             m = m.metadata[parent]
         end)
 
-        m.metadata[key] = Dict({
-            val = val,
-            metadata = Dict(),
-        })
+        m.metadata[key] = Dict({val = val, metadata = Dict()})
     end)
 
     return metadata.metadata
@@ -292,13 +280,8 @@ function M:parse_val(val)
     return val, "primitive"
 end
 
-function M:get(q)
-    return List(M:map(function(m)
-        if m.datatype == "reference" then
-            m.val = tonumber(m.val)
-        end
-        return m
-    end, q))
+function M:get(...)
+    return List(M:__get(...))
 end
 
 --------------------------------------------------------------------------------
@@ -325,7 +308,7 @@ function M:get_urls(args)
         while n_references ~= #references do
             n_references = #references
             references = references:filter(function(row)
-                if urls:has(row.val) then
+                if urls:has(tonumber(row.val)) then
                     urls:add(row.url)
                 else
                     return true
@@ -392,21 +375,26 @@ end
 --------------------------------------------------------------------------------
 function M:dict_string(dict)
     local field_ends = List({" = {}", " = {"})
-    local line_types = List({M.key_string, M.val_string})
+    local line_types = List({M.is_a_string, M.key_string, M.val_string})
 
     return tostring(dict):split("\n"):transform(function(l)
         l = l:sub(#M.config.indent_size + 1)
 
+        local has_vals = M.has_vals(l)
         field_ends:foreach(function(field_end)
             if l:endswith(field_end) then
                 l = l:removesuffix(field_end)
-
             end
         end)
 
+        local post_string = ""
+        if has_vals then
+            post_string = ":"
+        end
+
         for line_type in line_types:iter() do
             if line_type:is_a(l) then
-                return line_type:for_terminal(l)
+                return line_type:for_terminal(l) .. post_string
             end
         end
 
@@ -420,6 +408,9 @@ function M:dict_string(dict)
     end):join("\n")
 end
 
+function M.has_vals(s)
+    return s:endswith(" = {")
+end
 
 --------------------------------------------------------------------------------
 --                                key strings                                 --
@@ -432,7 +423,7 @@ M.key_string = {
 function M.key_string:is_a(s) return s:match(self.match) end
 function M.key_string:for_terminal(s)
     s = s:gsub(self.match, "")
-    return Colorize(s, self.color) .. ":"
+    return Colorize(s, self.color)
 end
 
 function M.key_string:for_dict(s)
@@ -462,6 +453,26 @@ function M.val_string:for_dict(s)
     end
 end
 
+--------------------------------------------------------------------------------
+--                                is a string                                 --
+--------------------------------------------------------------------------------
+M.is_a_string = {
+    match = "%*%=",
+    color = "red",
+}
+
+function M.is_a_string:is_a(s) return s:match(self.match) end
+function M.is_a_string:for_terminal(s)
+    s = s:gsub(self.match, "")
+    return Colorize(s, self.color)
+end
+
+function M.is_a_string:for_dict(s)
+    if s and #s > 0 then
+        return string.format("*=%s", s)
+    end
+end
+
 
 --------------------------------------------------------------------------------
 --                                                                            --
@@ -480,9 +491,12 @@ function M.get_dict(urls, include_references)
     
     if not include_references then
         query.where.datatype = "primitive"
+    else
+        query.where.datatype = nil
     end
     
-    return M:dict_string(M.get_subdict(query))
+    local d = M.get_subdict(query)
+    return M:dict_string(d)
 end
 
 function M.get_subdict(query)
@@ -514,10 +528,7 @@ function M.get_subdict(query)
             end)
         end
         
-
-        if #key_d:keys() > 0 then
-            d[M.key_string:for_dict(key)] = key_d
-        end
+        d[M.key_string:for_dict(key)] = key_d
     end)
     
     return d
@@ -528,14 +539,12 @@ function M.get_is_a_subdict(query, rows)
 
     local d = Dict()
     local taxonomy = M.get_taxonomy()
-    def_to_ids:keys():sorted(function(a, b)
-        return taxonomy:get_precedence(a) < taxonomy:get_precedence(b)
-    end):foreach(function(def)
+    def_to_ids:keys():foreach(function(def)
         query.where.id = def_to_ids[def]
 
         local parents = List()
         while def_to_ids[def] ~= nil do
-            parents:put(M.key_string:for_dict(def))
+            parents:put(M.is_a_string:for_dict(def))
             def = taxonomy.parents[def]
         end
 
