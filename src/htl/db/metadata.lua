@@ -318,6 +318,13 @@ function M:get(q)
         rows = rows:filter(function(r) return vals:has(r[col]) end)
     end)
 
+    if #long_vals:keys() > 0 then
+        q.where = q.where or {}
+        long_vals:foreach(function(col, vals)
+            q.where[col] = vals:vals()
+        end)
+    end
+
     return rows
 end
 

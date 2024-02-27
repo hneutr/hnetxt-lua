@@ -94,8 +94,9 @@ Dict({
         {"-d --dir", default = Path.cwd(), convert=Path.from_commandline},
         {"-r --reference", description = "list files referencing this", convert=Path.from_commandline},
         {"+f", target = "files", description = "list files", switch = "off"},
+        {"+l", target = "print_links", description = "print links", switch = "on"},
         {"+p", target = "print", switch = "on"},
-        description = "blahh",
+        description = "list tags",
         action = function(args)
             if args.reference then
                 args.reference = urls:where({path = args.reference}).id
@@ -116,7 +117,7 @@ Dict({
             elseif args.files then
                 paths:foreach(print)
             else
-                print(metadata.get_dict(_urls, false))
+                print(metadata.get_dict(_urls, args.print_links))
             end
         end
     },
