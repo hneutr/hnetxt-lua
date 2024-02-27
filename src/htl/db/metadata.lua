@@ -215,7 +215,11 @@ function M:save_file_metadata(path)
 end
 
 function M:line_is_non_metadata(l)
-    return not l:match(M.config.field_delimiter) and not l:strip():startswith(M.config.tag_prefix)
+    if l then
+        return not l:match(M.config.field_delimiter) and not l:strip():startswith(M.config.tag_prefix)
+    else
+        return true
+    end
 end
 
 function M:parse(lines)
