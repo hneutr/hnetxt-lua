@@ -3,7 +3,8 @@ local List = require("hl.List")
 local Path = require("hl.Path")
 
 local metadata = require("htl.db.metadata")
-local Taxonomy = require("htl.metadata").Taxonomy
+local Taxonomy = require("htl.taxonomy")
+local Config = require("htl.Config")
 
 local db = require("htl.db")
 local projects = require("htl.db.projects")
@@ -41,29 +42,23 @@ before_each(function()
     u3 = urls:where({path = f3}).id
     u4 = urls:where({path = f4}).id
 
-    Taxonomy.global_taxonomy = Dict({
-        a = {
-            b = {
-                c = {},
-                d = {},
-            },
-        },
-        e = {
-            f = {}
-        },
-        g = {
-            h = {
-                i = {},
-                j = {},
-            },
-            k = {},
-        },
+    Config.paths.global_taxonomy_file:write({
+        "a:",
+        "  b:",
+        "    c:",
+        "    d:",
+        "e:",
+        "  f:",
+        "g:",
+        "  h:",
+        "    i:",
+        "    j:",
+        "  k:",
     })
 end)
 
 after_each(function()
     db.after_test()
-    Taxonomy.global_taxonomy = Dict(Taxonomy.config.global_taxonomy)
 end)
 
 describe("parse", function()

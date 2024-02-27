@@ -32,12 +32,11 @@ build = {
         
         ["htl"] = "src/htl/init.lua",
         ["htl.Config"] = "src/htl/config.lua",
-
         ["htl.journal"] = "src/htl/journal.lua",
         ["htl.track"] = "src/htl/track.lua",
         ["htl.goals"] = "src/htl/goals.lua",
         ["htl.snippet"] = "src/htl/snippet.lua",
-        ['htl.metadata'] = "src/htl/metadata.lua",
+        ['htl.taxonomy'] = "src/htl/taxonomy.lua",
 
         ["htl.db"] = "src/htl/db/init.lua",
         ["htl.db.projects"] = "src/htl/db/projects.lua",
@@ -60,7 +59,6 @@ build = {
         ["htc.command"] = "src/htc/command.lua",
         ["htc.colorize"] = "src/htc/colorize.lua",
         ["htc.new"] = "src/htc/new.lua",
-        ["htc.tags"] = "src/htc/tags.lua",
         ["htc.project"] = "src/htc/project.lua",
         ["htc.remove"] = "src/htc/remove.lua",
         ["htc.move"] = "src/htc/move.lua",

@@ -14,7 +14,7 @@ local Config = require("htl.Config")
 local Divider = require("htl.text.divider")
 
 local Colorize = require("htc.Colorize")
-local Taxonomy = require("htl.metadata").Taxonomy
+local Taxonomy = require("htl.taxonomy")
 
 --[[
 TODO:
@@ -47,7 +47,6 @@ local M = tbl("metadata", {
 M.config = Config.get("metadata")
 M.config.excluded_fields = Set(M.config.excluded_fields)
 M.metadata_dividers = List({"", tostring(Divider("large", "metadata"))})
-M.exclude_startswith = "-"
 M.root_key = "__root"
 M.max_width = 118
 
@@ -78,27 +77,12 @@ function M.add_taxonomy_vals(vals)
     return vals:union(taxonomy_vals):vals()
 end
 
-function M.annotate_parent_vals(rows, parents)
-    local id_to_parent_val = Dict()
-    List(parents):foreach(function(row)
-        id_to_parent_val[row.id] = row.val
-    end)
-
-    List(rows):foreach(function(row)
-        row.parent_val = id_to_parent_val[row.parent]
-    end)
-
-    return rows
-end
-
-function M:get_is_a_dict(is_a_rows)
-    local rows = M.annotate_parent_vals(M:get({where = {parent = is_a_rows:col('id')}}), is_a_rows)
-    
+function M:get_is_a_dict(rows)
     local def_to_keys = Dict()
     local key_to_ids = Dict()
 
     rows:foreach(function(row)
-        def_to_keys:default(row.parent_val, Set()):add(row.key)
+        def_to_keys:default(row._parent.val, Set()):add(row.key)
         key_to_ids:default(row.key, List()):append(row.id)
     end)
 
@@ -171,7 +155,7 @@ end
 --------------------------------------------------------------------------------
 function M:separate_metadata(lines)
     lines = lines:filter(function(l)
-        return not l:strip():startswith(M.exclude_startswith)
+        return not l:strip():startswith(M.config.exclude_startswith)
     end)
 
     M.metadata_dividers:foreach(function(chop)
@@ -590,7 +574,7 @@ end
 function M.handle_is_a(rows)
     local is_a_rows = rows:filter(function(r) return r.key == M.config.is_a_key end)
 
-    local is_a_val_to_ids = M:get_is_a_dict(is_a_rows)
+    local is_a_val_to_ids = M:get_is_a_dict(db.map_row_to_col(rows, is_a_rows, "parent", "_parent"))
     local is_a_vals = Set(is_a_rows:col('val')):union(is_a_val_to_ids:keys()):vals():sorted()
 
     local is_a_id = math.max(unpack(rows:col('id'))) + 1

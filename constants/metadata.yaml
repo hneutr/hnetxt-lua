@@ -1,4 +1,5 @@
 exclusion_suffix: "-"
+exclude_startswith: "-"
 tag_prefix: "@"
 tag_delimiter: "."
 field_delimiter: ":"

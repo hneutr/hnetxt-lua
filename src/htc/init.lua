@@ -10,7 +10,7 @@ local projects = require("htl.db.projects")
 local urls = require("htl.db.urls")
 
 local Config = require("htl.Config")
-local Metadata = require("htl.Metadata")
+local metadata = require("htl.db.metadata")
 local Snippet = require("htl.snippet")
 
 local Command = require("htc.command")
@@ -68,11 +68,16 @@ Dict({
             local today = os.date("%Y%m%d")
 
             local sources = List()
-            Dict(Config.get("x-of-the-day")):foreach(function(key, command)
+            Dict(Config.get("x-of-the-day")):foreach(function(key, cmd)
                 local path = Config.paths.x_of_the_day_dir:join(key, today)
 
                 if not path:exists() or args.rerun then
-                    local source = Metadata.Files(command):get_random_file()
+                    cmd.dir = Path(cmd.dir)
+                    local paths = urls:get({where = {id = metadata:get_urls(cmd)}}):col('path')
+                    math.randomseed(os.time())
+                    local v = math.random()
+                    local index = math.random(1, #paths)
+                    local source = paths[index]
                     path:write(tostring(Snippet(source)))
                     sources:append(string.format("%s: %s", key, source))
                 end
@@ -103,8 +108,6 @@ Dict({
             elseif #args.conditions == 0 then
                 args.files = false
             end
-
-            local metadata = require("htl.db.metadata")
 
             local _urls = metadata:get_urls(args)
             local paths = urls:get({where = {id = _urls}}):col('path')
