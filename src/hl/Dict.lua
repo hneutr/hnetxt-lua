@@ -126,7 +126,7 @@ function Dict.default(dict, key, val)
 end
 
 function Dict.get(dict, key, ...)
-    local value = dict[key]
+    local value = dict[key] or Dict()
 
     if ... then
         value = value:get(...)

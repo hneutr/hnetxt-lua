@@ -102,9 +102,9 @@ function M:get_is_a_dict(is_a_rows)
         key_to_ids:default(row.key, List()):append(row.id)
     end)
 
-    local def_to_ids = Dict()
     def_to_keys = M:construct_taxonomy_key_map(def_to_keys)
     
+    local def_to_ids = Dict()
     def_to_keys:foreach(function(def, keys)
         keys:foreach(function(key)
             def_to_ids:default(def, List()):extend(key_to_ids[key])
@@ -529,77 +529,253 @@ end
 --                                                                            --
 --                                                                            --
 --------------------------------------------------------------------------------
+-- function M.get_dict(urls, include_references)
+--     local query = {where = {url = urls}}
+
+--     query.where.datatype = "root"
+--     local root_ids = M:get(query):col('id')
+
+--     query.where.id = M:get({where = {parent = root_ids}}):col('id')
+    
+--     if not include_references then
+--         query.where.datatype = "primitive"
+--     else
+--         query.where.datatype = nil
+--     end
+    
+--     local d = M.get_subdict(query)
+--     return M:dict_string(d)
+-- end
+
+-- function M.get_subdict(query)
+--     local rows = M:get(query)
+
+--     local d = Dict()
+--     Set(rows:col('key')):vals():sorted():filter(function(key)
+--         return not M.config.excluded_fields:has(key)
+--     end):foreach(function(key)
+--         local key_rows = rows:filter(function(r) return r.key == key end)
+
+--         local key_d = Dict()
+
+--         if key == M.config.is_a_key then
+--             key_d = M.get_is_a_subdict(query, key_rows)
+--         else
+--             local ids = M:get({where = {parent = key_rows:col('id')}}):col('id')
+--             if #ids > 0 then
+--                 query.where.id = ids
+--                 key_d = M.get_subdict(query)
+--             end
+
+--             key_rows:col('val'):sorted():transform(function(v)
+--                 return M.val_string:for_dict(v)
+--             end):filter(function(v)
+--                 return v and #v > 0
+--             end):foreach(function(v)
+--                 key_d:set({v})
+--             end)
+--         end
+        
+--         d[M.key_string:for_dict(key)] = key_d
+--     end)
+    
+--     return d
+-- end
+
+-- function M.get_is_a_subdict(query, rows)
+--     local def_to_ids = M:get_is_a_dict(rows)
+
+--     local d = Dict()
+--     local taxonomy = M.get_taxonomy()
+--     def_to_ids:keys():foreach(function(def)
+--         query.where.id = def_to_ids[def]
+
+--         local parents = List()
+--         while def_to_ids[def] ~= nil do
+--             parents:put(M.is_a_string:for_dict(def))
+--             def = taxonomy.parents[def]
+--         end
+
+--         d:set(parents, M.get_subdict(query))
+--     end)
+
+--     return d
+-- end
+
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                         non recursive big printing                         --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
 function M.get_dict(urls, include_references)
     local query = {where = {url = urls}}
 
-    query.where.datatype = "root"
-    local root_ids = M:get(query):col('id')
+    local rows = M:get({where = {url = urls}})
 
-    query.where.id = M:get({where = {parent = root_ids}}):col('id')
-    
     if not include_references then
-        query.where.datatype = "primitive"
-    else
-        query.where.datatype = nil
+        rows = rows:filter(function(r) return r.datatype ~= "reference" end)
     end
-    
-    local d = M.get_subdict(query)
+
+    rows = rows:filter(function(r)
+        return not M.config.excluded_fields:has(r.key)
+    end)
+
+    M.handle_is_a(rows)
+    local d = M.get_subdict(rows)
     return M:dict_string(d)
 end
 
-function M.get_subdict(query)
-    local rows = M:get(query)
+function M.get_subdict(rows)
+    local parent_ids = Set(rows:filter(function(r) return r.key == M.root_key end):col('id'))
+    
+    local parent_id_to_parents = M.get_is_a_subdict(rows)
 
+    local last_time = -1
     local d = Dict()
-    Set(rows:col('key')):vals():sorted():filter(function(key)
-        return not M.config.excluded_fields:has(key)
-    end):foreach(function(key)
-        local key_rows = rows:filter(function(r) return r.key == key end)
+    while #rows > 0 and #rows ~= last_time do
+        last_time = #rows
+        local child_rows = rows:filter(function(r) return parent_ids:has(r.parent) end)
+        
+        local new_parent_ids = Set()
+        child_rows:foreach(function(row)
+            local add_val = true
+            local id = tostring(row.id)
 
-        local key_d = Dict()
-
-        if key == M.config.is_a_key then
-            key_d = M.get_is_a_subdict(query, key_rows)
-        else
-            local ids = M:get({where = {parent = key_rows:col('id')}}):col('id')
-            if #ids > 0 then
-                query.where.id = ids
-                key_d = M.get_subdict(query)
+            local to_add_to_parents = List({M.key_string:for_dict(row.key)})
+            if parent_id_to_parents[tostring(row.id)] then
+                to_add_to_parents:append(M.val_string:for_dict(row.val))
+                add_val = false
+            else
+                local parents = parent_id_to_parents[tostring(row.parent)] or List()
+                parents = parents:clone()
+                parent_id_to_parents[id] = parents
             end
 
-            key_rows:col('val'):sorted():transform(function(v)
-                return M.val_string:for_dict(v)
-            end):filter(function(v)
-                return v and #v > 0
-            end):foreach(function(v)
-                key_d:set({v})
+            to_add_to_parents:foreach(function(p)
+                parent_id_to_parents[id]:append(p)
             end)
-        end
-        
-        d[M.key_string:for_dict(key)] = key_d
-    end)
-    
+
+            parents = parent_id_to_parents[id]
+
+            local row_d = d:get(unpack(parents)) or Dict()
+
+            if add_val then
+                local val = M.val_string:for_dict(row.val)
+                if val then
+                    row_d[val] = Dict()
+                end
+            end
+            
+            d:set(parents, row_d)
+            new_parent_ids:add(row.id)
+        end)
+
+        rows = rows:filter(function(r) return not parent_ids:has(r.id) end)
+        parent_ids = new_parent_ids
+    end
+
+    d[M.key_string:for_dict("lexis")] = nil
+
     return d
 end
 
-function M.get_is_a_subdict(query, rows)
-    local def_to_ids = M:get_is_a_dict(rows)
+--[[
+what I could do is: modify the parent structure for the taxonomy
 
-    local d = Dict()
+take rows where:
+    id: IS A=X id
+    key: is a
+    val: x
+
+set:
+    val: nil
+
+make a new row:
+    id: UNUSED_ID
+    key: x
+    val: nil
+    parent: IS A=X id
+    type: "IsA" ← will be used for printing
+
+update all rows with parent = IS A=X id → UNUSED_ID
+
+we'll want to identify the proper parent to update to
+
+process:
+1. find all is a rows
+2. make a "IsA=X" row for each X
+3. construct our def_to_ids map, except use that to remap row.parent = new id
+]]
+function M.handle_is_a(rows)
+    local is_a_rows = rows:filter(function(r) return r.key == M.config.is_a_key end)
+
+    local is_a_val_to_ids = M:get_is_a_dict(is_a_rows)
+    local is_a_vals = Set(is_a_rows:col('val')):union(is_a_val_to_ids:keys()):vals():sorted()
+
+    local is_a_id = math.max(unpack(rows:col('id'))) + 1
+
+    local new_val_rows_by_val = Dict()
+    is_a_vals:foreach(function(val)
+        new_val_rows_by_val[val] = Dict({
+            id = id,
+            key = val,
+            parent = is_a_id + is_a_vals:index(val),
+        })
+    end)
+
     local taxonomy = M.get_taxonomy()
-    def_to_ids:keys():foreach(function(def)
-        query.where.id = def_to_ids[def]
+    new_val_rows_by_val:foreach(function(val, row)
+        local parent = taxonomy.parents[val]
+        if parent and new_val_rows_by_val[parent] then
+            row.parent = new_val_rows_by_val[parent].id
+        end
+    end)
 
+    local id_remap = Dict()
+    is_a_val_to_ids:foreach(function(val, ids)
+        ids:foreach(function(id)
+            id_remap[id] = new_val_rows_by_val[val].id
+        end)
+    end)
+
+    is_a_rows:foreach(function(r)
+        r.val = nil
+        id_remap[r.id] = is_a_id
+    end)
+
+    rows:foreach(function(r)
+        r.id = id_remap[r.id] or r.id
+    end)
+
+    rows:extend(new_val_rows_by_val:values())
+
+    return rows
+end
+
+function M.get_is_a_subdict(rows)
+    rows = rows:filter(function(r) return r.key == M.config.is_a_key end)
+    local def_to_ids = M:get_is_a_dict(rows)
+    
+    local parent_id_to_parents = Dict()
+
+    local taxonomy = M.get_taxonomy()
+    def_to_ids:foreach(function(def, ids)
         local parents = List()
         while def_to_ids[def] ~= nil do
             parents:put(M.is_a_string:for_dict(def))
             def = taxonomy.parents[def]
         end
 
-        d:set(parents, M.get_subdict(query))
+        parents:put(M.key_string:for_dict(M.config.is_a_key))
+
+        ids:foreach(function(id)
+            parent_id_to_parents[tostring(id)] = parents:clone()
+        end)
     end)
 
-    return d
+    return parent_id_to_parents
 end
 
 return M
