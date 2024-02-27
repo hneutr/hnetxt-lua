@@ -74,10 +74,35 @@ function M:move(source, target)
 end
 
 function M:get(q)
-    return List(M:map(function(url)
+    q = q or {}
+
+    local long_cols = List({"id"})
+    local long_vals = Dict()
+
+    if q.where then
+        long_cols:foreach(function(col)
+            local vals = q.where[col]
+            if vals and type(vals) == 'table' then
+                long_vals[col] = List(vals)
+                q.where[col] = nil
+            end
+        end)
+    end
+
+    if #Dict(q.where):keys() == 0 then
+        q.where = nil
+    end
+
+    local rows = List(M:map(function(url)
         url.path = Path(url.path)
         return url
     end, q))
+
+    long_vals:foreach(function(col, vals)
+        rows = rows:filter(function(r) return vals:contains(r[col]) end)
+    end)
+
+    return rows
 end
 
 function M:clean()

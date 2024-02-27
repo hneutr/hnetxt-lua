@@ -214,10 +214,18 @@ function M:save_file_metadata(path)
     end
 end
 
+function M:line_is_non_metadata(l)
+    return not l:match(M.config.field_delimiter) and not l:strip():startswith(M.config.tag_prefix)
+end
+
 function M:parse(lines)
     local metadata = Dict({metadata = Dict()})
 
     local parents_by_indent = Dict({[""] = List()})
+
+    if M:line_is_non_metadata(lines[1]) then
+        return Dict()
+    end
 
     lines:foreach(function(line)
         local indent, line = line:match("(%s*)(.*)")
@@ -280,8 +288,33 @@ function M:parse_val(val)
     return val, "primitive"
 end
 
-function M:get(...)
-    return List(M:__get(...))
+function M:get(q)
+    q = q or {}
+
+    local long_cols = List({"url", "id", "parent"})
+    local long_vals = Dict()
+
+    if q.where then
+        long_cols:foreach(function(col)
+            local vals = q.where[col]
+            if vals and type(vals) == 'table' then
+                long_vals[col] = Set(vals)
+                q.where[col] = nil
+            end
+        end)
+    end
+
+    if #Dict(q.where):keys() == 0 then
+        q.where = nil
+    end
+
+    local rows = List(M:__get(q))
+
+    long_vals:foreach(function(col, vals)
+        rows = rows:filter(function(r) return vals:has(r[col]) end)
+    end)
+
+    return rows
 end
 
 --------------------------------------------------------------------------------
@@ -295,12 +328,12 @@ function M:get_urls(args)
     local rows = List(M:get())
 
     if args.dir then
-        local urls = Set(urls:get({contains = {path = string.format("%s*", args.dir)}}):col('id'))
-        rows = rows:filter(function(r) return urls:has(r.url) end)
+        local _urls = Set(urls:get({contains = {path = string.format("%s*", args.dir)}}):col('id'))
+        rows = rows:filter(function(r) return _urls:has(r.url) end)
     end
 
     if args.reference then
-        local urls = Set({args.reference})
+        local _urls = Set({args.reference})
 
         local references = rows:filter(function(r) return r.datatype == 'reference' end)
         local n_references = -1
@@ -308,20 +341,28 @@ function M:get_urls(args)
         while n_references ~= #references do
             n_references = #references
             references = references:filter(function(row)
-                if urls:has(tonumber(row.val)) then
-                    urls:add(row.url)
+                if _urls:has(tonumber(row.val)) then
+                    _urls:add(row.url)
                 else
                     return true
                 end
             end)
         end
 
-        rows = rows:filter(function(r) return urls:has(r.url) end)
+        rows = rows:filter(function(r) return _urls:has(r.url) end)
     end
 
     List(args.conditions):transform(M.parse_condition):foreach(function(condition)
-        local urls = Set(rows:filter(M.check_condition, condition):col('url'))
-        rows = rows:filter(function(r) return urls:has(r.url) end)
+        local _urls = Set(rows:filter(M.check_condition, condition):col('url'))
+
+        rows = rows:filter(function(r)
+            local result = _urls:has(r.url)
+            if condition.is_exclusion then
+                result = not result
+            end
+
+            return result
+        end)
     end)
 
     return Set(rows:col('url')):vals()
@@ -357,10 +398,6 @@ function M.check_condition(row, condition)
 
     if condition.vals then
         result = result and condition.vals:contains(row.val)
-    end
-
-    if condition.is_exclusion then
-        result = not result
     end
 
     return result

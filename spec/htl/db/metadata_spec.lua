@@ -252,14 +252,6 @@ describe("check_condition", function()
     it("condition.vals exists, val = match: +", function()
         assert.is_true(metadata.check_condition({key = "a", val = "y"}, {key = "a", vals = List({"x", "y"})}))
     end)
-
-    it("condition.is_exclusion = true: -", function()
-        assert.is_false(metadata.check_condition({key = "a"}, {key = "a", is_exclusion = true}))
-    end)
-
-    it("condition.is_exclusion = true: +", function()
-        assert.is_true(metadata.check_condition({key = "a"}, {key = "b", is_exclusion = true}))
-    end)
 end)
 
 describe("get_urls", function()

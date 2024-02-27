@@ -20,7 +20,6 @@ local parser = require("argparse")("hnetxt")
 local commands = List()
 Dict({
     new = require("htc.new"),
-    tags = require("htc.tags"),
     project = require("htc.project"),
     clean = {
         description = "clean the db",
@@ -84,23 +83,41 @@ Dict({
             end
         end,
     },
-    test = {
+    tags = {
+        {
+            "conditions",
+            args = "*",
+            default = {},
+            description = "the conditions to meet (fields:value?/@tag.subtag/exclusion-)", 
+            action="concat",
+        },
+        {"-d --dir", default = Path.cwd(), convert=Path.from_commandline},
+        {"-r --reference", description = "list files referencing this", convert=Path.from_commandline},
+        {"+f", target = "files", description = "list files", switch = "off"},
+        {"+p", target = "print", switch = "on"},
         description = "blahh",
         action = function(args)
+            if args.reference then
+                args.reference = urls:where({path = args.reference}).id
+            elseif #args.conditions == 0 then
+                args.files = false
+            end
+
             local metadata = require("htl.db.metadata")
 
-            metadata:remove()
+            local _urls = metadata:get_urls(args)
+            local paths = urls:get({where = {id = _urls}}):col('path')
 
-            local u = List()
-            urls:get({
-                where = {project = "chasefeel"},
-                contains = {path = "/Users/hne/Documents/text/written/fiction/chasefeel/glossary/*"}
-            }):foreach(function(url)
-                u:append(url.id)
-                metadata:save_file_metadata(url.path)
-            end)
-
-            print(metadata.get_dict(u, false))
+            if args.print then
+                math.randomseed(os.time())
+                local v = math.random()
+                local index = math.random(1, #paths)
+                print(Snippet(paths[index]))
+            elseif args.files then
+                paths:foreach(print)
+            else
+                print(metadata.get_dict(_urls, false))
+            end
         end
     },
 }):foreach(function(name, config)
