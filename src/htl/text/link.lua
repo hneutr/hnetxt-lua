@@ -38,6 +38,21 @@ function Link:__tostring()
     return self.before .. self:bare_link_string() .. self.after
 end
 
+function Link:terminal_string()
+    local escape_char = string.char(27)
+    local pre_url = string.format("%s]8;;", escape_char)
+    local post_url = string.format("%s\\", escape_char)
+    local post_label = string.format("%s]8;;%s\\", escape_char, escape_char)
+
+    return List({
+        pre_url,
+        self.url,
+        post_url,
+        self.label,
+        post_label,
+    }):join("")
+end
+
 function Link:bare_link_string()
     return List({
         self.label_delimiters.open .. self.label .. self.label_delimiters.close,

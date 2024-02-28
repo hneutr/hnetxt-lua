@@ -506,6 +506,32 @@ function M.is_a_string:for_dict(s)
 end
 
 --------------------------------------------------------------------------------
+--                                link_string                                 --
+--------------------------------------------------------------------------------
+M.link_string = {
+    match = "%*@",
+    color = "magenta",
+}
+
+function M.link_string:is_a(s) return Link:str_is_a(s) end
+function M.link_string:for_terminal(s)
+    local indent, s = s:match("(%s*)(.*)")
+    local s = s:gsub(self.match, "")
+    local url = urls:where({id = tonumber(s)})
+
+    if url then
+        local link = urls:get_reference(url)
+        link.url = "file://" .. tostring(url.path)
+        link.before = indent
+        return link:terminal_string()
+    end
+end
+
+function M.link_string:for_dict(s)
+    return string.format("*@%s", s) 
+end
+
+--------------------------------------------------------------------------------
 --                                                                            --
 --                                                                            --
 --                                big printing                                --
