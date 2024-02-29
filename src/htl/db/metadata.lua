@@ -407,7 +407,7 @@ end
 --------------------------------------------------------------------------------
 function M:dict_string(dict)
     local field_ends = List({" = {}", " = {"})
-    local line_types = List({M.is_a_string, M.key_string, M.val_string})
+    local line_types = List({M.is_a_string, M.link_string, M.key_string, M.val_string})
 
     return tostring(dict):split("\n"):transform(function(l)
         l = l:sub(#M.config.indent_size + 1)
@@ -511,9 +511,14 @@ end
 M.link_string = {
     match = "%*@",
     color = "magenta",
+    colors = {
+        bracket = "black",
+        label = {"cyan", "underline"},
+        url = "black",
+    }
 }
 
-function M.link_string:is_a(s) return Link:str_is_a(s) end
+function M.link_string:is_a(s) return s:strip():startswith("*@") end
 function M.link_string:for_terminal(s)
     local indent, s = s:match("(%s*)(.*)")
     local s = s:gsub(self.match, "")
@@ -521,9 +526,15 @@ function M.link_string:for_terminal(s)
 
     if url then
         local link = urls:get_reference(url)
-        link.url = "file://" .. tostring(url.path)
-        link.before = indent
-        return link:terminal_string()
+        local l = List({
+            Colorize("[", self.colors.bracket),
+            Colorize(link.label, self.colors.label),
+            Colorize("]", self.colors.bracket),
+            Colorize(string.format("(%s)", link.url), self.colors.url),
+            ""
+        })
+
+        return indent .. l:join("")
     end
 end
 
@@ -582,6 +593,10 @@ function M.get_subdict(rows)
             local row_d = d:get(unpack(parents)) or Dict()
 
             local val = M.val_string:for_dict(row.val)
+            if row.datatype == "reference" then
+                val = M.link_string:for_dict(row.val)
+            end
+
             if val then
                 row_d[val] = Dict()
             end

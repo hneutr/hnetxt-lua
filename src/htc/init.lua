@@ -124,12 +124,6 @@ Dict({
             end
         end
     },
-    test = {
-        description = "test",
-        action = function(args)
-            print(metadata.link_string:for_terminal("  *@207"))
-        end
-    }
 }):foreach(function(name, config)
     commands:append(Command:add(parser, config, name))
 end)
