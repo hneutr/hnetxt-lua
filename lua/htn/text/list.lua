@@ -96,7 +96,7 @@ local function get_list_type_configs()
     local type_configs = List()
     Dict(ListTypes):foreach(function(name, config)
         type_configs:append(
-            Dict.from(
+            Dict(
                 config, 
                 {name = name},
                 {

@@ -356,7 +356,7 @@ function Path.cwd()
 end
 
 Path.iterdir = Path.make_list_fn_match_input(function(dir, args)
-    args = Dict.from(args, {recursive = true, files = true, dirs = true, hidden=false})
+    args = Dict(args, {recursive = true, files = true, dirs = true, hidden=false})
 
     dir = Path.as_path(dir)
 

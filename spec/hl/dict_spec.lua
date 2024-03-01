@@ -54,18 +54,6 @@ describe("update", function()
     end)
 end)
 
-describe("from", function()
-    it("works", function()
-        local a = {x = 1, y = 2}
-        local b = {m = 3, n = 4}
-        local c = Dict.from(a, b)
-
-        assert.are.same({x = 1, y = 2}, a)
-        assert.are.same({m = 3, n = 4}, b)
-        assert.are.same({x = 1, y = 2, m = 3, n = 4}, c)
-    end)
-end)
-
 describe("foreachk", function()
     it("works", function()
         local d = Dict({a = 1, b = 2})

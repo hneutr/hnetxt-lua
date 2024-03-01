@@ -20,10 +20,6 @@ function Dict.update(d, d2, ...)
     return d
 end
 
-function Dict.from(...)
-    return Dict():update(...)
-end
-
 function Dict.delist(t)
     local _t = {}
     for k, v in pairs(t) do
@@ -111,10 +107,6 @@ function Dict:filterv(fun, ...)
     end
 
     return self
-end
-
-function Dict.fromlist(l)
-    return Dict.from(unpack(l))
 end
 
 function Dict.default(dict, key, val)

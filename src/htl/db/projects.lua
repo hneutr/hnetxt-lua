@@ -14,7 +14,7 @@ local M = tbl("projects", {
 })
 
 function M:insert(row)
-    row = Dict.from({}, row)
+    row = Dict({}, row)
 
     if row.path ~= nil then
         row.path = tostring(row.path)

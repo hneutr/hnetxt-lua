@@ -6,7 +6,7 @@ local M = {}
 --                              generic line ops                              --
 --------------------------------------------------------------------------------
 function M._do(args)
-    local a = Dict.from(args or {}, {
+    local a = Dict(args or {}, {
         action = nil,
         buffer = 0,
         start_line = 0,
@@ -27,15 +27,15 @@ function M._do(args)
 end
 
 function M.get(args)
-    return M._do(Dict.from(args or {}, {action = 'get'}))
+    return M._do(Dict(args or {}, {action = 'get'}))
 end
 
 function M.set(args)
-    return M._do(Dict.from(args or {}, {action = 'set'}))
+    return M._do(Dict(args or {}, {action = 'set'}))
 end
 
 function M.cut(args)
-    return M._do(Dict.from(args or {}, {action = 'set', replacement = {}}))
+    return M._do(Dict(args or {}, {action = 'set', replacement = {}}))
 end
 
 --------------------------------------------------------------------------------
@@ -44,7 +44,7 @@ end
 M.selection = {}
 
 function M.selection.range(args)
-    args = Dict.from(args or {}, {mode = 'n', buffer = 0})
+    args = Dict(args or {}, {mode = 'n', buffer = 0})
 
     local start_line, end_line
 
@@ -65,7 +65,7 @@ function M.selection.range(args)
 end
 
 function M.selection._set_range(args)
-    return Dict.from(args or {}, M.selection.range(args))
+    return Dict(args or {}, M.selection.range(args))
 end
 
 function M.selection.get(args)
