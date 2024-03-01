@@ -46,6 +46,7 @@ local M = tbl("metadata", {
 
 M.config = Config.get("metadata")
 M.config.excluded_fields = Set(M.config.excluded_fields)
+M.config.direct_fields = Set(M.config.direct_fields)
 M.metadata_dividers = List({"", tostring(Divider("large", "metadata"))})
 M.root_key = "__root"
 M.max_width = 118
@@ -114,13 +115,6 @@ function M:get_is_a_to_ids(all_rows, is_a_rows)
     end)
     
     return def_ids
-    -- def_keys:foreach(function(def, keys)
-    --     keys:foreach(function(key)
-    --         def_to_ids:default(def, List()):extend(key_to_ids[key])
-    --     end)
-    -- end)
-
-    -- return def_to_ids:filterv(function(l) return #l > 0 end)
 end
 
 function M:construct_taxonomy_key_map(def_keys)
@@ -142,20 +136,22 @@ function M:construct_taxonomy_key_map(def_keys)
     end)
 
     defs:sorted(function(a, b)
-        return generations[a] > generations[b]
+        return generations[a] < generations[b]
     end):foreach(function(def)
         local observed_keys = Set()
-        children[def]:foreach(function(child_def)
-            def_keys[child_def]:foreach(function(key)
-                if observed_keys:has(key) then
-                    def_keys[def]:add(key)
+        descendants[def]:foreach(function(descendant)
+            def_keys[descendant]:foreach(function(key)
+                if not M.config.direct_fields:has(key) or parents[key] == def then
+                    if observed_keys:has(key) then
+                        def_keys[def]:add(key)
+                    end
+                    observed_keys:add(key)
                 end
-                observed_keys:add(key)
             end)
         end)
 
-        children[def]:foreach(function(child_def)
-            def_keys[child_def] = def_keys[child_def] - def_keys[def]
+        descendants[def]:foreach(function(descendant)
+            def_keys[descendant] = def_keys[descendant] - def_keys[def]
         end)
     end)
 
@@ -463,6 +459,7 @@ function M:dict_string(dict)
         return l
     end):filter(function(l)
         return not List({
+            l == nil,
             #l == 0,
             l:endswith("}"),
             l:endswith("{"),
@@ -542,6 +539,7 @@ M.link_string = {
     match = "%*@",
     color = "magenta",
     colors = {
+        list = "blue",
         bracket = "black",
         label = {"cyan", "underline"},
         url = "black",
@@ -557,6 +555,7 @@ function M.link_string:for_terminal(s)
     if url then
         local link = urls:get_reference(url)
         local l = List({
+            Colorize("- ", self.colors.list),
             Colorize("[", self.colors.bracket),
             Colorize(link.label, self.colors.label),
             Colorize("]", self.colors.bracket),
@@ -569,7 +568,9 @@ function M.link_string:for_terminal(s)
 end
 
 function M.link_string:for_dict(s)
-    return string.format("*@%s", s) 
+    if urls:where({id = tonumber(s)}) then
+        return string.format("*@%s", s) 
+    end
 end
 
 --------------------------------------------------------------------------------
@@ -579,7 +580,7 @@ end
 --                                                                            --
 --                                                                            --
 --------------------------------------------------------------------------------
-function M.get_dict(urls, include_references)
+function M.get_dict(urls, include_references, exclude_unique_values)
     local query = {where = {url = urls}}
 
     local rows = M:get({where = {url = urls}})
@@ -592,21 +593,39 @@ function M.get_dict(urls, include_references)
         return not M.config.excluded_fields:has(r.key)
     end)
 
-    local d = M.get_subdict(M.handle_is_a(rows))
+    local d = M.get_subdict(M.handle_is_a(rows), exclude_unique_values)
     return M:dict_string(d)
 end
 
-function M.get_subdict(rows)
+function M.get_subdict(rows, exclude_unique_values)
     local parent_ids = Set(rows:filter(function(r) return r.key == M.root_key end):col('id'))
     
     local parent_id_to_parents = Dict()
+    local parent_id_to_files = Dict()
 
     local last_time = -1
     local d = Dict()
     while #rows > 0 and #rows ~= last_time do
         last_time = #rows
         local child_rows = rows:filter(function(r) return parent_ids:has(r.parent) end)
-        
+
+        local keys_with_excluded_vals = Set()
+        if exclude_unique_values then
+            local counts = Dict()
+            child_rows:foreach(function(row)
+                counts:default(row.key, Dict({urls = Set(), vals = Set()}))
+                
+                counts[row.key].urls:add(row.url)
+                counts[row.key].vals:add(row.val)
+            end)
+
+            counts:foreach(function(key, c)
+                if c.urls:len() == c.vals:len() then
+                    keys_with_excluded_vals:add(key)
+                end
+            end)
+        end
+
         local new_parent_ids = Set()
         child_rows:foreach(function(row)
             local parents = parent_id_to_parents[tostring(row.parent)] or List()
@@ -622,13 +641,15 @@ function M.get_subdict(rows)
 
             local row_d = d:get(unpack(parents)) or Dict()
 
-            local val = M.val_string:for_dict(row.val)
-            if row.datatype == "reference" then
-                val = M.link_string:for_dict(row.val)
-            end
+            if not keys_with_excluded_vals:has(row.key) then
+                local val = M.val_string:for_dict(row.val)
+                if row.datatype == "reference" then
+                    val = M.link_string:for_dict(row.val)
+                end
 
-            if val then
-                row_d[val] = Dict()
+                if val then
+                    row_d[val] = Dict()
+                end
             end
             
             d:set(parents, row_d)
@@ -639,6 +660,8 @@ function M.get_subdict(rows)
         parent_ids = new_parent_ids
     end
 
+        
+
     return d
 end
 
@@ -647,7 +670,7 @@ function M.handle_is_a(rows)
 
     local is_a_to_ids = M:get_is_a_to_ids(rows, is_a_rows)
     
-    local is_a_vals = Set(is_a_rows:col('val')):union(is_a_to_ids:keys()):vals():sorted()
+    local is_a_vals = is_a_to_ids:keys():sorted()
 
     local is_a_id = math.max(unpack(rows:col('id'))) + 1
 

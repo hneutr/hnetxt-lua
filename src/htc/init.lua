@@ -98,6 +98,7 @@ Dict({
         },
         {"-d --dir", default = Path.cwd(), convert=Path.from_commandline},
         {"-r --reference", description = "list files referencing this", convert=Path.from_commandline},
+        {"+u", target = "exclude_unique_values", description = "exclude unique values", switch = "off"},
         {"+f", target = "files", description = "list files", switch = "off"},
         {"+l", target = "print_links", description = "print links", switch = "on"},
         {"+p", target = "print", switch = "on"},
@@ -122,7 +123,7 @@ Dict({
             elseif args.files then
                 paths:foreach(print)
             else
-                print(metadata.get_dict(_urls, args.print_links))
+                print(metadata.get_dict(_urls, args.print_links, args.exclude_unique_values))
             end
         end
     },

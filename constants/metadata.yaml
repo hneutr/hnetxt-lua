@@ -7,6 +7,9 @@ field_or_delimiter: "|"
 indent_size: "  "
 frontmatter_delimiter: "\n\n"
 is_a_key: "is a"
+direct_fields:
+- of
+- type
 excluded_fields:
 - date
 - on page
