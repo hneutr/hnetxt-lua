@@ -252,5 +252,4 @@ function string.lpad(str, width, char)
     return char:rep(width - str:len()) .. str
 end
 
-
 return string

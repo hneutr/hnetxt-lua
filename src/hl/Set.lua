@@ -1,8 +1,7 @@
-local class = require("pl.class")
 local List = require("hl.List")
 local Dict = require("hl.Dict")
 
-class.Set()
+require("pl.class").Set()
 
 function Set._init(self, vals)
     self._vals = Dict()

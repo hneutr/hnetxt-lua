@@ -1,9 +1,5 @@
 require("approot")("/Users/hne/lib/hnetxt-lua/")
-
-local List = require("hl.List")
-local Dict = require("hl.Dict")
-local Set = require("hl.Set")
-local Path = require("hl.Path")
+require("hl")
 
 local db = require("htl.db")
 local projects = require("htl.db.projects")

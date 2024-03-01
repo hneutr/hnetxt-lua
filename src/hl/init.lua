@@ -1,4 +1,8 @@
-return {
-    string = require("hl.string"),
-    path = require("hl.path"),
-}
+require("hl.List")
+require("hl.Dict")
+require("hl.Set")
+
+require("hl.string")
+require("hl.io")
+
+require("hl.Path")

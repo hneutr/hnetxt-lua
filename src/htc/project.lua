@@ -1,6 +1,3 @@
-local Dict = require("hl.Dict")
-local Path = require("hl.Path")
-local List = require("hl.List")
 local Colorize = require("htc.colorize")
 
 local projects = require("htl.db").get().projects

@@ -1,6 +1,4 @@
-local class = require("pl.class")
-
-class.List(require("pl.List"))
+require("pl.class").List(require("pl.List"))
 
 function List:extend(l, ...)
     self = self._base.extend(self, l)
