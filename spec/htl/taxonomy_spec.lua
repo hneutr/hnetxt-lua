@@ -1,10 +1,11 @@
 local Config = require("htl.Config")
 local Taxonomy = require("htl.taxonomy")
 
+local taxonomy_file_name = Config.get("taxonomy").file_name
 local d1 = Path.tempdir:join("taxonomy-test")
 local d2 = d1:join("subdir")
-local t1 = d1:join(Taxonomy.file_name)
-local t2 = d2:join(Taxonomy.file_name)
+local t1 = d1:join(taxonomy_file_name)
+local t2 = d2:join(taxonomy_file_name)
 
 before_each(function()
     Config.before_test()
@@ -32,7 +33,7 @@ describe("set_tree", function()
                 },
                 c = {},
             },
-            Taxonomy:set_tree(d1)
+            Taxonomy(d1)
         )
     end)
     
@@ -46,40 +47,21 @@ describe("set_tree", function()
         t1:write({
             "a:",
             "  x:",
+            "b:",
+            "  y:",
         })
 
         assert.are.same(
             {
                 a = {
-                    b = {},
+                    b = {
+                        y = {},
+                    },
                     x = {},
                 },
                 c = {},
             },
-            Taxonomy:set_tree(d2)
-        )
-    end)
-end)
-
-describe("set_children", function()
-    it("set_children", function()
-        assert.are.same(
-            {
-                a = {"b", "c", "d"},
-                b = {},
-                c = {"d"},
-                d = {},
-                e = {},
-            },
-            Taxonomy:set_children(Dict({
-                a = {
-                    b = {},
-                    c = {
-                        d = {}
-                    },
-                },
-                e = {}
-            }))
+            Taxonomy(d2)
         )
     end)
 end)

@@ -12,20 +12,107 @@ function Tree:_init(...)
 end
 
 function Tree:set(keys)
-    keys = List(keys):reverse()
-
-    local t = self
-    while #keys > 0 do
-        local key = keys:pop()
-
-        if not t[key] then
-            t[key] = Tree()
+    local tree = self
+    List(keys):foreach(function(key)
+        if not tree[key] then
+            tree[key] = Tree()
         end
 
-        t = t[key]
-    end
+        tree = tree[key]
+    end)
 
     return self
+end
+
+function Tree:get(key)
+    local trees = List({self})
+
+    while #trees > 0 do
+        local tree = trees:pop()
+
+        if tree[key] then
+            return tree[key]
+        end
+
+        trees:extend(tree:values())
+    end
+end
+
+function Tree:add(tree)
+    Tree(tree):keys():foreach(function(key)
+        local key_tree = self:get(key)
+
+        if key_tree then
+            key_tree:update(tree[key])
+        else
+            self[key] = Tree(tree[key])
+        end
+    end)
+end
+
+function Tree:parents()
+    local parents = Dict()
+
+    local trees = List({{tree = self, parent = nil}})
+    while #trees > 0 do
+        local t = trees:pop()
+        t.tree:foreach(function(key, tree)
+            parents[key] = t.parent
+            trees:append({tree = tree, parent = key})
+        end)
+    end
+
+    return parents
+end
+
+function Tree:ancestors()
+    local ancestors = Dict()
+    local parents = self:parents()
+    parents:foreach(function(key, ancestor)
+        while ancestor ~= nil do
+            ancestors:default(key, List()):append(ancestor)
+            ancestors:default(ancestor, List())
+            ancestor = parents[ancestor]
+        end
+    end)
+
+    return ancestors
+end
+
+function Tree:generations()
+    local generations = Dict()
+    self:ancestors():foreach(function(key, key_ancestors)
+        generations[key] = #key_ancestors + 1
+    end)
+
+    return generations
+end
+
+function Tree:descendants()
+    local descendants = Dict()
+    local parents = self:parents()
+    parents:foreach(function(key, parent)
+        while parent ~= nil do
+            descendants:default(parent, List()):append(key)
+            parent = parents[parent]
+        end
+        descendants:default(key, List())
+    end)
+
+    descendants:values():foreach(function(l) l:sort() end)
+    return descendants
+end
+
+function Tree:children()
+    local children = Dict()
+    local parents = self:parents()
+    parents:foreach(function(key, parent)
+        children:default(parent, List()):append(key)
+        children:default(key, List())
+    end)
+
+    children:values():foreach(function(l) l:sort() end)
+    return children
 end
 
 function Tree:clean()
@@ -38,53 +125,6 @@ function Tree:clean()
 
         return v
     end)
-end
-
-function Tree:transform(...)
-    self:transformk(...)
-    
-    for k, v in pairs(self) do
-        self[k] = v:transform(...)
-    end
-    
-    return self
-end
-
-function Tree:prune()
-    -- self:clean()
-
-    local n_subkeys = 0
-    self:foreachv(function(sub_t)
-        n_subkeys = n_subkeys +  #sub_t:keys()
-    end)
-
-    if n_subkeys == 0 then
-        return self:keys()
-    else
-        return self:transformv(function(v) return v:prune() end)
-    end
-end
-
-function Tree:__tostring()
-    return Tree._tostring(Tree(self):prune()):join("\n")
-end
-
-function Tree._tostring(t)
-    if t:is_a(List) then
-        return t:sorted()
-    else
-        local lines = List()
-        t:keys():sorted():foreach(function(k)
-            lines:append(k)
-            
-            local k_pad = string.rep(" ", #k)
-            Tree._tostring(t[k]):foreach(function(subline)
-                lines:append(k_pad .. subline)
-            end)
-        end)
-
-        return lines
-    end
 end
 
 return Tree

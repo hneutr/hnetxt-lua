@@ -16,6 +16,32 @@ describe("has", function()
     end)
 end)
 
+describe("__get_vals", function()
+    it("set", function()
+        assert.are.same({1}, Set.__get_vals(Set({1})):sorted())
+    end)
+
+    it("set, set", function()
+        assert.are.same({1, 1, 2}, Set.__get_vals(Set({1, 2}), Set({1})):sorted())
+    end)
+
+    it("set, non-list", function()
+        assert.are.same({1, 2}, Set.__get_vals(Set({1}), 2):sorted())
+    end)
+
+    it("set, table", function()
+        assert.are.same({1, 2}, Set.__get_vals(Set({1}), {2}):sorted())
+    end)
+
+    it("set, list", function()
+        assert.are.same({1, 2}, Set.__get_vals(Set({1}), List({2})):sorted())
+    end)
+
+    it("set, list, num, table", function()
+        assert.are.same({1, 2, 3, 4}, Set.__get_vals(Set({1}), List({2}), 3, 4):sorted())
+    end)
+end)
+
 describe("union", function()
     it("set:union(set)", function()
         assert.are.same(
@@ -28,27 +54,6 @@ describe("union", function()
         assert.are.same(
             Set({1, 2, 3}),
             Set({1, 2}) + Set({1, 3})
-        )
-    end)
-
-    it("set + non-list", function()
-        assert.are.same(
-            Set({1, 2, 3}),
-            Set({1, 2}) + 3
-        )
-    end)
-
-    it("set + table", function()
-        assert.are.same(
-            Set({1, 2, 3}),
-            Set({1, 2}) + {2, 3}
-        )
-    end)
-
-    it("set + list", function()
-        assert.are.same(
-            Set({1, 2, 3}),
-            Set({1, 2}) + List({2, 3})
         )
     end)
 end)

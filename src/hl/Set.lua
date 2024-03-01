@@ -34,21 +34,29 @@ function Set.__tostring(self)
     return '{' .. self:vals():join(", ") .. '}'
 end
 
-function Set.union(self, other)
-    local other_vals
-
-    if type(other) == 'table' then
-        local mt = getmetatable(other)
-        if mt == Set then
-            other_vals = other:vals()
+function Set.__get_vals(thing, ...)
+    local vals
+    if type(thing) == 'table' then
+        if getmetatable(thing) == Set then
+            vals = thing:vals()
         else
-            other_vals = other
+            vals = thing
         end
     else
-        other_vals = {other}
+        vals = {thing}
     end
 
-    return Set(self:vals():extend(other_vals))
+    vals = List(vals)
+
+    if ... then
+        vals:extend(Set.__get_vals(...))
+    end
+
+    return vals
+end
+
+function Set.union(...)
+    return Set(Set.__get_vals(...))
 end
 
 Set.__add = Set.union
@@ -59,7 +67,8 @@ end
 
 Set.__mul = Set.intersection
 
-function Set.difference(self, other)
+function Set.difference(self, ...)
+    local other = Set.union(...)
     return Set(self:vals():clone():filter(function(val) return not other:has(val) end))
 end
 

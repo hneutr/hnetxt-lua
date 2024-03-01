@@ -287,6 +287,7 @@ describe("construct_taxonomy_key_map", function()
     it("2 children, 1 common key", function()
         assert.are.same(
             {
+                a = {},
                 b = {"x"},
                 c = {"y"},
                 d = {"z"},
@@ -301,6 +302,7 @@ describe("construct_taxonomy_key_map", function()
     it("child + parent, 1 common key", function()
         assert.are.same(
             {
+                a = {},
                 b = {"x", "y"},
                 c = {"z"},
             },

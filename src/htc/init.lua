@@ -103,6 +103,8 @@ Dict({
         {"+p", target = "print", switch = "on"},
         description = "list tags",
         action = function(args)
+            metadata.set_taxonomy(args.dir)
+
             if args.reference then
                 args.reference = urls:where({path = args.reference}).id
             elseif #args.conditions == 0 then
