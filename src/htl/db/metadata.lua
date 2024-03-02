@@ -433,7 +433,7 @@ end
 --------------------------------------------------------------------------------
 function M:dict_string(dict)
     local field_ends = List({" = {}", " = {"})
-    local line_types = List({M.is_a_string, M.link_string, M.key_string, M.val_string})
+    local line_types = List({M.IsAPrinter, M.LinkPrinter, M.KeyPrinter, M.ValPrinter})
 
     return tostring(dict):split("\n"):transform(function(l)
         l = l:sub(#M.config.indent_size + 1)
@@ -472,20 +472,26 @@ function M.has_vals(s)
 end
 
 --------------------------------------------------------------------------------
+--                                                                            --
+--                               string things                                --
+--                                                                            --
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
 --                                key strings                                 --
 --------------------------------------------------------------------------------
-M.key_string = {
+M.KeyPrinter = {
     match = "%=",
     color = "blue",
 }
 
-function M.key_string:is_a(s) return s:match(self.match) end
-function M.key_string:for_terminal(s)
+function M.KeyPrinter:is_a(s) return s:match(self.match) end
+function M.KeyPrinter:for_terminal(s)
     s = s:gsub(self.match, "")
     return Colorize(s, self.color)
 end
 
-function M.key_string:for_dict(s)
+function M.KeyPrinter:for_dict(s)
     if not s:startswith(M.config.tag_prefix) then
         s = string.format("=%s", s)
     end
@@ -493,20 +499,41 @@ function M.key_string:for_dict(s)
 end
 
 --------------------------------------------------------------------------------
---                                val strings                                 --
+--                                 TagPrinter                                 --
 --------------------------------------------------------------------------------
-M.val_string = {
+M.TagPrinter = {
+    match = "@",
+    color = "magenta",
+}
+
+function M.TagPrinter:is_a(s) return s:match(self.match) end
+function M.TagPrinter:for_terminal(s)
+    s = s:gsub(self.match, "")
+    return Colorize(s, self.color)
+end
+
+function M.TagPrinter:for_dict(s)
+    if not s:startswith(M.config.tag_prefix) then
+        s = string.format("=%s", s)
+    end
+    return s
+end
+
+--------------------------------------------------------------------------------
+--                                 ValPrinter                                 --
+--------------------------------------------------------------------------------
+M.ValPrinter = {
     match = "%*",
     color = "blue",
 }
 
-function M.val_string:is_a(s) return s:match(self.match) end
-function M.val_string:for_terminal(s)
+function M.ValPrinter:is_a(s) return s:match(self.match) end
+function M.ValPrinter:for_terminal(s)
     local indent, s = s:match("(%s*)(.*)")
     return indent .. Colorize("- ", self.color) .. s:gsub(self.match, "")
 end
 
-function M.val_string:for_dict(s)
+function M.ValPrinter:for_dict(s)
     if s and #s > 0 then
         return string.format("*%s", s)
     end
@@ -515,27 +542,27 @@ end
 --------------------------------------------------------------------------------
 --                                is a string                                 --
 --------------------------------------------------------------------------------
-M.is_a_string = {
+M.IsAPrinter = {
     match = "%*%=",
     color = "yellow",
 }
 
-function M.is_a_string:is_a(s) return s:match(self.match) end
-function M.is_a_string:for_terminal(s)
+function M.IsAPrinter:is_a(s) return s:match(self.match) end
+function M.IsAPrinter:for_terminal(s)
     s = s:gsub(self.match, "")
     return Colorize(s, self.color)
 end
 
-function M.is_a_string:for_dict(s)
+function M.IsAPrinter:for_dict(s)
     if s and #s > 0 then
         return string.format("*=%s", s)
     end
 end
 
 --------------------------------------------------------------------------------
---                                link_string                                 --
+--                                LinkPrinter                                 --
 --------------------------------------------------------------------------------
-M.link_string = {
+M.LinkPrinter = {
     match = "%*@",
     color = "magenta",
     colors = {
@@ -546,8 +573,8 @@ M.link_string = {
     }
 }
 
-function M.link_string:is_a(s) return s:strip():startswith("*@") end
-function M.link_string:for_terminal(s)
+function M.LinkPrinter:is_a(s) return s:strip():startswith("*@") end
+function M.LinkPrinter:for_terminal(s)
     local indent, s = s:match("(%s*)(.*)")
     local s = s:gsub(self.match, "")
     local url = urls:where({id = tonumber(s)})
@@ -567,11 +594,59 @@ function M.link_string:for_terminal(s)
     end
 end
 
-function M.link_string:for_dict(s)
+function M.LinkPrinter:for_dict(s)
     if urls:where({id = tonumber(s)}) then
         return string.format("*@%s", s) 
     end
 end
+
+-- M.Printer = {
+--     cols = List({"key", "val"}),
+--     types = Dict({
+--         key = List({
+--             M.TagPrinter,
+--             M.IsAPrinter
+--             M.KeyPrinter,
+--         }),
+--         val = List({
+--             M.LinkPrinter,
+--             M.ValPrinter,
+--         })
+--     }),
+-- }
+
+-- function M.Printer.for_dict(row, col)
+--     local col_index = M.Printer.cols:index(col)
+--     local Printers = M.Printer.types[col]
+
+--     for Printer in Printers:iter() do
+--         if Printer:is_a(row) then
+--             local printer_index = Printers:index(Printer)
+--         end
+--     end
+
+--     local key = M.KeyPrinter:for_dict(row.key)
+
+--     if row.datatype == 'IsA' then
+--         key = M.IsAPrinter:for_dict(row.key)
+--     end
+    
+--     keys:append(key)
+--     id_to_keys[tostring(row.id)] = keys
+
+--     local row_d = d:get(unpack(keys)) or Dict()
+
+--     if not keys_with_excluded_vals:has(row.key) then
+--         local val = M.ValPrinter:for_dict(row.val)
+
+--         if row.datatype == "reference" then
+--             val = M.LinkPrinter:for_dict(row.val)
+--         end
+
+--         if val then
+--             row_d[val] = Dict()
+--         end
+-- end
 
 --------------------------------------------------------------------------------
 --                                                                            --
@@ -599,7 +674,7 @@ end
 
 function M.get_subdict(rows, exclude_unique_values)
     local parent_ids = Set(rows:filter(function(r) return r.key == M.root_key end):col('id'))
-    local id_to_parents = Dict()
+    local id_to_keys = Dict()
 
     local d = Dict()
     while #rows > 0 do
@@ -610,25 +685,25 @@ function M.get_subdict(rows, exclude_unique_values)
         local keys_with_excluded_vals = M.get_keys_with_val_exclusions(child_rows, exclude_unique_values)
 
         child_rows:foreach(function(row)
-            local parents = id_to_parents[tostring(row.parent)] or List()
-            parents = parents:clone()
+            local keys = id_to_keys[tostring(row.parent)] or List()
+            keys = keys:clone()
 
-            local key = M.key_string:for_dict(row.key)
+            local key = M.KeyPrinter:for_dict(row.key)
 
             if row.datatype == 'IsA' then
-                key = M.is_a_string:for_dict(row.key)
+                key = M.IsAPrinter:for_dict(row.key)
             end
             
-            parents:append(key)
-            id_to_parents[tostring(row.id)] = parents
+            keys:append(key)
+            id_to_keys[tostring(row.id)] = keys
 
-            local row_d = d:get(unpack(parents)) or Dict()
+            local row_d = d:get(unpack(keys)) or Dict()
 
             if not keys_with_excluded_vals:has(row.key) then
-                local val = M.val_string:for_dict(row.val)
+                local val = M.ValPrinter:for_dict(row.val)
 
                 if row.datatype == "reference" then
-                    val = M.link_string:for_dict(row.val)
+                    val = M.LinkPrinter:for_dict(row.val)
                 end
 
                 if val then
@@ -636,7 +711,7 @@ function M.get_subdict(rows, exclude_unique_values)
                 end
             end
             
-            d:set(parents, row_d)
+            d:set(keys, row_d)
         end)
     end
 
