@@ -408,7 +408,7 @@ function M.parse_condition(str)
     condition.key, condition.vals = unpack(str:split(M.config.field_delimiter, 1):mapm("strip"))
 
     if condition.vals then
-        condition.vals = condition.vals:split(M.config.field_or_delimiter)
+        condition.vals = condition.vals:split(M.config.or_delimiter)
     end
 
     if condition.key == M.config.is_a_key then

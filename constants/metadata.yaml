@@ -3,13 +3,14 @@ exclude_startswith: "-"
 tag_prefix: "@"
 tag_delimiter: "."
 field_delimiter: ":"
-field_or_delimiter: "|"
+or_delimiter: "|"
 indent_size: "  "
 frontmatter_delimiter: "\n\n"
 is_a_key: "is a"
 direct_fields:
 - of
 - type
+- to
 excluded_fields:
 - date
 - on page
