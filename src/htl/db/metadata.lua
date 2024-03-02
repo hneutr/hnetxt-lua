@@ -599,50 +599,34 @@ end
 
 function M.get_subdict(rows, exclude_unique_values)
     local parent_ids = Set(rows:filter(function(r) return r.key == M.root_key end):col('id'))
-    
-    local parent_id_to_parents = Dict()
-    local parent_id_to_files = Dict()
+    local id_to_parents = Dict()
 
-    local last_time = -1
     local d = Dict()
-    while #rows > 0 and #rows ~= last_time do
-        last_time = #rows
+    while #rows > 0 do
         local child_rows = rows:filter(function(r) return parent_ids:has(r.parent) end)
+        rows = rows:filter(function(r) return not parent_ids:has(r.id) end)
+        parent_ids = Set(child_rows:col('id'))
 
-        local keys_with_excluded_vals = Set()
-        if exclude_unique_values then
-            local counts = Dict()
-            child_rows:foreach(function(row)
-                counts:default(row.key, Dict({urls = Set(), vals = Set()}))
-                
-                counts[row.key].urls:add(row.url)
-                counts[row.key].vals:add(row.val)
-            end)
+        local keys_with_excluded_vals = M.get_keys_with_val_exclusions(child_rows, exclude_unique_values)
 
-            counts:foreach(function(key, c)
-                if c.urls:len() == c.vals:len() then
-                    keys_with_excluded_vals:add(key)
-                end
-            end)
-        end
-
-        local new_parent_ids = Set()
         child_rows:foreach(function(row)
-            local parents = parent_id_to_parents[tostring(row.parent)] or List()
+            local parents = id_to_parents[tostring(row.parent)] or List()
             parents = parents:clone()
 
             local key = M.key_string:for_dict(row.key)
+
             if row.datatype == 'IsA' then
                 key = M.is_a_string:for_dict(row.key)
             end
             
             parents:append(key)
-            parent_id_to_parents[tostring(row.id)] = parents
+            id_to_parents[tostring(row.id)] = parents
 
             local row_d = d:get(unpack(parents)) or Dict()
 
             if not keys_with_excluded_vals:has(row.key) then
                 local val = M.val_string:for_dict(row.val)
+
                 if row.datatype == "reference" then
                     val = M.link_string:for_dict(row.val)
                 end
@@ -653,16 +637,30 @@ function M.get_subdict(rows, exclude_unique_values)
             end
             
             d:set(parents, row_d)
-            new_parent_ids:add(row.id)
         end)
-
-        rows = rows:filter(function(r) return not parent_ids:has(r.id) end)
-        parent_ids = new_parent_ids
     end
 
-        
-
     return d
+end
+
+function M.get_keys_with_val_exclusions(rows, exclude_unique_values)
+    local keys = Set()
+    if exclude_unique_values then
+        local counts = Dict()
+        rows:foreach(function(row)
+            counts:default(row.key, Dict({urls = Set(), vals = Set()}))
+            counts[row.key].urls:add(row.url)
+            counts[row.key].vals:add(row.val)
+        end)
+
+        counts:foreach(function(key, c)
+            if c.urls:len() == c.vals:len() then
+                keys:add(key)
+            end
+        end)
+    end
+
+    return keys
 end
 
 function M.handle_is_a(rows)
@@ -672,7 +670,8 @@ function M.handle_is_a(rows)
     
     local is_a_vals = is_a_to_ids:keys():sorted()
 
-    local is_a_id = math.max(unpack(rows:col('id'))) + 1
+    local _, max_id = rows:col('id'):minmax()
+    local is_a_id = max_id + 1
 
     local new_val_rows_by_val = Dict()
     is_a_vals:foreach(function(val)
