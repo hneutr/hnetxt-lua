@@ -69,7 +69,7 @@ Dict({
 
                 if not path:exists() or args.rerun then
                     cmd.dir = Path(cmd.dir)
-                    local paths = urls:get({where = {id = metadata:get_urls(cmd)}}):col('path')
+                    local paths = urls:get({where = {id = metadata:get_urls(cmd):col('url')}}):col('path')
                     math.randomseed(os.time())
                     local v = math.random()
                     local index = math.random(1, #paths)
