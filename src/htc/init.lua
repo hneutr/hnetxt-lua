@@ -85,6 +85,7 @@ Dict({
         end,
     },
     tags = {
+        description = "list tags",
         {
             "conditions",
             args = "*",
@@ -92,35 +93,17 @@ Dict({
             description = "the conditions to meet (fields:value?/@tag.subtag/exclusion-)", 
             action="concat",
         },
+        {
+            "-r --reference",
+            description = "print references to this file",
+            convert = function(p) return urls:where({path = Path.from_commandline(p)}).id end,
+        },
         {"-d --dir", default = Path.cwd(), convert=Path.from_commandline},
-        {"-r --reference", description = "list files referencing this", convert=Path.from_commandline},
         {"+u", target = "exclude_unique_values", description = "exclude unique values", switch = "off"},
-        {"+f", target = "files", description = "list files", switch = "off"},
-        {"+l", target = "print_links", description = "print links", switch = "on"},
-        {"+p", target = "print", switch = "on"},
-        description = "list tags",
+        {"+f", target = "include_files", description = "print files", switch = "on"},
+        {"+l", target = "include_references", description = "print links", switch = "on"},
         action = function(args)
-            metadata.set_taxonomy(args.dir)
-
-            if args.reference then
-                args.reference = urls:where({path = args.reference}).id
-            elseif #args.conditions == 0 then
-                args.files = false
-            end
-
-            local _urls = metadata:get_urls(args)
-            local paths = urls:get({where = {id = _urls}}):col('path')
-
-            if args.print then
-                math.randomseed(os.time())
-                local v = math.random()
-                local index = math.random(1, #paths)
-                print(Snippet(paths[index]))
-            elseif args.files then
-                paths:foreach(print)
-            else
-                print(metadata.get_dict(_urls, args.print_links, args.exclude_unique_values))
-            end
+            print(metadata.get_dict(args))
         end
     },
 }):foreach(function(name, config)

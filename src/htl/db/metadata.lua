@@ -386,7 +386,15 @@ function M:get_urls(args)
         end)
     end)
 
-    return Set(rows:col('url')):vals()
+    if not args.include_references then
+        rows = rows:filter(function(r) return r.datatype ~= "reference" end)
+    end
+
+    rows = rows:filter(function(r)
+        return not M.config.excluded_fields:has(r.key)
+    end)
+
+    return M.handle_is_a(rows)
 end
 
 function M.parse_condition(str)
@@ -427,287 +435,44 @@ end
 --------------------------------------------------------------------------------
 --                                                                            --
 --                                                                            --
---                                  printing                                  --
---                                                                            --
---                                                                            --
---------------------------------------------------------------------------------
-function M:dict_string(dict)
-    local field_ends = List({" = {}", " = {"})
-    local line_types = List({M.IsAPrinter, M.LinkPrinter, M.KeyPrinter, M.ValPrinter})
-
-    return tostring(dict):split("\n"):transform(function(l)
-        l = l:sub(#M.config.indent_size + 1)
-
-        local has_vals = M.has_vals(l)
-        field_ends:foreach(function(field_end)
-            if l:endswith(field_end) then
-                l = l:removesuffix(field_end)
-            end
-        end)
-
-        local post_string = ""
-        if has_vals then
-            post_string = ":"
-        end
-
-        for line_type in line_types:iter() do
-            if line_type:is_a(l) then
-                return line_type:for_terminal(l) .. post_string
-            end
-        end
-
-        return l
-    end):filter(function(l)
-        return not List({
-            l == nil,
-            #l == 0,
-            l:endswith("}"),
-            l:endswith("{"),
-        }):any()
-    end):join("\n")
-end
-
-function M.has_vals(s)
-    return s:endswith(" = {")
-end
-
---------------------------------------------------------------------------------
---                                                                            --
---                               string things                                --
---                                                                            --
---------------------------------------------------------------------------------
-
---------------------------------------------------------------------------------
---                                key strings                                 --
---------------------------------------------------------------------------------
-M.KeyPrinter = {
-    match = "%=",
-    color = "blue",
-}
-
-function M.KeyPrinter:is_a(s) return s:match(self.match) end
-function M.KeyPrinter:for_terminal(s)
-    s = s:gsub(self.match, "")
-    return Colorize(s, self.color)
-end
-
-function M.KeyPrinter:for_dict(s)
-    if not s:startswith(M.config.tag_prefix) then
-        s = string.format("=%s", s)
-    end
-    return s
-end
-
---------------------------------------------------------------------------------
---                                 TagPrinter                                 --
---------------------------------------------------------------------------------
-M.TagPrinter = {
-    match = "@",
-    color = "magenta",
-}
-
-function M.TagPrinter:is_a(s) return s:match(self.match) end
-function M.TagPrinter:for_terminal(s)
-    s = s:gsub(self.match, "")
-    return Colorize(s, self.color)
-end
-
-function M.TagPrinter:for_dict(s)
-    if not s:startswith(M.config.tag_prefix) then
-        s = string.format("=%s", s)
-    end
-    return s
-end
-
---------------------------------------------------------------------------------
---                                 ValPrinter                                 --
---------------------------------------------------------------------------------
-M.ValPrinter = {
-    match = "%*",
-    color = "blue",
-}
-
-function M.ValPrinter:is_a(s) return s:match(self.match) end
-function M.ValPrinter:for_terminal(s)
-    local indent, s = s:match("(%s*)(.*)")
-    return indent .. Colorize("- ", self.color) .. s:gsub(self.match, "")
-end
-
-function M.ValPrinter:for_dict(s)
-    if s and #s > 0 then
-        return string.format("*%s", s)
-    end
-end
-
---------------------------------------------------------------------------------
---                                is a string                                 --
---------------------------------------------------------------------------------
-M.IsAPrinter = {
-    match = "%*%=",
-    color = "yellow",
-}
-
-function M.IsAPrinter:is_a(s) return s:match(self.match) end
-function M.IsAPrinter:for_terminal(s)
-    s = s:gsub(self.match, "")
-    return Colorize(s, self.color)
-end
-
-function M.IsAPrinter:for_dict(s)
-    if s and #s > 0 then
-        return string.format("*=%s", s)
-    end
-end
-
---------------------------------------------------------------------------------
---                                LinkPrinter                                 --
---------------------------------------------------------------------------------
-M.LinkPrinter = {
-    match = "%*@",
-    color = "magenta",
-    colors = {
-        list = "blue",
-        bracket = "black",
-        label = {"cyan", "underline"},
-        url = "black",
-    }
-}
-
-function M.LinkPrinter:is_a(s) return s:strip():startswith("*@") end
-function M.LinkPrinter:for_terminal(s)
-    local indent, s = s:match("(%s*)(.*)")
-    local s = s:gsub(self.match, "")
-    local url = urls:where({id = tonumber(s)})
-
-    if url then
-        local link = urls:get_reference(url)
-        local l = List({
-            Colorize("- ", self.colors.list),
-            Colorize("[", self.colors.bracket),
-            Colorize(link.label, self.colors.label),
-            Colorize("]", self.colors.bracket),
-            Colorize(string.format("(%s)", link.url), self.colors.url),
-            ""
-        })
-
-        return indent .. l:join("")
-    end
-end
-
-function M.LinkPrinter:for_dict(s)
-    if urls:where({id = tonumber(s)}) then
-        return string.format("*@%s", s) 
-    end
-end
-
--- M.Printer = {
---     cols = List({"key", "val"}),
---     types = Dict({
---         key = List({
---             M.TagPrinter,
---             M.IsAPrinter
---             M.KeyPrinter,
---         }),
---         val = List({
---             M.LinkPrinter,
---             M.ValPrinter,
---         })
---     }),
--- }
-
--- function M.Printer.for_dict(row, col)
---     local col_index = M.Printer.cols:index(col)
---     local Printers = M.Printer.types[col]
-
---     for Printer in Printers:iter() do
---         if Printer:is_a(row) then
---             local printer_index = Printers:index(Printer)
---         end
---     end
-
---     local key = M.KeyPrinter:for_dict(row.key)
-
---     if row.datatype == 'IsA' then
---         key = M.IsAPrinter:for_dict(row.key)
---     end
-    
---     keys:append(key)
---     id_to_keys[tostring(row.id)] = keys
-
---     local row_d = d:get(unpack(keys)) or Dict()
-
---     if not keys_with_excluded_vals:has(row.key) then
---         local val = M.ValPrinter:for_dict(row.val)
-
---         if row.datatype == "reference" then
---             val = M.LinkPrinter:for_dict(row.val)
---         end
-
---         if val then
---             row_d[val] = Dict()
---         end
--- end
-
---------------------------------------------------------------------------------
---                                                                            --
---                                                                            --
 --                                big printing                                --
 --                                                                            --
 --                                                                            --
 --------------------------------------------------------------------------------
-function M.get_dict(urls, include_references, exclude_unique_values)
-    local query = {where = {url = urls}}
-
-    local rows = M:get({where = {url = urls}})
-
-    if not include_references then
-        rows = rows:filter(function(r) return r.datatype ~= "reference" end)
-    end
-
-    rows = rows:filter(function(r)
-        return not M.config.excluded_fields:has(r.key)
-    end)
-
-    local d = M.get_subdict(M.handle_is_a(rows), exclude_unique_values)
-    return M:dict_string(d)
-end
-
-function M.get_subdict(rows, exclude_unique_values)
+function M.get_dict(args)
+    M.set_taxonomy(args.dir)
+    local rows = M:get_urls(args)
     local parent_ids = Set(rows:filter(function(r) return r.key == M.root_key end):col('id'))
     local id_to_keys = Dict()
 
     local d = Dict()
-    while #rows > 0 do
+    local last_n = -1
+    while #rows > 0 and #rows ~= last_n do
+        last_n = #rows
         local child_rows = rows:filter(function(r) return parent_ids:has(r.parent) end)
         rows = rows:filter(function(r) return not parent_ids:has(r.id) end)
         parent_ids = Set(child_rows:col('id'))
 
-        local keys_with_excluded_vals = M.get_keys_with_val_exclusions(child_rows, exclude_unique_values)
+        local keys_with_excluded_vals = M.get_keys_with_val_exclusions(child_rows, args.exclude_unique_values)
 
         child_rows:foreach(function(row)
-            local keys = id_to_keys[tostring(row.parent)] or List()
-            keys = keys:clone()
-
-            local key = M.KeyPrinter:for_dict(row.key)
-
-            if row.datatype == 'IsA' then
-                key = M.IsAPrinter:for_dict(row.key)
-            end
-            
-            keys:append(key)
+            local keys = List(id_to_keys[tostring(row.parent)]) or List()
+            keys:append(M.Printer:for_dict(row, "key"))
             id_to_keys[tostring(row.id)] = keys
 
             local row_d = d:get(unpack(keys)) or Dict()
 
-            if not keys_with_excluded_vals:has(row.key) then
-                local val = M.ValPrinter:for_dict(row.val)
+            local val = M.Printer:for_dict(row, "val")
 
-                if row.datatype == "reference" then
-                    val = M.LinkPrinter:for_dict(row.val)
-                end
+            if not keys_with_excluded_vals:has(row.key) and val then
+                row_d[val] = row_d[val] or Dict()
+            end
 
-                if val then
-                    row_d[val] = Dict()
+            if args.include_files then
+                local url_val = M.Printer:for_dict(row, "url")
+
+                if url_val then
+                    row_d:set({val, url_val})
                 end
             end
             
@@ -715,7 +480,7 @@ function M.get_subdict(rows, exclude_unique_values)
         end)
     end
 
-    return d
+    return M:dict_string(d)
 end
 
 function M.get_keys_with_val_exclusions(rows, exclude_unique_values)
@@ -784,6 +549,168 @@ function M.handle_is_a(rows)
 
     rows:extend(new_val_rows_by_val:values())
     return rows
+end
+
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                  printing                                  --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
+function M:dict_string(dict)
+    local field_ends = List({" = {}", " = {", "}"})
+
+    return tostring(dict):split("\n"):transform(function(l)
+        l = l:sub(#M.config.indent_size + 1)
+
+        local post_string = l:endswith(" = {") and ":" or ""
+
+        field_ends:foreach(function(e) l = l:removesuffix(e) end)
+
+        return M.Printer:for_terminal(l, post_string)
+    end):filter(function(l)
+        return l ~= nil and not List({
+            #l == 0,
+            l:endswith("}"),
+            l:endswith("{"),
+        }):any()
+    end):join("\n")
+end
+
+--------------------------------------------------------------------------------
+--                                key strings                                 --
+--------------------------------------------------------------------------------
+M.KeyPrinter = {
+    color = "blue",
+}
+
+function M.KeyPrinter:is_a() return true end
+function M.KeyPrinter:for_terminal(s)
+    return Colorize(s, self.color)
+end
+
+--------------------------------------------------------------------------------
+--                                 TagPrinter                                 --
+--------------------------------------------------------------------------------
+M.TagPrinter = {
+    color = "magenta",
+}
+
+function M.TagPrinter:is_a(s) return s:match(M.config.tag_prefix) end
+function M.TagPrinter:for_terminal(s)
+    return Colorize(s, self.color)
+end
+
+--------------------------------------------------------------------------------
+--                                 ValPrinter                                 --
+--------------------------------------------------------------------------------
+M.ValPrinter = {
+    color = "blue",
+}
+
+function M.ValPrinter:is_a() return true end
+function M.ValPrinter:for_terminal(s)
+    return Colorize("- ", self.color) .. s
+end
+
+--------------------------------------------------------------------------------
+--                                 IsAPrinter                                 --
+--------------------------------------------------------------------------------
+M.IsAPrinter = {
+    color = "yellow",
+}
+
+function M.IsAPrinter:is_a(s, row) return row.datatype == "IsA" end
+function M.IsAPrinter:for_terminal(s)
+    return Colorize(s, self.color)
+end
+
+--------------------------------------------------------------------------------
+--                                LinkPrinter                                 --
+--------------------------------------------------------------------------------
+M.LinkPrinter = {
+    colors = {
+        bracket = "black",
+        label = {"cyan", "underline"},
+        url = "black",
+    }
+}
+
+function M.LinkPrinter:is_a(s, row) return row.datatype == "reference" end
+function M.LinkPrinter:for_terminal(s)
+    local url = urls:where({id = tonumber(s)})
+
+    if url then
+        local link = urls:get_reference(url)
+        return List({
+            Colorize("[", self.colors.bracket),
+            Colorize(link.label, self.colors.label),
+            Colorize("]", self.colors.bracket),
+            Colorize(string.format("(%s)", link.url), self.colors.url),
+            ""
+        }):join("")
+    end
+end
+
+--------------------------------------------------------------------------------
+--                                 URLPrinter                                 --
+--------------------------------------------------------------------------------
+M.URLPrinter = {
+    color = "yellow",
+}
+
+function M.URLPrinter:is_a() return true end
+function M.URLPrinter:for_terminal(s)
+    return M.LinkPrinter:for_terminal(s)
+end
+
+M.Printer = {
+    cols = List({"key", "val", "url"}),
+    types = Dict({
+        key = List({
+            M.TagPrinter,
+            M.IsAPrinter,
+            M.KeyPrinter,
+        }),
+        val = List({
+            M.LinkPrinter,
+            M.ValPrinter,
+        }),
+        url = List({
+            M.URLPrinter,
+        }),
+    }),
+    format_string = "%s:%s %s",
+    regex = "(%s*)(%d):(%d) (.*)",
+}
+
+function M.Printer:for_dict(row, col)
+    local val = row[col]
+    if val == nil or #tostring(val) == 0 then
+        return
+    end
+    for i, Printer in ipairs(M.Printer.types[col]) do
+        if Printer:is_a(row[col], row) then
+            return string.format(self.format_string, self.cols:index(col), i, val)
+        end
+    end
+end
+
+function M.Printer:for_terminal(s, post_string)
+    local indent, col_index, type_index, val = s:match(self.regex)
+    if indent and col_index and type_index and val then
+        local col = self.cols[tonumber(col_index)]
+        local Printer = self.types[col][tonumber(type_index)]
+
+        local s = Printer:for_terminal(val)
+
+        if s and #s > 0 then
+            return indent .. s .. post_string
+        end
+    end
+
+    return ""
 end
 
 return M
