@@ -94,12 +94,13 @@ require("htc.cli")("hnetxt", {
         {"-d --dir", default = Path.cwd(), convert=Path.from_commandline},
         {"+f", target = "include_files", description = "print files", switch = "on"},
         {"+r", target = "include_references", description = "print links", switch = "on"},
-        {"+v", target = "include_values", description = "print values", switch = "on"},
+        {"+v", target = "include_values", description = "print values", switch = "off"},
         {"+t", target = "include_tags", description = "print tags", switch = "off"},
         {"+V", target = "exclude_unique_values", description = "exclude unique values", switch = "off"},
         action = function(args)
             if #args.conditions > 0 then
                 args.include_files = not args.include_files
+                args.include_values = not args.include_values
             end
             print(metadata.get_dict(args))
         end

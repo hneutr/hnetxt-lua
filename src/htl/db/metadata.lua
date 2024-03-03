@@ -362,6 +362,24 @@ function M:get_urls(args)
         return not M.config.excluded_fields:has(r.key)
     end)
 
+    rows = rows:filter(function(r)
+        local is_tag = r.key:startswith(M.config.tag_prefix)
+        
+        if is_tag then
+            if not args.include_tags then
+                return false
+            end
+        elseif not args.include_values then
+            if r.key == M.root_key or r.key == M.config.is_a_key or r.datatype == "reference" then
+                return true
+            else
+                return false
+            end
+        end
+        
+        return true
+    end)
+
     return M.handle_is_a(rows)
 end
 
@@ -421,7 +439,11 @@ function M.get_dict(args)
         rows = rows:filter(function(r) return not parent_ids:has(r.id) end)
         parent_ids = Set(child_rows:col('id'))
 
-        local keys_with_excluded_vals = M.get_keys_with_val_exclusions(child_rows, args.exclude_unique_values)
+        local keys_with_excluded_vals = M.get_keys_with_val_exclusions(
+            child_rows,
+            args.include_values,
+            args.exclude_unique_values
+        )
 
         child_rows:foreach(function(row)
             local keys = List(id_to_keys[tostring(row.parent)]) or List()
@@ -430,29 +452,35 @@ function M.get_dict(args)
 
             local row_d = d:get(unpack(keys)) or Dict()
 
-            local val = M.Printer:for_dict(row, "val")
-
-            if not keys_with_excluded_vals:has(row.key) and val then
-                row_d[val] = row_d[val] or Dict()
+            local url_keys = List()
+            if not keys_with_excluded_vals:has(row.key) then
+                url_keys:append(M.Printer:for_dict(row, "val"))
             end
 
             if args.include_files then
-                local url_val = M.Printer:for_dict(row, "url")
+                url_keys:append(M.Printer:for_dict(row, "url"))
+            end
 
-                if url_val then
-                    row_d:set({val, url_val})
-                end
+            if #url_keys > 0 then
+                row_d:set(url_keys)
             end
             
             d:set(keys, row_d)
         end)
     end
 
+    d[M.Printer:for_dict({key = "lexis"}, "key")] = nil
+
     return M:dict_string(d)
 end
 
-function M.get_keys_with_val_exclusions(rows, exclude_unique_values)
+function M.get_keys_with_val_exclusions(rows, include_values, exclude_unique_values)
+    if not include_values then
+        return Set(rows:col('key'))
+    end
+
     local keys = Set()
+    
     if exclude_unique_values then
         local counts = Dict()
         rows:foreach(function(row)
@@ -499,16 +527,29 @@ function M.handle_is_a(rows)
         end
     end)
 
+    local id_to_val = Dict()
     local id_remap = Dict()
     is_a_to_ids:foreach(function(val, ids)
         ids:foreach(function(id)
+            id_to_val[id] = val
             id_remap[id] = new_val_rows_by_val[val].id
         end)
     end)
 
+    local new_rows = List()
     is_a_rows:foreach(function(r)
-        r.val = nil
+        local v = new_val_rows_by_val[r.val]
+        new_rows:append({
+            id = v.id,
+            key = v.key,
+            parent = v.parent,
+            url = r.url,
+            datatype = "IsA",
+        })
+    
         r.id = is_a_id
+        r.val = nil
+        r.url = nil
     end)
 
     rows:foreach(function(r)
@@ -516,6 +557,8 @@ function M.handle_is_a(rows)
     end)
 
     rows:extend(new_val_rows_by_val:values())
+    rows:extend(new_rows)
+    
     return rows
 end
 
@@ -634,7 +677,7 @@ function M.URLPrinter:for_terminal(s)
 end
 
 M.Printer = {
-    cols = List({"key", "val", "url"}),
+    cols = List({"url", "key", "val"}),
     types = Dict({
         key = List({
             M.TagPrinter,
