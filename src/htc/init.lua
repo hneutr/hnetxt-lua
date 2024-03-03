@@ -87,15 +87,20 @@ require("htc.cli")("hnetxt", {
             action="concat",
         },
         {
-            "-r --reference",
+            "--reference",
             description = "print references to this file",
             convert = function(p) return urls:where({path = Path.from_commandline(p)}).id end,
         },
         {"-d --dir", default = Path.cwd(), convert=Path.from_commandline},
-        {"+u", target = "exclude_unique_values", description = "exclude unique values", switch = "off"},
         {"+f", target = "include_files", description = "print files", switch = "on"},
-        {"+l", target = "include_references", description = "print links", switch = "on"},
+        {"+r", target = "include_references", description = "print links", switch = "on"},
+        {"+v", target = "include_values", description = "print values", switch = "on"},
+        {"+t", target = "include_tags", description = "print tags", switch = "off"},
+        {"+V", target = "exclude_unique_values", description = "exclude unique values", switch = "off"},
         action = function(args)
+            if #args.conditions > 0 then
+                args.include_files = not args.include_files
+            end
             print(metadata.get_dict(args))
         end
     },

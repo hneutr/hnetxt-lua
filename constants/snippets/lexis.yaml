@@ -1,6 +1,7 @@
 snippet: |
     lexis:
-      semantics:
+      meaning:
+      pos:
       adjective:
       plural:
       demonym:
