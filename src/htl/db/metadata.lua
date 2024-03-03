@@ -303,39 +303,7 @@ function M:parse_val(val)
 end
 
 function M:get(q)
-    q = q or {}
-
-    local long_cols = List({"url", "id", "parent"})
-    local long_vals = Dict()
-
-    if q.where then
-        long_cols:foreach(function(col)
-            local vals = q.where[col]
-            if vals and type(vals) == 'table' then
-                long_vals[col] = Set(vals)
-                q.where[col] = nil
-            end
-        end)
-    end
-
-    if #Dict(q.where):keys() == 0 then
-        q.where = nil
-    end
-
-    local rows = List(M:__get(q))
-
-    long_vals:foreach(function(col, vals)
-        rows = rows:filter(function(r) return vals:has(r[col]) end)
-    end)
-
-    if #long_vals:keys() > 0 then
-        q.where = q.where or {}
-        long_vals:foreach(function(col, vals)
-            q.where[col] = vals:vals()
-        end)
-    end
-
-    return rows
+    return List(M:__get(q))
 end
 
 --------------------------------------------------------------------------------
@@ -346,7 +314,7 @@ end
 --                                                                            --
 --------------------------------------------------------------------------------
 function M:get_urls(args)
-    local rows = List(M:get())
+    local rows = M:get()
 
     if args.dir then
         local _urls = Set(urls:get({contains = {path = string.format("%s*", args.dir)}}):col('id'))
