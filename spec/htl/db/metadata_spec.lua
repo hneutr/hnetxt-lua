@@ -256,7 +256,7 @@ describe("get_urls", function()
 
         assert.are.same(
             {u1},
-            metadata:get_urls({dir = d1})
+            metadata:get_urls({dir = d1}):col('url')
         )
     end)
     
@@ -265,8 +265,8 @@ describe("get_urls", function()
         metadata:insert({key = "b", url = u1})
 
         assert.are.same(
-            {u1},
-            metadata:get_urls({conditions = "a"})
+            {u1, u1},
+            metadata:get_urls({conditions = "a"}):col('url')
         )
     end)
 
@@ -278,7 +278,7 @@ describe("get_urls", function()
 
         assert.are.same(
             {u1, u3, u4},
-            metadata:get_urls({reference = u1}):sorted()
+            metadata:get_urls({reference = u1, include_references = true}):col('url'):sorted()
         )
     end)
 end)

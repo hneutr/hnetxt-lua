@@ -56,7 +56,7 @@ build = {
 
         -- cli
         ["htc"] = "src/htc/init.lua",
-        ["htc.command"] = "src/htc/command.lua",
+        ["htc.cli"] = "src/htc/cli.lua",
         ["htc.colorize"] = "src/htc/colorize.lua",
         ["htc.new"] = "src/htc/new.lua",
         ["htc.project"] = "src/htc/project.lua",

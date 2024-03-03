@@ -1,10 +1,4 @@
-require("approot")("/Users/hne/lib/hnetxt-lua/")
-
-string = require("hl.string")
-local Dict = require("hl.Dict")
-local List = require("hl.List")
-
-local class = require("pl.class")
+require("hl")
 
 class.Component()
 Component.config_key = 'comp'
@@ -210,4 +204,12 @@ function Command:add(parent, settings, name)
     return object
 end
 
-return Command
+return function(script_name, commands_dict)
+    parser = require("argparse")(script_name)
+    local commands_list = List()
+    Dict(commands_dict):foreach(function(command_name, config)
+        commands_list:append(Command:add(parser, config, command_name))
+    end)
+
+    parser:group("commands", unpack(commands_list)):parse()
+end

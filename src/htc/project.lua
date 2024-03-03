@@ -32,7 +32,7 @@ return {
             action = function(args) projects:insert(args) end,
         },
         remove = {
-            {"title", default = Path.cwd():name(), args = "1"},
+            {"title", default = Path.cwd():name(), description = "project title", args = "1"},
             action = function(args) projects:remove(args) end,
         },
     }

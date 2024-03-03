@@ -1,3 +1,5 @@
+_G.class = require("pl.class")
+
 require("hl.List")
 require("hl.Dict")
 require("hl.Set")
