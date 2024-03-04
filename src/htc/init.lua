@@ -97,6 +97,7 @@ require("htc.cli")("hnetxt", {
         {"+v", target = "include_values", description = "print values", switch = "off"},
         {"+t", target = "include_tags", description = "print tags", switch = "off"},
         {"+V", target = "exclude_unique_values", description = "exclude unique values", switch = "off"},
+        {"+a", target = "add_missing", description = "add metadata for files without any", switch = "off"},
         action = function(args)
             if #args.conditions > 0 then
                 args.include_files = not args.include_files
@@ -105,4 +106,14 @@ require("htc.cli")("hnetxt", {
             print(metadata.get_dict(args))
         end
     },
+    test = {
+        description = "test",
+        {"-p --path", default = Path.cwd(), description = "project directory", convert=Path.as_path},
+        action = function(args)
+            local _urls = urls:get({where = {project = "todos"}})
+            _urls:foreach(function(u)
+                metadata:save_file_metadata(u.path)
+            end)
+        end,
+    }
 })

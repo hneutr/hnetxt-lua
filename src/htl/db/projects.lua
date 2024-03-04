@@ -14,17 +14,15 @@ local M = tbl("projects", {
 })
 
 function M:insert(row)
-    row = Dict({}, row)
+    local r = Dict()
 
-    if row.path ~= nil then
-        row.path = tostring(row.path)
-    end
+    Dict(M:schema()):keys():foreach(function(key)
+        if row[key] then
+            r[key] = tostring(row[key])
+        end
+    end)
 
-    if row.created then
-        row.created = tostring(row.created)
-    end
-
-    M:__insert(row)
+    M:__insert(r)
 end
 
 function M:get(q)

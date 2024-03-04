@@ -1,6 +1,9 @@
 local Colorize = require("htc.colorize")
 
-local projects = require("htl.db").get().projects
+local db = require("htl.db").get()
+local projects = db.projects
+local urls = db.urls
+local metadata = db.metadata
 
 return {
     require_command = false,
@@ -29,11 +32,19 @@ return {
             {"title", default = Path.cwd():name(), description = "project title", args = "1"},
             {"-p --path", default = Path.cwd(), description = "project directory", convert=Path.as_path},
             {"-c --created", default = os.date("%Y%m%d"), description = "project start date"},
-            action = function(args) projects:insert(args) end,
+            action = function(args)
+                projects:insert(args)
+                args.path:glob("%.md$"):foreach(function(path)
+                    urls:add_if_missing(path)
+                    metadata:save_file_metadata(path)
+                end)
+            end,
         },
         remove = {
             {"title", default = Path.cwd():name(), description = "project title", args = "1"},
-            action = function(args) projects:remove(args) end,
+            action = function(args)
+                projects:remove({where = {title = args.title}})
+            end,
         },
     }
 }

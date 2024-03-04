@@ -218,7 +218,3 @@ describe("update_link_urls", function()
         assert.are.same(urls.unanchored_path, urls:where({id = id}).path)
     end)
 end)
-
-describe("get_fuzzy_string", function()
-    
-end)

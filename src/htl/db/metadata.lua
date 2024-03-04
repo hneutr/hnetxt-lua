@@ -44,12 +44,11 @@ local M = tbl("metadata", {
     },
 })
 
-M.config = Config.get("metadata")
-M.config.excluded_fields = Set(M.config.excluded_fields)
-M.config.direct_fields = Set(M.config.direct_fields)
+M.conf = Config.get("metadata")
+M.conf.excluded_fields = Set(M.conf.excluded_fields)
+M.conf.direct_fields = Set(M.conf.direct_fields)
 M.metadata_dividers = List({"", tostring(Divider("large", "metadata"))})
 M.root_key = "__root"
-M.max_width = 118
 
 --------------------------------------------------------------------------------
 --                                                                            --
@@ -141,7 +140,7 @@ function M:construct_taxonomy_key_map(def_keys)
         local observed_keys = Set()
         descendants[def]:foreach(function(descendant)
             def_keys[descendant]:foreach(function(key)
-                if not M.config.direct_fields:has(key) or parents[key] == def then
+                if not M.conf.direct_fields:has(key) or parents[key] == def then
                     if observed_keys:has(key) then
                         def_keys[def]:add(key)
                     end
@@ -181,7 +180,7 @@ end
 --------------------------------------------------------------------------------
 function M:separate_metadata(lines)
     lines = lines:filter(function(l)
-        return not l:strip():startswith(M.config.exclude_startswith)
+        return not l:strip():startswith(M.conf.exclude_startswith)
     end)
 
     M.metadata_dividers:foreach(function(chop)
@@ -192,8 +191,8 @@ function M:separate_metadata(lines)
     end)
 
     for i, line in ipairs(lines) do
-        local is_tag = line:strip():startswith(M.config.tag_prefix)
-        local probably_field = line:strip():match(M.config.field_delimiter) and #line < 120
+        local is_tag = line:strip():startswith(M.conf.tag_prefix)
+        local probably_field = line:strip():match(M.conf.field_delimiter) and #line < 120
 
         if not (is_tag or probably_field) then
             return lines:chop(i, #lines)
@@ -226,7 +225,7 @@ end
 
 function M:line_is_non_metadata(l)
     if l then
-        return not l:match(M.config.field_delimiter) and not l:strip():startswith(M.config.tag_prefix)
+        return not l:match(M.conf.field_delimiter) and not l:strip():startswith(M.conf.tag_prefix)
     else
         return true
     end
@@ -245,12 +244,12 @@ function M:parse(lines)
         local indent, line = line:match("(%s*)(.*)")
 
         local key, val
-        if line:startswith(M.config.tag_prefix) then
+        if line:startswith(M.conf.tag_prefix) then
             key = line
         else
-            key, val = unpack(line:split(M.config.field_delimiter, 1):mapm("strip"))
+            key, val = unpack(line:split(M.conf.field_delimiter, 1):mapm("strip"))
 
-            parents_by_indent[indent .. M.config.indent_size] = parents_by_indent[indent]:clone():append(key)
+            parents_by_indent[indent .. M.conf.indent_size] = parents_by_indent[indent]:clone():append(key)
         end
 
         local m = metadata
@@ -317,8 +316,22 @@ function M:get_urls(args)
     local rows = M:get()
 
     if args.dir then
-        local _urls = Set(urls:get({contains = {path = string.format("%s*", args.dir)}}):col('id'))
+        local _urls = Set(urls:get({
+            where = {resource_type = "file"},
+            contains = {path = string.format("%s*", args.dir)},
+        }):col('id'))
+
         rows = rows:filter(function(r) return _urls:has(r.url) end)
+
+        if args.add_missing then
+            local urls_missing_metadata = _urls:difference(rows:col('url')):vals()
+
+            if #urls_missing_metadata > 0 then
+                urls:get({where = {id = urls_missing_metadata}}):foreach(function(url)
+                    M:save_file_metadata(url.path)
+                end)
+            end
+        end
     end
 
     if args.reference then
@@ -359,18 +372,18 @@ function M:get_urls(args)
     end
 
     rows = rows:filter(function(r)
-        return not M.config.excluded_fields:has(r.key)
+        return not M.conf.excluded_fields:has(r.key)
     end)
 
     rows = rows:filter(function(r)
-        local is_tag = r.key:startswith(M.config.tag_prefix)
+        local is_tag = r.key:startswith(M.conf.tag_prefix)
         
         if is_tag then
             if not args.include_tags then
                 return false
             end
         elseif not args.include_values then
-            if r.key == M.root_key or r.key == M.config.is_a_key or r.datatype == "reference" then
+            if r.key == M.root_key or r.key == M.conf.is_a_key or r.datatype == "reference" then
                 return true
             else
                 return false
@@ -385,19 +398,19 @@ end
 
 function M.parse_condition(str)
     local condition = Dict({
-        startswith = str:startswith(M.config.tag_prefix),
-        is_exclusion = str:endswith(M.config.exclusion_suffix),
+        startswith = str:startswith(M.conf.tag_prefix),
+        is_exclusion = str:endswith(M.conf.exclusion_suffix),
     })
 
-    str = str:removesuffix(M.config.exclusion_suffix)
+    str = str:removesuffix(M.conf.exclusion_suffix)
 
-    condition.key, condition.vals = unpack(str:split(M.config.field_delimiter, 1):mapm("strip"))
+    condition.key, condition.vals = unpack(str:split(M.conf.field_delimiter, 1):mapm("strip"))
 
     if condition.vals then
-        condition.vals = condition.vals:split(M.config.or_delimiter)
+        condition.vals = condition.vals:split(M.conf.or_delimiter)
     end
 
-    if condition.key == M.config.is_a_key then
+    if condition.key == M.conf.is_a_key then
         condition.vals = M.add_taxonomy_vals(condition.vals)
     end
     
@@ -500,7 +513,7 @@ function M.get_keys_with_val_exclusions(rows, include_values, exclude_unique_val
 end
 
 function M.handle_is_a(rows)
-    local is_a_rows = rows:filter(function(r) return r.key == M.config.is_a_key end)
+    local is_a_rows = rows:filter(function(r) return r.key == M.conf.is_a_key end)
 
     local is_a_to_ids = M:get_is_a_to_ids(rows, is_a_rows)
 
@@ -513,7 +526,7 @@ function M.handle_is_a(rows)
         new_val_rows_by_val[val] = Dict({
             id = val,
             key = val,
-            parent = parents[val] or M.config.is_a_key,
+            parent = parents[val] or M.conf.is_a_key,
             datatype = 'IsA',
         })
 
@@ -532,7 +545,7 @@ function M.handle_is_a(rows)
             datatype = "IsA",
         })
     
-        r.id = M.config.is_a_key
+        r.id = M.conf.is_a_key
         r.val = nil
         r.url = nil
     end)
@@ -553,7 +566,7 @@ function M:dict_string(dict)
     local field_ends = List({" = {}", " = {", "}"})
 
     return tostring(dict):split("\n"):transform(function(l)
-        l = l:sub(#M.config.indent_size + 1)
+        l = l:sub(#M.conf.indent_size + 1)
 
         local post_string = l:endswith(" = {") and ":" or ""
 
@@ -588,7 +601,7 @@ M.TagPrinter = {
     color = "magenta",
 }
 
-function M.TagPrinter:is_a(s) return s:match(M.config.tag_prefix) end
+function M.TagPrinter:is_a(s) return s:match(M.conf.tag_prefix) end
 function M.TagPrinter:for_terminal(s)
     return Colorize(s, self.color)
 end
