@@ -503,43 +503,28 @@ function M.handle_is_a(rows)
     local is_a_rows = rows:filter(function(r) return r.key == M.config.is_a_key end)
 
     local is_a_to_ids = M:get_is_a_to_ids(rows, is_a_rows)
+
+    local id_to_row = Dict()
+    rows:foreach(function(r) id_to_row[r.id] = r end)
     
-    local is_a_vals = is_a_to_ids:keys():sorted()
-
-    local _, max_id = rows:col('id'):minmax()
-    local is_a_id = max_id + 1
-
+    local parents = M.get_taxonomy():parents()
     local new_val_rows_by_val = Dict()
-    is_a_vals:foreach(function(val)
+    is_a_to_ids:foreach(function(val, ids)
         new_val_rows_by_val[val] = Dict({
-            id = is_a_id + is_a_vals:index(val),
+            id = val,
             key = val,
-            parent = is_a_id,
+            parent = parents[val] or M.config.is_a_key,
             datatype = 'IsA',
         })
-    end)
 
-    local parents = M.get_taxonomy():parents()
-    new_val_rows_by_val:foreach(function(val, row)
-        local parent = parents[val]
-        if parent and new_val_rows_by_val[parent] then
-            row.parent = new_val_rows_by_val[parent].id
-        end
-    end)
-
-    local id_to_val = Dict()
-    local id_remap = Dict()
-    is_a_to_ids:foreach(function(val, ids)
         ids:foreach(function(id)
-            id_to_val[id] = val
-            id_remap[id] = new_val_rows_by_val[val].id
+            id_to_row[id].parent = val
         end)
     end)
 
-    local new_rows = List()
     is_a_rows:foreach(function(r)
         local v = new_val_rows_by_val[r.val]
-        new_rows:append({
+        rows:append({
             id = v.id,
             key = v.key,
             parent = v.parent,
@@ -547,17 +532,12 @@ function M.handle_is_a(rows)
             datatype = "IsA",
         })
     
-        r.id = is_a_id
+        r.id = M.config.is_a_key
         r.val = nil
         r.url = nil
     end)
 
-    rows:foreach(function(r)
-        r.parent = id_remap[r.id] or r.parent
-    end)
-
     rows:extend(new_val_rows_by_val:values())
-    rows:extend(new_rows)
     
     return rows
 end

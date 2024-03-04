@@ -256,7 +256,7 @@ describe("get_urls", function()
 
         assert.are.same(
             {u1},
-            metadata:get_urls({dir = d1}):col('url')
+            metadata:get_urls({dir = d1, include_values = true}):col('url')
         )
     end)
     
@@ -266,7 +266,7 @@ describe("get_urls", function()
 
         assert.are.same(
             {u1, u1},
-            metadata:get_urls({conditions = "a"}):col('url')
+            metadata:get_urls({conditions = "a", include_values = true}):col('url')
         )
     end)
 
