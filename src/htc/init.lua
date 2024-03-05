@@ -92,15 +92,16 @@ require("htc.cli")("hnetxt", {
             convert = function(p) return urls:where({path = Path.from_commandline(p)}).id end,
         },
         {"-d --dir", default = Path.cwd(), convert=Path.from_commandline},
-        {"+f", target = "include_files", description = "print files", switch = "on"},
-        {"+r", target = "include_references", description = "print links", switch = "on"},
+        {"+f", target = "include_urls", description = "print file urls", switch = "on"},
+        {"+l", target = "include_links", description = "print links", switch = "on"},
         {"+v", target = "include_values", description = "print values", switch = "off"},
         {"+t", target = "include_tags", description = "print tags", switch = "off"},
         {"+V", target = "exclude_unique_values", description = "exclude unique values", switch = "off"},
         {"+a", target = "add_missing", description = "add metadata for files without any", switch = "off"},
+        {"+I", target = "is_a_only", description = "show non-'is a' keys", switch = "off"},
         action = function(args)
             if #args.conditions > 0 then
-                args.include_files = not args.include_files
+                args.include_urls = not args.include_urls
                 args.include_values = not args.include_values
             end
             print(metadata.get_dict(args))

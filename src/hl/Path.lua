@@ -112,6 +112,10 @@ function Path.is_dir(p)
     return PATH.isdir(Path.as_string(p)) and true
 end
 
+function Path.is_url(p)
+    return Path.as_string(p):startswith("http") and true
+end
+
 function Path.exists(p)
     return PATH.exists(Path.as_string(p)) and true
 end

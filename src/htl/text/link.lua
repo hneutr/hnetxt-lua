@@ -3,6 +3,7 @@ string = require("hl.string")
 local class = require("pl.class")
 local List = require("hl.List")
 local Dict = require("hl.Dict")
+local Colorize = require("htc.Colorize")
 
 local Config = require("htl.Config")
 
@@ -38,18 +39,15 @@ function Link:__tostring()
     return self.before .. self:bare_link_string() .. self.after
 end
 
-function Link:terminal_string()
-    local escape_char = string.char(27)
-    local pre_url = string.format("%s]8;;", escape_char)
-    local post_url = string.format("%s\\", escape_char)
-    local post_label = string.format("%s]8;;%s\\", escape_char, escape_char)
-
+function Link:terminal_string(colors)
     return List({
-        pre_url,
-        self.url,
-        post_url,
-        self.label,
-        post_label,
+        Colorize(self.label_delimiters.open, colors.label_delimiters),
+        Colorize(self.label, colors.label),
+        Colorize(self.label_delimiters.close, colors.label_delimiters),
+        Colorize(self.url_delimiters.open, colors.url_delimiters),
+        Colorize(self.url, colors.url),
+        Colorize(self.url_delimiters.close, colors.url_delimiters),
+        "",
     }):join("")
 end
 

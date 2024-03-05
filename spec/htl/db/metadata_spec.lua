@@ -278,7 +278,7 @@ describe("get_urls", function()
 
         assert.are.same(
             {u1, u3, u4},
-            metadata:get_urls({reference = u1, include_references = true}):col('url'):sorted()
+            metadata:get_urls({reference = u1, include_links = true}):col('url'):sorted()
         )
     end)
 end)

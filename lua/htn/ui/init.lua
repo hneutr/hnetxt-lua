@@ -96,7 +96,11 @@ function M.goto(open_command, fuzzy_path)
         local url_id = Link:get_nearest(vim.fn.getline('.'), cursor_col).url
 
         if url_id then
-            url = urls:where({id = url_id})
+            if Path(url_id):is_url() then
+                os.execute(string.format("open %s", url_id))
+            else
+                url = urls:where({id = url_id})
+            end
         end
     end
 

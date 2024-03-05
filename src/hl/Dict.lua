@@ -161,7 +161,7 @@ end
 function Dict:__tostring()
     local lines = List()
 
-    self:keys():sorted():transform(function(k)
+    self:keys():sorted():foreach(function(k)
         lines:extend(string.format("%s = %s", k, tostring(self[k])):split("\n"))
     end)
     

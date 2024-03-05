@@ -1,4 +1,5 @@
 local Fold = require("htn.ui.fold")
+local ui = require("htn.ui")
 
 local args = {silent = true, buffer = true}
 
@@ -7,6 +8,11 @@ local mappings = Dict(
         n = Dict({
             ["<c-p>"] = Fold.jump_to_header(-1),
             ["<c-n>"] = Fold.jump_to_header(1),
+            -- url opening
+            ["<M-l>"] = ui.goto_map_fn("vsplit"),
+            ["<M-j>"] = ui.goto_map_fn("split"),
+            ["<M-e>"] = ui.goto_map_fn("edit"),
+            ["<M-t>"] = ui.goto_map_fn("tabedit"),
         }),
         v = Dict({}),
         i = Dict({}),
@@ -16,7 +22,6 @@ local mappings = Dict(
 
 if vim.b.htn_project then
     local Fuzzy = require("htn.ui.fuzzy")
-    local ui = require("htn.ui")
 
     -- fuzzy
     mappings.n["<leader>df"] = Fuzzy.goto
@@ -26,12 +31,6 @@ if vim.b.htn_project then
     -- scratch
     mappings.n["<leader>s"] = ui.scratch_map_fn
     mappings.v["<leader>s"] = ui.scratch_map_visual_cmd
-
-    -- url opening
-    mappings.n["<M-l>"] = ui.goto_map_fn("vsplit")
-    mappings.n["<M-j>"] = ui.goto_map_fn("split")
-    mappings.n["<M-e>"] = ui.goto_map_fn("edit")
-    mappings.n["<M-t>"] = ui.goto_map_fn("tabedit")
 
     -- mirrors
     mappings.n:update(ui.mirror_mappings())

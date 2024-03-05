@@ -367,7 +367,7 @@ function M:get_urls(args)
         end)
     end)
 
-    if not args.include_references then
+    if not args.include_links then
         rows = rows:filter(function(r) return r.datatype ~= "reference" end)
     end
 
@@ -452,64 +452,73 @@ function M.get_dict(args)
         rows = rows:filter(function(r) return not parent_ids:has(r.id) end)
         parent_ids = Set(child_rows:col('id'))
 
-        local keys_with_excluded_vals = M.get_keys_with_val_exclusions(
-            child_rows,
-            args.include_values,
-            args.exclude_unique_values
-        )
-
+        local unique_keys = M.get_unique_keys(child_rows)
         child_rows:foreach(function(row)
             local keys = List(id_to_keys[tostring(row.parent)]) or List()
             keys:append(M.Printer:for_dict(row, "key"))
             id_to_keys[tostring(row.id)] = keys
 
             local row_d = d:get(unpack(keys)) or Dict()
+            M.add_subkeys(row_d, row, unique_keys, args)
 
-            local url_keys = List()
-            if not keys_with_excluded_vals:has(row.key) then
-                url_keys:append(M.Printer:for_dict(row, "val"))
-            end
-
-            if args.include_files then
-                url_keys:append(M.Printer:for_dict(row, "url"))
-            end
-
-            if #url_keys > 0 then
-                row_d:set(url_keys)
-            end
-            
             d:set(keys, row_d)
         end)
     end
 
-    d[M.Printer:for_dict({key = "lexis"}, "key")] = nil
+    if args.is_a_only then
+        local is_a = M.Printer:for_dict({key = M.conf.is_a_key}, "key")
+        d = Dict({[is_a] = d[is_a]})
+    end
 
     return M:dict_string(d)
 end
 
-function M.get_keys_with_val_exclusions(rows, include_values, exclude_unique_values)
-    if not include_values then
-        return Set(rows:col('key'))
-    end
+function M.get_unique_keys(rows)
+    local counts = Dict()
+    local keys = List({"url", "val"})
+    rows:foreach(function(row)
+        counts:default(row.key, Dict({url = Set(), val = Set()}))
 
-    local keys = Set()
-    
-    if exclude_unique_values then
-        local counts = Dict()
-        rows:foreach(function(row)
-            counts:default(row.key, Dict({urls = Set(), vals = Set()}))
-            counts[row.key].urls:add(row.url)
-            counts[row.key].vals:add(row.val)
-        end)
-
-        counts:foreach(function(key, c)
-            if c.urls:len() == c.vals:len() then
-                keys:add(key)
+        keys:foreach(function(key)
+            if row[key] and row[key] ~= "" then
+                counts[row.key][key]:add(row[key])
             end
         end)
+    end)
+
+    return Set(counts:keys():filter(function(k)
+        return counts[k].url:len() == counts[k].val:len()
+    end))
+end
+
+function M.add_subkeys(dict, row, unique_keys, args)
+    local include = Dict({
+        val = args.include_values,
+        url = args.include_urls,
+    })
+
+    local unique = unique_keys:has(row.key)
+    
+    if unique and args.exclude_unique_values then
+        include.val = false
     end
 
-    return keys
+    local keys = List()
+    M.Printer.line_order:foreach(function(key)
+        if include[key] and row[key] ~= nil and row[key] ~= "" then
+            keys:append(key)
+        end
+    end)
+
+    local dict_keys = keys:map(function(ks)
+        return M.Printer:for_dict(row, ks)
+    end):filter(function(k)
+        return k and #k > 0
+    end)
+
+    if #dict_keys > 0 then
+        dict:set(dict_keys)
+    end
 end
 
 function M.handle_is_a(rows)
@@ -565,7 +574,7 @@ end
 function M:dict_string(dict)
     local field_ends = List({" = {}", " = {", "}"})
 
-    return tostring(dict):split("\n"):transform(function(l)
+    return tostring(M.squish_dict(dict)):split("\n"):transform(function(l)
         l = l:sub(#M.conf.indent_size + 1)
 
         local post_string = l:endswith(" = {") and ":" or ""
@@ -582,139 +591,162 @@ function M:dict_string(dict)
     end):join("\n")
 end
 
+function M.squish_dict(d)
+    local _d = Dict()
+    d:foreach(function(k, v)
+        local v_keys = v:keys()
+        if #v_keys == 1 then
+            k = M.Printer:merge_dict_keys(k, v_keys[1])
+            v = Dict()
+        end
+
+        _d[k] = M.squish_dict(v)
+    end)
+    
+    return _d
+end
+
 --------------------------------------------------------------------------------
 --                                key strings                                 --
 --------------------------------------------------------------------------------
-M.KeyPrinter = {
-    color = "blue",
-}
+class.KeyPrinter()
+KeyPrinter.color_key = "key"
 
-function M.KeyPrinter:is_a() return true end
-function M.KeyPrinter:for_terminal(s)
-    return Colorize(s, self.color)
+function KeyPrinter:colors() return M.conf.colors[self.color_key] end
+function KeyPrinter:is_a() return true end
+function KeyPrinter:for_terminal(s)
+    return Colorize(s, self:colors())
 end
 
 --------------------------------------------------------------------------------
 --                                 TagPrinter                                 --
 --------------------------------------------------------------------------------
-M.TagPrinter = {
-    color = "magenta",
-}
+class.TagPrinter(KeyPrinter)
+TagPrinter.color_key = "tag"
 
-function M.TagPrinter:is_a(s) return s:match(M.conf.tag_prefix) end
-function M.TagPrinter:for_terminal(s)
-    return Colorize(s, self.color)
-end
-
---------------------------------------------------------------------------------
---                                 ValPrinter                                 --
---------------------------------------------------------------------------------
-M.ValPrinter = {
-    color = "blue",
-}
-
-function M.ValPrinter:is_a() return true end
-function M.ValPrinter:for_terminal(s)
-    return Colorize("- ", self.color) .. s
-end
+function TagPrinter:is_a(s) return s:match(M.conf.tag_prefix) end
 
 --------------------------------------------------------------------------------
 --                                 IsAPrinter                                 --
 --------------------------------------------------------------------------------
-M.IsAPrinter = {
-    color = "yellow",
-}
+class.IsAPrinter (KeyPrinter)
+IsAPrinter.color_key = "is_a"
 
-function M.IsAPrinter:is_a(s, row) return row.datatype == "IsA" end
-function M.IsAPrinter:for_terminal(s)
-    return Colorize(s, self.color)
+function IsAPrinter:is_a(s, row) return row.datatype == "IsA" end
+
+--------------------------------------------------------------------------------
+--                                 ValPrinter                                 --
+--------------------------------------------------------------------------------
+class.ValPrinter(KeyPrinter)
+ValPrinter.color_key = "val"
+
+function ValPrinter:is_a() return true end
+function ValPrinter:for_terminal(s, is_first)
+    if is_first then
+        s = Colorize("- ", self:colors()) .. s
+    end
+    return s
 end
 
 --------------------------------------------------------------------------------
 --                                LinkPrinter                                 --
 --------------------------------------------------------------------------------
-M.LinkPrinter = {
-    colors = {
-        bracket = "black",
-        label = {"cyan", "underline"},
-        url = "black",
-    }
-}
+class.LinkPrinter(KeyPrinter)
+LinkPrinter.color_key = "link"
 
-function M.LinkPrinter:is_a(s, row) return row.datatype == "reference" end
-function M.LinkPrinter:for_terminal(s)
+function LinkPrinter:is_a(s, row) return row.datatype == "reference" end
+function LinkPrinter:for_terminal(s)
     local url = urls:where({id = tonumber(s)})
 
     if url then
-        local link = urls:get_reference(url)
-        return List({
-            Colorize("[", self.colors.bracket),
-            Colorize(link.label, self.colors.label),
-            Colorize("]", self.colors.bracket),
-            Colorize(string.format("(%s)", link.url), self.colors.url),
-            ""
-        }):join("")
+        return urls:get_reference(url):terminal_string(self:colors())
     end
 end
 
 --------------------------------------------------------------------------------
 --                                 URLPrinter                                 --
 --------------------------------------------------------------------------------
-M.URLPrinter = {
-    color = "yellow",
-}
+class.URLPrinter(LinkPrinter)
+function URLPrinter:is_a() return true end
 
-function M.URLPrinter:is_a() return true end
-function M.URLPrinter:for_terminal(s)
-    return M.LinkPrinter:for_terminal(s)
-end
-
+--------------------------------------------------------------------------------
+--                                  Printer                                   --
+--------------------------------------------------------------------------------
 M.Printer = {
+    line_order = List({"key", "val", "url"}),
     cols = List({"url", "key", "val"}),
     types = Dict({
         key = List({
-            M.TagPrinter,
-            M.IsAPrinter,
-            M.KeyPrinter,
-        }),
-        val = List({
-            M.LinkPrinter,
-            M.ValPrinter,
+            TagPrinter,
+            IsAPrinter,
+            KeyPrinter,
         }),
         url = List({
-            M.URLPrinter,
+            URLPrinter,
+        }),
+        val = List({
+            LinkPrinter,
+            ValPrinter,
         }),
     }),
     format_string = "%s:%s %s",
-    regex = "(%s*)(%d):(%d) (.*)",
+    regex = "(%d):(%d) (.*)",
+    delimiter = " | ",
+    terminal_delimiter = ": "
 }
 
-function M.Printer:for_dict(row, col)
-    local val = row[col]
-    if val == nil or #tostring(val) == 0 then
-        return
-    end
-    for i, Printer in ipairs(M.Printer.types[col]) do
-        if Printer:is_a(row[col], row) then
-            return string.format(self.format_string, self.cols:index(col), i, val)
-        end
-    end
+function M.Printer:merge_dict_keys(k1, k2)
+    return List({k1, k2}):join(self.delimiter)
 end
 
-function M.Printer:for_terminal(s, post_string)
-    local indent, col_index, type_index, val = s:match(self.regex)
-    if indent and col_index and type_index and val then
-        local col = self.cols[tonumber(col_index)]
-        local Printer = self.types[col][tonumber(type_index)]
+function M.Printer:for_dict(row, cols)
+    if type(cols) == "string" then
+        cols = {cols}
+    end
 
-        local s = Printer:for_terminal(val)
-
-        if s and #s > 0 then
-            return indent .. s .. post_string
+    return List(cols):transform(function(col)
+        local val = row[col]
+        if val == nil or #tostring(val) == 0 then
+            return
         end
+        for i, Printer in ipairs(M.Printer.types[col]) do
+            if Printer:is_a(row[col], row) then
+                return string.format(self.format_string, self.cols:index(col), i, val)
+            end
+        end
+    end):filter(function(s)
+        return s ~= nil and #s > 0
+    end):join(self.delimiter)
+end
+
+function M.Printer:for_terminal(str, post_string)
+    post_string = post_string or ""
+
+    local indent, str = str:match("(%s*)(.*)")
+
+    local is_first = true
+    local parts = str:split(self.delimiter):transform(function(s)
+        s = self:_for_terminal(s, is_first)
+        is_first = false
+        return s
+    end):filter(function(s)
+        return s and #s > 0
+    end)
+
+    if #parts > 0 then
+        return indent .. parts:join(self.terminal_delimiter) .. post_string
     end
 
     return ""
+end
+
+function M.Printer:_for_terminal(s, is_first)
+    local col_index, type_index, val = s:match(self.regex)
+    if col_index and type_index and val then
+        local col = self.cols[tonumber(col_index)]
+        local Printer = self.types[col][tonumber(type_index)]
+        return Printer:for_terminal(val, is_first)
+    end
 end
 
 return M

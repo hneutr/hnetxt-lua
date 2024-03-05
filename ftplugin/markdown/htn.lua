@@ -92,7 +92,6 @@ commands:foreach(function(name, fn)
     vim.api.nvim_buf_create_user_command(0, name, fn, {})
 end)
 
-vim.g.test = autocommands
 autocommands:keys():foreach(function(group_name)
     local group = vim.api.nvim_create_augroup(group_name, {clear = true})
     autocommands[group_name]:foreach(function(autocommand)

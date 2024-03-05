@@ -45,6 +45,7 @@ return function(str, color)
         colors = List({color})
     end
 
+    str = tostring(str)
     colors:foreach(function(color)
         str = "%{" .. (color or "reset") .. "}" .. str .. "%{reset}"
     end)

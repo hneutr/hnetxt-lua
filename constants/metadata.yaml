@@ -22,3 +22,13 @@ excluded_fields:
 - title
 - born
 - speaker
+colors:
+  key: blue
+  tag: magenta
+  val: blue
+  is_a: yellow
+  link:
+    label: [cyan, underline]
+    label_delimiters: black
+    url: black
+    url_delimiters: [black]
