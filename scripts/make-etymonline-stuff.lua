@@ -1,54 +1,29 @@
 require("hl")
 local Link = require("htl.text.Link")
-local db = require("htl.db").get()
 
+local db = require("htl.db").get()
 local urls = db.urls
 local metadata = db.metadata
 
-local desktop = Path.home:join("Desktop")
-local language_dir = Path.home:join("eidola", "language")
-local src_file = desktop:join("etylist.md")
-
-function get_etymonline_url(word)
-    return string.format("https://www.etymonline.com/word/%s", word)
-end
-
-function get_type(l)
-    if l:endswith("-") then
-        return "prefix"
-    elseif l:startswith("-") then
-        return "suffix"
-    end
-end
-
-local type_to_field = Dict({
-    prefix = "before:",
-    suffix = "after:",
+local bad_lines = Set({
+    "before:",
+    "after:",
+    "variants:",
 })
 
-src_file:readlines():filter(function(l)
-    return #l > 0
-end):foreach(function(l)
-    local l_type = get_type(l)
-    local link = Link({label = l, url = get_etymonline_url(l)})
+local dir = Path.home:join("eidola", "language")
+Path.home:join("eidola", "language"):iterdir({dirs = false}):filter(function(p)
+    return p:stem():startswith("_") or p:stem():endswith("_")
+end):foreach(function(p)
+    local lines = p:readlines()
+    local n = #lines
 
-    local path = language_dir:join(string.format("%s.md", l:gsub('-', '_')))
-    
-    if not path:exists() then
-        print(path)
-        path:write(
-            List({
-                "is a: " .. l_type,
-                "  " .. "meaning: ",
-                "  " .. "origin: ",
-                "  " .. "variants: ",
-                "  " .. type_to_field[l_type],
-                "  " .. "etymonline: " .. tostring(link),
-                "  " .. "@unchecked"
-            })
-        )
+    lines = lines:filter(function(l)
+        return not bad_lines:has(l:strip())
+    end)
 
-        urls:add_if_missing(path)
-        metadata:save_file_metadata(path)
+    if #lines ~= n then
+        p:write(lines)
+        metadata:save_file_metadata(p)
     end
 end)

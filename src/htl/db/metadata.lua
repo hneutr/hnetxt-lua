@@ -467,7 +467,7 @@ function M.get_dict(args)
 
     if args.is_a_only then
         local is_a = M.Printer:for_dict({key = M.conf.is_a_key}, "key")
-        d = Dict({[is_a] = d[is_a]})
+        d = d[is_a]
     end
 
     return M:dict_string(d)
@@ -479,11 +479,13 @@ function M.get_unique_keys(rows)
     rows:foreach(function(row)
         counts:default(row.key, Dict({url = Set(), val = Set()}))
 
-        keys:foreach(function(key)
-            if row[key] and row[key] ~= "" then
-                counts[row.key][key]:add(row[key])
-            end
-        end)
+        if row.val ~= "" and row.val ~= nil then
+            keys:foreach(function(key)
+                if row[key] and row[key] ~= "" then
+                    counts[row.key][key]:add(row[key])
+                end
+            end)
+        end
     end)
 
     return Set(counts:keys():filter(function(k)
@@ -595,7 +597,7 @@ function M.squish_dict(d)
     local _d = Dict()
     d:foreach(function(k, v)
         local v_keys = v:keys()
-        if #v_keys == 1 then
+        if #v_keys == 1 and #v[v_keys[1]]:keys() == 0 then
             k = M.Printer:merge_dict_keys(k, v_keys[1])
             v = Dict()
         end
