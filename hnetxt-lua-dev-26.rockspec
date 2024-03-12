@@ -2,23 +2,22 @@ rockspec_format = "3.0"
 package = "hnetxt-lua"
 version = "dev-26"
 source = {
-   url = "git://github.com/hneutr/hnetxt-lua"
+    url = "git://github.com/hneutr/hnetxt-lua"
 }
 description = {
-   homepage = "https://github.com/hneutr/hnetxt-lua",
-   license = "MIT"
+    homepage = "https://github.com/hneutr/hnetxt-lua",
+    license = "MIT"
 }
 dependencies = {
     "luv",
-   "plenary.nvim",
-   "lua >= 5.1",
-   "lyaml >= 6.2",
-   "inspect >= 3.1",
-   "luajit >= 2.1",
-   "lua-cjson >= 2.1",
+    "plenary.nvim",
+    "lua >= 5.1",
+    "lyaml >= 6.2",
+    "inspect >= 3.1",
+    "lua-cjson >= 2.1",
 }
 build = {
-   type = "builtin",
+    type = "builtin",
     modules = {
         ["hl"] = "src/hl/init.lua",
         ["hl.io"] = "src/hl/io.lua",
@@ -65,17 +64,17 @@ build = {
     }
 }
 test = {
-   type = "busted",
-   platforms = {
-      unix = {
-         flags = {
-            "--exclude-tags=ssh,git"
-         }
-      },
-      windows = {
-         flags = {
-            "--exclude-tags=ssh,git,unix"
-         }
-      }
-   }
+    type = "busted",
+    platforms = {
+        unix = {
+            flags = {
+                "--exclude-tags=ssh,git"
+            }
+        },
+        windows = {
+            flags = {
+                "--exclude-tags=ssh,git,unix"
+            }
+        }
+    }
 }
