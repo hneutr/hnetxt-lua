@@ -595,7 +595,7 @@ end
 
 function M.squish_dict(d)
     local _d = Dict()
-    d:foreach(function(k, v)
+    Dict(d):foreach(function(k, v)
         local v_keys = v:keys()
         if #v_keys == 1 and #v[v_keys[1]]:keys() == 0 then
             k = M.Printer:merge_dict_keys(k, v_keys[1])
