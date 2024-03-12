@@ -110,12 +110,14 @@ end)
 
 describe("add_if_missing", function()
     it("+", function()
+        f1:touch()
         urls:add_if_missing(f1)
         assert(urls:where({path = f1}))
     end)
 
     it("doesn't overwrite", function()
         local row = {path = f1, label = "a"}
+        f1:touch()
         urls:insert(row)
         urls:add_if_missing(row.path)
         assert.is_not.Nil(urls:where(row))

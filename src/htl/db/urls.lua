@@ -46,7 +46,7 @@ function M:insert(row)
 end
 
 function M:add_if_missing(path)
-    if not M:where({path = path, resource_type = 'file'}) then
+    if Path(path):exists() and not M:where({path = path, resource_type = 'file'}) then
         M:insert({path = path, resource_type = 'file'})
     end
 end
