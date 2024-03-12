@@ -631,7 +631,7 @@ function TagPrinter:is_a(s) return s:match(M.conf.tag_prefix) end
 --------------------------------------------------------------------------------
 --                                 IsAPrinter                                 --
 --------------------------------------------------------------------------------
-class.IsAPrinter (KeyPrinter)
+class.IsAPrinter(KeyPrinter)
 IsAPrinter.color_key = "is_a"
 
 function IsAPrinter:is_a(s, row) return row.datatype == "IsA" end
@@ -726,14 +726,14 @@ function M.Printer:for_terminal(str, post_string)
 
     local indent, str = str:match("(%s*)(.*)")
 
-    local is_first = true
-    local parts = str:split(self.delimiter):transform(function(s)
-        s = self:_for_terminal(s, is_first)
-        is_first = false
-        return s
-    end):filter(function(s)
-        return s and #s > 0
-    end)
+    local parts = List()
+    for i, s in ipairs(str:split(self.delimiter)) do
+        s = self:_for_terminal(s, i == 1)
+
+        if s and #s > 0 then
+            parts:append(s)
+        end
+    end
 
     if #parts > 0 then
         return indent .. parts:join(self.terminal_delimiter) .. post_string

@@ -18,6 +18,7 @@ local f3 = d2:join("file-1.md")
 local f4 = d2:join("file-2.md")
 
 local p1 = {title = "test", path = d1, created = "19930120"}
+local p2 = {title = "test2", path = d2, created = "19930120"}
 local pwd = os.getenv("PWD")
 
 before_each(function()
@@ -25,6 +26,7 @@ before_each(function()
     d2:rmdir()
     db.before_test()
     projects:insert(p1)
+    projects:insert(p2)
     stub(os, "getenv")
     os.getenv.on_call_with("PWD").returns(tostring(d1))
 end)

@@ -71,8 +71,20 @@ describe("move", function()
         a.path = f3
         b.path = f3
 
-        assert.is_not.Nil(urls:where(a))
-        assert.is_not.Nil(urls:where(b))
+        assert.are.same({"a", "b"}, urls:get({where = {path = f3}}):col('label'):sorted())
+    end)
+
+    it("deletes if moving into a non-project dir", function()
+        local pre = {path = f1, label = "a"}
+        local post = {path = f5, label = "a"}
+
+        urls:insert(pre)
+        assert.is_not.Nil(urls:where(pre))
+
+        urls:move(f1, f5)
+
+        assert.is_nil(urls:where(pre))
+        assert.is_nil(urls:where(post))
     end)
 end)
 
