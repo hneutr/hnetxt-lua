@@ -111,10 +111,11 @@ require("htc.cli")("hnetxt", {
         description = "test",
         {"-p --path", default = Path.cwd(), description = "project directory", convert=Path.as_path},
         action = function(args)
-            local _urls = urls:get({where = {project = "todos"}})
-            _urls:foreach(function(u)
-                metadata:save_file_metadata(u.path)
-            end)
+            local p = "/Users/hne/Documents/text/written/fiction/chasefeel/cetera/write-character-descriptions.md"
+            local u = urls:where({path = p})
+            
+            local ui = require("htn.ui")
+            ui.set_file_url(p)
         end,
     }
 })

@@ -71,8 +71,8 @@ function M.statusline()
 end
 
 function M.set_file_url(path)
-    path = path or Path.this()
-    if mirrors:is_source(path) then
+    path = Path(path) or Path.this()
+    if not mirrors:is_mirror(path) and path:suffix() == ".md" then
         urls:add_if_missing(path)
     end
 end

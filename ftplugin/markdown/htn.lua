@@ -81,9 +81,9 @@ autocommands.htn_link_update = List({
 
 autocommands.htn_statusline = List({
     {
-        events = {'VimEnter', 'WinEnter', "BufEnter"},
+        events = {'VimEnter', 'WinEnter', "BufEnter", 'BufWinEnter'},
         callback = function()
-            vim.opt_local.statusline = ui.statusline()
+            vim.opt.statusline = ui.statusline()
         end,
     }
 })
