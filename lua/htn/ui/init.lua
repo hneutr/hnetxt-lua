@@ -2,6 +2,7 @@ local Path = require("hl.Path")
 local Dict = require("hl.Dict")
 local List = require("hl.List")
 
+local Config = require("htl.Config")
 local db = require("htl.db")
 local Link = require("htl.text.Link")
 local URLDefinition = require("htl.text.URLDefinition")
@@ -24,33 +25,34 @@ M.suffix_to_open_cmd = Dict({
 })
 
 function M.get_statusline_path_string(path)
+    local pre = ""
+    local post = ""
+    local relative_to = vim.b.htn_project and vim.b.htn_project.path
+
     if mirrors:is_mirror(path) then
-        local kind_string = mirrors.get_kind_string(mirrors:get_mirror_kind(path))
+        post = ": " .. mirrors.get_kind_string(mirrors:get_mirror_kind(path))
 
         local source = mirrors:get_source(path)
-        local source_path = source.path:with_suffix("")
 
         if source.project then
             local project = projects:where({title = source.project})
-            source_path = string.format(
-                "[%s] %s",
-                project.title,
-                source_path:relative_to(project.path)
-            )
+            pre = string.format("[%s] ", project.title)
+            relative_to = project.path
         end
 
-        return string.format(
-            "%s: %s",
-            source_path,
-            kind_string
-        )
+        path = source.path
     end
 
-    if vim.b.htn_project then
-        local project_root = vim.b.htn_project.path
-        if path:is_relative_to(project_root) then
-            path = path:relative_to(project_root)
-        end
+    return pre .. M.get_statusline_path(path, relative_to) .. post
+end
+
+function M.get_statusline_path(path, relative_to)
+    if path:name() == Config.paths.dir_file then
+        path = path:parent()
+    end
+
+    if relative_to and path:is_relative_to(relative_to) then
+        path = path:relative_to(relative_to)
     end
 
     return tostring(path:with_suffix(""))

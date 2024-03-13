@@ -27,7 +27,14 @@ end
 
 function M.get_path(key, configs)
     if not M.paths[key] then
-        M.paths[key] = M.get_path(configs[key].parent, configs):join(configs[key].path)
+        local conf = configs[key]
+        local path = conf.path
+
+        if conf.parent then
+            path = M.get_path(configs[key].parent, configs):join(path)
+        end
+
+        M.paths[key] = path
     end
 
     return M.paths[key]
@@ -46,11 +53,15 @@ function M.before_test()
     M.root = M.test_root
     M.setup()
 
+    local conf = M.get("paths")
+
     M.paths:foreach(function(k, v)
-        if k:endswith("_file") then
-            v:touch()
-        elseif k:endswith("_dir") then
-            v:mkdir()
+        if conf[k] and not conf[k].is_relative then
+            if k:endswith("_file") then
+                v:touch()
+            elseif k:endswith("_dir") then
+                v:mkdir()
+            end
         end
     end)
 end

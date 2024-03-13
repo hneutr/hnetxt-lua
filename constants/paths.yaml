@@ -37,3 +37,6 @@ mirrors_dir:
 global_taxonomy_file:
   path: taxonomy.yaml
   parent: data_dir
+dir_file:
+  path: "@.md"
+  is_relative: true

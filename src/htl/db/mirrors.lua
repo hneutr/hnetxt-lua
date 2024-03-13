@@ -52,7 +52,7 @@ end
 
 function M:get_mirror_paths(path)
     local mirrors = Dict()
-    M:get_absolute_config():keys():foreach(function(kind)
+    M.configs.generic:keys():foreach(function(kind)
         local mirror = M:get_mirror_path(path, kind)
 
         if mirror and mirror:exists() then
@@ -64,12 +64,12 @@ function M:get_mirror_paths(path)
 end
 
 function M:is_source(path)
-    return not M:is_mirror(path)
+    return urls:where({path = path, resource_type = "file"}) and true or false
 end
 
 function M:get_source(path)
     if M:is_source(path) then
-        return urls:where({path = path})
+        return urls:where({path = path, resource_type = "file"})
     elseif M:is_mirror(path) then
         return urls:where({id = tonumber(path:stem())})
     end
