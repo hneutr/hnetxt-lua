@@ -83,7 +83,7 @@ autocommands.htn_statusline = List({
     {
         events = {'VimEnter', 'WinEnter', "BufEnter", 'BufWinEnter'},
         callback = function()
-            vim.opt.statusline = ui.statusline()
+            vim.opt_local.statusline = ui.statusline()
         end,
     }
 })
