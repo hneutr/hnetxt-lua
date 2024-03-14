@@ -216,7 +216,6 @@ function M.quote()
     vim.api.nvim_input("iquote<tab>")
 
     local source = urls:get_reference(urls:where({path = Path.this():parent():join(Config.paths.dir_file)}))
-    vim.g.source = source
     if source then
         vim.api.nvim_input(tostring(source))
         vim.api.nvim_input("<C-f>")
