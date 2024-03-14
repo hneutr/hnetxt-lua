@@ -73,8 +73,8 @@ autocommands.htn_link_update = List({
     {
         events = {'VimLeave', 'WinLeave', 'BufLeave'},
         callback = function()
-            metadata:save_file_metadata(Path.this())
-        end,
+            ui.save_metadata(current_file)
+        end
     }
 })
 

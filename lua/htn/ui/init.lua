@@ -12,6 +12,7 @@ local BufferLines = require("hn.buffer_lines")
 local urls = require("htl.db.urls")
 local projects = require("htl.db.projects")
 local mirrors = require("htl.db.mirrors")
+local metadata = require("htl.db.metadata")
 
 local M = {}
 
@@ -71,10 +72,16 @@ function M.statusline()
 end
 
 function M.set_file_url(path)
-    path = Path(path) or Path.this()
+    path = path and Path(path) or Path.this()
     if not mirrors:is_mirror(path) and path:suffix() == ".md" then
         urls:add_if_missing(path)
     end
+end
+
+function M.save_metadata(path)
+    path = path and Path(path) or Path.this()
+    M.set_file_url(path)
+    metadata:save_file_metadata(path)
 end
 
 function M.update_link_urls()
