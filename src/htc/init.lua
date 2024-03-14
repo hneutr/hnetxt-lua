@@ -107,6 +107,19 @@ require("htc.cli")("hnetxt", {
             print(metadata.get_dict(args))
         end
     },
+    quote = {
+        description = "add a quote",
+        {"-p --path", default = Path.cwd(), description = "media dir", convert=Path.as_path},
+        action = function(args)
+            local path = args.path:join("1.md")
+
+            while path:exists() do
+                path = path:with_stem(tostring(tonumber(path:stem()) + 1))
+            end
+
+            print(path)
+        end,
+    },
     test = {
         description = "test",
         {"-p --path", default = Path.cwd(), description = "project directory", convert=Path.as_path},
@@ -119,5 +132,5 @@ require("htc.cli")("hnetxt", {
             
             print(require("inspect")(metadata:where({url = u.id})))
         end,
-    }
+    },
 })

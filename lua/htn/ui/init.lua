@@ -212,6 +212,17 @@ function M.scratch(mode)
     path:write(lines)
 end
 
+function M.quote()
+    vim.api.nvim_input("iquote<tab>")
+
+    local source = urls:get_reference(urls:where({path = Path.this():parent():join(Config.paths.dir_file)}))
+    vim.g.source = source
+    if source then
+        vim.api.nvim_input(tostring(source))
+        vim.api.nvim_input("<C-f>")
+    end
+end
+
 M.scratch_map_fn = function() M.scratch('n') end
 M.scratch_map_visual_cmd = [[:'<,'>lua require('htn.ui').scratch('v')<cr>]]
 
