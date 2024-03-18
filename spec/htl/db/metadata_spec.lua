@@ -256,7 +256,7 @@ describe("get_urls", function()
 
         assert.are.same(
             {u1},
-            metadata:get_urls({dir = d1, include_values = true, add_missing = false}):col('url')
+            metadata:get_urls({path = d1, include_values = true, add_missing = false}):col('url')
         )
     end)
     

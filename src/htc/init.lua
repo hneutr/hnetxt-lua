@@ -91,7 +91,7 @@ require("htc.cli")("hnetxt", {
             description = "print references to this file",
             convert = function(p) return urls:where({path = Path.from_commandline(p)}).id end,
         },
-        {"-d --dir", default = Path.cwd(), convert=Path.from_commandline},
+        {"-p --path", default = Path.cwd(), convert=Path.from_commandline},
         {"+f", target = "include_urls", description = "print file urls", switch = "on"},
         {"+l", target = "include_links", description = "print links", switch = "on"},
         {"+v", target = "include_values", description = "print values", switch = "off"},

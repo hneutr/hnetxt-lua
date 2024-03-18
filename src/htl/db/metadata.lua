@@ -58,6 +58,10 @@ M.root_key = "__root"
 --                                                                            --
 --------------------------------------------------------------------------------
 function M.set_taxonomy(path)
+    while path and not path:exists() do
+        path = path:parent()
+    end
+
     M.taxonomy = Taxonomy(path)
 end
 
@@ -315,10 +319,10 @@ end
 function M:get_urls(args)
     local rows = M:get()
 
-    if args.dir then
+    if args.path then
         local _urls = Set(urls:get({
             where = {resource_type = "file"},
-            contains = {path = string.format("%s*", args.dir)},
+            contains = {path = string.format("%s*", args.path)},
         }):col('id'))
 
         rows = rows:filter(function(r) return _urls:has(r.url) end)
@@ -439,7 +443,7 @@ end
 --                                                                            --
 --------------------------------------------------------------------------------
 function M.get_dict(args)
-    M.set_taxonomy(args.dir)
+    M.set_taxonomy(args.path)
     local rows = M:get_urls(args)
     local parent_ids = Set(rows:filter(function(r) return r.key == M.root_key end):col('id'))
     local id_to_keys = Dict()
