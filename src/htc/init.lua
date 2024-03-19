@@ -61,12 +61,9 @@ require("htc.cli")("hnetxt", {
                 local path = Config.paths.x_of_the_day_dir:join(key, args.date)
 
                 if not path:exists() or args.rerun then
-                    cmd.dir = Path(cmd.dir)
-                    local ids = Set(metadata:get_urls(cmd):col('url')):vals()
-                    math.randomseed(os.time())
-                    local v = math.random()
-                    local index = math.random(1, #ids)
-                    local source = urls:where({id = ids[index]}).path
+                    cmd.path = Path(cmd.path)
+                    local ids = Set(metadata:get_urls(cmd):filter(function(u) return u.url end):col('url')):vals()
+                    local source = urls:where({id = ids[utils.randint({max = #ids})]}).path
                     path:write(tostring(Snippet(source)))
                     sources:append(string.format("%s: %s", key, source))
                 end

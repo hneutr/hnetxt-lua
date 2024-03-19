@@ -107,6 +107,10 @@ describe("join", function()
         assert.are.same("b", tostring(b))
         assert.are.same("a/b", tostring(c))
     end)
+
+    it("div operator", function()
+        assert.are.same(Path("a/b"), Path("a") / "b")
+    end)
 end)
 
 describe("concat", function()

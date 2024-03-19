@@ -28,6 +28,7 @@ build = {
         ['hl.Set'] = "src/hl/Set.lua",
         ["hl.Path"] = "src/hl/Path.lua",
         ["hl.Tree"] = "src/hl/Tree.lua",
+        ["hl.utils"] = "src/hl/utils.lua",
         
         ["htl"] = "src/htl/init.lua",
         ["htl.Config"] = "src/htl/config.lua",

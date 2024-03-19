@@ -1,9 +1,9 @@
 quote:
-  dir: "~/eidola"
+  path: "~/eidola"
   conditions:
     - "is a: quote"
 question:
-  dir: "~/corpus"
+  path: "~/corpus"
   conditions:
     - "is a: question"
     - "@remind"

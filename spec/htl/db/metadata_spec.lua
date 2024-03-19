@@ -101,6 +101,16 @@ describe("parse", function()
             }))
         )
     end)
+
+    it("testing bare link", function()
+        assert.are.same(
+            {},
+            metadata:parse(List({
+                "[etymonline](https://www.etymonline.com/word/ex-)",
+            }))
+        )
+        
+    end)
 end)
 
 describe("parse_val", function()

@@ -248,23 +248,30 @@ function M:parse(lines)
         local indent, line = line:match("(%s*)(.*)")
 
         local key, val
-        if line:startswith(M.conf.tag_prefix) then
-            key = line
-        else
-            key, val = unpack(line:split(M.conf.field_delimiter, 1):mapm("strip"))
+        if not M:is_a_bare_link(line) then
+            if line:startswith(M.conf.tag_prefix) then
+                key = line
+            else
+                key, val = unpack(line:split(M.conf.field_delimiter, 1):mapm("strip"))
 
-            parents_by_indent[indent .. M.conf.indent_size] = parents_by_indent[indent]:clone():append(key)
+                parents_by_indent[indent .. M.conf.indent_size] = parents_by_indent[indent]:clone():append(key)
+            end
+
+            local m = metadata
+            parents_by_indent[indent]:foreach(function(parent)
+                m = m.metadata[parent]
+            end)
+
+            m.metadata[key] = Dict({val = val, metadata = Dict()})
         end
-
-        local m = metadata
-        parents_by_indent[indent]:foreach(function(parent)
-            m = m.metadata[parent]
-        end)
-
-        m.metadata[key] = Dict({val = val, metadata = Dict()})
     end)
 
     return metadata.metadata
+end
+
+function M:is_a_bare_link(str)
+    local link = Link:from_str(str)
+    return link and #link.before == 0 and #link.after == 0
 end
 
 function M:insert_dict(dict, url, parent_field)
@@ -358,7 +365,7 @@ function M:get_urls(args)
         rows = rows:filter(function(r) return _urls:has(r.url) end)
     end
 
-    List(args.conditions):transform(M.parse_condition):foreach(function(condition)
+    List(args.conditions):map(M.parse_condition):foreach(function(condition)
         local _urls = Set(rows:filter(M.check_condition, condition):col('url'))
 
         rows = rows:filter(function(r)

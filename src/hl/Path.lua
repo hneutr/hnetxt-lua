@@ -233,6 +233,10 @@ Path.join = Path.make_fn_match_input(function(p, p2, ...)
     return p
 end)
 
+Path.__div = function(...)
+    return Path.join(...)
+end
+
 Path.joinpath = Path.join
 
 Path.parents = Path.make_list_fn_match_input(function(p)

@@ -8,3 +8,5 @@ require("hl.string")
 require("hl.io")
 
 require("hl.Path")
+
+_G.utils = require("hl.utils")
