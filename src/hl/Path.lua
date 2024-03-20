@@ -53,30 +53,6 @@ function Path.as_path(p)
     return p
 end
 
-function Path.make_fn_match_input(fn)
-    return function(p, ...)
-        local transform = Path.as_path
-
-        if type(p) == 'string' then
-            transform = Path.as_string
-        end
-
-        return transform(fn(p, ...))
-    end
-end
-
-function Path.make_list_fn_match_input(fn)
-    return function(p, ...)
-        local transformer = Path.as_path
-
-        if type(p) == 'string' then
-            transformer = Path.as_string
-        end
-
-        return fn(p, ...):transform(transformer)
-    end
-end
-
 List({
     "startswith",
     "endswith",
@@ -84,6 +60,15 @@ List({
 }):foreach(function(fn)
     Path[fn] = function(p, ...)
         return string[fn](Path.as_string(p), ...)
+    end
+end)
+
+List({
+    "removesuffix",
+    "removeprefix",
+}):foreach(function(fn)
+    Path[fn] = function(p, ...)
+        return Path(string[fn](p.p, ...))
     end
 end)
 
@@ -132,68 +117,53 @@ function Path.unlink(p)
     PATH.remove(Path.as_string(p))
 end
 
-function Path.parts(p)
-    local parts = List(p:split(Path.sep)):filter(function(part)
+function Path:parts()
+    local parts = List(self.p:split(self.sep)):filter(function(part)
         return #part > 0
     end)
 
-    if p:startswith(Path.sep) then
-        parts:put(Path.sep)
+    if self.p:startswith(self.sep) then
+        parts:put(self.sep)
     end
 
     return parts
 end
 
-function Path.read(p)
-    local fh = io.open(Path.as_string(p), "r")
+function Path:read()
+    local fh = io.open(tostring(self), "r")
     local content = fh:read("*a")
     fh:close()
     return content
 end
 
-function Path.readlines(p)
-    return List(Path.read(p):splitlines())
+function Path:readlines()
+    return List(self:read():splitlines())
 end
 
-function Path.write(p, content)
-    p = Path.as_path(p)
-
-    if not p:parent():exists() then
-        p:parent():mkdir()
+function Path:write(content)
+    if not self:parent():exists() then
+        self:parent():mkdir()
     end
 
     content = List.as_list(content)
     content:transform(tostring)
 
-    local fh = io.open(tostring(p), "w")
+    local fh = io.open(tostring(self), "w")
     fh:write(content:join("\n"))
     fh:close()
 end
 
-function Path.touch(p)
-    p = Path.as_path(p)
-    if not p:exists() then
-        p:write("")
+function Path:touch()
+    if not self:exists() then
+        self:write("")
     end
 end
 
-Path.removesuffix = Path.make_fn_match_input(function(p, suffix)
-    return string.removesuffix(Path.as_string(p), suffix)
-end)
+function Path.expanduser(p)
+    return string.gsub(tostring(p), "~", tostring(Path.home))
+end
 
-Path.removeprefix = Path.make_fn_match_input(function(p, prefix)
-    return string.removeprefix(Path.as_string(p), prefix)
-end)
-
-Path.expanduser = Path.make_fn_match_input(function(p)
-    if p:startswith("~") then
-        return Path.home:join(p:removeprefix("~"))
-    end
-
-    return p
-end)
-
-Path.contractuser = function(p)
+function Path.contractuser(p)
     local s = string.gsub(tostring(p), tostring(Path.home), "~")
 
     if Path.is_a(p) == Path then
@@ -205,54 +175,47 @@ Path.contractuser = function(p)
     return p
 end
 
-function Path.rename(source, target)
-    source = Path.as_string(source)
-    target = Path.as_string(target)
+function Path:rename(target)
+    source = tostring(self)
+    target = tostring(target)
 
-    if Path.is_file(source) then
+    if self:is_file() then
         PATH.rename(source, target, true)
-    elseif Path.is_dir(source) then
+    elseif self:is_dir() then
         os.rename(source, target)
 
         if source ~= target then
-            Path(source):rmdir(true)
+            self:rmdir(true)
         end
     end
 end
 
-Path.join = Path.make_fn_match_input(function(p, p2, ...)
-    p = Path.as_string(p)
-    p2 = Path.as_string(p2)
-
-    if p ~= Path.sep then
-        p = p:removesuffix(Path.sep)
+function Path:join(...)
+    local parts = List(...)
+    if type(...) == "string" or Path.is_a(...) == Path then
+        parts = List({...})
     end
 
-    p2 = p2:removeprefix(Path.sep)
+    parts:transform(function(part)
+        return string.removeprefix(tostring(part) or "", self.sep)
+    end)
 
-    if #p2 > 0 then
-        if p == Path.sep then
-            p = p .. p2
-        else
-            p = string.join(Path.sep, {p, p2})
-        end
-    end
+    parts = parts:filter(function(part)
+        return part and #part > 0
+    end)
 
-    if ... then
-        p = Path.join(p, ...)
-    end
+    parts:put(self.p:removesuffix(self.sep))
 
-    return p
-end)
+    return Path(parts:join(self.sep))
+end
+
 
 Path.__div = function(...)
     return Path.join(...)
 end
 
-Path.joinpath = Path.join
-
-Path.parents = Path.make_list_fn_match_input(function(p)
-    local parts = Path.parts(p)
+function Path:parents()
+    local parts = self:parts(p)
     parts:pop()
 
     local parents = List()
@@ -263,86 +226,67 @@ Path.parents = Path.make_list_fn_match_input(function(p)
     end
 
     return parents
-end)
-
-Path.parent = Path.make_fn_match_input(function(p)
-    return Path.parents(p):pop(1)
-end)
-
-function Path.name(p)
-    return Path.parts(p):pop()
 end
 
-function Path.suffixes(p)
-    return List(Path.name(p):split(".")):transform(function(s) return "." .. s end):remove(1)
+function Path:parent()
+    return self:parents():pop(1)
 end
 
-function Path.suffix(p)
-    return PATH.extension(Path.as_string(p))
+function Path:name()
+    return self:parts():pop()
 end
 
-function Path.stem(p)
-    return Path.name(p):split(".", 1)[1]
+function Path:suffixes()
+    return List(self:name():split(".")):transform(function(s) return "." .. s end):remove(1)
 end
 
-Path.with_name = Path.make_fn_match_input(function(p, name)
-    p = Path(p)
+function Path:suffix()
+    return PATH.extension(tostring(self))
+end
 
-    if #p:parents() > 0 then
-        return p:parent():join(name)
+function Path:stem()
+    return self:name():split(".", 1)[1]
+end
+
+function Path:with_name(name)
+    if #self:parents() > 0 then
+        return self:parent():join(name)
     end
 
     return Path(name)
-end)
-
-Path.with_stem = Path.make_fn_match_input(function(p, stem)
-    return Path(p):with_name(stem .. Path.suffix(p))
-end)
-
-Path.with_suffix = Path.make_fn_match_input(function(p, suffix)
-    return Path(p):with_name(Path.stem(p) .. suffix)
-end)
-
-function Path.is_relative_to(p, p2)
-    p = Path.as_path(p)
-    p2 = Path.as_path(p2)
-
-    if p == p2 then
-        return true
-    end
-
-    for _, parent in ipairs(p:parents()) do
-        if parent == p2 then
-            return true
-        end
-    end
-
-    return false
 end
 
-Path.relative_to = Path.make_fn_match_input(function(p, p2)
-    p2 = tostring(p2)
-    if p:startswith(p2) then
-        return p:removeprefix(p2):removeprefix("/")
+function Path:with_stem(stem)
+    return self:with_name(stem .. self:suffix())
+end
+
+function Path:with_suffix(suffix)
+    return self:with_name(self:stem() .. suffix)
+end
+
+function Path:is_relative_to(other)
+    return string.startswith(tostring(self), tostring(other))
+end
+
+function Path:relative_to(other)
+    local a = tostring(self)
+    local b = tostring(other)
+    if a:startswith(b) then
+        return Path(a:removeprefix(b):removeprefix("/"))
     else
-        error(tostring(p) .. " is not relative to " .. p2)
+        error(a .. " is not relative to " .. b)
     end
-end)
+end
 
-Path.resolve = Path.make_fn_match_input(function(p)
-    p = Path.as_path(p)
-    p = Path.expanduser(p)
+function Path:resolve()
+    self.p = self.p:removeprefix("./")
 
-    if p:startswith("./") then
-        p = p:removeprefix("./")
-    end
-
-    if not p:is_relative_to(Path.root) and not p:is_relative_to(Path.cwd()) then
-        p = Path.cwd():join(p)
+    if not self:is_relative_to(self.root) and not self:is_relative_to(self.cwd()) then
+        self = self.cwd():join(self)
     end
 
     local parts = List()
-    for _, part in ipairs(p:parts()) do
+    for part in self:parts():iter() do
         if part == '..' then
             if #parts > 0 then
                 parts:pop()
@@ -353,38 +297,20 @@ Path.resolve = Path.make_fn_match_input(function(p)
     end
 
     if #parts == 0 then
-        parts:append(Path.root())
+        parts:append(self.root)
     end
 
-    p = Path(parts:pop(1))
-    p = p:join(unpack(parts))
-    return p
-end)
-
--- something is "file like" if it has a suffix
-function Path.is_file_like(p)
-    return #Path.suffix(p) > 0
+    return Path(""):join(unpack(parts))
 end
 
--- something is "dir like" if it has no suffix
-function Path.is_dir_like(p)
-    return #Path.suffix(p) == 0
-end
-
-function Path.cwd()
-    return Path(os.getenv("PWD"))
-end
-
-Path.iterdir = Path.make_list_fn_match_input(function(dir, args)
+function Path:iterdir(args)
     args = Dict(args, {recursive = true, files = true, dirs = true, hidden=false})
-
-    dir = Path.as_path(dir)
 
     local paths = List()
     local exclusions = Set({[[.]], [[..]]})
-    for stem in lfs.dir(Path.as_string(dir)) do
+    for stem in lfs.dir(tostring(self)) do
         if not exclusions[stem] then
-            local p = dir:join(stem)
+            local p = self:join(stem)
 
             if (p:is_file() and args.files) or (p:is_dir() and args.dirs) then
                 paths:append(p)
@@ -398,29 +324,28 @@ Path.iterdir = Path.make_list_fn_match_input(function(dir, args)
 
     if not args.hidden then
         paths = paths:filter(function(path)
-            return not tostring(path:relative_to(dir)):startswith('.')
+            return not tostring(path:relative_to(self)):startswith('.')
         end)
     end
 
     return paths
-end)
+end
 
-Path.glob = Path.make_list_fn_match_input(function(dir, pattern, args)
-    return Path.iterdir(dir, args):filter(function(p)
+function Path:glob(pattern, args)
+    return Path.iterdir(self, args):filter(function(p)
         return tostring(p):match(pattern)
     end)
-end)
+end
 
-function Path.rmdir(p, force)
-    p = Path.as_path(p)
+function Path:rmdir(force)
     force = force or false
 
-    if not p:exists() then
+    if not self:exists() then
         return
     end
 
     if force then
-        p:iterdir({hidden=true}):reverse():foreach(function(_p)
+        self:iterdir({hidden=true}):reverse():foreach(function(_p)
             if _p:is_file() then
                 _p:unlink()
             elseif _p:is_dir() then
@@ -429,8 +354,32 @@ function Path.rmdir(p, force)
         end)
     end
 
-    if p:is_empty() then
-        PATH.rmdir(tostring(p))
+    if self:is_empty() then
+        PATH.rmdir(tostring(self))
+    end
+end
+
+function Path:open(open_command)
+    open_command = open_command or "edit"
+
+    if #self:suffix() > 0 then
+        self:parent():mkdir()
+    else
+        self:mkdir()
+    end
+
+    if self:is_dir() then
+        -- if it's a directory, open a terminal at that directory
+        vim.cmd("silent " .. open_command)
+        vim.cmd("silent terminal")
+
+        local term_id = vim.b.terminal_job_id
+
+        vim.cmd("silent call chansend(" .. term_id .. ", 'cd " .. tostring(self) .. "\r')")
+        vim.cmd("silent call chansend(" .. term_id .. ", 'clear\r')")
+    else
+        self:touch()
+        vim.cmd("silent " .. open_command .. " " .. tostring(self))
     end
 end
 
@@ -442,29 +391,8 @@ function Path.this()
     return Path(vim.fn.expand('%:p'))
 end
 
-function Path.open(path, open_command)
-    path = Path(path)
-    open_command = open_command or "edit"
-
-    if #path:suffix() > 0 then
-        path:parent():mkdir()
-    else
-        path:mkdir()
-    end
-
-    if path:is_dir() then
-        -- if it's a directory, open a terminal at that directory
-        vim.cmd("silent " .. open_command)
-        vim.cmd("silent terminal")
-
-        local term_id = vim.b.terminal_job_id
-
-        vim.cmd("silent call chansend(" .. term_id .. ", 'cd " .. tostring(path) .. "\r')")
-        vim.cmd("silent call chansend(" .. term_id .. ", 'clear\r')")
-    else
-        path:touch()
-        vim.cmd("silent " .. open_command .. " " .. tostring(path))
-    end
+function Path.cwd()
+    return Path(os.getenv("PWD"))
 end
 
 Path.root = Path(Path.sep)

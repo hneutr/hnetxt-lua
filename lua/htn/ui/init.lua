@@ -110,7 +110,7 @@ function M.goto(open_command, fuzzy_path)
 
     if url then
         if url.path ~= Path.this() then
-            Path.open(url.path, open_command)
+            url.path:open(open_command)
         end
 
         if url.resource_type == 'link' then

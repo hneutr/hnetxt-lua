@@ -70,49 +70,6 @@ describe("unlink", function()
     end)
 end)
 
-describe("join", function()
-    it("base case", function()
-        assert.are.equal(Path("a/b.c"), Path("a"):join("b.c"))
-    end)
-
-    it("empty second", function()
-        assert.are.equal(Path("a"), Path("a"):join(""))
-    end)
-
-    it("multiple", function()
-        assert.are.equal(Path("a/b/c.d"), Path("a"):join("b", "c.d"))
-    end)
-
-    it("trailing /", function()
-        assert.are.equal(Path("a/b"), Path("a/"):join("b"))
-    end)
-
-    it("leading /", function()
-        assert.are.equal(Path("a/b"), Path("a"):join("/b"))
-    end)
-
-    it("/ + other", function()
-        assert.are.equal(Path("/a"), Path("/"):join("a"))
-    end)
-
-    it("path", function()
-        assert.are.equal(Path("a/b"), Path("a"):join(Path("b")))
-    end)
-
-    it("doesn't modify args", function()
-        local a = Path("a")
-        local b = Path("b")
-        local c = a:join(b)
-        assert.are.same("a", tostring(a))
-        assert.are.same("b", tostring(b))
-        assert.are.same("a/b", tostring(c))
-    end)
-
-    it("div operator", function()
-        assert.are.same(Path("a/b"), Path("a") / "b")
-    end)
-end)
-
 describe("concat", function()
     it("works", function()
         assert.are.same(Path("a/b"), Path("a") .. "b")
@@ -121,7 +78,7 @@ end)
 
 describe("expanduser", function()
     it("expands at start", function()
-        assert.are.equal(Path.home:join("a"), Path("~/a"):expanduser())
+        assert.are.equal(tostring(Path.home:join("a")), Path("~/a"):expanduser())
     end)
 
     it("expands at start: non-object", function()
@@ -129,7 +86,7 @@ describe("expanduser", function()
     end)
 
     it("doesn't expand anywhere else", function()
-        assert.are.equal(Path("/a/~/b"), Path("/a/~/b"):expanduser())
+        assert.are.equal(tostring(Path("/a/~/b")), Path("/a/~/b"):expanduser())
     end)
 end)
 
@@ -479,7 +436,7 @@ describe("with_name", function()
     end)
 
     it("+: base", function()
-        assert.are.same("/a/b/x.y", Path.with_name("/a/b/c.d", "x.y"))
+        assert.are.same(Path("/a/b/x.y"), Path("/a/b/c.d"):with_name("x.y"))
     end)
 end)
 
@@ -545,24 +502,6 @@ describe("relative_to", function()
     end)
 end)
 
-describe("resolve", function()
-    it("leading '.'", function()
-        assert.are.same(Path.cwd():join("a"), Path("./a"):resolve())
-    end)
-
-    it("nonleading '.'", function()
-        assert.are.same(Path.cwd():join("a/./b"), Path("a/./b"):resolve())
-    end)
-
-    it("'..'", function()
-        assert.are.same(Path.cwd():join("a/c"), Path("a/b/../c"):resolve())
-    end)
-
-    it("'.a'", function()
-        assert.are.same(Path.cwd():join(".a"), Path(".a"):resolve())
-    end)
-end)
-
 describe("rename", function()
     it("file", function()
         local old = Path(dir_file_path)
@@ -589,49 +528,64 @@ describe("rename", function()
     end)
 end)
 
-describe("is_file_like", function()
-    it("+: extention", function()
-        assert(Path("a.md"):is_file_like())
+describe("join", function()
+    it("base case", function()
+        assert.are.equal(Path("a/b.c"), Path("a"):join("b.c"))
     end)
-    it("-: no extention", function()
-        assert.falsy(Path("a"):is_file_like())
+
+    it("empty second", function()
+        assert.are.equal(Path("a"), Path("a"):join(""))
+    end)
+
+    it("multiple", function()
+        assert.are.equal(Path("a/b/c.d"), Path("a"):join("b", "c.d"))
+    end)
+
+    it("trailing /", function()
+        assert.are.equal(Path("a/b"), Path("a/"):join("b"))
+    end)
+
+    it("leading /", function()
+        assert.are.equal(Path("a/b"), Path("a"):join("/b"))
+    end)
+
+    it("/ + other", function()
+        assert.are.equal(Path("/a"), Path("/"):join("a"))
+    end)
+
+    it("path", function()
+        assert.are.equal(Path("a/b"), Path("a"):join(Path("b")))
+    end)
+
+    it("doesn't modify args", function()
+        local a = Path("a")
+        local b = Path("b")
+        local c = a:join(b)
+        assert.are.same("a", tostring(a))
+        assert.are.same("b", tostring(b))
+        assert.are.same("a/b", tostring(c))
+    end)
+
+    it("div operator", function()
+        assert.are.same(Path("a/b"), Path("a") / "b")
     end)
 end)
 
-describe("is_dir_like", function()
-    it("+: no extention", function()
-        assert(Path("a"):is_dir_like())
+describe("resolve", function()
+    it("leading '.'", function()
+        assert.are.same(Path.cwd():join("a"), Path("./a"):resolve())
     end)
-    it("-: extention", function()
-        assert.falsy(Path("a.md"):is_dir_like())
+
+    it("nonleading '.'", function()
+        assert.are.same(Path.cwd():join("a/./b"), Path("a/./b"):resolve())
+    end)
+
+    it("'..'", function()
+        assert.are.same(Path.cwd():join("a/c"), Path("a/b/../c"):resolve())
+    end)
+
+    it("'.a'", function()
+        assert.are.same(Path.cwd():join(".a"), Path(".a"):resolve())
     end)
 end)
 
-describe("make_fn_match_input", function()
-    local dummy_fn = function(...) return ... end
-
-    it("string -> string", function()
-        assert.are.same("abc", Path.make_fn_match_input(dummy_fn)("abc"))
-    end)
-
-    it("Path -> Path", function()
-        local p = Path("abc")
-        assert.are.same(p, Path.make_fn_match_input(dummy_fn)(p))
-    end)
-end)
-
-describe("removesuffix", function()
-    it("works with string", function()
-        assert.are.same(
-            "ab",
-            Path.removesuffix("abc", "c")
-        )
-    end)
-
-    it("works with Path", function()
-        assert.are.same(
-            Path("ab"),
-            Path("abc"):removesuffix("c")
-        )
-    end)
-end)

@@ -2,7 +2,7 @@ local yaml = require('hl.yaml')
 local Dict = require("hl.Dict")
 local Path = require("hl.Path")
 
-local test_file = Path.join(tostring(Path.tempdir), "yaml-test.md")
+local test_file = tostring(Path.tempdir:join("yaml-test.md"))
 
 before_each(function()
     Path.unlink(test_file)
