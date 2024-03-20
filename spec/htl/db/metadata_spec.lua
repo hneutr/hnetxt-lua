@@ -180,6 +180,24 @@ describe("insert_dict", function()
         assert.is_not.Nil(metadata:where({key = "@x", url = url, parent = a.id}))
         assert.is_not.Nil(metadata:where({key = "b", val = "c", url = url, parent = a.id}))
     end)
+
+end)
+
+describe("insert", function()
+    it("url delete", function()
+        local row = {
+            key = 'key',
+            val = 'val',
+            url = u1,
+            datatype = 'reference',
+        }
+
+        assert.are.same(0, #metadata:get())
+        metadata:insert(row)
+        assert.are.same(1, #metadata:get())
+        urls:remove({id = u1})
+        assert.are.same(0, #metadata:get())
+    end)
 end)
 
 describe("parse_condition", function()

@@ -50,6 +50,10 @@ M.conf.direct_fields = Set(M.conf.direct_fields)
 M.metadata_dividers = List({"", tostring(Divider("large", "metadata"))})
 M.root_key = "__root"
 
+function M:get(q)
+    return List(M:__get(q))
+end
+
 --------------------------------------------------------------------------------
 --                                                                            --
 --                                                                            --
@@ -310,10 +314,6 @@ function M:parse_val(val)
     end
 
     return val, "primitive"
-end
-
-function M:get(q)
-    return List(M:__get(q))
 end
 
 --------------------------------------------------------------------------------
