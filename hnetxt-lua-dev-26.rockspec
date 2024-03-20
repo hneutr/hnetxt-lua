@@ -15,6 +15,8 @@ dependencies = {
     "lyaml >= 6.2",
     "inspect >= 3.1",
     "lua-cjson >= 2.1",
+    "argparse",
+    "lua-path",
 }
 build = {
     type = "builtin",
