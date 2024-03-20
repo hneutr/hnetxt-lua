@@ -47,7 +47,7 @@ end
 
 function M:remove_file(path)
     if mirrors:is_source(path) then
-        mirrors:get_mirror_paths(path):values():foreach(function(p)
+        mirrors:get_paths(path):values():foreach(function(p)
             p:unlink()
         end)
     end

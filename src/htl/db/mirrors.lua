@@ -1,37 +1,27 @@
-local Dict = require("hl.Dict")
-
 local urls = require("htl.db.urls")
 local Config = require("htl.Config")
 
 local M = {}
 
---------------------------------------------------------------------------------
---                                  configs                                   --
---------------------------------------------------------------------------------
-M.configs = Dict({
-    generic = Dict(Config.get("mirror")),
-})
+function M:set_conf(conf)
+    M.conf = Dict(conf or Config.get("mirror"))
 
-function M:get_absolute_config()
-    if not M.configs.absolute then
-        M.configs.absolute = Dict()
-        M.configs.generic:keys():foreach(function(key)
-            M.configs.absolute[key] = Config.paths['mirrors_dir']:join(key)
-        end)
-    end
-
-    return M.configs.absolute
+    local dir = Config.paths['mirrors_dir']
+    M.conf:foreach(function(kind, conf)
+        conf.path = dir / kind
+        conf.statusline_str = conf.statusline_str or kind
+    end)
 end
 
 function M:is_mirror(path)
-    return M:get_mirror_kind(path) ~= nil
+    return M:get_kind(path) ~= nil
 end
 
-function M:get_mirror_kind(path)
-    local config = M:get_absolute_config()
+function M:get_kind(path)
+    local dir = path:parent()
 
-    for kind in config:keys():iter() do
-        if path:is_relative_to(config[kind]) then
+    for kind in M.conf:keys():iter() do
+        if M.conf[kind].path == dir then 
             return kind
         end
     end
@@ -39,28 +29,31 @@ function M:get_mirror_kind(path)
     return
 end
 
-function M:get_mirror_path(path, kind)
-    path = M:get_source(path) or {}
-    path = path.path
-
-    local url = urls:where({path = path, resource_type = 'file'})
-
-    if url then
-        return M:get_absolute_config()[kind]:join(string.format("%s.md", tostring(url.id)))
+function M:_get_path(source, kind)
+    if source then
+        return M.conf[kind].path / string.format("%s.md", tostring(source.id))
     end
 end
 
-function M:get_mirror_paths(path)
-    local mirrors = Dict()
-    M.configs.generic:keys():foreach(function(kind)
-        local mirror = M:get_mirror_path(path, kind)
+function M:get_path(path, kind)
+    local source = M:get_source(path)
 
-        if mirror and mirror:exists() then
-            mirrors[kind] = mirror
+    return M:_get_path(source, kind)
+end
+
+function M:get_paths(path)
+    local source = M:get_source(path)
+
+    local paths = Dict()
+    M.conf:keys():foreach(function(kind)
+        local path = M:_get_path(source, kind)
+
+        if path and path:exists() then
+            paths[kind] = path
         end
     end)
 
-    return mirrors
+    return paths
 end
 
 function M:is_source(path)
@@ -75,18 +68,14 @@ function M:get_source(path)
     end
 end
 
-function M.get_kind_string(kind)
-    return M.configs.generic[kind].statusline_name or kind
+function M:get_strings(path)
+    return M:get_paths(path):keys():filter(function(kind)
+        return not M.conf[kind].exclude_from_statusline
+    end):transform(function(kind)
+        return M.conf[kind].statusline_str
+    end):sorted():join(" | ")
 end
 
-function M:get_mirrors_string(path)
-    if M:is_source(path) then
-        return M:get_mirror_paths(path):keys():filter(function(kind)
-            return not M.configs.generic[kind].exclude_from_statusline
-        end):transform(M.get_kind_string):sorted():join(" | ")
-    end
-
-    return ""
-end
+M:set_conf()
 
 return M

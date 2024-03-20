@@ -165,6 +165,7 @@ describe("parent", function()
     it("has parent", function()
         assert.are.same(Path("/a"), Path("/a/b"):parent())
     end)
+
     it("no parent", function()
         assert.are.same(Path("/"), Path("/a"):parent())
     end)

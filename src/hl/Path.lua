@@ -193,6 +193,18 @@ Path.expanduser = Path.make_fn_match_input(function(p)
     return p
 end)
 
+Path.contractuser = function(p)
+    local s = string.gsub(tostring(p), tostring(Path.home), "~")
+
+    if Path.is_a(p) == Path then
+        p.p = s
+    else
+        p = s
+    end
+
+    return p
+end
+
 function Path.rename(source, target)
     source = Path.as_string(source)
     target = Path.as_string(target)

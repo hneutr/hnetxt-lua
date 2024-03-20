@@ -1,17 +1,12 @@
 scratch:
     mapkey: s
-    dir_prefix: .chaff
     exclude_from_statusline: true
 alternatives: 
     mapkey: a
-    dir_prefix: .notes
 outlines: 
     mapkey: o
-    dir_prefix: .notes
-    statusline_name: outline
+    statusline_str: outline
 meta: 
     mapkey: m
-    dir_prefix: .notes
 metadata:
     mapkey: d
-    dir_prefix: .metadata

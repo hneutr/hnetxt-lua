@@ -1,4 +1,3 @@
-require("approot")("/Users/hne/lib/hnetxt-lua/")
 require("hl")
 
 local db = require("htl.db")

@@ -213,7 +213,7 @@ end
 function M:get_metadata_lines(path)
     local lines = M:separate_metadata(path:readlines())
 
-    local metadata_path = mirrors:get_mirror_path(path, "metadata")
+    local metadata_path = mirrors:get_path(path, "metadata")
     if metadata_path:exists() then
         lines:extend(metadata_path:readlines())
     end

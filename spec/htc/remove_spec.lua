@@ -7,7 +7,7 @@ local urls = require("htl.db.urls")
 local mirrors = require("htl.db.mirrors")
 local projects = require("htl.db.projects")
 
-local kind = mirrors.configs.generic:keys()[1]
+local kind = mirrors.conf:keys()[1]
 
 local d1 = Path.tempdir:join("dir-1")
 local d2 = d1:join("dir-2")
@@ -53,7 +53,7 @@ describe("remove_file", function()
     it("source w/ mirrors", function()
         f1:touch()
         urls:insert({path = f1})
-        local m1 = mirrors:get_mirror_path(f1, kind)
+        local m1 = mirrors:get_path(f1, kind)
 
         local q = {path = m1}
 
@@ -68,7 +68,7 @@ describe("remove_file", function()
     it("mirror", function()
         f1:touch()
         urls:insert({path = f1})
-        local m1 = mirrors:get_mirror_path(f1, kind)
+        local m1 = mirrors:get_path(f1, kind)
 
         local q = {path = m1}
 

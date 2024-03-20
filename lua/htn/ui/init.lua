@@ -25,13 +25,14 @@ M.suffix_to_open_cmd = Dict({
     s = 'sp'
 })
 
-function M.get_statusline_path_string(path)
+function M.get_statusline()
+    local path = Path.this()
     local pre = ""
     local post = ""
     local relative_to = vim.b.htn_project and vim.b.htn_project.path
 
     if mirrors:is_mirror(path) then
-        post = ": " .. mirrors.get_kind_string(mirrors:get_mirror_kind(path))
+        post = "%=mirror: " .. mirrors.conf[mirrors:get_kind(path)].statusline_str
 
         local source = mirrors:get_source(path)
 
@@ -42,6 +43,12 @@ function M.get_statusline_path_string(path)
         end
 
         path = source.path
+    elseif mirrors:is_source(path) then
+        post = mirrors:get_strings(path)
+
+        if #post > 0 then
+            post = "%=mirrors: " .. post
+        end
     end
 
     return pre .. M.get_statusline_path(path, relative_to) .. post
@@ -56,19 +63,7 @@ function M.get_statusline_path(path, relative_to)
         path = path:relative_to(relative_to)
     end
 
-    return tostring(path:with_suffix(""))
-end
-
-function M.statusline()
-    local path = Path.this()
-    local statusline = M.get_statusline_path_string(path)
-    local mirrors_string = mirrors:get_mirrors_string(path)
-
-    if #mirrors_string > 0 then 
-        statusline = statusline .. "%=mirrors: " .. mirrors_string
-    end
-    
-    return statusline
+    return Path.contractuser(tostring(path:with_suffix("")))
 end
 
 function M.set_file_url(path)
@@ -181,10 +176,10 @@ end
 function M.mirror_mappings()
     if not vim.g.htn_mirror_mappings then
         local mappings = Dict()
-        mirrors.configs.generic:foreach(function(kind, conf)
+        mirrors.conf:foreach(function(kind, conf)
             M.suffix_to_open_cmd:foreach(function(suffix, open_cmd)
                 mappings[vim.b.htn_mirror_prefix .. conf.mapkey .. suffix] = function()
-                    mirrors:get_mirror_path(Path.this(), kind):open(open_cmd)
+                    mirrors:get_path(Path.this(), kind):open(open_cmd)
                 end
             end)
         end)
@@ -203,7 +198,7 @@ function M.scratch(mode)
         lines:append("")
     end
 
-    local path = mirrors:get_mirror_path(Path.this(), "scratch")
+    local path = mirrors:get_path(Path.this(), "scratch")
 
     if path:exists() then
         lines:append(path:read())
