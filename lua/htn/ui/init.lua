@@ -134,45 +134,6 @@ function M.get_reference(fuzzy_path)
     return tostring(urls:get_reference(url))
 end
 
--- function M.LinkToFile()
---     print("this doesn't work yet")
---     local cursor_col = vim.api.nvim_win_get_cursor(0)[2]
---     local url_id = URLDefinition:get_nearest(vim.fn.getline('.'), cursor_col).url
-
---     if url_id then
---         url_id = tonumber(url_id)
---     else
---         return
---     end
-
---     local old_url_id = urls:where({path = Path.this(), resource_type = "file"}).id
-    
---     urls:remove({id = old_url_id})
---     urls:update({
---         where = {id = url_id},
---         set = {resource_type = "file", label = ""}
---     })
--- end
-
--- function M.FileToLink()
---     print("this doesn't work yet")
---     local path = Path.this()
---     local file_q = {path = path, resource_type = "file"}
---     local url = urls:where(file_q)
-
---     urls:update({
---         where = {id = url.id},
---         set = {
---             resource_type = "link",
---             label = url.path:stem():gsub("-", " "),
---         }
---     })
-
---     urls:add_if_missing(path)
-
---     vim.api.nvim_put({tostring(urls:get_reference(url))} , 'c', 1, 0)
--- end
-
 function M.mirror_mappings()
     if not vim.g.htn_mirror_mappings then
         local mappings = Dict()
@@ -221,6 +182,45 @@ function M.quote()
         vim.api.nvim_input("<C-f>")
     end
 end
+
+-- function M.LinkToFile()
+--     print("this doesn't work yet")
+--     local cursor_col = vim.api.nvim_win_get_cursor(0)[2]
+--     local url_id = URLDefinition:get_nearest(vim.fn.getline('.'), cursor_col).url
+
+--     if url_id then
+--         url_id = tonumber(url_id)
+--     else
+--         return
+--     end
+
+--     local old_url_id = urls:where({path = Path.this(), resource_type = "file"}).id
+    
+--     urls:remove({id = old_url_id})
+--     urls:update({
+--         where = {id = url_id},
+--         set = {resource_type = "file", label = ""}
+--     })
+-- end
+
+-- function M.FileToLink()
+--     print("this doesn't work yet")
+--     local path = Path.this()
+--     local file_q = {path = path, resource_type = "file"}
+--     local url = urls:where(file_q)
+
+--     urls:update({
+--         where = {id = url.id},
+--         set = {
+--             resource_type = "link",
+--             label = url.path:stem():gsub("-", " "),
+--         }
+--     })
+
+--     urls:add_if_missing(path)
+
+--     vim.api.nvim_put({tostring(urls:get_reference(url))} , 'c', 1, 0)
+-- end
 
 M.scratch_map_fn = function() M.scratch('n') end
 M.scratch_map_visual_cmd = [[:'<,'>lua require('htn.ui').scratch('v')<cr>]]
