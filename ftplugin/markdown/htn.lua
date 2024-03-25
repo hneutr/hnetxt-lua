@@ -69,6 +69,16 @@ if project then
     -- commands.LinkToFile = ui.LinkToFile
 end
 
+autocommands.htn_statusline = List({
+    {
+        events = {'VimEnter', 'WinEnter', "BufEnter", 'BufWinEnter'},
+        callback = function()
+            vim.opt_local.statusline = ui.get_statusline()
+        end,
+    }
+})
+
+
 autocommands.htn_link_update = List({
     {
         events = {'VimLeave', 'WinLeave', 'BufLeave'},
@@ -79,15 +89,6 @@ autocommands.htn_link_update = List({
 })
 
 
-autocommands.htn_statusline = List({
-    {
-        events = {'VimEnter', 'WinEnter', "BufEnter", 'BufWinEnter'},
-        callback = function()
-            vim.opt_local.statusline = ui.get_statusline()
-        end,
-    }
-})
-
 commands:foreach(function(name, fn)
     vim.api.nvim_buf_create_user_command(0, name, fn, {})
 end)
@@ -95,7 +96,6 @@ end)
 autocommands:keys():foreach(function(group_name)
     local group = vim.api.nvim_create_augroup(group_name, {clear = true})
     autocommands[group_name]:foreach(function(autocommand)
-        vim.g.name = 1
         vim.api.nvim_create_autocmd(
             autocommand.events,
             {pattern = "*.md", group = group, callback = autocommand.callback}

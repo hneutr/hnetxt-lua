@@ -33,6 +33,8 @@ return {
             {"-p --path", default = Path.cwd(), description = "project directory", convert=Path.as_path},
             {"-c --created", default = os.date("%Y%m%d"), description = "project start date"},
             action = function(args)
+                args.path:mkdir()
+            
                 projects:insert(args)
                 args.path:glob("%.md$"):foreach(function(path)
                     urls:add_if_missing(path)

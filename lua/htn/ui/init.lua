@@ -198,13 +198,18 @@ function M.scratch(mode)
         lines:append("")
     end
 
-    local path = mirrors:get_path(Path.this(), "scratch")
+    local path = Path:this()
+    M.set_file_url(path)
 
-    if path:exists() then
-        lines:append(path:read())
+    local scratch_path = mirrors:get_path(path, "scratch")
+
+    if scratch_path then
+        if scratch_path:exists() then
+            lines:append(scratch_path:read())
+        end
+
+        scratch_path:write(lines)
     end
-
-    path:write(lines)
 end
 
 function M.quote()
