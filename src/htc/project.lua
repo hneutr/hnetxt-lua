@@ -37,7 +37,7 @@ return {
             
                 projects:insert(args)
                 args.path:glob("%.md$"):foreach(function(path)
-                    urls:add_if_missing(path)
+                    urls:insert(path)
                     metadata:save_file_metadata(path)
                 end)
             end,

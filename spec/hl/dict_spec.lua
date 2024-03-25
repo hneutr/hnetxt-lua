@@ -146,3 +146,17 @@ describe("set", function()
         )
     end)
 end)
+
+describe("from_list", function()
+    it("works", function()
+        assert.are.same(
+            Dict({a = "a val", b = "b val", c = "c val"}),
+            Dict.from_list(
+                List({"a", "b", "c"}),
+                function(key)
+                    return key, key .. " val"
+                end
+            )
+        )
+    end)
+end)

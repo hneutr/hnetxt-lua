@@ -23,10 +23,27 @@ before_each(function()
     db.before_test()
     projects:insert(p1)
     projects:insert(p2)
+    f1:touch()
+    f2:touch()
+    f3:touch()
+    f4:touch()
+    f5:touch()
 end)
 
 after_each(function()
     db.after_test()
+end)
+
+describe("where", function()
+    it("works with string", function()
+        urls:insert({path = f1})
+        assert.not_nil(urls:where({path = tostring(f1)}))
+    end)
+
+    it("works with path", function()
+        urls:insert({path = f1})
+        assert.not_nil(urls:where({path = f1}))
+    end)
 end)
 
 describe("insert", function()
@@ -45,10 +62,26 @@ describe("insert", function()
         assert.are.same(p1.title, result.project)
     end)
 
-    it("sets defauls", function()
+    it("sets defaults", function()
         urls:insert({path = f5})
         local result = urls:where({path = f5})
         assert.is_nil(result.project)
+    end)
+
+    it("sets resource type", function()
+        urls:insert({path = f1})
+        assert.not_nil(urls:where({path = f1, resource_type = "file"}))
+        urls:insert({path = f2, label = "f2"})
+        assert.not_nil(urls:where({path = f2, resource_type = "link"}))
+    end)
+
+    it("doesn't overwrite file", function()
+        urls:insert({path = f1})
+        
+        local q = {where = {path = f1, resource_type = "file"}}
+        assert.are.same(1, #urls:get(q))
+        urls:insert({path = f1})
+        assert.are.same(1, #urls:get(q))
     end)
 end)
 
@@ -120,22 +153,6 @@ describe("get", function()
     end)
 end)
 
-describe("add_if_missing", function()
-    it("+", function()
-        f1:touch()
-        urls:add_if_missing(f1)
-        assert(urls:where({path = f1}))
-    end)
-
-    it("doesn't overwrite", function()
-        local row = {path = f1, label = "a"}
-        f1:touch()
-        urls:insert(row)
-        urls:add_if_missing(row.path)
-        assert.is_not.Nil(urls:where(row))
-    end)
-end)
-
 describe("clean", function()
     it("non-existent file", function()
         f1:touch()
@@ -156,8 +173,14 @@ describe("clean", function()
     end)
 
     it("unanchored file", function()
+        urls:insert({path = f1})
+        local u1 = urls:where({path = f1}).id
+        urls:update({
+            where = {id = u1},
+            set = {path = tostring(urls.unanchored_path)},
+        })
+
         local row = {path = urls.unanchored_path}
-        urls:insert(row)
         assert.is_not.Nil(urls:where(row))
         urls:clean()
         assert.is_nil(urls:where(row))

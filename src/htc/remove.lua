@@ -46,7 +46,7 @@ function M:remove_dir(dir, args)
 end
 
 function M:remove_file(path)
-    if mirrors:is_source(path) then
+    if urls:get_file(path) then
         mirrors:get_paths(path):values():foreach(function(p)
             p:unlink()
         end)

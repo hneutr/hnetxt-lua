@@ -33,6 +33,16 @@ function Dict.delist(t)
     return _t
 end
 
+function Dict.from_list(list, fn)
+    local d = Dict()
+    list:foreach(function(item)
+        local key, val = fn(item)
+        d[key] = val
+    end)
+    
+    return d
+end
+
 function Dict.keys(d)
     local keys = List()
     for key, _ in pairs(d) do

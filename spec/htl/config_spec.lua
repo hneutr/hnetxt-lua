@@ -1,4 +1,3 @@
-local Path = require("hl.Path")
 local yaml = require("hl.yaml")
 
 local Config = require("htl.Config")

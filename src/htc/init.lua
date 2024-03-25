@@ -120,13 +120,6 @@ require("htc.cli")("hnetxt", {
         description = "test",
         {"-p --path", default = Path.cwd(), description = "project directory", convert=Path.as_path},
         action = function(args)
-            local p = Path("/Users/hne/Documents/text/written/fiction/chasefeel/testing.md")
-            local u = urls:where({path = p})
-            print(require("inspect")(u))
-            -- urls:add_if_missing(p)
-            os.exit()
-            
-            print(require("inspect")(metadata:where({url = u.id})))
         end,
     },
 })

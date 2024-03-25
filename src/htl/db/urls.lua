@@ -26,13 +26,13 @@ M.unanchored_path = Path("__unanchored__")
 M.link_delimiter = Config.get("link").delimiter
 
 function M:insert(row)
-    local resource_type = row.resource_type
+    if not row.resource_type then
+        row.resource_type = row.label and "link" or "file"
+    end
 
-    if not resource_type then
-        if row.label then
-            resource_type = "link"
-        else
-            resource_type = "file"
+    if row.resource_type == "file" then
+        if not row.path:exists() or M:get_file(row.path) then
+            return
         end
     end
 
@@ -41,14 +41,12 @@ function M:insert(row)
         project = row.project or projects.get_title(row.path),
         created = sqlite.lib.strftime("%s", "now"),
         label = row.label,
-        resource_type = resource_type,
+        resource_type = row.resource_type,
     })
 end
 
-function M:add_if_missing(path)
-    if Path(path):exists() and not M:where({path = tostring(path), resource_type = 'file'}) then
-        M:insert({path = path, resource_type = 'file'})
-    end
+function M:get_file(path)
+    return M:where({path = path, resource_type = 'file'})
 end
 
 function M:where(q)
@@ -63,7 +61,7 @@ function M:move(source, target)
     local project = projects.get_by_path(target)
 
     if project then
-        M:add_if_missing(source)
+        M:insert({path = source})
         
         M:update({
             where = {path = tostring(source)},

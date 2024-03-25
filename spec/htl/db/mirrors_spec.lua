@@ -28,6 +28,9 @@ before_each(function()
 
     db.before_test()
 
+    f1:touch()
+    f2:touch()
+
     projects:insert(p1)
     projects:insert(p2)
 
@@ -49,16 +52,6 @@ describe("is_mirror", function()
 
     it("-", function()
         assert.is_false(mirrors:is_mirror(f1))
-    end)
-end)
-
-describe("is_source", function()
-    it("+", function()
-        assert.is_true(mirrors:is_source(f1))
-    end)
-
-    it("-", function()
-        assert.is_false(mirrors:is_source(mirrors.conf.a.path / "1.md"))
     end)
 end)
 

@@ -14,15 +14,11 @@ function M.get(constants_type)
     return Yaml.read(path)
 end
 
-function M.get_dir(constants_type)
-    local d = Dict()
-    M.constants_dir:join(constants_type):glob("%.yaml$"):foreach(function(p)
-        d[p:stem()] = Yaml.read(p)
-    end)
-    return d
-end
-
-function M.setup_paths(configs)
+function M.get_dir(name)
+    return Dict.from_list(
+        M.constants_dir:join(name):glob("%.yaml$"),
+        function(p) return p:stem(), Yaml.read(p) end
+    )
 end
 
 function M.get_path(key, configs)

@@ -1,5 +1,3 @@
-local Dict = require("hl.Dict")
-local sqlite = require("sqlite.db")
 local tbl = require("sqlite.tbl")
 
 local M = tbl("projects", {
@@ -9,20 +7,23 @@ local M = tbl("projects", {
         unique = true,
         primary = true,
     },
-    created = {"text", default = os.date("%Y%m%d")},
-    path = {"text", required = true},
+    created = {
+        "text",
+        default = os.date("%Y%m%d"),
+    },
+    path = {
+        "text",
+        required = true,
+    },
 })
 
 function M:insert(row)
-    local r = Dict()
-
-    Dict(M:schema()):keys():foreach(function(key)
-        if row[key] then
-            r[key] = tostring(row[key])
+    M:__insert(Dict.from_list(
+        Dict(M:schema()):keys(),
+        function(col)
+            return col, row[col] and tostring(row[col])
         end
-    end)
-
-    M:__insert(r)
+    ))
 end
 
 function M:get(q)
@@ -38,7 +39,6 @@ function M.get_by_path(path)
     local projects = M:get():sorted(function(a, b)
         return #tostring(a.path) > #tostring(b.path)
     end):filter(function(p)
-        local test = path:is_relative_to(p.path)
         return p ~= nil and path:is_relative_to(p.path)
     end)
 
@@ -57,10 +57,6 @@ end
 function M.get_title(path)
     local project = M.get_by_path(path) or {}
     return project.title
-end
-
-function M.tostring(p)
-    return string.format("{title=%s, path=%s, created=%s}", p.title, p.path, p.created)
 end
 
 return M

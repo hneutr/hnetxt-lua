@@ -22,9 +22,10 @@ local p2 = {title = "test2", path = d2, created = "19930120"}
 local pwd = os.getenv("PWD")
 
 before_each(function()
-    d1:rmdir()
-    d2:rmdir()
+    d1:rmdir(true)
+    d2:rmdir(true)
     db.before_test()
+
     projects:insert(p1)
     projects:insert(p2)
     stub(os, "getenv")

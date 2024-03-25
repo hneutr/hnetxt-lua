@@ -43,7 +43,7 @@ function M.get_statusline()
         end
 
         path = source.path
-    elseif mirrors:is_source(path) then
+    elseif urls:get_file(path) then
         post = mirrors:get_strings(path)
 
         if #post > 0 then
@@ -69,7 +69,7 @@ end
 function M.set_file_url(path)
     path = path and Path(path) or Path.this()
     if not mirrors:is_mirror(path) and path:suffix() == ".md" then
-        urls:add_if_missing(path)
+        urls:insert({path = path})
     end
 end
 
@@ -217,7 +217,7 @@ end
 --         }
 --     })
 
---     urls:add_if_missing(path)
+--     urls:insert({path = path})
 
 --     vim.api.nvim_put({tostring(urls:get_reference(url))} , 'c', 1, 0)
 -- end

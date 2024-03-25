@@ -56,13 +56,11 @@ function M:get_paths(path)
     return paths
 end
 
-function M:is_source(path)
-    return urls:where({path = path, resource_type = "file"}) and true or false
-end
-
 function M:get_source(path)
-    if M:is_source(path) then
-        return urls:where({path = path, resource_type = "file"})
+    local source = urls:get_file(path)
+
+    if source then
+        return source
     elseif M:is_mirror(path) then
         return urls:where({id = tonumber(path:stem())})
     end
