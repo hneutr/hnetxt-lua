@@ -1,8 +1,10 @@
 local Path = require("hl.Path")
+local Config = require("htl.Config")
 
 local db = require("htl.db")
 local projects = require("htl.db.projects")
 local urls = require("htl.db.urls")
+local Link = require("htl.text.Link")
 
 local d1 = Path.tempdir:join("dir-1")
 local d2 = Path.tempdir:join("dir-2")
@@ -253,5 +255,35 @@ describe("update_link_urls", function()
 
         urls:update_link_urls(f1, List())
         assert.are.same(urls.unanchored_path, urls:where({id = id}).path)
+    end)
+end)
+
+describe("get_reference", function()
+    it("label", function()
+        assert.are.same(
+            "[a](1)",
+            tostring(urls:get_reference({label = "a", id = 1}))
+        )
+    end)
+
+    it("no label, non-dir file", function()
+        assert.are.same(
+            "[c](1)",
+            tostring(urls:get_reference({path = Path("a/b/c.md"), id = 1}))
+        )
+    end)
+
+    it("no label, dir file", function()
+        assert.are.same(
+            "[b](1)",
+            tostring(urls:get_reference({path = Path("a/b/@.md"), id = 1}))
+        )
+    end)
+
+    it("language file", function()
+        assert.are.same(
+            "[-suffix](1)",
+            tostring(urls:get_reference({path = Config.paths.language_dir / "_suffix.md", id = 1}))
+        )
     end)
 end)

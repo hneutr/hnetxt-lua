@@ -16,6 +16,9 @@ intentions_dir:
 daily_intentions_file:
   path: daily.md
   parent: intentions_dir
+to_track_file:
+  path: to-track.md
+  parent: data_dir
 goals_dir:
   path: goals
   parent: data_dir
@@ -40,3 +43,9 @@ global_taxonomy_file:
 dir_file:
   path: "@.md"
   is_relative: true
+eidola_dir:
+  path: eidola
+  parent: root
+language_dir:
+  path: language
+  parent: eidola_dir

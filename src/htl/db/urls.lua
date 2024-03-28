@@ -211,12 +211,17 @@ function M:get_reference(url)
     local label = url.label
 
     if not label then
-        local stem = url.path:stem()
-        if stem == "@" then
-            stem = url.path:parent():stem()
+        local path = url.path
+
+        if path:name() == Config.paths.dir_file then
+            path = path:parent()
         end
 
-        label = stem:gsub("-", " ")
+        label = path:stem():gsub("-", " ")
+
+        if path:is_relative_to(Config.paths.language_dir) then
+            label = label:gsub("_", "-")
+        end
     end
 
     return Link({

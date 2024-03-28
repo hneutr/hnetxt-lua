@@ -38,17 +38,8 @@ require("htc.cli")("hnetxt", {
     },
     track = {
         description = "print the tracking path",
-        {"date", description = "date (YYYYMMDD); default today", default = os.date('%Y%m%d')},
-        action = function(args)
-            local date = args.date
-            if type(date) == "string" then
-                if date:startswith('m') then
-                    date = tonumber(os.date('%Y%m%d')) - tonumber(date:removeprefix('m'))
-                end
-            end
-
-            print(require("htl.track")():touch(date))
-        end,
+        {"date", description = "date (YYYYMMDD); default today", default = os.date('%Y%m%d'), convert = tostring},
+        action = function(args) print(require("htl.track")():touch(args)) end,
     },
     x_of_the_day = {
         description = "set the x-of-the-day files",

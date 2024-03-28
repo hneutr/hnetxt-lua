@@ -1,5 +1,4 @@
 local List = require("hl.List")
-local Path = require("hl.Path")
 local Dict = require("hl.Dict")
 local class = require("pl.class")
 local Yaml = require("hl.yaml")
@@ -35,7 +34,6 @@ function Snippet:__tostring()
 
     local str = self.definition.string
 
-    local parts = List()
     for key in str:gmatch("{(.-)}") do
         local value = self.metadata[key]
 
@@ -52,30 +50,28 @@ function Snippet:__tostring()
 end
 
 function Snippet:parse(raw_metadata)
-    local metadata = Dict()
-    List.split(raw_metadata, "\n"):foreach(function(line)
-        local field, value = self:parse_line(line)
-        metadata[field] = value
-    end)
-    return metadata
+    return Dict.from_list(
+        List.split(raw_metadata, "\n"),
+        function(line) return self:parse_line(line) end
+    )
 end
 
 function Snippet:parse_line(line)
-    local field, value
+    local key, val
 
-    if line:match(Snippet.FIELD_SEPARATOR) then
-        field, value = unpack(line:split(Snippet.FIELD_SEPARATOR, 1))
-        field = field:strip()
-        value = value:strip()
+    if line:match(self.FIELD_SEPARATOR) then
+        key, val = unpack(line:split(self.FIELD_SEPARATOR, 1))
+        key = key:strip()
+        val = val:strip()
 
-        if Link:str_is_a(value) then
-            value = Snippet(db.get().urls:where({id = Link:from_str(value).url}).path)
+        if Link:str_is_a(val) then
+            val = Snippet(db.get().urls:where({id = Link:from_str(val).url}).path)
         end
     else
-        field = line
+        key = line
     end
 
-    return field, value
+    return key, val
 end
 
 return Snippet

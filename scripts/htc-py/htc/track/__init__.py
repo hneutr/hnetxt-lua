@@ -57,12 +57,6 @@ def annotate_colors(configs, src_key='color', dst_key='color'):
 
 
 @functools.lru_cache
-def morality_configs():
-    configs = htc.config.get('track')['moralities']
-    configs = annotate_colors(configs)
-    return configs
-
-@functools.lru_cache
 def category_configs():
     track_config = htc.config.get('track')
 
