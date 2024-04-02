@@ -55,7 +55,7 @@ function M.get_statusline()
 end
 
 function M.get_statusline_path(path, relative_to)
-    if path:name() == Config.paths.dir_file then
+    if path:name() == tostring(Conf.paths.dir_file) then
         path = path:parent()
     end
 
@@ -176,7 +176,7 @@ end
 function M.quote()
     vim.api.nvim_input("iquote<tab>")
 
-    local source = urls:get_reference(urls:where({path = Path.this():parent():join(Config.paths.dir_file)}))
+    local source = urls:get_reference(urls:where({path = Path.this():parent():join(Conf.paths.dir_file)}))
     if source then
         vim.api.nvim_input(tostring(source))
         vim.api.nvim_input("<C-f>")

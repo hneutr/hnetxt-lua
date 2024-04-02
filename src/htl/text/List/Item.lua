@@ -3,7 +3,7 @@ local Dict = require("hl.Dict")
 local List = require("hl.List")
 
 local Config = require("htl.Config")
-local ListConfig = Dict(Config.get("list"))
+local ListConfig = Dict(Conf.list)
 
 local Line = require("htl.text.Line")
 

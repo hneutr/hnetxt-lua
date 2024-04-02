@@ -6,10 +6,10 @@ local class = require("pl.class")
 local Config = require("htl.Config")
 
 class.Track()
-Track.to_track_path = Config.paths.to_track_file
+Track.to_track_path = Conf.paths.to_track_file
 
 function Track:path(date)
-    return Config.paths.track_dir / string.format("%s.md", date or os.date("%Y%m%d"))
+    return Conf.paths.track_dir / string.format("%s.md", date or os.date("%Y%m%d"))
 end
 
 function Track:touch(args)

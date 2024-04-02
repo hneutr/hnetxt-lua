@@ -10,8 +10,8 @@ local Path = require('hl.Path')
 local Snippet = require("htl.snippet")
 local db = require("htl.db")
 
-local Header = require("htn.text.header")
-local Divider = require("htn.text.divider")
+local Header = require("htl.text.header")
+local Divider = require("htl.text.divider")
 
 
 local today = function() return vim.fn.strftime("%Y%m%d") end

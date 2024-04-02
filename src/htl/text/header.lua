@@ -1,12 +1,10 @@
-local List = require("hl.List")
-local Dict = require("hl.Dict")
 local class = require("pl.class")
 
 local Config = require("htl.Config")
 
 class.Header()
-Header.config = Config.get("header")
-Header.sizes = Config.get("sizes")
+Header.config = Conf.header
+Header.sizes = Conf.sizes
 
 Header.regex_info = Dict({
     upper = {pre = "^", post = "$"},
@@ -79,6 +77,17 @@ function Header.by_size()
         headers[size] = Header({size = size})
     end)
     return headers
+end
+
+function Header:syntax()
+    local syntax = {}
+    self.line_templates:foreachk(function(line_type)
+        syntax[self.size .. "Header" .. line_type] = {
+            string = self:get_pattern(line_type):gsub("%%s.*", "\\s"),
+            color = self.color,
+        }
+    end)
+    return syntax
 end
 
 return Header

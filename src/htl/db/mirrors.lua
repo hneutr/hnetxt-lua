@@ -1,5 +1,4 @@
 local urls = require("htl.db.urls")
--- local Config = require("htl.Config")
 
 local M = {}
 

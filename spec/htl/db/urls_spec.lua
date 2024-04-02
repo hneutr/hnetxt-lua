@@ -283,7 +283,7 @@ describe("get_reference", function()
     it("language file", function()
         assert.are.same(
             "[-suffix](1)",
-            tostring(urls:get_reference({path = Config.paths.language_dir / "_suffix.md", id = 1}))
+            tostring(urls:get_reference({path = Conf.paths.language_dir / "_suffix.md", id = 1}))
         )
     end)
 end)

@@ -23,7 +23,7 @@ local M = tbl("urls", {
 })
 
 M.unanchored_path = Path("__unanchored__")
-M.link_delimiter = Config.get("link").delimiter
+M.link_delimiter = Conf.link.delimiter
 
 function M:insert(row)
     if not row.resource_type then
@@ -213,13 +213,13 @@ function M:get_reference(url)
     if not label then
         local path = url.path
 
-        if path:name() == tostring(Config.paths.dir_file) then
+        if path:name() == tostring(Conf.paths.dir_file) then
             path = path:parent()
         end
 
         label = path:stem():gsub("-", " ")
 
-        if path:is_relative_to(Config.paths.language_dir) then
+        if path:is_relative_to(Conf.paths.language_dir) then
             label = label:gsub("_", "-")
         end
     end

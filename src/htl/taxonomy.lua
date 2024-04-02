@@ -1,6 +1,5 @@
 local lyaml = require("lyaml")
 
-local Dict = require("hl.Dict")
 local Tree = require("hl.Tree")
 local List = require("hl.List")
 
@@ -16,13 +15,13 @@ return function(path)
         end
 
         paths = paths:transform(function(p)
-            return p:join(Config.get("taxonomy").file_name)
+            return p:join(Conf.paths.taxonomy_file)
         end):filter(function(p)
             return p:exists()
         end)
     end
 
-    paths:put(Config.paths.global_taxonomy_file)
+    paths:put(Conf.paths.global_taxonomy_file)
 
     local tree = Tree()
 

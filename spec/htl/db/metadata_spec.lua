@@ -10,8 +10,8 @@ local db = require("htl.db")
 local projects = require("htl.db.projects")
 local urls = require("htl.db.urls")
 
-local d1 = Path.tempdir:join("dir-1")
-local d2 = Path.tempdir:join("dir-2")
+local d1 = Config.test_root:join("dir-1")
+local d2 = Config.test_root:join("dir-2")
 
 local f1 = d1:join("file-1.md")
 local f2 = d2:join("file-2.md")
@@ -47,7 +47,7 @@ before_each(function()
     u3 = urls:where({path = f3}).id
     u4 = urls:where({path = f4}).id
 
-    Config.paths.global_taxonomy_file:write({
+    Conf.paths.global_taxonomy_file:write({
         "a:",
         "  b:",
         "    c:",

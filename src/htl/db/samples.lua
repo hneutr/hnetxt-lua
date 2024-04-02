@@ -23,7 +23,7 @@ local M = tbl("samples", {
     },
 })
 
-M.conf = Dict(Config.get("x-of-the-day"))
+M.conf = Dict(Conf['x-of-the-day'])
 
 function M:set(args)
     if args.rerun then

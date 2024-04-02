@@ -40,6 +40,8 @@ mirrors_dir:
 global_taxonomy_file:
   path: taxonomy.yaml
   parent: data_dir
+taxonomy_file:
+  path: .taxonomy
 dir_file:
   path: "@.md"
 eidola_dir:

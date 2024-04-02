@@ -1,24 +1,19 @@
-local Dict = require("hl.Dict")
-local List = require("hl.List")
-
-local Divider = require("htn.text.divider")
-local Header = require("htn.text.header")
+local Divider = require("htl.text.divider")
+local Header = require("htl.text.header")
 
 require("htn.text.list").add_syntax_highlights()
 require("htn.ui.fold").add_syntax_highlights()
 
 local Color = require("hn.color")
-local Config = require("htl.Config")
-local Syntax = Config.get('syntax')
 
-local syntax_elements = Dict(Syntax)
+local elements = Dict(Conf.syntax)
 
 List.from(
     Header.headers(),
     Divider.dividers(),
     {Divider("large", "metadata")}
 ):foreach(function(e)
-    syntax_elements:update(e:syntax())
+    elements:update(e:syntax())
 end)
 
-syntax_elements:foreach(Color.add_to_syntax)
+elements:foreach(Color.add_to_syntax)

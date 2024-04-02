@@ -5,63 +5,7 @@ local List = require("hl.List")
 
 local M = {}
 M.constants_dir = Path.home:join("lib/hnetxt-lua/constants")
-M.constants_suffix = ".yaml"
-M.root = Path.home
 M.test_root = Path.tempdir:join("test-root")
-
-function M.get(constants_type)
-    local path = M.constants_dir:join(constants_type):with_suffix(M.constants_suffix)
-    return Yaml.read(path)
-end
-
-function M.get_path(key, configs)
-    if not M.paths[key] then
-        local conf = configs[key]
-        local path = conf.path
-
-        if conf.parent then
-            path = M.get_path(configs[key].parent, configs):join(path)
-        end
-
-        M.paths[key] = Path(path)
-    end
-
-    return M.paths[key]
-end
-
-function M.setup()
-    M.paths = Dict({root = M.root})
-
-    local path_configs = Dict(M.get("paths"))
-    path_configs:keys():foreach(function(key)
-        M.get_path(key, path_configs)
-    end)
-end
-
-function M.before_test()
-    M.root = M.test_root
-    M.setup()
-
-    local paths = M.get("paths")
-
-    M.paths:foreach(function(k, v)
-        if paths[k] and v:is_absolute() then
-            if k:endswith("_file") then
-                v:touch()
-            elseif k:endswith("_dir") then
-                v:mkdir()
-            end
-        end
-    end)
-end
-
-function M.after_test()
-    M.test_root:rmdir(true)
-    M.root = Path.home
-    M.setup()
-end
-
-M.setup()
 
 local function get_paths_object(constants, for_test)
     local root = for_test and M.test_root or Path.home
@@ -97,7 +41,6 @@ local function get_paths_object(constants, for_test)
 
         __newindex = function(self, ...) rawset(d, ...) end,
         __tostring = function() return tostring(d) end,
-        keys = function(self) return constants:keys() end,
     })
 end
 
@@ -105,7 +48,6 @@ local function get_constants_object(args)
     args = args or {}
     args.dir = args.dir or M.constants_dir
     
-    local dir = args.dir
     local d = Dict({})
 
     local stem_to_path = Dict.from_list(
@@ -144,14 +86,14 @@ local function get_constants_object(args)
     })
 end
 
-Conf = get_constants_object()
-
-function M.Nbefore_test()
+function M.before_test()
     Conf = get_constants_object({for_test = true})
 end
 
-function M.Nafter_test()
+function M.after_test()
     M.test_root:rmdir(true)
 end
+
+Conf = get_constants_object()
 
 return M

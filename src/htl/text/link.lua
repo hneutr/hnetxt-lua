@@ -1,14 +1,10 @@
-io = require("hl.io")
-string = require("hl.string")
 local class = require("pl.class")
-local List = require("hl.List")
-local Dict = require("hl.Dict")
 local Colorize = require("htc.Colorize")
 
 local Config = require("htl.Config")
 
 class.Link()
-Link.delimiter = Config.get("link").delimiter
+Link.delimiter = Conf.link.delimiter
 Link.label_delimiters = {open = "[", close = "]"}
 Link.url_delimiters = {open = "(", close = ")"}
 Link.get_references_cmd = [[rg '\[.*\]\(.+\)' --no-heading --line-number --hidden]]

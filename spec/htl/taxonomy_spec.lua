@@ -1,26 +1,23 @@
 local Config = require("htl.Config")
 local Taxonomy = require("htl.taxonomy")
 
-local taxonomy_file_name = Config.get("taxonomy").file_name
-local d1 = Path.tempdir:join("taxonomy-test")
-local d2 = d1:join("subdir")
-local t1 = d1:join(taxonomy_file_name)
-local t2 = d2:join(taxonomy_file_name)
+local taxonomy_file = Conf.paths.taxonomy_file
+local d1 = Config.test_root:join("taxonomy-test")
+local d2 = d1 / "subdir"
+local t1 = d1 / taxonomy_file
+local t2 = d2 / taxonomy_file
 
 before_each(function()
     Config.before_test()
-    d1:rmdir(true)
 end)
 
 after_each(function()
     Config.after_test()
-    d1:rmdir(true)
 end)
-
 
 describe("set_tree", function()
     it("no path", function()
-        Config.paths.global_taxonomy_file:write({
+        Conf.paths.global_taxonomy_file:write({
             "a:",
             "  b:",
             "c:"
@@ -38,7 +35,7 @@ describe("set_tree", function()
     end)
     
     it("path in parent", function()
-        Config.paths.global_taxonomy_file:write({
+        Conf.paths.global_taxonomy_file:write({
             "a:",
             "  b:",
             "c:"

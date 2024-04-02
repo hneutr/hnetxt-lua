@@ -5,8 +5,8 @@ local class = require("pl.class")
 local Config = require("htl.Config")
 
 class.Divider()
-Divider.config = Config.get("divider")
-Divider.sizes = Config.get("sizes")
+Divider.config = Conf.divider
+Divider.sizes = Conf.sizes
 
 function Divider:_init(size, style)
     self = Dict.update(self, {size = size, style = style}, self.config)
@@ -39,6 +39,12 @@ end
 
 function Divider.metadata_divider()
     return Divider("large", "metadata")
+end
+
+function Divider:syntax()
+    return {
+        [self.size .. self.style .. "Divider"] = {string = self:regex(), color = self.color}
+    }
 end
 
 return Divider

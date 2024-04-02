@@ -44,7 +44,7 @@ local M = tbl("metadata", {
     },
 })
 
-M.conf = Config.get("metadata")
+M.conf = Conf.metadata
 M.conf.excluded_fields = Set(M.conf.excluded_fields)
 M.conf.direct_fields = Set(M.conf.direct_fields)
 M.metadata_dividers = List({"", tostring(Divider("large", "metadata"))})
