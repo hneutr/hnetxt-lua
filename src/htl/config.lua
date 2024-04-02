@@ -1,11 +1,8 @@
 local Yaml = require("hl.yaml")
-local Dict = require("hl.Dict")
-local Path = require("hl.Path")
-local List = require("hl.List")
 
 local M = {}
-M.constants_dir = Path.home:join("lib/hnetxt-lua/constants")
-M.test_root = Path.tempdir:join("test-root")
+M.constants_dir = Path.home / "lib/hnetxt-lua/constants"
+M.test_root = Path.tempdir / "test-root"
 
 local function get_paths_object(constants, for_test)
     local root = for_test and M.test_root or Path.home
@@ -63,7 +60,6 @@ local function get_constants_object(args)
 
     return setmetatable(methods, {
         __index = function(self, key)
-            
             if not d[key] then
                 local path = stem_to_path[key]
                 if path then
