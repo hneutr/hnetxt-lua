@@ -1,5 +1,4 @@
 local sqlite = require("sqlite.db")
-local Dict = require("hl.Dict")
 
 local Config = require("htl.Config")
 
