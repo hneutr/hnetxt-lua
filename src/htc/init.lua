@@ -5,7 +5,6 @@ local urls = require("htl.db.urls")
 
 local Config = require("htl.Config")
 local metadata = require("htl.db.metadata")
-local Snippet = require("htl.snippet")
 
 require("htc.cli")("hnetxt", {
     new = require("htc.new"),
@@ -45,24 +44,7 @@ require("htc.cli")("hnetxt", {
         description = "set the x-of-the-day files",
         {"+r", target = "rerun", description = "rerun", switch = "on"},
         {"date", description = "date (YYYYMMDD); default today", default = os.date('%Y%m%d')},
-        action = function(args)
-            local sources = List()
-            Dict(Config.get("x-of-the-day")):foreach(function(key, cmd)
-                local path = Config.paths.x_of_the_day_dir:join(key, args.date)
-
-                if not path:exists() or args.rerun then
-                    cmd.path = Path(cmd.path)
-                    local ids = Set(metadata:get_urls(cmd):filter(function(u) return u.url end):col('url')):vals()
-                    local source = urls:where({id = ids[utils.randint({max = #ids})]}).path
-                    path:write(tostring(Snippet(source)))
-                    sources:append(string.format("%s: %s", key, source))
-                end
-            end)
-
-            if #sources > 0 then
-                Config.paths.x_of_the_day_dir:join(".sources", args.date):write(sources)
-            end
-        end,
+        action = require("htl.db.samples").run,
     },
     tags = {
         description = "list tags",
@@ -109,7 +91,8 @@ require("htc.cli")("hnetxt", {
     },
     test = {
         description = "test",
-        {"-p --path", default = Path.cwd(), description = "project directory", convert=Path.as_path},
+        {"+r", target = "rerun", description = "rerun", switch = "on"},
+        {"date", description = "date (YYYYMMDD); default today", default = os.date('%Y%m%d')},
         action = function(args)
         end,
     },

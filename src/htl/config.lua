@@ -21,6 +21,17 @@ function M.get_dir(name)
     )
 end
 
+function M.read_constants()
+    local constants = Dict()
+    M.constants_dir:iterdir({dirs = false}):foreach(function(p)
+        local _p = p:relative_to(M.constants_dir)
+        _p = _p:with_suffix("")
+        constants:set(_p:parts(), Dict(Yaml.read(p)))
+    end)
+
+    return constants
+end
+
 function M.get_path(key, configs)
     if not M.paths[key] then
         local conf = configs[key]

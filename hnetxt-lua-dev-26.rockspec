@@ -45,6 +45,8 @@ build = {
         ["htl.db.urls"] = "src/htl/db/urls.lua",
         ["htl.db.mirrors"] = "src/htl/db/mirrors.lua",
         ["htl.db.metadata"] = "src/htl/db/metadata.lua",
+        ["htl.db.log"] = "src/htl/db/log.lua",
+        ["htl.db.samples"] = "src/htl/db/samples.lua",
 
         ["htl.text.divider"] = "src/htl/text/divider.lua",
         ["htl.text.header"] = "src/htl/text/header.lua",

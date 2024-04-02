@@ -20,6 +20,7 @@ function M.setup()
         projects = require("htl.db.projects"),
         urls = require("htl.db.urls"),
         metadata = require("htl.db.metadata"),
+        samples = require("htl.db.samples"),
     })
 end
 
