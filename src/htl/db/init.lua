@@ -13,6 +13,11 @@ function M.after_test()
     Config.after_test()
 end
 
+--[[
+TODO:
+- move db creation into `htl.config`
+- have all `htl.db.*` files pull their `M` from the `Conf.db` object
+]] 
 function M.setup()
     M.con = sqlite({
         uri = tostring(Conf.paths.db_file),

@@ -1,23 +1,10 @@
-local yaml = require("hl.yaml")
-
 local Config = require("htl.Config")
 
 local test_dir = Config.test_root
--- local test_constants = Dict({
---     a = {x = 1},
---     ["b/c"] = {y = 2},
---     ["b/d"] = {z = 3},
--- })
 
 before_each(function()
     Config.before_test()
 end)
-
-local function write_constants(path, content)
-    path = test_dir / path
-    path:write(lyaml.dump({content}))
-    return path
-end
 
 after_each(function()
     Config.after_test()
@@ -64,8 +51,6 @@ describe("Paths", function()
             assert.are.same(path, Config.Paths.define("a_dir", true, "a", test_dir))
             assert(path:exists())
             assert(path:is_dir())
-
         end)
     end)
 end)
-
