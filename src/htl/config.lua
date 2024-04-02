@@ -1,95 +1,133 @@
 local Yaml = require("hl.yaml")
+local sqlite = require("sqlite.db")
+local class = require("pl.class")
 
 local M = {}
 M.constants_dir = Path.home / "lib/hnetxt-lua/constants"
 M.test_root = Path.tempdir / "test-root"
+M.root = Path.home
 
-local function get_paths_object(constants, for_test)
-    local root = for_test and M.test_root or Path.home
-    local d = Dict({root = root})
+M.Paths = {}
 
-    local function setup_path(key, path)
-        if for_test and path:is_absolute() then
-            if key:endswith("_file") then
-                path:touch()
-            elseif key:endswith("_dir") then
-                path:mkdir()
-            end
+function M.Paths.define(key, for_test, path, parent)
+    if parent then
+        path = parent / path
+    else
+        path = Path(path)
+    end
+
+    if for_test and path:is_absolute() then
+        if key:endswith("_file") then
+            path:touch()
+        elseif key:endswith("_dir") then
+            path:mkdir()
         end
     end
 
+    return path
+end
+
+function M.Paths.get_object(constants)
+    local d = Dict({root = M.root})
+    local for_test = M.root == M.test_root
+
     return setmetatable({}, {
+        __newindex = function(self, ...) rawset(d, ...) end,
+        __tostring = function() return tostring(d) end,
         __index = function(self, key)
-            if not d[key] then
-                local path = constants[key].path
-                local parent = constants[key].parent
-
-                if parent then
-                    path = self[parent] / path
-                end
-
-                d[key] = Path(path)
+            local conf = constants[key]
+            if not d[key] and conf then
+                d[key] = M.Paths.define(
+                    key,
+                    for_test,
+                    conf.path,
+                    conf.parent and self[conf.parent]
+                )
             end
-
-            setup_path(key, d[key])
 
             return d[key]
         end,
-
-        __newindex = function(self, ...) rawset(d, ...) end,
-        __tostring = function() return tostring(d) end,
     })
 end
 
-local function get_constants_object(args)
-    args = args or {}
-    args.dir = args.dir or M.constants_dir
+M.DBTable = {}
+M.DBTable.remaps = Dict({
+    NOW = [[strftime('%s', 'now')]],
+    TODAY = os.date("%Y%m%d"),
+})
+
+function M.DBTable.parse(raw)
+    local d = {}
+    Dict(raw):foreach(function(col, conf)
+        d[col] = conf
+        if type(conf) == 'table' then
+            for key, val in pairs(conf) do
+                if M.DBTable.remaps[val] ~= nil then
+                    val = M.DBTable.remaps[val]
+                end
+                d[col][key] = val
+            end
+        end
+    end)
+    return d
+end
+
+M.Constants = {}
+
+function M.Constants.define(key, path)
+    if path:is_dir() then
+        return M.Constants.get_object(path)
+    end
+
+    local val = Yaml.read(path)
+
+    if key == 'paths' then
+        val = M.Paths.get_object(val)
+    elseif path:parent():stem() == "db" then
+        val = M.DBTable.parse(val)
+    end
+
+    return val
+end
+
+function M.Constants.get_object(dir)
+    dir = dir or M.constants_dir
     
     local d = Dict({})
 
     local stem_to_path = Dict.from_list(
-        args.dir:iterdir({recursive = false}),
-        function(p) return p:relative_to(args.dir):stem(), p end
+        dir:iterdir({recursive = false}),
+        function(p) return p:relative_to(dir):stem(), p end
     )
 
-    local methods = {
-        keys = function()
-            return stem_to_path:keys()
-        end,
-    }
-
-    return setmetatable(methods, {
-        __index = function(self, key)
-            if not d[key] then
-                local path = stem_to_path[key]
-                if path then
-                    if path:is_dir() then
-                        d[key] = get_constants_object({dir = path, for_test = args.for_test})
-                    else
-                        d[key] = Yaml.read(path)
-
-                        if key == 'paths' then
-                            d[key] = get_paths_object(d[key], args.for_test)
-                        end
-                    end
+    return setmetatable(
+        {
+            keys = function() return stem_to_path:keys() end,
+        },
+        {
+            __newindex = function(self, ...) rawset(d, ...) end,
+            __tostring = function() return tostring(d) end,
+            __index = function(self, key)
+                if not d[key] and stem_to_path[key] then
+                    d[key] = M.Constants.define(key, stem_to_path[key])
                 end
-            end
 
-            return d[key]
-        end,
-        __newindex = function(self, ...) rawset(d, ...) end,
-        __tostring = function() return tostring(d) end,
-    })
+                return d[key]
+            end,
+        }
+    )
 end
 
 function M.before_test()
-    Conf = get_constants_object({for_test = true})
+    M.root = M.test_root
+    Conf = M.Constants.get_object()
 end
 
 function M.after_test()
     M.test_root:rmdir(true)
+    M.root = Path.home
 end
 
-Conf = get_constants_object()
+Conf = M.Constants.get_object()
 
 return M

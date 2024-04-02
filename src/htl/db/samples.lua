@@ -5,23 +5,7 @@ local metadata = require("htl.db.metadata")
 local Snippet = require("htl.snippet")
 local urls = require("htl.db.urls")
 
-local M = tbl("samples", {
-    id = true,
-    date = {
-        "text",
-        default = os.date("%Y%m%d"),
-    },
-    url = {
-        type = "integer",
-        reference = "urls.id",
-        on_delete = "cascade",
-        required = true,
-    },
-    frame = {
-        type = "text",
-        required = true,
-    },
-})
+local M = tbl("samples", Conf.db.samples)
 
 M.conf = Dict(Conf['x-of-the-day'])
 
@@ -49,7 +33,7 @@ function M:get(...)
 end
 
 function M:save(args)
-    local dir = Config.paths.x_of_the_day_dir
+    local dir = Conf.paths.x_of_the_day_dir
     M:get({where = {date = args.date}}):foreach(function(sample)
         local path = dir / sample.frame / args.date
         local url = urls:where({id = sample.url})

@@ -1,0 +1,12 @@
+id: true
+date:
+    type: text
+    default: TODAY
+url:
+    type: integer
+    reference: urls.id
+    on_delete: cascade
+    required: true
+frame:
+    type: text
+    required: true

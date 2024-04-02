@@ -1,0 +1,16 @@
+id: true
+label: text
+project:
+    type: text
+    reference: projects.title
+    on_delete: cascade
+path:
+    type: text
+    required: true
+created:
+    type: date
+    required: true
+    default: NOW
+resource_type:
+    type: text
+    required: true

@@ -1,26 +1,12 @@
-local Dict = require("hl.Dict")
-local List = require("hl.List")
 local sqlite = require("sqlite.db")
 local tbl = require("sqlite.tbl")
 
+local Config = require("htl.Config")
 local projects = require("htl.db.projects")
 local Link = require("htl.text.Link")
 local URLDefinition = require("htl.text.URLDefinition")
-local Config = require("htl.Config")
 
-
-local M = tbl("urls", {
-    id = true,
-    label = "text",
-    project = {
-        type = "text",
-        reference = "projects.title",
-        on_delete = "cascade", -- delete if project gets deleted
-    },
-    path = {"text", required = true},
-    created = {"date", required = true},
-    resource_type = {"text", required = true},
-})
+local M = tbl("urls", Conf.db.urls)
 
 M.unanchored_path = Path("__unanchored__")
 M.link_delimiter = Conf.link.delimiter
@@ -39,7 +25,6 @@ function M:insert(row)
     M:__insert({
         path = tostring(row.path),
         project = row.project or projects.get_title(row.path),
-        created = sqlite.lib.strftime("%s", "now"),
         label = row.label,
         resource_type = row.resource_type,
     })

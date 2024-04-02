@@ -1,0 +1,11 @@
+title:
+    type: text
+    required: true
+    unique: true
+    primary: true
+created:
+    type: text
+    default: TODAY
+path:
+    type: text
+    required: true

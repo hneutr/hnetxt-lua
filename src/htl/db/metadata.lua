@@ -1,4 +1,3 @@
-local sqlite = require("sqlite.db")
 local tbl = require("sqlite.tbl")
 
 local Dict = require("hl.Dict")
@@ -21,28 +20,7 @@ TODO:
 - tag handing: group tags by @level1.level2.etc
 ]]
 
-local M = tbl("metadata", {
-    id = true,
-    key = {
-        type = "text",
-        required = true,
-    },
-    val = "text",
-    url = {
-        type = "integer",
-        reference = "urls.id",
-        on_delete = "cascade",
-        required = true,
-    },
-    parent = {
-        type = "integer",
-        reference = "metadata.id",
-        on_delete = "cascade",
-    },
-    datatype = {
-        type = "text",
-    },
-})
+local M = tbl("metadata", Conf.db.metadata)
 
 M.conf = Conf.metadata
 M.conf.excluded_fields = Set(M.conf.excluded_fields)

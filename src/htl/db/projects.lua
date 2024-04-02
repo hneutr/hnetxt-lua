@@ -1,21 +1,6 @@
 local tbl = require("sqlite.tbl")
 
-local M = tbl("projects", {
-    title = {
-        "text",
-        required = true,
-        unique = true,
-        primary = true,
-    },
-    created = {
-        "text",
-        default = os.date("%Y%m%d"),
-    },
-    path = {
-        "text",
-        required = true,
-    },
-})
+local M = tbl("projects", Conf.db.projects)
 
 function M:insert(row)
     M:__insert(Dict.from_list(
