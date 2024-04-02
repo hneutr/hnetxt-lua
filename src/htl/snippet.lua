@@ -8,7 +8,6 @@ local Link = require("htl.text.Link")
 local db = require("htl.db")
 
 class.Snippet()
-Snippet.definitions = Config.get_dir("snippets")
 Snippet.FIELD_SEPARATOR = ":"
 
 function Snippet:_init(path)
@@ -19,7 +18,7 @@ function Snippet:_init(path)
     self.metadata = self:parse(self.raw_metadata)
     self:annotate_universal_fields(self.metadata)
 
-    self.definition = self.definitions[self.metadata["is a"]]
+    self.definition = Conf.snippets[self.metadata["is a"]]
 end
 
 function Snippet:annotate_universal_fields(metadata)

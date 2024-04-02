@@ -264,6 +264,10 @@ function Path:with_suffix(suffix)
     return self:with_name(self:stem() .. suffix)
 end
 
+function Path:is_absolute()
+    return string.startswith(tostring(self), self.sep)
+end
+
 function Path:is_relative_to(other)
     return string.startswith(tostring(self), tostring(other))
 end

@@ -1,12 +1,12 @@
 local urls = require("htl.db.urls")
-local Config = require("htl.Config")
+-- local Config = require("htl.Config")
 
 local M = {}
 
-function M:set_conf(conf)
-    M.conf = Dict(conf or Config.get("mirror"))
+function M:set_conf()
+    M.conf = Dict(Conf.mirror)
 
-    local dir = Config.paths['mirrors_dir']
+    local dir = Conf.paths.mirrors_dir
     M.conf:foreach(function(kind, conf)
         conf.path = dir / kind
         conf.statusline_str = conf.statusline_str or kind

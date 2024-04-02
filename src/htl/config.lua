@@ -14,24 +14,6 @@ function M.get(constants_type)
     return Yaml.read(path)
 end
 
-function M.get_dir(name)
-    return Dict.from_list(
-        M.constants_dir:join(name):glob("%.yaml$"),
-        function(p) return p:stem(), Yaml.read(p) end
-    )
-end
-
-function M.read_constants()
-    local constants = Dict()
-    M.constants_dir:iterdir({dirs = false}):foreach(function(p)
-        local _p = p:relative_to(M.constants_dir)
-        _p = _p:with_suffix("")
-        constants:set(_p:parts(), Dict(Yaml.read(p)))
-    end)
-
-    return constants
-end
-
 function M.get_path(key, configs)
     if not M.paths[key] then
         local conf = configs[key]
@@ -41,7 +23,7 @@ function M.get_path(key, configs)
             path = M.get_path(configs[key].parent, configs):join(path)
         end
 
-        M.paths[key] = path
+        M.paths[key] = Path(path)
     end
 
     return M.paths[key]
@@ -60,10 +42,10 @@ function M.before_test()
     M.root = M.test_root
     M.setup()
 
-    local conf = M.get("paths")
+    local paths = M.get("paths")
 
     M.paths:foreach(function(k, v)
-        if conf[k] and not conf[k].is_relative then
+        if paths[k] and v:is_absolute() then
             if k:endswith("_file") then
                 v:touch()
             elseif k:endswith("_dir") then
@@ -80,5 +62,96 @@ function M.after_test()
 end
 
 M.setup()
+
+local function get_paths_object(constants, for_test)
+    local root = for_test and M.test_root or Path.home
+    local d = Dict({root = root})
+
+    local function setup_path(key, path)
+        if for_test and path:is_absolute() then
+            if key:endswith("_file") then
+                path:touch()
+            elseif key:endswith("_dir") then
+                path:mkdir()
+            end
+        end
+    end
+
+    return setmetatable({}, {
+        __index = function(self, key)
+            if not d[key] then
+                local path = constants[key].path
+                local parent = constants[key].parent
+
+                if parent then
+                    path = self[parent] / path
+                end
+
+                d[key] = Path(path)
+            end
+
+            setup_path(key, d[key])
+
+            return d[key]
+        end,
+
+        __newindex = function(self, ...) rawset(d, ...) end,
+        __tostring = function() return tostring(d) end,
+        keys = function(self) return constants:keys() end,
+    })
+end
+
+local function get_constants_object(args)
+    args = args or {}
+    args.dir = args.dir or M.constants_dir
+    
+    local dir = args.dir
+    local d = Dict({})
+
+    local stem_to_path = Dict.from_list(
+        args.dir:iterdir({recursive = false}),
+        function(p) return p:relative_to(args.dir):stem(), p end
+    )
+
+    local methods = {
+        keys = function()
+            return stem_to_path:keys()
+        end,
+    }
+
+    return setmetatable(methods, {
+        __index = function(self, key)
+            
+            if not d[key] then
+                local path = stem_to_path[key]
+                if path then
+                    if path:is_dir() then
+                        d[key] = get_constants_object({dir = path, for_test = args.for_test})
+                    else
+                        d[key] = Yaml.read(path)
+
+                        if key == 'paths' then
+                            d[key] = get_paths_object(d[key], args.for_test)
+                        end
+                    end
+                end
+            end
+
+            return d[key]
+        end,
+        __newindex = function(self, ...) rawset(d, ...) end,
+        __tostring = function() return tostring(d) end,
+    })
+end
+
+Conf = get_constants_object()
+
+function M.Nbefore_test()
+    Conf = get_constants_object({for_test = true})
+end
+
+function M.Nafter_test()
+    M.test_root:rmdir(true)
+end
 
 return M

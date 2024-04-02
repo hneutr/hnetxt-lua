@@ -589,3 +589,16 @@ describe("resolve", function()
     end)
 end)
 
+describe("is_absolute", function()
+    it("root: +", function()
+        assert(Path("/"):is_absolute())
+    end)
+    
+    it("root/etc: +", function()
+        assert(Path("/a"):is_absolute())
+    end)
+
+    it("-", function()
+        assert.is_false(Path("a"):is_absolute())
+    end)
+end)

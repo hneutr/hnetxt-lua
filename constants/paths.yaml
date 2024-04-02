@@ -42,7 +42,6 @@ global_taxonomy_file:
   parent: data_dir
 dir_file:
   path: "@.md"
-  is_relative: true
 eidola_dir:
   path: eidola
   parent: root

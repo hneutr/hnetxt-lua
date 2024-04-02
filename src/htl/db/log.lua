@@ -1,11 +1,14 @@
 local tbl = require("sqlite.tbl")
 
 local M = tbl("log", {
-    title = {
+    id = true,
+    key = {
         "text",
         required = true,
-        unique = true,
-        primary = true,
+    },
+    value = {
+        "text",
+        required = true,
     },
     date = {
         "text",

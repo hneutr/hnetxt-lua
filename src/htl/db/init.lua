@@ -7,11 +7,13 @@ local M = {}
 
 function M.before_test()
     Config.before_test()
+    Config.Nbefore_test()
     M.setup()
 end
 
 function M.after_test()
     Config.after_test()
+    Config.Nafter_test()
 end
 
 function M.setup()

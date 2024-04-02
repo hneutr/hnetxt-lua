@@ -213,7 +213,7 @@ function M:get_reference(url)
     if not label then
         local path = url.path
 
-        if path:name() == Config.paths.dir_file then
+        if path:name() == tostring(Config.paths.dir_file) then
             path = path:parent()
         end
 

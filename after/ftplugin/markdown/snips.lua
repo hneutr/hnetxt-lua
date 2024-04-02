@@ -60,8 +60,8 @@ local snippets = List({
 })
 
 
-Snippet.definitions:foreach(function(name, definition)
-    snippets:append(parse_snippet(name, definition.snippet))
+Conf.snippets:keys():foreach(function(key)
+    snippets:append(parse_snippet(key, Conf.snippets[key].snippet))
 end)
 
 ls.add_snippets("markdown", snippets)

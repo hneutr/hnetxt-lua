@@ -38,7 +38,7 @@ function M:set(args)
             M:insert({
                 date = args.date,
                 url = url.id,
-                frame = frame
+                frame = frame,
             })
         end
     end)

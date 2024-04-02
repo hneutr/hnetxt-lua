@@ -37,7 +37,8 @@ before_each(function()
     urls:insert({path = f1})
     urls:insert({path = f2})
 
-    mirrors:set_conf(test_config)
+    Conf.mirror = test_config
+    mirrors:set_conf()
 end)
 
 after_each(function()
