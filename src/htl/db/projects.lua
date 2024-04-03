@@ -27,21 +27,7 @@ function M.get_by_path(path)
         return p ~= nil and path:is_relative_to(p.path)
     end)
 
-    if #projects == 0 then
-        return
-    end
-
-    return projects[1]
-end
-
-function M.get_path(path)
-    local project = M.get_by_path(path) or {}
-    return project.path
-end
-
-function M.get_title(path)
-    local project = M.get_by_path(path) or {}
-    return project.title
+    return #projects > 0 and projects[1] or nil
 end
 
 return M

@@ -64,12 +64,6 @@ describe("insert", function()
         assert.are.same(p1.title, result.project)
     end)
 
-    it("sets defaults", function()
-        urls:insert({path = f5})
-        local result = urls:where({path = f5})
-        assert.is_nil(result.project)
-    end)
-
     it("sets resource type", function()
         urls:insert({path = f1})
         assert.not_nil(urls:where({path = f1, resource_type = "file"}))

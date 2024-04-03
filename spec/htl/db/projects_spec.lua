@@ -35,22 +35,3 @@ describe("insert", function()
         assert.are.same(row, projects:where({title = "test"}))
     end)
 end)
-
-describe("get_path", function()
-    local p1 = {title = "test1", path = d1}
-    local p2 = {title = "test2", path = d2}
-
-    it("match", function()
-        projects:insert(p1)
-        projects:insert(p2)
-        
-        assert.are.same(d1, projects.get_path(f1))
-        assert.are.same(d2, projects.get_path(f2))
-    end)
-    
-    it("no match", function()
-        projects:insert(p1)
-        
-        assert.is_nil(projects.get_path(f2))
-    end)
-end)

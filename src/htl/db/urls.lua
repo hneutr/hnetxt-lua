@@ -22,16 +22,18 @@ function M:insert(row)
         end
     end
 
+    local project = projects.get_by_path(row.path)
+
+    if not project then
+        return
+    end
+
     M:__insert({
         path = tostring(row.path),
-        project = row.project or projects.get_title(row.path),
+        project = project.title,
         label = row.label,
         resource_type = row.resource_type,
     })
-end
-
-function M:get_file(path)
-    return M:where({path = path, resource_type = 'file'})
 end
 
 function M:where(q)
@@ -40,6 +42,10 @@ function M:where(q)
     end
 
     return M:__where(q)
+end
+
+function M:get_file(path)
+    return M:where({path = path, resource_type = 'file'})
 end
 
 function M:move(source, target)
