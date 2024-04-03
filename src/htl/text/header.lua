@@ -1,8 +1,6 @@
-local class = require("pl.class")
-
 local Config = require("htl.Config")
 
-class.Header()
+local Header = require("pl.class")()
 Header.config = Conf.header
 Header.sizes = Conf.sizes
 
