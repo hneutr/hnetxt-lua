@@ -44,9 +44,12 @@ build = {
         ["htl.db.projects"] = "src/htl/db/projects.lua",
         ["htl.db.urls"] = "src/htl/db/urls.lua",
         ["htl.db.mirrors"] = "src/htl/db/mirrors.lua",
-        ["htl.db.metadata"] = "src/htl/db/metadata.lua",
         ["htl.db.log"] = "src/htl/db/log.lua",
         ["htl.db.samples"] = "src/htl/db/samples.lua",
+        ["htl.db.metadata"] = "src/htl/db/metadata.lua",
+
+        ["htl.metadata.Parser"] = "src/htl/metadata/Parser.lua",
+        ["htl.metadata.Condition"] = "src/htl/metadata/Condition.lua",
 
         ["htl.text.divider"] = "src/htl/text/divider.lua",
         ["htl.text.header"] = "src/htl/text/header.lua",

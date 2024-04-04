@@ -187,4 +187,10 @@ function Dict:__tostring()
     return lines:join("\n")
 end
 
+function Dict:pop(key)
+    local val = self[key]
+    self[key] = nil
+    return val
+end
+
 return Dict

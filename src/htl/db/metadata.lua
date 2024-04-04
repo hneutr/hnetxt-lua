@@ -7,13 +7,14 @@ local class = require("pl.class")
 
 local db = require("htl.db")
 local urls = require("htl.db.urls")
-local mirrors = require("htl.db.mirrors")
 local Link = require("htl.text.Link")
 local Config = require("htl.Config")
-local Divider = require("htl.text.divider")
 
 local Colorize = require("htc.Colorize")
 local Taxonomy = require("htl.taxonomy")
+
+local Parser = require("htl.metadata.Parser")
+local Condition = require("htl.metadata.Condition")
 
 --[[
 TODO:
@@ -25,7 +26,6 @@ local M = tbl("metadata", Conf.db.metadata)
 M.conf = Conf.metadata
 M.conf.excluded_fields = Set(M.conf.excluded_fields)
 M.conf.direct_fields = Set(M.conf.direct_fields)
-M.metadata_dividers = List({"", tostring(Divider("large", "metadata"))})
 M.root_key = "__root"
 
 function M:get(q)
@@ -53,17 +53,6 @@ function M.get_taxonomy()
     end
 
     return M.taxonomy
-end
-
-function M.add_taxonomy_vals(vals)
-    vals = Set(vals)
-    local descendants = M.get_taxonomy():descendants()
-    local taxonomy_vals = List()
-    vals:foreach(function(val)
-        taxonomy_vals:extend(descendants[val] or {})
-    end)
-    
-    return vals:union(taxonomy_vals):vals()
 end
 
 function M:get_is_a_to_ids(all_rows, is_a_rows)
@@ -164,134 +153,38 @@ end
 --                                                                            --
 --                                                                            --
 --------------------------------------------------------------------------------
-function M:separate_metadata(lines)
-    lines = lines:filter(function(l)
-        return not l:strip():startswith(M.conf.exclude_startswith)
-    end)
-
-    M.metadata_dividers:foreach(function(chop)
-        local index = lines:index(chop)
-        if index then 
-            lines = lines:chop(index, #lines)
-        end
-    end)
-
-    for i, line in ipairs(lines) do
-        local is_tag = line:strip():startswith(M.conf.tag_prefix)
-        local probably_field = line:strip():match(M.conf.field_delimiter) and #line < 120
-
-        if not (is_tag or probably_field) then
-            return lines:chop(i, #lines)
-        end
-    end
-
-    return lines
-end
-
-function M:get_metadata_lines(path)
-    local lines = M:separate_metadata(path:readlines())
-
-    local metadata_path = mirrors:get_path(path, "metadata")
-    if metadata_path:exists() then
-        lines:extend(metadata_path:readlines())
-    end
-
-    return lines:filter(function(line) return #line > 0 end)
-end
-
-function M:save_file_metadata(path)
-    local url = urls:where({path = path, resource_type = "file"})
+function M:record(path)
+    local url = urls:get_file(path)
 
     if url then
         M:remove({url = url.id})
-        local lines = M:get_metadata_lines(path)
-        M:insert_dict(M:parse(lines), url.id)
+        M:insert_dict(Parser:get(path), url.id)
     end
 end
 
-function M:line_is_non_metadata(l)
-    if l then
-        return not l:match(M.conf.field_delimiter) and not l:strip():startswith(M.conf.tag_prefix)
-    else
-        return true
-    end
-end
-
-function M:parse(lines)
-    local metadata = Dict({metadata = Dict()})
-
-    local parents_by_indent = Dict({[""] = List()})
-
-    if M:line_is_non_metadata(lines[1]) then
-        return Dict()
-    end
-
-    lines:foreach(function(line)
-        local indent, line = line:match("(%s*)(.*)")
-
-        local key, val
-        if not M:is_a_bare_link(line) then
-            if line:startswith(M.conf.tag_prefix) then
-                key = line
-            else
-                key, val = unpack(line:split(M.conf.field_delimiter, 1):mapm("strip"))
-
-                parents_by_indent[indent .. M.conf.indent_size] = parents_by_indent[indent]:clone():append(key)
-            end
-
-            local m = metadata
-            parents_by_indent[indent]:foreach(function(parent)
-                m = m.metadata[parent]
-            end)
-
-            m.metadata[key] = Dict({val = val, metadata = Dict()})
-        end
-    end)
-
-    return metadata.metadata
-end
-
-function M:is_a_bare_link(str)
-    local link = Link:from_str(str)
-    return link and #link.before == 0 and #link.after == 0
-end
-
-function M:insert_dict(dict, url, parent_field)
-    if not parent_field then
+function M:insert_dict(dict, url, parent)
+    if not parent then
         local root = {key = M.root_key, url = url, datatype = 'root'}
 
         if not M:where(root) then
             M:insert(root)
         end
         
-        parent_field = M:where(root).id
+        parent = M:where(root).id
     end
 
-    Dict(dict):foreach(function(key, data)
-        local val, datatype = M:parse_val(data.val)
+    Dict(dict):foreach(function(key, raw)
         local row = {
             key = key,
-            val = val,
+            val = raw.val,
             url = url,
-            parent = parent_field,
-            datatype = datatype,
+            parent = parent,
+            datatype = raw.datatype,
         }
 
         M:insert(row)
-        M:insert_dict(data.metadata, url, M:where(row).id)
+        M:insert_dict(raw.metadata, url, M:where(row).id)
     end)
-end
-
-function M:parse_val(val)
-    if val then
-        local link = Link:from_str(val)
-
-        if link then
-            return link.url, "reference"
-        end
-    end
-
-    return val, "primitive"
 end
 
 --------------------------------------------------------------------------------
@@ -317,7 +210,7 @@ function M:get_urls(args)
 
             if #urls_missing_metadata > 0 then
                 urls:get({where = {id = urls_missing_metadata}}):foreach(function(url)
-                    M:save_file_metadata(url.path)
+                    M:record(url.path)
                 end)
             end
         end
@@ -343,18 +236,7 @@ function M:get_urls(args)
         rows = rows:filter(function(r) return _urls:has(r.url) end)
     end
 
-    List(args.conditions):map(M.parse_condition):foreach(function(condition)
-        local _urls = Set(rows:filter(M.check_condition, condition):col('url'))
-
-        rows = rows:filter(function(r)
-            local result = _urls:has(r.url)
-            if condition.is_exclusion then
-                result = not result
-            end
-
-            return result
-        end)
-    end)
+    rows = Condition.filter(rows, args.conditions, M.get_taxonomy())
 
     if not args.include_links then
         rows = rows:filter(function(r) return r.datatype ~= "reference" end)
@@ -385,41 +267,6 @@ function M:get_urls(args)
     return M.handle_is_a(rows)
 end
 
-function M.parse_condition(str)
-    local condition = Dict({
-        startswith = str:startswith(M.conf.tag_prefix),
-        is_exclusion = str:endswith(M.conf.exclusion_suffix),
-    })
-
-    str = str:removesuffix(M.conf.exclusion_suffix)
-
-    condition.key, condition.vals = unpack(str:split(M.conf.field_delimiter, 1):mapm("strip"))
-
-    if condition.vals then
-        condition.vals = condition.vals:split(M.conf.or_delimiter)
-    end
-
-    if condition.key == M.conf.is_a_key then
-        condition.vals = M.add_taxonomy_vals(condition.vals)
-    end
-    
-    return condition
-end
-
-function M.check_condition(row, condition)
-    local result = row.key == condition.key
-
-    if condition.startswith then
-        result = row.key:startswith(condition.key)
-    end
-
-    if condition.vals then
-        result = result and condition.vals:contains(row.val)
-    end
-
-    return result
-end
-
 --------------------------------------------------------------------------------
 --                                                                            --
 --                                                                            --
@@ -442,6 +289,7 @@ function M.get_dict(args)
         parent_ids = Set(child_rows:col('id'))
 
         local unique_keys = M.get_unique_keys(child_rows)
+
         child_rows:foreach(function(row)
             local keys = List(id_to_keys[tostring(row.parent)]) or List()
             keys:append(M.Printer:for_dict(row, "key"))
@@ -488,9 +336,7 @@ function M.add_subkeys(dict, row, unique_keys, args)
         url = args.include_urls,
     })
 
-    local unique = unique_keys:has(row.key)
-    
-    if unique and args.exclude_unique_values then
+    if unique_keys:has(row.key) and args.exclude_unique_values then
         include.val = false
     end
 
