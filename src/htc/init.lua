@@ -51,7 +51,7 @@ require("htc.cli")("hnetxt", {
         {
             "conditions",
             args = "*",
-            default = {},
+            default = List(),
             description = "the conditions to meet (fields:value?/@tag.subtag/exclusion-)", 
             action="concat",
         },
@@ -67,7 +67,7 @@ require("htc.cli")("hnetxt", {
         {"+t", target = "include_tags", description = "print tags", switch = "off"},
         {"+V", target = "exclude_unique_values", description = "exclude unique values", switch = "off"},
         {"+a", target = "add_missing", description = "add metadata for files without any", switch = "off"},
-        {"+I", target = "is_a_only", description = "show non-'is a' keys", switch = "off"},
+        {"+I", target = "is_a_only", description = "show non-'is a' keys", switch = "on"},
         action = function(args)
             if #args.conditions > 0 then
                 args.include_urls = not args.include_urls
