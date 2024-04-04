@@ -288,15 +288,14 @@ function M.get_dict(args)
         rows = rows:filter(function(r) return not parent_ids:has(r.id) end)
         parent_ids = Set(child_rows:col('id'))
 
-        local unique_keys = M.get_unique_keys(child_rows)
-
+        local n_urls_by_key_and_val = M.get_url_counts_by_key_and_val(child_rows)
         child_rows:foreach(function(row)
             local keys = List(id_to_keys[tostring(row.parent)]) or List()
             keys:append(M.Printer:for_dict(row, "key"))
             id_to_keys[tostring(row.id)] = keys
 
             local row_d = d:get(unpack(keys)) or Dict()
-            M.add_subkeys(row_d, row, unique_keys, args)
+            M.add_subkeys(row_d, row, n_urls_by_key_and_val, args)
 
             d:set(keys, row_d)
         end)
@@ -310,35 +309,28 @@ function M.get_dict(args)
     return M:dict_string(d)
 end
 
-function M.get_unique_keys(rows)
-    local counts = Dict()
-    local keys = List({"url", "val"})
+function M.get_url_counts_by_key_and_val(rows)
+    local urls_by_key_and_val = Dict()
     rows:foreach(function(row)
-        counts:default(row.key, Dict({url = Set(), val = Set()}))
-
-        if row.val ~= "" and row.val ~= nil then
-            keys:foreach(function(key)
-                if row[key] and row[key] ~= "" then
-                    counts[row.key][key]:add(row[key])
-                end
-            end)
-        end
+        urls_by_key_and_val:set({row.key, row.val or "", row.url})
     end)
 
-    return Set(counts:keys():filter(function(k)
-        return counts[k].url:len() == counts[k].val:len()
-    end))
+    local n_urls_by_key_and_val = Dict()
+    urls_by_key_and_val:foreach(function(key, urls_by_val)
+        urls_by_val:foreach(function(val, _urls)
+            n_urls_by_key_and_val:set({key, val}, #_urls:keys())
+        end)
+    end)
+
+    return n_urls_by_key_and_val
 end
 
-function M.add_subkeys(dict, row, unique_keys, args)
+function M.add_subkeys(dict, row, n_urls_by_key_and_val, args)
+    local url_count_threshold = args.exclude_unique_values and 1 or 0
     local include = Dict({
-        val = args.include_values,
+        val = args.include_values and n_urls_by_key_and_val[row.key][row.val or ""] > url_count_threshold,
         url = args.include_urls,
     })
-
-    if unique_keys:has(row.key) and args.exclude_unique_values then
-        include.val = false
-    end
 
     local keys = List()
     M.Printer.line_order:foreach(function(key)
