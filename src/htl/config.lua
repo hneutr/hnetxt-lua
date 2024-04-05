@@ -52,8 +52,7 @@ end
 
 M.DBTable = {}
 M.DBTable.remaps = Dict({
-    NOW = [[strftime('%s', 'now')]],
-    TODAY = os.date("%Y%m%d"),
+    TODAY = [[strftime('%Y%m%d')]],
 })
 
 function M.DBTable.parse(raw)

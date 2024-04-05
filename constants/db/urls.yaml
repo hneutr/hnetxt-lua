@@ -10,7 +10,7 @@ path:
 created:
     type: date
     required: true
-    default: NOW
+    default: TODAY
 resource_type:
     type: text
     required: true
