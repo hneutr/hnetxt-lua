@@ -7,7 +7,6 @@ local class = require("pl.class")
 
 local db = require("htl.db")
 local urls = require("htl.db.urls")
-local Link = require("htl.text.Link")
 local Config = require("htl.Config")
 
 local Colorize = require("htc.Colorize")
@@ -72,13 +71,12 @@ function M:get_is_a_to_ids(all_rows, is_a_rows)
 
     def_keys = M:construct_taxonomy_key_map(def_keys)
 
-    local parents = M.get_taxonomy():parents()
-
     local def_ids = Dict()
     def_keys:foreach(function(def)
         def_ids[def] = List()
     end)
 
+    local parents = M.get_taxonomy():parents()
     rows:foreach(function(row)
         local def = row._parent.val
         while not def_keys[def]:contains(row.key) do
@@ -288,14 +286,14 @@ function M.get_dict(args)
         rows = rows:filter(function(r) return not parent_ids:has(r.id) end)
         parent_ids = Set(child_rows:col('id'))
 
-        local n_urls_by_key_and_val = M.get_url_counts_by_key_and_val(child_rows)
+        local included_vals_by_key = M.get_included_vals_by_key(child_rows, args.exclude_unique_values)
         child_rows:foreach(function(row)
             local keys = List(id_to_keys[tostring(row.parent)]) or List()
             keys:append(M.Printer:for_dict(row, "key"))
             id_to_keys[tostring(row.id)] = keys
 
             local row_d = d:get(unpack(keys)) or Dict()
-            M.add_subkeys(row_d, row, n_urls_by_key_and_val, args)
+            M.add_subkeys(row_d, row, included_vals_by_key, args)
 
             d:set(keys, row_d)
         end)
@@ -309,26 +307,26 @@ function M.get_dict(args)
     return M:dict_string(d)
 end
 
-function M.get_url_counts_by_key_and_val(rows)
-    local urls_by_key_and_val = Dict()
+function M.get_included_vals_by_key(rows, exclude_unique_values)
+    local to_include = Dict()
     rows:foreach(function(row)
-        urls_by_key_and_val:set({row.key, row.val or "", row.url})
+        to_include:set({row.key, row.val or "", row.url})
     end)
 
-    local n_urls_by_key_and_val = Dict()
-    urls_by_key_and_val:foreach(function(key, urls_by_val)
-        urls_by_val:foreach(function(val, _urls)
-            n_urls_by_key_and_val:set({key, val}, #_urls:keys())
+    local threshold = exclude_unique_values and 1 or 0
+
+    to_include:foreach(function(key, urls_by_val)
+        urls_by_val:transformv(function(_urls)
+            return #_urls:keys() > threshold
         end)
     end)
 
-    return n_urls_by_key_and_val
+    return to_include
 end
 
-function M.add_subkeys(dict, row, n_urls_by_key_and_val, args)
-    local url_count_threshold = args.exclude_unique_values and 1 or 0
+function M.add_subkeys(dict, row, included_vals_by_key, args)
     local include = Dict({
-        val = args.include_values and n_urls_by_key_and_val[row.key][row.val or ""] > url_count_threshold,
+        val = args.include_values and included_vals_by_key[row.key][row.val or ""],
         url = args.include_urls,
     })
 
@@ -412,7 +410,7 @@ function M:dict_string(dict)
 
         return M.Printer:for_terminal(l, post_string)
     end):filter(function(l)
-        return l ~= nil and not List({
+        return l and not List({
             #l == 0,
             l:endswith("}"),
             l:endswith("{"),
