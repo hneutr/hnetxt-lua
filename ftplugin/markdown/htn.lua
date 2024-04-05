@@ -16,6 +16,8 @@ local commands = Dict({
     Journal = function() require("htl.journal")():open() end,
     Aim = function() require("htl.goals")():open() end,
     Track = function() require("htl.track")():touch():open() end,
+    SetDate = {function(args) urls:set_date(Path.this(), args.args) end, {nargs = 1}},
+    PrintDate = function() print(urls:where({path = Path.this()}).created) end,
 })
 
 local autocommands = Dict()
@@ -89,8 +91,12 @@ autocommands.htn_link_update = List({
 })
 
 
-commands:foreach(function(name, fn)
-    vim.api.nvim_buf_create_user_command(0, name, fn, {})
+commands:foreach(function(name, cmd)
+    local opts
+    if type(cmd) == "table" then
+        cmd, opts = unpack(cmd)
+    end
+    vim.api.nvim_buf_create_user_command(0, name, cmd, opts or {})
 end)
 
 autocommands:keys():foreach(function(group_name)

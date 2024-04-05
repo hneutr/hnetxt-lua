@@ -1,5 +1,6 @@
 local Path = require("hl.Path")
 local Config = require("htl.Config")
+local Date = require("pl.Date")
 
 local db = require("htl.db")
 local projects = require("htl.db.projects")
@@ -279,5 +280,15 @@ describe("get_reference", function()
             "[-suffix](1)",
             tostring(urls:get_reference({path = Conf.paths.language_dir / "_suffix.md", id = 1}))
         )
+    end)
+end)
+
+describe("set_date", function()
+    it("works", function()
+        urls:insert({path = f1})
+        local before = urls:where({id = u1}).created
+        local after = 19930120
+        urls:set_date(f1, after)
+        assert.are.same(after, urls:where({id = u1}).created)
     end)
 end)
