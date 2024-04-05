@@ -66,7 +66,7 @@ require("htc.cli")("hnetxt", {
         {"+v", target = "include_values", description = "print values", switch = "off"},
         {"+t", target = "include_tags", description = "print tags", switch = "off"},
         {"+V", target = "exclude_unique_values", description = "exclude unique values", switch = "off"},
-        {"+a", target = "add_missing", description = "add metadata for files without any", switch = "off"},
+        {"+m", target = "record_missing", description = "record metadata for files without any", switch = "off"},
         {"+I", target = "is_a_only", description = "show non-'is a' keys", switch = "on"},
         action = function(args)
             if #args.conditions > 0 then
@@ -75,6 +75,32 @@ require("htc.cli")("hnetxt", {
             end
             print(metadata.get_dict(args))
         end
+    },
+    record_metadata = {
+        description = "record metadata",
+        {"-p --path", default = Path.cwd(), description = "restrict to this path", convert=Path.as_path},
+        {"+a", target = "all", description = "don't restrict by path", switch = "on"},
+        {
+            "+r",
+            target = "rerecord",
+            description = "rerecord metadata for all files; if off, only operates on files missing metadata",
+            switch = "on",
+        },
+        action = function(args)
+            local q = {where = {resource_type = "file"}}
+
+            if not args.all then
+                q.contains = {path = string.format("%s*", args.path)}
+            end
+
+            local url_ids = urls:get(q):col('id')
+
+            if args.rerecord then
+                url_ids:foreach(function(u) metadata:remove({url = u}) end)
+            end
+
+            metadata.record_missing(url_ids)
+        end,
     },
     quote = {
         description = "add a quote",

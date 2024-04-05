@@ -76,7 +76,7 @@ end
 function M.save_metadata(path)
     path = path and Path(path) or Path.this()
     M.set_file_url(path)
-    metadata:record(path)
+    metadata.record(path)
 end
 
 function M.update_link_urls()

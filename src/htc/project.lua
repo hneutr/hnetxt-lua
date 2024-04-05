@@ -38,7 +38,7 @@ return {
                 projects:insert(args)
                 args.path:glob("%.md$"):foreach(function(path)
                     urls:insert(path)
-                    metadata:record(path)
+                    metadata.record(path)
                 end)
             end,
         },

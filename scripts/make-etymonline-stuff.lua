@@ -24,6 +24,6 @@ end):foreach(function(p)
 
     if #lines ~= n then
         p:write(lines)
-        metadata:record(p)
+        metadata.record(p)
     end
 end)

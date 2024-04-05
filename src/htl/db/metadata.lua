@@ -34,124 +34,11 @@ end
 --------------------------------------------------------------------------------
 --                                                                            --
 --                                                                            --
---                                  taxonomy                                  --
---                                                                            --
---                                                                            --
---------------------------------------------------------------------------------
-function M.set_taxonomy(path)
-    while path and not path:exists() do
-        path = path:parent()
-    end
-
-    M.taxonomy = Taxonomy(path)
-end
-
-function M.get_taxonomy()
-    if not M.taxonomy then
-        M.set_taxonomy()
-    end
-
-    return M.taxonomy
-end
-
-function M:get_is_a_to_ids(all_rows, is_a_rows)
-    local rows = db.map_row_to_col(all_rows, is_a_rows, "parent", "_parent")
-
-    local def_keys = Dict()
-    local key_to_ids = Dict()
-
-    Set(is_a_rows:col('val')):foreach(function(def)
-        def_keys[def] = Set()
-    end)
-
-    rows:foreach(function(row)
-        def_keys[row._parent.val]:add(row.key)
-        key_to_ids:default(row.key, List()):append(row.id)
-    end)
-
-    def_keys = M:construct_taxonomy_key_map(def_keys)
-
-    local def_ids = Dict()
-    def_keys:foreach(function(def)
-        def_ids[def] = List()
-    end)
-
-    local parents = M.get_taxonomy():parents()
-    rows:foreach(function(row)
-        local def = row._parent.val
-        while not def_keys[def]:contains(row.key) do
-            def = parents[def]
-        end
-
-        def_ids[def]:append(row.id)
-    end)
-    
-    return def_ids
-end
-
-function M:construct_taxonomy_key_map(def_keys)
-    def_keys = Dict(def_keys)
-
-    local generations = M.get_taxonomy():generations()
-    local parents = M.get_taxonomy():parents()
-    local descendants = M.get_taxonomy():descendants()
-    local children = M.get_taxonomy():children()
-
-    local defs_at_start = Set(def_keys:keys())
-    local defs = defs_at_start:union(parents:keys(), children:keys()):vals()
-
-    defs:foreach(function(def)
-        def_keys[def] = def_keys[def] or Set()
-        generations[def] = generations[def] or 1
-        children[def] = children[def] or List()
-        descendants[def] = descendants[def] or List()
-    end)
-
-    defs:sorted(function(a, b)
-        return generations[a] < generations[b]
-    end):foreach(function(def)
-        local observed_keys = Set()
-        descendants[def]:foreach(function(descendant)
-            def_keys[descendant]:foreach(function(key)
-                if not M.conf.direct_fields:has(key) or parents[key] == def then
-                    if observed_keys:has(key) then
-                        def_keys[def]:add(key)
-                    end
-                    observed_keys:add(key)
-                end
-            end)
-        end)
-
-        descendants[def]:foreach(function(descendant)
-            def_keys[descendant] = def_keys[descendant] - def_keys[def]
-        end)
-    end)
-
-    def_keys:transformv(function(keys) return keys:vals():sorted() end)
-
-    defs:sorted(function(a, b)
-        return generations[a] > generations[b]
-    end):foreach(function(def)
-        local included_children = Set(children[def]) * Set(def_keys:keys())
-
-        local include_def = defs_at_start:has(def) or #def_keys[def] > 0 or included_children:len() > 0
-
-        if not include_def then
-            def_keys[def] = nil
-        end
-    end)
-
-    return def_keys
-end
-
---------------------------------------------------------------------------------
---                                                                            --
---                                                                            --
 --                                  reading                                   --
 --                                                                            --
 --                                                                            --
 --------------------------------------------------------------------------------
-function M:record(path)
+function M.record(path)
     local url = urls:get_file(path)
 
     if url then
@@ -185,6 +72,19 @@ function M:insert_dict(dict, url, parent)
     end)
 end
 
+function M.record_missing(url_ids)
+    url_ids = url_ids or urls:get({where = {resource_type = "file"}}):col('id')
+    url_ids = Set(url_ids):difference(M:get():col('url')):vals()
+    
+    if #url_ids == 0 then
+        return
+    end
+
+    urls:get({where = {id = url_ids}}):foreach(function(url)
+        M.record(url.path)
+    end)
+end
+
 --------------------------------------------------------------------------------
 --                                                                            --
 --                                                                            --
@@ -203,14 +103,8 @@ function M:get_urls(args)
 
         rows = rows:filter(function(r) return _urls:has(r.url) end)
 
-        if args.add_missing then
-            local urls_missing_metadata = _urls:difference(rows:col('url')):vals()
-
-            if #urls_missing_metadata > 0 then
-                urls:get({where = {id = urls_missing_metadata}}):foreach(function(url)
-                    M:record(url.path)
-                end)
-            end
+        if args.record_missing then
+            M.record_missing(_urls:difference(rows:col('url')):vals())
         end
     end
 
@@ -234,7 +128,9 @@ function M:get_urls(args)
         rows = rows:filter(function(r) return _urls:has(r.url) end)
     end
 
-    rows = Condition.filter(rows, args.conditions, M.get_taxonomy())
+    local taxonomy = Taxonomy(args.path)
+
+    rows = Condition.filter(rows, args.conditions, taxonomy)
 
     if not args.include_links then
         rows = rows:filter(function(r) return r.datatype ~= "reference" end)
@@ -262,7 +158,7 @@ function M:get_urls(args)
         return true
     end)
 
-    return M.handle_is_a(rows)
+    return M.handle_is_a(rows, taxonomy)
 end
 
 --------------------------------------------------------------------------------
@@ -273,7 +169,6 @@ end
 --                                                                            --
 --------------------------------------------------------------------------------
 function M.get_dict(args)
-    M.set_taxonomy(args.path)
     local rows = M:get_urls(args)
     local parent_ids = Set(rows:filter(function(r) return r.key == M.root_key end):col('id'))
     local id_to_keys = Dict()
@@ -282,13 +177,19 @@ function M.get_dict(args)
     local last_n = -1
     while #rows > 0 and #rows ~= last_n do
         last_n = #rows
-        local child_rows = rows:filter(function(r) return parent_ids:has(r.parent) end)
+
         rows = rows:filter(function(r) return not parent_ids:has(r.id) end)
+
+        local child_rows = rows:filter(function(r) return parent_ids:has(r.parent) end)
         parent_ids = Set(child_rows:col('id'))
 
-        local included_vals_by_key = M.get_included_vals_by_key(child_rows, args.exclude_unique_values)
+        local included_vals_by_key = M.get_included_vals_by_key(
+            child_rows,
+            args.exclude_unique_values
+        )
+
         child_rows:foreach(function(row)
-            local keys = List(id_to_keys[tostring(row.parent)]) or List()
+            local keys = List(id_to_keys[tostring(row.parent)])
             keys:append(M.Printer:for_dict(row, "key"))
             id_to_keys[tostring(row.id)] = keys
 
@@ -348,15 +249,22 @@ function M.add_subkeys(dict, row, included_vals_by_key, args)
     end
 end
 
-function M.handle_is_a(rows)
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                    is a                                    --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
+function M.handle_is_a(rows, taxonomy)
     local is_a_rows = rows:filter(function(r) return r.key == M.conf.is_a_key end)
 
-    local is_a_to_ids = M:get_is_a_to_ids(rows, is_a_rows)
+    local is_a_to_ids = M:get_is_a_to_ids(rows, is_a_rows, taxonomy)
 
     local id_to_row = Dict()
     rows:foreach(function(r) id_to_row[r.id] = r end)
     
-    local parents = M.get_taxonomy():parents()
+    local parents = taxonomy:parents()
     local new_val_rows_by_val = Dict()
     is_a_to_ids:foreach(function(val, ids)
         new_val_rows_by_val[val] = Dict({
@@ -389,6 +297,96 @@ function M.handle_is_a(rows)
     rows:extend(new_val_rows_by_val:values())
     
     return rows
+end
+
+function M:get_is_a_to_ids(all_rows, is_a_rows, taxonomy)
+    local rows = db.map_row_to_col(all_rows, is_a_rows, "parent", "_parent")
+
+    local def_keys = Dict()
+    local key_to_ids = Dict()
+
+    Set(is_a_rows:col('val')):foreach(function(def)
+        def_keys[def] = Set()
+    end)
+
+    rows:foreach(function(row)
+        def_keys[row._parent.val]:add(row.key)
+        key_to_ids:default(row.key, List()):append(row.id)
+    end)
+
+    def_keys = M:construct_taxonomy_key_map(def_keys, taxonomy)
+
+    local def_ids = Dict()
+    def_keys:foreach(function(def)
+        def_ids[def] = List()
+    end)
+
+    local parents = taxonomy:parents()
+    rows:foreach(function(row)
+        local def = row._parent.val
+        while not def_keys[def]:contains(row.key) do
+            def = parents[def]
+        end
+
+        def_ids[def]:append(row.id)
+    end)
+    
+    return def_ids
+end
+
+function M:construct_taxonomy_key_map(def_keys, taxonomy)
+    def_keys = Dict(def_keys)
+
+    local generations = taxonomy:generations()
+    local parents = taxonomy:parents()
+    local descendants = taxonomy:descendants()
+    local children = taxonomy:children()
+
+    local defs_at_start = Set(def_keys:keys())
+    local defs = defs_at_start:union(parents:keys(), children:keys()):vals()
+
+    defs:foreach(function(def)
+        def_keys[def] = def_keys[def] or Set()
+        generations[def] = generations[def] or 1
+        children[def] = children[def] or List()
+        descendants[def] = descendants[def] or List()
+    end)
+
+    defs:sorted(function(a, b)
+        return generations[a] < generations[b]
+    end):foreach(function(def)
+        local observed_keys = Set()
+        descendants[def]:foreach(function(descendant)
+            def_keys[descendant]:foreach(function(key)
+                if not M.conf.direct_fields:has(key) or parents[key] == def then
+                    if observed_keys:has(key) then
+                        def_keys[def]:add(key)
+                    end
+                    observed_keys:add(key)
+                end
+            end)
+        end)
+
+        descendants[def]:foreach(function(descendant)
+            def_keys[descendant] = def_keys[descendant] - def_keys[def]
+        end)
+    end)
+
+    def_keys:transformv(function(keys) return keys:vals():sorted() end)
+
+    defs:sorted(function(a, b)
+        return generations[a] > generations[b]
+    end):foreach(function(def)
+        local included_children = Set(children[def]) * Set(def_keys:keys())
+
+        local include_def = defs_at_start:has(def) or #def_keys[def] > 0 or included_children:len() > 0
+
+        if not include_def then
+            def_keys[def] = nil
+        end
+    end)
+
+    return def_keys
 end
 
 --------------------------------------------------------------------------------

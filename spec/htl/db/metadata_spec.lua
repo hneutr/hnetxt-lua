@@ -24,6 +24,7 @@ local u1
 local u2
 local u3
 local u4
+local taxonomy
 
 before_each(function()
     db.before_test()
@@ -58,6 +59,8 @@ before_each(function()
         "    j:",
         "  k:",
     })
+
+    taxonomy = Taxonomy()
 end)
 
 after_each(function()
@@ -141,7 +144,7 @@ describe("get_urls", function()
 
         assert.are.same(
             {u1},
-            metadata:get_urls({path = d1, include_values = true, add_missing = false}):col('url')
+            metadata:get_urls({path = d1, include_values = true}):col('url')
         )
     end)
     
@@ -177,10 +180,13 @@ describe("construct_taxonomy_key_map", function()
                 c = {"y"},
                 d = {"z"},
             },
-            metadata:construct_taxonomy_key_map({
-                c = Set({"x", "y"}),
-                d = Set({"x", "z"}),
-            })
+            metadata:construct_taxonomy_key_map(
+                {
+                    c = Set({"x", "y"}),
+                    d = Set({"x", "z"}),
+                },
+                taxonomy
+            )
         )
     end)
 
@@ -191,10 +197,13 @@ describe("construct_taxonomy_key_map", function()
                 b = {"y"},
                 c = {"z"},
             },
-            metadata:construct_taxonomy_key_map({
-                b = Set({"x", "y"}),
-                c = Set({"x", "z"}),
-            })
+            metadata:construct_taxonomy_key_map(
+                {
+                    b = Set({"x", "y"}),
+                    c = Set({"x", "z"}),
+                },
+                taxonomy
+            )
         )
     end)
 
@@ -207,11 +216,14 @@ describe("construct_taxonomy_key_map", function()
                 j = {"j"},
                 k = {"k"},
             },
-            metadata:construct_taxonomy_key_map({
-                i = Set({"g", "h", "i"}),
-                j = Set({"g", "h", "j"}),
-                k = Set({"g", "k"})
-            })
+            metadata:construct_taxonomy_key_map(
+                {
+                    i = Set({"g", "h", "i"}),
+                    j = Set({"g", "h", "j"}),
+                    k = Set({"g", "k"})
+                },
+                taxonomy
+            )
         )
     end)
 end)

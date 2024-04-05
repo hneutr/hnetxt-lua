@@ -29,5 +29,5 @@ urls:get({contains = {path = string.format("%s*", dir)}}):foreach(function(u)
     end)
 
     u.path:write(new_lines)
-    metadata:record(u.path)
+    metadata.record(u.path)
 end)
