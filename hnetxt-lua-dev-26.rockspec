@@ -38,7 +38,6 @@ build = {
         ["htl.track"] = "src/htl/track.lua",
         ["htl.goals"] = "src/htl/goals.lua",
         ["htl.snippet"] = "src/htl/snippet.lua",
-        ['htl.taxonomy'] = "src/htl/taxonomy.lua",
 
         ["htl.db"] = "src/htl/db/init.lua",
         ["htl.db.projects"] = "src/htl/db/projects.lua",
@@ -50,6 +49,7 @@ build = {
 
         ["htl.metadata.Parser"] = "src/htl/metadata/Parser.lua",
         ["htl.metadata.Condition"] = "src/htl/metadata/Condition.lua",
+        ['htl.metadata.Taxonomy'] = "src/htl/metadata/Taxonomy.lua",
 
         ["htl.text.divider"] = "src/htl/text/divider.lua",
         ["htl.text.header"] = "src/htl/text/header.lua",

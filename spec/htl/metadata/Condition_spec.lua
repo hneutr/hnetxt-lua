@@ -1,5 +1,5 @@
 local Config = require("htl.Config")
-local Taxonomy = require("htl.taxonomy")
+local Taxonomy = require("htl.metadata.Taxonomy")
 
 local Condition = require("htl.metadata.Condition")
 

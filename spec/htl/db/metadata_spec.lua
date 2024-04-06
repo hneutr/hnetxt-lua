@@ -2,13 +2,14 @@ local stub = require('luassert.stub')
 local List = require("hl.List")
 local Path = require("hl.Path")
 
-local metadata = require("htl.db.metadata")
-local Taxonomy = require("htl.taxonomy")
 local Config = require("htl.Config")
 
 local db = require("htl.db")
 local projects = require("htl.db.projects")
 local urls = require("htl.db.urls")
+
+local metadata = require("htl.db.metadata")
+local Taxonomy = require("htl.metadata.Taxonomy")
 
 local d1 = Config.test_root:join("dir-1")
 local d2 = Config.test_root:join("dir-2")

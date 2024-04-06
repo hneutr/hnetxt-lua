@@ -10,10 +10,10 @@ local urls = require("htl.db.urls")
 local Config = require("htl.Config")
 
 local Colorize = require("htc.Colorize")
-local Taxonomy = require("htl.taxonomy")
 
 local Parser = require("htl.metadata.Parser")
 local Condition = require("htl.metadata.Condition")
+local Taxonomy = require("htl.metadata.Taxonomy")
 
 --[[
 Currently, I am doing super weird shit with the taxonomy — I am parsing the rows into the taxonomy form

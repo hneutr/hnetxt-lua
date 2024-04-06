@@ -1,5 +1,5 @@
 local Config = require("htl.Config")
-local Taxonomy = require("htl.taxonomy")
+local Taxonomy = require("htl.metadata.Taxonomy")
 
 local taxonomy_file = Conf.paths.taxonomy_file
 local d1 = Config.test_root:join("taxonomy-test")
