@@ -68,11 +68,13 @@ require("htc.cli")("hnetxt", {
         {"+V", target = "exclude_unique_values", description = "exclude unique values", switch = "off"},
         {"+m", target = "record_missing", description = "record metadata for files without any", switch = "off"},
         {"+I", target = "is_a_only", description = "show non-'is a' keys", switch = "on"},
+        {"+T", target = "apply_taxonomy", description = "don't apply the taxonomy", switch = "off"},
         action = function(args)
             if #args.conditions > 0 then
                 args.include_urls = not args.include_urls
                 args.include_values = not args.include_values
             end
+
             print(metadata.get_dict(args))
         end
     },

@@ -16,6 +16,36 @@ local Parser = require("htl.metadata.Parser")
 local Condition = require("htl.metadata.Condition")
 
 --[[
+Currently, I am doing super weird shit with the taxonomy — I am parsing the rows into the taxonomy form
+
+What if instead, I operated on things from the `taxonomy` perspective? What would that look like?
+1. get the taxonomy
+2. add in `is a` that _aren't_ in the taxonomy
+3. for each value in the taxonomy, find the associated rows
+4. percolate fields up the taxonomy chain via `get_is_a_to_ids`/`construct_taxonomy_key_map`
+    - probably change this to only look at direct children of the `is_a` row
+5. when printing:
+    - print in taxonomy order:
+        - if the taxonomy value has children, print it
+        - if the taxonomy value has fields, print those
+
+this involves the following:
+- adding missing `is_a` values to the taxonomy
+- basically removing `handle_is_a`
+- modify `get_dict` behavior heavily:
+    - should take a list of _value_ rows to be printed
+        - maybe invert the parsing process?
+            - store:
+                key1: {
+                    val1: {file1, file2, ...}
+                    val2: {...},
+                    ...
+                },
+                ...
+]]
+
+
+--[[
 TODO:
 - tag handing: group tags by @level1.level2.etc
 ]]
@@ -158,7 +188,11 @@ function M:get_urls(args)
         return true
     end)
 
-    return M.handle_is_a(rows, taxonomy)
+    if args.apply_taxonomy then
+        rows = M.handle_is_a(rows, taxonomy)
+    end
+
+    return rows
 end
 
 --------------------------------------------------------------------------------
@@ -309,6 +343,8 @@ function M:get_is_a_to_ids(all_rows, is_a_rows, taxonomy)
         def_keys[def] = Set()
     end)
 
+    -- probably should only do the DIRECT children of the `is_a` row
+    -- (and then print the rest normally)
     rows:foreach(function(row)
         def_keys[row._parent.val]:add(row.key)
         key_to_ids:default(row.key, List()):append(row.id)
