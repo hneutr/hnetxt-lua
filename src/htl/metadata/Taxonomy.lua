@@ -5,7 +5,26 @@ local List = require("hl.List")
 
 local Config = require("htl.Config")
 
-return function(path)
+local Taxonomy = require("pl.class")()
+
+function Taxonomy:_init(path)
+    self.tree = self.read_tree(path)
+    self:solidify()
+end
+
+function Taxonomy:solidify()
+    List({
+        "parents",
+        "ancestors",
+        "generations",
+        "descendants",
+        "children",
+    }):foreach(function(key)
+        self[key] = self.tree[key](self.tree)
+    end)
+end
+
+function Taxonomy.read_tree(path)
     local paths = List()
     if path then
         paths = path:parents()
@@ -31,3 +50,5 @@ return function(path)
 
     return tree
 end
+
+return Taxonomy

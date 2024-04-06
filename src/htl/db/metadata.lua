@@ -298,13 +298,12 @@ function M.handle_is_a(rows, taxonomy)
     local id_to_row = Dict()
     rows:foreach(function(r) id_to_row[r.id] = r end)
     
-    local parents = taxonomy:parents()
     local new_val_rows_by_val = Dict()
     is_a_to_ids:foreach(function(val, ids)
         new_val_rows_by_val[val] = Dict({
             id = val,
             key = val,
-            parent = parents[val] or M.conf.is_a_key,
+            parent = taxonomy.parents[val] or M.conf.is_a_key,
             datatype = 'IsA',
         })
 
@@ -357,11 +356,10 @@ function M:get_is_a_to_ids(all_rows, is_a_rows, taxonomy)
         def_ids[def] = List()
     end)
 
-    local parents = taxonomy:parents()
     rows:foreach(function(row)
         local def = row._parent.val
         while not def_keys[def]:contains(row.key) do
-            def = parents[def]
+            def = taxonomy.parents[def]
         end
 
         def_ids[def]:append(row.id)
@@ -373,10 +371,10 @@ end
 function M:construct_taxonomy_key_map(def_keys, taxonomy)
     def_keys = Dict(def_keys)
 
-    local generations = taxonomy:generations()
-    local parents = taxonomy:parents()
-    local descendants = taxonomy:descendants()
-    local children = taxonomy:children()
+    local generations = taxonomy.generations
+    local parents = taxonomy.parents
+    local descendants = taxonomy.descendants
+    local children = taxonomy.children
 
     local defs_at_start = Set(def_keys:keys())
     local defs = defs_at_start:union(parents:keys(), children:keys()):vals()

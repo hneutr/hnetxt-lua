@@ -15,7 +15,7 @@ after_each(function()
     Config.after_test()
 end)
 
-describe("set_tree", function()
+describe("read_tree", function()
     it("no path", function()
         Conf.paths.global_taxonomy_file:write({
             "a:",
@@ -30,7 +30,7 @@ describe("set_tree", function()
                 },
                 c = {},
             },
-            Taxonomy(d1)
+            Taxonomy.read_tree(d1)
         )
     end)
     
@@ -58,7 +58,7 @@ describe("set_tree", function()
                 },
                 c = {},
             },
-            Taxonomy(d2)
+            Taxonomy.read_tree(d2)
         )
     end)
 end)

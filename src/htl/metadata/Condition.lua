@@ -60,10 +60,9 @@ end
 
 function M.add_taxonomy_vals(vals)
     vals = Set(vals)
-    local descendants = M.taxonomy:descendants()
     local taxonomy_vals = List()
     vals:foreach(function(val)
-        taxonomy_vals:extend(descendants[val] or {})
+        taxonomy_vals:extend(M.taxonomy.descendants[val] or {})
     end)
     
     return vals:union(taxonomy_vals):vals()
