@@ -122,6 +122,8 @@ require("htc.cli")("hnetxt", {
         {"+r", target = "rerun", description = "rerun", switch = "on"},
         {"date", description = "date (YYYYMMDD); default today", default = os.date('%Y%m%d')},
         action = function(args)
+            print(os.date("%H:%M"))
+            -- local Date = require("")
         end,
     },
 })

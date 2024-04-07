@@ -5,6 +5,7 @@ local ListTypes = Conf.list.types
 
 local TextList = require("htl.text.List")
 local Item = require("htl.text.List.Item")
+local Line = require("htl.text.Line")
 
 local function toggle(mode, toggle_line_type_name)
     BufferLines.selection.set({
@@ -62,23 +63,35 @@ local function continue(from_command)
 
     if not from_command then
         next_str = str:sub(col):strip()
-        str = str:sub(1, col - 1):rstrip()
+        str = str:sub(1, col - 1)
     end
 
     local line = TextList:parse_line(str)
-    local next_line = line:get_next(next_str)
+    local new_content
+    local line_is_a_comment = false
+    local new_line_number = lnum
 
-    local line_is_a_comment = handle_comment(line, next_line)
+    -- if the current line is a list item and is empty, remove the list item
+    -- (double enter → remove list sigil)
+    if #line.text == 0 and #next_str == 0 and not from_command then
+        new_content = {line.indent}
+    else
+        line.text = line.text:rstrip()
+        local next_line = line:get_next(next_str)
+        line_is_a_comment = handle_comment(line, next_line)
+        new_content = {tostring(line), tostring(next_line)}
+        new_line_number = new_line_number + 1
+    end
 
     vim.api.nvim_buf_set_lines(
         0,
         lnum - 1,
         lnum,
         false,
-        {tostring(line), tostring(next_line)}
+        new_content
     )
 
-    vim.api.nvim_win_set_cursor(0, {lnum + 1, 0})
+    vim.api.nvim_win_set_cursor(0, {new_line_number, 0})
     
     if line:is_a(Item) or line_is_a_comment then
         vim.api.nvim_input("<esc>A")
@@ -86,6 +99,7 @@ local function continue(from_command)
         vim.api.nvim_input("<esc>I")
     end
 end
+
 
 local function get_list_type_configs()
     local type_configs = List()

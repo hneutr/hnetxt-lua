@@ -183,6 +183,18 @@ function M.quote()
     end
 end
 
+function M.set_time()
+    local line_number = vim.api.nvim_win_get_cursor(0)[1] - 1
+
+    local args = List({0, line_number, line_number + 1, false})
+    local line = vim.api.nvim_buf_get_lines(unpack(args))[1]
+    local new_line = line:gsub("TT", tostring(os.date("%H:%M")), 1)
+
+    args:append({new_line})
+
+    vim.api.nvim_buf_set_lines(unpack(args))
+end
+
 -- function M.LinkToFile()
 --     print("this doesn't work yet")
 --     local cursor_col = vim.api.nvim_win_get_cursor(0)[2]

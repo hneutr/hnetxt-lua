@@ -13,6 +13,8 @@ local mappings = Dict(
             ["<M-j>"] = ui.goto_map_fn("split"),
             ["<M-e>"] = ui.goto_map_fn("edit"),
             ["<M-t>"] = ui.goto_map_fn("tabedit"),
+            -- set time
+            ["<C-t>"] = ui.set_time,
         }),
         v = Dict({}),
         i = Dict({}),
