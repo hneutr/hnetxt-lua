@@ -73,7 +73,7 @@ local function continue(from_command)
 
     -- if the current line is a list item and is empty, remove the list item
     -- (double enter → remove list sigil)
-    if #line.text == 0 and #next_str == 0 and not from_command then
+    if #line.text == 0 and #next_str == 0 and #tostring(line) > 0 and line:is_a(Item) and not from_command then
         new_content = {line.indent}
     else
         line.text = line.text:rstrip()
