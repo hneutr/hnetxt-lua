@@ -69,6 +69,8 @@ build = {
         ["htc.project"] = "src/htc/project.lua",
         ["htc.remove"] = "src/htc/remove.lua",
         ["htc.move"] = "src/htc/move.lua",
+
+        ["htl.Taxonomy.Parser"] = "src/htl/Taxonomy/Parser.lua",
     }
 }
 test = {
