@@ -1,6 +1,4 @@
-local tbl = require("sqlite.tbl")
-
-local M = tbl("projects", Conf.db.projects)
+local M = require("sqlite.tbl")("projects", Conf.db.projects)
 
 function M:insert(row)
     M:__insert(Dict.from_list(
@@ -24,7 +22,7 @@ function M.get_by_path(path)
     local projects = M:get():sorted(function(a, b)
         return #tostring(a.path) > #tostring(b.path)
     end):filter(function(p)
-        return p ~= nil and path:is_relative_to(p.path)
+        return path:is_relative_to(p.path)
     end)
 
     return #projects > 0 and projects[1] or nil

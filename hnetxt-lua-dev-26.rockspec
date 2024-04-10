@@ -73,7 +73,7 @@ build = {
         ["htl.Taxonomy.Parser"] = "src/htl/Taxonomy/Parser.lua",
 
         ["htl.db.Taxa"] = "src/htl/db/Taxa.lua",
-        ["htl.db.Relation"] = "src/htl/db/Relation.lua",
+        ["htl.db.Relations"] = "src/htl/db/Relations.lua",
     }
 }
 test = {

@@ -1,4 +1,8 @@
+local List = require("hl.List")
+
 local Config = require("htl.Config")
+
+local Urls = require("htl.db.urls")
 
 local M = require("sqlite.tbl")("Taxa", {
     id = true,
@@ -10,6 +14,43 @@ local M = require("sqlite.tbl")("Taxa", {
         on_delete = "cascade",
     },
 })
+
+function M:get(q)
+    return List(M:__get(q))
+end
+
+function M:where(q)
+    q = q or {}
+    
+    if q.url then
+        if not q.project or Urls:where({id = q.url, project = q.project}) then
+            return M:__where({url = q.url})
+        end
+    elseif q.key then
+        local r
+        if q.project then
+            r = M:__where({key = q.key, project = q.project})
+
+            if not r then
+                local rs = M:get({where = {key = q.key}}):filter(function(r) return r.project == nil end)
+                
+                if #rs > 0 then
+                    r = rs[1]
+                end
+            end
+        else
+            local rs = M:get({where = {key = q.key}})
+
+            rs = rs:filter(function(r) return r.project == nil end)
+
+            if #rs > 0 then
+                r = rs[1]
+            end
+        end
+    
+        return r
+    end
+end
 
 function M:find(element, project)
     local _type = type(element)

@@ -26,7 +26,7 @@ function M.setup()
         metadata = require("htl.db.metadata"),
         samples = require("htl.db.samples"),
         Taxa = require("htl.db.Taxa"),
-        Relation = require("htl.db.Relation"),
+        Relations = require("htl.db.Relations"),
     })
 end
 
