@@ -6,7 +6,28 @@ local projects = require("htl.db.projects")
 local Link = require("htl.text.Link")
 local URLDefinition = require("htl.text.URLDefinition")
 
-local M = tbl("urls", Conf.db.urls)
+local M = tbl("urls", {
+    id = true,
+    label = "text",
+    project = {
+        type = "text",
+        reference = "projects.title",
+        on_delete = "cascade",
+    },
+    path = {
+        type = "text",
+        required = true,
+    },
+    created = {
+        type = "date",
+        default = [[strftime('%Y%m%d')]],
+        required = true
+    },
+    resource_type = {
+        type = "text",
+        required = true,
+    },
+})
 
 M.unanchored_path = Path("__unanchored__")
 M.link_delimiter = Conf.link.delimiter

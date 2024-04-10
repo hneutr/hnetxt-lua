@@ -5,9 +5,9 @@ local List = require("hl.List")
 local Set = require("hl.Set")
 local class = require("pl.class")
 
-local db = require("htl.db")
-local urls = require("htl.db.urls")
 local Config = require("htl.Config")
+local db = require("htl.db")
+local Urls = require("htl.db.urls")
 
 local Colorize = require("htc.Colorize")
 
@@ -69,7 +69,7 @@ end
 --                                                                            --
 --------------------------------------------------------------------------------
 function M.record(path)
-    local url = urls:get_file(path)
+    local url = Urls:get_file(path)
 
     if url then
         M:remove({url = url.id})
@@ -103,14 +103,14 @@ function M:insert_dict(dict, url, parent)
 end
 
 function M.record_missing(url_ids)
-    url_ids = url_ids or urls:get({where = {resource_type = "file"}}):col('id')
+    url_ids = url_ids or Urls:get({where = {resource_type = "file"}}):col('id')
     url_ids = Set(url_ids):difference(M:get():col('url')):vals()
     
     if #url_ids == 0 then
         return
     end
 
-    urls:get({where = {id = url_ids}}):foreach(function(url)
+    Urls:get({where = {id = url_ids}}):foreach(function(url)
         M.record(url.path)
     end)
 end
@@ -126,20 +126,20 @@ function M:get_urls(args)
     local rows = M:get()
 
     if args.path then
-        local _urls = Set(urls:get({
+        local urls = Set(Urls:get({
             where = {resource_type = "file"},
             contains = {path = string.format("%s*", args.path)},
         }):col('id'))
 
-        rows = rows:filter(function(r) return _urls:has(r.url) end)
+        rows = rows:filter(function(r) return urls:has(r.url) end)
 
         if args.record_missing then
-            M.record_missing(_urls:difference(rows:col('url')):vals())
+            M.record_missing(urls:difference(rows:col('url')):vals())
         end
     end
 
     if args.reference then
-        local _urls = Set({args.reference})
+        local urls = Set({args.reference})
 
         local references = rows:filter(function(r) return r.datatype == 'reference' end)
         local n_references = -1
@@ -147,15 +147,15 @@ function M:get_urls(args)
         while n_references ~= #references do
             n_references = #references
             references = references:filter(function(row)
-                if _urls:has(tonumber(row.val)) then
-                    _urls:add(row.url)
+                if urls:has(tonumber(row.val)) then
+                    urls:add(row.url)
                 else
                     return true
                 end
             end)
         end
 
-        rows = rows:filter(function(r) return _urls:has(r.url) end)
+        rows = rows:filter(function(r) return urls:has(r.url) end)
     end
 
     local taxonomy = Taxonomy(args.path)
@@ -515,10 +515,10 @@ LinkPrinter.color_key = "link"
 
 function LinkPrinter:is_a(s, row) return row.datatype == "reference" end
 function LinkPrinter:for_terminal(s)
-    local url = urls:where({id = tonumber(s)})
+    local url = Urls:where({id = tonumber(s)})
 
     if url then
-        return urls:get_reference(url):terminal_string(self:colors())
+        return Urls:get_reference(url):terminal_string(self:colors())
     end
 end
 

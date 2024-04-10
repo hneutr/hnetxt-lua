@@ -1,7 +1,7 @@
 require("hl")
 
 local db = require("htl.db")
-local urls = require("htl.db.urls")
+local Urls = require("htl.db.urls")
 
 local Config = require("htl.Config")
 local metadata = require("htl.db.metadata")
@@ -58,7 +58,7 @@ require("htc.cli")("hnetxt", {
         {
             "--reference",
             description = "print references to this file",
-            convert = function(p) return urls:where({path = Path.from_commandline(p)}).id end,
+            convert = function(p) return Urls:where({path = Path.from_commandline(p)}).id end,
         },
         {"-p --path", default = Path.cwd(), convert=Path.from_commandline},
         {"+f", target = "include_urls", description = "print file urls", switch = "on"},
@@ -95,7 +95,7 @@ require("htc.cli")("hnetxt", {
                 q.contains = {path = string.format("%s*", args.path)}
             end
 
-            local url_ids = urls:get(q):col('id')
+            local url_ids = Urls:get(q):col('id')
 
             if args.rerecord then
                 url_ids:foreach(function(u) metadata:remove({url = u}) end)

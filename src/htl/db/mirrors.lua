@@ -1,4 +1,4 @@
-local urls = require("htl.db.urls")
+local Urls = require("htl.db.urls")
 
 local M = {}
 
@@ -56,12 +56,12 @@ function M:get_paths(path)
 end
 
 function M:get_source(path)
-    local source = urls:get_file(path)
+    local source = Urls:get_file(path)
 
     if source then
         return source
     elseif M:is_mirror(path) then
-        return urls:where({id = tonumber(path:stem())})
+        return Urls:where({id = tonumber(path:stem())})
     end
 end
 

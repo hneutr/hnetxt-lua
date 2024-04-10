@@ -1,7 +1,7 @@
 local Path = require("hl.Path")
 
 local db = require("htl.db")
-local urls = require("htl.db.urls")
+local Urls = require("htl.db.urls")
 local mirrors = require("htl.db.mirrors")
 
 local M = {}
@@ -46,13 +46,13 @@ function M:remove_dir(dir, args)
 end
 
 function M:remove_file(path)
-    if urls:get_file(path) then
+    if Urls:get_file(path) then
         mirrors:get_paths(path):values():foreach(function(p)
             p:unlink()
         end)
     end
 
-    urls:remove({path = path})
+    Urls:remove({path = path})
 
     path:unlink()
 end

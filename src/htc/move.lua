@@ -8,7 +8,7 @@ local List = require("hl.List")
 local Dict = require("hl.Dict")
 
 local db = require("htl.db")
-local urls = require("htl.db.urls")
+local Urls = require("htl.db.urls")
 
 local M = {}
 M.command_str = "/bin/mv -v"
@@ -62,7 +62,7 @@ end
 
 function M:update(moves)
     moves:foreach(function(move)
-        urls:move(move.source, move.target)
+        Urls:move(move.source, move.target)
     end)
 end
 

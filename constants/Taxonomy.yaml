@@ -1,3 +1,4 @@
 relations:
   subset of: ⊂
   instance is a: +
+  attribute of: ⪽

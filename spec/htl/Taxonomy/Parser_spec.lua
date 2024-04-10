@@ -2,9 +2,13 @@ local Parser = require("htl.Taxonomy.Parser")
 local Path = require("hl.Path")
 
 local Config = require("htl.Config")
+local db = require("htl.db")
+local projects = require("htl.db.projects")
+local Urls = require("htl.db.urls")
 
 before_each(function()
     Config.before_test()
+    
 end)
 
 after_each(function()

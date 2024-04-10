@@ -1,7 +1,5 @@
 local db = require("htl.db")
 db.get()
-local urls = require("htl.db.urls")
-
 local Path = require("hl.Path")
 
 require("hl")

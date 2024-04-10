@@ -4,7 +4,7 @@ local Path = require("hl.path")
 
 local db = require("htl.db")
 local projects = require("htl.db.projects")
-local urls = require("htl.db.urls")
+local Urls = require("htl.db.urls")
 
 local Move = require("htc.move")
 
@@ -94,13 +94,13 @@ end)
 
 describe("update", function()
     it("works", function()
-        urls:insert({path = f1, label = "a"})
+        Urls:insert({path = f1, label = "a"})
         
         Move:update(List({
             {source = f1, target = f3}
         }))
 
-        assert.is_nil(urls:where({path = f1}))
-        assert.are.same("a", urls:where({path = f3}).label)
+        assert.is_nil(Urls:where({path = f1}))
+        assert.are.same("a", Urls:where({path = f3}).label)
     end)
 end)

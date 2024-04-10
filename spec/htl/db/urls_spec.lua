@@ -4,7 +4,7 @@ local Date = require("pl.Date")
 
 local db = require("htl.db")
 local projects = require("htl.db.projects")
-local urls = require("htl.db.urls")
+local Urls = require("htl.db.urls")
 local Link = require("htl.text.Link")
 
 local d1 = Path.tempdir:join("dir-1")
@@ -39,20 +39,20 @@ end)
 
 describe("where", function()
     it("works with string", function()
-        urls:insert({path = f1})
-        assert.not_nil(urls:where({path = tostring(f1)}))
+        Urls:insert({path = f1})
+        assert.not_nil(Urls:where({path = tostring(f1)}))
     end)
 
     it("works with path", function()
-        urls:insert({path = f1})
-        assert.not_nil(urls:where({path = f1}))
+        Urls:insert({path = f1})
+        assert.not_nil(Urls:where({path = f1}))
     end)
 end)
 
 describe("insert", function()
     it("works", function()
-        urls:insert({project = p1.title, path = f1})
-        local row = urls:where({path = f1})
+        Urls:insert({project = p1.title, path = f1})
+        local row = Urls:where({path = f1})
 
         assert.are.same(f1, row.path)
         assert.are.same(p1.title, row.project)
@@ -60,25 +60,25 @@ describe("insert", function()
     end)
 
     it("finds project", function()
-        urls:insert({path = f1})
-        local result = urls:where({path = f1})
+        Urls:insert({path = f1})
+        local result = Urls:where({path = f1})
         assert.are.same(p1.title, result.project)
     end)
 
     it("sets resource type", function()
-        urls:insert({path = f1})
-        assert.not_nil(urls:where({path = f1, resource_type = "file"}))
-        urls:insert({path = f2, label = "f2"})
-        assert.not_nil(urls:where({path = f2, resource_type = "link"}))
+        Urls:insert({path = f1})
+        assert.not_nil(Urls:where({path = f1, resource_type = "file"}))
+        Urls:insert({path = f2, label = "f2"})
+        assert.not_nil(Urls:where({path = f2, resource_type = "link"}))
     end)
 
     it("doesn't overwrite file", function()
-        urls:insert({path = f1})
+        Urls:insert({path = f1})
         
         local q = {where = {path = f1, resource_type = "file"}}
-        assert.are.same(1, #urls:get(q))
-        urls:insert({path = f1})
-        assert.are.same(1, #urls:get(q))
+        assert.are.same(1, #Urls:get(q))
+        Urls:insert({path = f1})
+        assert.are.same(1, #Urls:get(q))
     end)
 end)
 
@@ -88,33 +88,33 @@ describe("move", function()
         local b = {path = f1, label = "b"}
         local c = {path = f2, label = "c"}
 
-        urls:insert(a)
-        urls:insert(b)
-        urls:insert(c)
+        Urls:insert(a)
+        Urls:insert(b)
+        Urls:insert(c)
 
-        urls:move(f1, f3)
+        Urls:move(f1, f3)
 
-        assert.is_nil(urls:where(a))
-        assert.is_nil(urls:where(b))
-        assert.is_not.Nil(urls:where(c))
+        assert.is_nil(Urls:where(a))
+        assert.is_nil(Urls:where(b))
+        assert.is_not.Nil(Urls:where(c))
 
         a.path = f3
         b.path = f3
 
-        assert.are.same({"a", "b"}, urls:get({where = {path = f3}}):col('label'):sorted())
+        assert.are.same({"a", "b"}, Urls:get({where = {path = f3}}):col('label'):sorted())
     end)
 
     it("deletes if moving into a non-project dir", function()
         local pre = {path = f1, label = "a"}
         local post = {path = f5, label = "a"}
 
-        urls:insert(pre)
-        assert.is_not.Nil(urls:where(pre))
+        Urls:insert(pre)
+        assert.is_not.Nil(Urls:where(pre))
 
-        urls:move(f1, f5)
+        Urls:move(f1, f5)
 
-        assert.is_nil(urls:where(pre))
-        assert.is_nil(urls:where(post))
+        assert.is_nil(Urls:where(pre))
+        assert.is_nil(Urls:where(post))
     end)
 end)
 
@@ -124,26 +124,26 @@ describe("remove", function()
         local b = {path = f1, label = "b"}
         local c = {path = f2, label = "c"}
 
-        urls:insert(a)
-        urls:insert(b)
-        urls:insert(c)
+        Urls:insert(a)
+        Urls:insert(b)
+        Urls:insert(c)
 
-        urls:remove({path = f1})
+        Urls:remove({path = f1})
 
-        assert.is_nil(urls:where(a))
-        assert.is_nil(urls:where(b))
-        assert.is_not.Nil(urls:where(c))
+        assert.is_nil(Urls:where(a))
+        assert.is_nil(Urls:where(b))
+        assert.is_not.Nil(Urls:where(c))
     end)
 end)
 
 describe("get", function()
     it("works", function()
-        urls:insert({path = f1, label = "a"})
-        urls:insert({path = f2})
+        Urls:insert({path = f1, label = "a"})
+        Urls:insert({path = f2})
 
         assert.are.same(
             {"a"},
-            urls:get():transform(function(u)
+            Urls:get():transform(function(u)
                 return u.label
             end):sorted()
         )
@@ -154,44 +154,44 @@ describe("clean", function()
     it("non-existent file", function()
         f1:touch()
         local row = {path = f1}
-        urls:insert(row)
-        assert.is_not.Nil(urls:where(row))
+        Urls:insert(row)
+        assert.is_not.Nil(Urls:where(row))
         f1:unlink()
-        urls:clean()
-        assert.is_nil(urls:where(row))
+        Urls:clean()
+        assert.is_nil(Urls:where(row))
     end)
 
     it("deleted project", function()
         local row = {path = f1}
-        urls:insert(row)
-        assert.is_not.Nil(urls:where(row))
+        Urls:insert(row)
+        assert.is_not.Nil(Urls:where(row))
         projects:remove({title = p1.title})
-        assert.is_nil(urls:where(row))
+        assert.is_nil(Urls:where(row))
     end)
 
     it("unanchored file", function()
-        urls:insert({path = f1})
-        local u1 = urls:where({path = f1}).id
-        urls:update({
+        Urls:insert({path = f1})
+        local u1 = Urls:where({path = f1}).id
+        Urls:update({
             where = {id = u1},
-            set = {path = tostring(urls.unanchored_path)},
+            set = {path = tostring(Urls.unanchored_path)},
         })
 
-        local row = {path = urls.unanchored_path}
-        assert.is_not.Nil(urls:where(row))
-        urls:clean()
-        assert.is_nil(urls:where(row))
+        local row = {path = Urls.unanchored_path}
+        assert.is_not.Nil(Urls:where(row))
+        Urls:clean()
+        assert.is_nil(Urls:where(row))
     end)
 end)
 
 describe("new_link", function()
     it("picks the newest link", function()
-        urls:insert({path = f1, resource_type = "link"})
-        local link_id = urls:new_link(f1)
+        Urls:insert({path = f1, resource_type = "link"})
+        local link_id = Urls:new_link(f1)
         
         assert.are.same(
             link_id,
-            urls:get():sort(function(a, b)
+            Urls:get():sort(function(a, b)
                 return a.id > b.id
             end)[1]
         )
@@ -200,56 +200,56 @@ end)
 
 describe("update_link_urls", function()
     it("updates a label", function()
-        local id = urls:new_link(f1).id
-        urls:update({
+        local id = Urls:new_link(f1).id
+        Urls:update({
             where = {id = id},
             set = {label = "old"},
         })
 
-        urls:update_link_urls(f1, List({
+        Urls:update_link_urls(f1, List({
             string.format("[new](:%d:)", id),
         }))
 
-        assert.are.same("new", urls:where({id = id}).label)
+        assert.are.same("new", Urls:where({id = id}).label)
     end)
 
     it("updates a path", function()
-        local id = urls:new_link(f1).id
-        urls:update({
+        local id = Urls:new_link(f1).id
+        Urls:update({
             where = {id = id},
             set = {label = "a"},
         })
 
-        urls:update_link_urls(f2, List({
+        Urls:update_link_urls(f2, List({
             string.format("[a](:%d:)", id),
         }))
 
-        assert.are.same(f2, urls:where({id = id}).path)
+        assert.are.same(f2, Urls:where({id = id}).path)
     end)
 
     it("moves a link", function()
-        local id = urls:new_link(f1).id
-        urls:update({
+        local id = Urls:new_link(f1).id
+        Urls:update({
             where = {id = id},
             set = {label = "a"},
         })
 
-        urls:update_link_urls(f2, List({
+        Urls:update_link_urls(f2, List({
             string.format("[a](:%d:)", id),
         }))
 
-        assert.are.same(f2, urls:where({id = id}).path)
+        assert.are.same(f2, Urls:where({id = id}).path)
     end)
 
     it("unanchors a link", function()
-        local id = urls:new_link(f1).id
-        urls:update({
+        local id = Urls:new_link(f1).id
+        Urls:update({
             where = {id = id},
             set = {label = "a"},
         })
 
-        urls:update_link_urls(f1, List())
-        assert.are.same(urls.unanchored_path, urls:where({id = id}).path)
+        Urls:update_link_urls(f1, List())
+        assert.are.same(Urls.unanchored_path, Urls:where({id = id}).path)
     end)
 end)
 
@@ -257,38 +257,38 @@ describe("get_reference", function()
     it("label", function()
         assert.are.same(
             "[a](1)",
-            tostring(urls:get_reference({label = "a", id = 1}))
+            tostring(Urls:get_reference({label = "a", id = 1}))
         )
     end)
 
     it("no label, non-dir file", function()
         assert.are.same(
             "[c](1)",
-            tostring(urls:get_reference({path = Path("a/b/c.md"), id = 1}))
+            tostring(Urls:get_reference({path = Path("a/b/c.md"), id = 1}))
         )
     end)
 
     it("no label, dir file", function()
         assert.are.same(
             "[b](1)",
-            tostring(urls:get_reference({path = Path("a/b/@.md"), id = 1}))
+            tostring(Urls:get_reference({path = Path("a/b/@.md"), id = 1}))
         )
     end)
 
     it("language file", function()
         assert.are.same(
             "[-suffix](1)",
-            tostring(urls:get_reference({path = Conf.paths.language_dir / "_suffix.md", id = 1}))
+            tostring(Urls:get_reference({path = Conf.paths.language_dir / "_suffix.md", id = 1}))
         )
     end)
 end)
 
 describe("set_date", function()
     it("works", function()
-        urls:insert({path = f1})
-        local before = urls:where({id = u1}).created
+        Urls:insert({path = f1})
+        local before = Urls:where({id = u1}).created
         local after = 19930120
-        urls:set_date(f1, after)
-        assert.are.same(after, urls:where({id = u1}).created)
+        Urls:set_date(f1, after)
+        assert.are.same(after, Urls:where({id = u1}).created)
     end)
 end)

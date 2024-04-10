@@ -6,7 +6,7 @@ local Config = require("htl.Config")
 
 local db = require("htl.db")
 local projects = require("htl.db.projects")
-local urls = require("htl.db.urls")
+local Urls = require("htl.db.urls")
 
 local metadata = require("htl.db.metadata")
 local Taxonomy = require("htl.metadata.Taxonomy")
@@ -37,15 +37,15 @@ before_each(function()
     f3:touch()
     f4:touch()
 
-    urls:insert({project = p1.title, path = f1})
-    urls:insert({project = p2.title, path = f2})
-    urls:insert({project = p1.title, path = f3})
-    urls:insert({project = p1.title, path = f4})
+    Urls:insert({project = p1.title, path = f1})
+    Urls:insert({project = p2.title, path = f2})
+    Urls:insert({project = p1.title, path = f3})
+    Urls:insert({project = p1.title, path = f4})
 
-    u1 = urls:where({path = f1}).id
-    u2 = urls:where({path = f2}).id
-    u3 = urls:where({path = f3}).id
-    u4 = urls:where({path = f4}).id
+    u1 = Urls:where({path = f1}).id
+    u2 = Urls:where({path = f2}).id
+    u3 = Urls:where({path = f3}).id
+    u4 = Urls:where({path = f4}).id
 
     Conf.paths.global_taxonomy_file:write({
         "a:",
@@ -133,7 +133,7 @@ describe("insert", function()
         assert.are.same(0, #metadata:get())
         metadata:insert(row)
         assert.are.same(1, #metadata:get())
-        urls:remove({id = u1})
+        Urls:remove({id = u1})
         assert.are.same(0, #metadata:get())
     end)
 end)

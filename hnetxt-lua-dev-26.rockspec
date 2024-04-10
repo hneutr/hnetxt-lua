@@ -71,6 +71,9 @@ build = {
         ["htc.move"] = "src/htc/move.lua",
 
         ["htl.Taxonomy.Parser"] = "src/htl/Taxonomy/Parser.lua",
+
+        ["htl.db.Taxa"] = "src/htl/db/Taxa.lua",
+        ["htl.db.Relation"] = "src/htl/db/Relation.lua",
     }
 }
 test = {

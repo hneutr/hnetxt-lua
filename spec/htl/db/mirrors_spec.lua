@@ -4,7 +4,7 @@ local Path = require("hl.Path")
 local Config = require("htl.Config")
 local db = require("htl.db")
 local projects = require("htl.db.projects")
-local urls = require("htl.db.urls")
+local Urls = require("htl.db.urls")
 local mirrors = require("htl.db.mirrors")
 
 local d1 = Path.tempdir:join("dir-1")
@@ -34,8 +34,8 @@ before_each(function()
     projects:insert(p1)
     projects:insert(p2)
 
-    urls:insert({path = f1})
-    urls:insert({path = f2})
+    Urls:insert({path = f1})
+    Urls:insert({path = f2})
 
     Conf.mirror = test_config
     mirrors:set_conf()
@@ -58,14 +58,14 @@ end)
 
 describe("get_source", function()
     it("source", function()
-        urls:insert({path = f1})
-        assert.are.same(urls:where({path = f1}), mirrors:get_source(f1))
+        Urls:insert({path = f1})
+        assert.are.same(Urls:where({path = f1}), mirrors:get_source(f1))
     end)
 
     it("mirror", function()
-        urls:insert({path = f1})
+        Urls:insert({path = f1})
         assert.are.same(
-            urls:where({path = f1}),
+            Urls:where({path = f1}),
             mirrors:get_source(mirrors.conf.a.path / "1.md")
         )
     end)
@@ -75,7 +75,7 @@ describe("get_path", function()
     local f_a, f_b
     
     before_each(function()
-        urls:insert({path = f1})
+        Urls:insert({path = f1})
         f_a = mirrors.conf.a.path / "1.md"
         f_b = mirrors.conf.b.path / "1.md"
     end)

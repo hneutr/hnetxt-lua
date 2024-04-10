@@ -4,7 +4,7 @@ local Path = require('hl.Path')
 local ui = require("htn.ui")
 
 local db = require("htl.db")
-local urls = require("htl.db.urls")
+local Urls = require("htl.db.urls")
 local metadata = require('htl.db.metadata')
 
 local BufferLines = require("hn.buffer_lines")
@@ -16,8 +16,8 @@ local commands = Dict({
     Journal = function() require("htl.journal")():open() end,
     Aim = function() require("htl.goals")():open() end,
     Track = function() require("htl.track")():touch():open() end,
-    SetDate = {function(args) urls:set_date(Path.this(), args.args) end, {nargs = 1}},
-    PrintDate = function() print(urls:where({path = Path.this()}).created) end,
+    SetDate = {function(args) Urls:set_date(Path.this(), args.args) end, {nargs = 1}},
+    PrintDate = function() print(Urls:where({path = Path.this()}).created) end,
 })
 
 local autocommands = Dict()

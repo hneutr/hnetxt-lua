@@ -3,7 +3,7 @@ local Path = require('hl.Path')
 local remove = require("htc.remove")
 
 local db = require("htl.db")
-local urls = require("htl.db.urls")
+local Urls = require("htl.db.urls")
 local mirrors = require("htl.db.mirrors")
 local projects = require("htl.db.projects")
 
@@ -42,17 +42,17 @@ describe("remove_file", function()
         local r = {path = f1}
 
         f1:touch()
-        urls:insert(r)
-        assert(urls:where(r))
+        Urls:insert(r)
+        assert(Urls:where(r))
 
         remove:remove_file(f1)
 
-        assert.is_falsy(urls:where(r))
+        assert.is_falsy(Urls:where(r))
     end)
 
     it("source w/ mirrors", function()
         f1:touch()
-        urls:insert({path = f1})
+        Urls:insert({path = f1})
         local m1 = mirrors:get_path(f1, kind)
 
         local q = {path = m1}
@@ -67,7 +67,7 @@ describe("remove_file", function()
 
     it("mirror", function()
         f1:touch()
-        urls:insert({path = f1})
+        Urls:insert({path = f1})
         local m1 = mirrors:get_path(f1, kind)
 
         local q = {path = m1}
