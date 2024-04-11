@@ -27,6 +27,7 @@ function M.setup()
         samples = require("htl.db.samples"),
         Taxa = require("htl.db.Taxa"),
         Relations = require("htl.db.Relations"),
+        Log = require("htl.db.Log"),
     })
 end
 

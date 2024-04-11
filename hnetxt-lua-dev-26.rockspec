@@ -35,7 +35,6 @@ build = {
         ["htl"] = "src/htl/init.lua",
         ["htl.Config"] = "src/htl/config.lua",
         ["htl.journal"] = "src/htl/journal.lua",
-        ["htl.track"] = "src/htl/track.lua",
         ["htl.goals"] = "src/htl/goals.lua",
         ["htl.snippet"] = "src/htl/snippet.lua",
 
@@ -43,9 +42,9 @@ build = {
         ["htl.db.projects"] = "src/htl/db/projects.lua",
         ["htl.db.urls"] = "src/htl/db/urls.lua",
         ["htl.db.mirrors"] = "src/htl/db/mirrors.lua",
-        ["htl.db.log"] = "src/htl/db/log.lua",
         ["htl.db.samples"] = "src/htl/db/samples.lua",
         ["htl.db.metadata"] = "src/htl/db/metadata.lua",
+        ["htl.db.Log"] = "src/htl/db/Log.lua",
 
         ["htl.metadata.Parser"] = "src/htl/metadata/Parser.lua",
         ["htl.metadata.Condition"] = "src/htl/metadata/Condition.lua",

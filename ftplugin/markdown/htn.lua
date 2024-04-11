@@ -15,7 +15,7 @@ local Fold = require('htn.ui.fold')
 local commands = Dict({
     Journal = function() require("htl.journal")():open() end,
     Aim = function() require("htl.goals")():open() end,
-    Track = function() require("htl.track")():touch():open() end,
+    Track = require("htl.db.Log").ui.cmd,
     SetDate = {function(args) Urls:set_date(Path.this(), args.args) end, {nargs = 1}},
     PrintDate = function() print(Urls:where({path = Path.this()}).created) end,
 })

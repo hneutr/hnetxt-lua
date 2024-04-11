@@ -37,8 +37,8 @@ require("htc.cli")("hnetxt", {
     },
     track = {
         description = "print the tracking path",
-        {"date", description = "date (YYYYMMDD); default today", default = os.date('%Y%m%d'), convert = tostring},
-        action = function(args) print(require("htl.track")():touch(args)) end,
+        {"date", description = "date (YYYYMMDD); default today", default = os.date('%Y%m%d')},
+        action = require("htl.db.Log").ui.cli,
     },
     x_of_the_day = {
         description = "set the x-of-the-day files",

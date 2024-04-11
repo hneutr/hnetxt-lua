@@ -1,19 +1,95 @@
-local tbl = require("sqlite.tbl")
+local Date = require("pl.Date")
 
-local M = tbl("log", {
+local Config = require("htl.Config")
+
+local M = require("sqlite.tbl")("Log", {
     id = true,
     key = {
         "text",
         required = true,
     },
-    value = {
+    val = {
         "text",
         required = true,
     },
     date = {
-        "text",
-        default = os.date("%Y%m%d"),
+        type = "date",
+        default = [[strftime('%Y%m%d')]],
+        required = true,
     },
 })
+
+M.conf = Conf.Log
+M.conf.entry_dir = Conf.paths.track_dir
+M.conf.date_fmt = Date.Format("yyyymmdd")
+
+M.ui = {
+    cli = function(args) print(M.touch(args)) end,
+    cmd = function() M.touch():open() end,
+}
+
+function M:should_delete(date_str)
+    local today = M.conf.date_fmt:parse(os.date("%Y%m%d"))
+    local date = M.conf.date_fmt:parse(date_str)
+
+    return today:add({day = -1 * M.conf.days_before_delete}) > date
+end
+
+function M:parse_lines(lines, date)
+    return lines:transform(M.parse_line, date):filter(function(r)
+        return r.key and r.val
+    end)
+end
+
+function M.parse_line(l, date)
+    local row = {date = date}
+
+    if #l > 0 then
+        row.key, row.val = unpack(l:split(M.conf.separator, 1):mapm("strip"))
+    end
+
+    return row
+end
+
+function M.record(path)
+    local date = path:stem()
+    M:remove({date = date})
+    local rows = M:parse_lines(path:readlines(), date)
+    
+    if #rows > 0 then
+        M:insert(rows)
+    end
+end
+
+function M.clean(path)
+    if M:should_delete(path:stem()) then
+        path:unlink()
+    end
+end
+
+function M:record_all()
+    Conf.paths.track_dir:iterdir({dirs = false, recursive = false}):foreach(M.record):foreach(M.clean)
+end
+
+--------------------------------------------------------------------------------
+--                                UI functions                                --
+--------------------------------------------------------------------------------
+function M.touch(args)
+    args = Dict(args or {}, {date = os.date("%Y%m%d")})
+    local path = Conf.paths.track_dir / string.format("%s.md", args.date)
+
+    if not path:exists() then
+        path:write(Conf.paths.to_track_file:read())
+    end
+
+    return path
+end
+
+function M.UI()
+    return {
+        cli = function(args) print(M.touch(args)) end,
+        cmd = function() M.touch():open() end,
+    }
+end
 
 return M
