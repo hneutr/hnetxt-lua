@@ -28,6 +28,10 @@ M.ui = {
     cmd = function() M.touch():open() end,
 }
 
+function M:get(q)
+    return List(M:__get(q))
+end
+
 function M:should_delete(date_str)
     local today = M.conf.date_fmt:parse(os.date("%Y%m%d"))
     local date = M.conf.date_fmt:parse(date_str)
@@ -68,13 +72,17 @@ function M.clean(path)
 end
 
 function M:record_all()
-    Conf.paths.track_dir:iterdir({dirs = false, recursive = false}):foreach(M.record):foreach(M.clean)
+    Conf.paths.track_dir:iterdir({dirs = false, recursive = false}):foreach(function(path)
+        M.record(path)
+        M.clean(path)
+    end)
 end
 
 --------------------------------------------------------------------------------
 --                                UI functions                                --
 --------------------------------------------------------------------------------
 function M.touch(args)
+    M:record_all()
     args = Dict(args or {}, {date = os.date("%Y%m%d")})
     local path = Conf.paths.track_dir / string.format("%s.md", args.date)
 
