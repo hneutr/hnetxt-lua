@@ -31,23 +31,30 @@ function M.Paths.get_object(constants)
     local d = Dict({root = M.root, tempdir = Path.tempdir})
     local for_test = M.root:is_relative_to(d.tempdir)
 
-    return setmetatable({}, {
-        __newindex = function(self, ...) rawset(d, ...) end,
-        __tostring = function() return tostring(d) end,
-        __index = function(self, key)
-            local conf = constants[key]
-            if not d[key] and conf then
-                d[key] = M.Paths.define(
-                    key,
-                    for_test,
-                    conf.path,
-                    conf.parent and self[conf.parent]
-                )
-            end
+    constants = Dict(constants)
+    
+    return setmetatable(
+        {
+            keys = function() return constants:keys() end,
+        },
+        {
+            __newindex = function(self, ...) rawset(d, ...) end,
+            __tostring = function() return tostring(d) end,
+            __index = function(self, key)
+                local conf = constants[key]
+                if not d[key] and conf then
+                    d[key] = M.Paths.define(
+                        key,
+                        for_test,
+                        conf.path,
+                        conf.parent and self[conf.parent]
+                    )
+                end
 
-            return d[key]
-        end,
-    })
+                return d[key]
+            end,
+        }
+    )
 end
 
 M.Constants = {}
