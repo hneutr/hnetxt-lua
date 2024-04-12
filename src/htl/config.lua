@@ -5,7 +5,6 @@ local Yaml = require("hl.yaml")
 local M = {}
 
 M.constants_dir = Path.home / "lib/hnetxt-lua/constants"
-M.test_root = Path.tempdir / "test-root"
 M.root = Path.home
 
 M.Paths = {}
@@ -29,8 +28,8 @@ function M.Paths.define(key, for_test, path, parent)
 end
 
 function M.Paths.get_object(constants)
-    local d = Dict({root = M.root})
-    local for_test = M.root == M.test_root
+    local d = Dict({root = M.root, tempdir = Path.tempdir})
+    local for_test = M.root:is_relative_to(d.tempdir)
 
     return setmetatable({}, {
         __newindex = function(self, ...) rawset(d, ...) end,
@@ -51,27 +50,6 @@ function M.Paths.get_object(constants)
     })
 end
 
-M.DBTable = {}
-M.DBTable.remaps = Dict({
-    TODAY = [[strftime('%Y%m%d')]],
-})
-
-function M.DBTable.parse(raw)
-    local d = {}
-    Dict(raw):foreach(function(col, conf)
-        d[col] = conf
-        if type(conf) == 'table' then
-            for key, val in pairs(conf) do
-                if M.DBTable.remaps[val] ~= nil then
-                    val = M.DBTable.remaps[val]
-                end
-                d[col][key] = val
-            end
-        end
-    end)
-    return d
-end
-
 M.Constants = {}
 
 function M.Constants.define(key, path)
@@ -83,8 +61,6 @@ function M.Constants.define(key, path)
 
     if key == 'paths' then
         val = M.Paths.get_object(val)
-    elseif path:parent():stem() == "db" then
-        val = M.DBTable.parse(val)
     end
 
     return val
@@ -116,16 +92,6 @@ function M.Constants.get_object(dir)
             end,
         }
     )
-end
-
-function M.before_test()
-    M.root = M.test_root
-    M.init()
-end
-
-function M.after_test()
-    M.test_root:rmdir(true)
-    M.root = Path.home
 end
 
 function M.init()

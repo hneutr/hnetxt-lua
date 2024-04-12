@@ -1,10 +1,8 @@
-local Config = require("htl.Config")
+local HTL = require("htl")
 
-local db = require("htl.db")
-
-local d1 = Config.test_root / "dir-1"
-local d2 = Config.test_root / "dir-2"
-local d3 = Config.test_root / "dir-3"
+local d1 = HTL.test_dir / "dir-1"
+local d2 = HTL.test_dir / "dir-2"
+local d3 = HTL.test_dir / "dir-3"
 local d4 = d1 / "dir-4"
 
 local f1 = d1 / "file-1.md"
@@ -15,12 +13,12 @@ local f4 = d4 / "file-4.md"
 local M
 
 before_each(function()
-    db.before_test()
+    HTL.before_test()
     M = DB.projects
 end)
 
 after_each(function()
-    Config.after_test()
+    HTL.after_test()
 end)
 
 describe("insert", function()

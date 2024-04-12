@@ -1,10 +1,10 @@
-local Config = require("htl.Config")
+local HTL = require("htl")
 local Taxonomy = require("htl.metadata.Taxonomy")
 
 local Condition = require("htl.metadata.Condition")
 
 before_each(function()
-    Config.before_test()
+    HTL.before_test()
 
     Conf.paths.global_taxonomy_file:write({
         "a:",
@@ -24,7 +24,7 @@ before_each(function()
 end)
 
 after_each(function()
-    Config.after_test()
+    HTL.after_test()
 end)
 
 describe("parse", function()

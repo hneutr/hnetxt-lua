@@ -1,18 +1,18 @@
-local Config = require("htl.Config")
-local Taxonomy = require("htl.metadata.Taxonomy")
+local HTL = require("htl")
+local M = require("htl.metadata.Taxonomy")
 
 local taxonomy_file = Conf.paths.taxonomy_file
-local d1 = Config.test_root:join("taxonomy-test")
+local d1 = HTL.test_dir / "taxonomy-test"
 local d2 = d1 / "subdir"
 local t1 = d1 / taxonomy_file
 local t2 = d2 / taxonomy_file
 
 before_each(function()
-    Config.before_test()
+    HTL.before_test()
 end)
 
 after_each(function()
-    Config.after_test()
+    HTL.after_test()
 end)
 
 describe("read_tree", function()
@@ -30,7 +30,7 @@ describe("read_tree", function()
                 },
                 c = {},
             },
-            Taxonomy.read_tree(d1)
+            M.read_tree(d1)
         )
     end)
     
@@ -58,7 +58,7 @@ describe("read_tree", function()
                 },
                 c = {},
             },
-            Taxonomy.read_tree(d2)
+            M.read_tree(d2)
         )
     end)
 end)

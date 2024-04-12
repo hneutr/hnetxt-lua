@@ -1,22 +1,19 @@
-local Path = require("hl.Path")
-
-local Config = require("htl.Config")
-local db = require("htl.db")
+local HTL = require("htl")
 
 local today = os.date("%Y%m%d")
-local d1 = Config.test_root / "dir-1"
+local d1 = HTL.test_dir / "dir-1"
 local f1 = d1 / string.format("%s.md", today)
 local f2 = d1 / "19930120.md"
 
 local M
 
 before_each(function()
-    db.before_test()
+    HTL.before_test()
     M = DB.Log
 end)
 
 after_each(function()
-    Config.after_test()
+    HTL.after_test()
 end)
 
 describe("should_delete", function()

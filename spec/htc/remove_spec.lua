@@ -1,26 +1,24 @@
-local Config = require("htl.Config")
+local HTL = require("htl")
 
-local db = require("htl.db")
 local mirrors = require("htl.db.mirrors")
 
 local M = require("htc.remove")
 
 local kind = mirrors.conf:keys()[1]
 
-local d1 = Config.test_root / "dir-1"
+local d1 = HTL.test_dir / "dir-1"
 local d2 = d1 / "dir-2"
 local f1 = d1 / "file-1.md"
 
 local p1 = {title = "test", path = d1}
 
 before_each(function()
-    db.before_test()
-
+    HTL.before_test()
     DB.projects:insert(p1)
 end)
 
 after_each(function()
-    Config.after_test()
+    HTL.after_test()
 end)
 
 describe("remove_file", function()

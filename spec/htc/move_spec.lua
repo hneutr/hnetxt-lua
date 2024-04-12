@@ -1,14 +1,11 @@
 local stub = require("luassert.stub")
 
-local Path = require("hl.path")
-
-local Config = require("htl.Config")
-local db = require("htl.db")
+local HTL = require("htl")
 
 local Move = require("htc.move")
 
-local d1 = Config.test_root / "dir-1"
-local d2 = Config.test_root / "dir-2"
+local d1 = HTL.test_dir / "dir-1"
+local d2 = HTL.test_dir / "dir-2"
 
 local f1 = d1:join("file-1.md")
 local f2 = d1:join("file-2.md")
@@ -21,7 +18,7 @@ local p2 = {title = "test2", path = d2, created = "19930120"}
 local pwd = os.getenv("PWD")
 
 before_each(function()
-    db.before_test()
+    HTL.before_test()
 
     DB.projects:insert(p1)
     DB.projects:insert(p2)
@@ -30,7 +27,7 @@ before_each(function()
 end)
 
 after_each(function()
-    db.after_test()
+    HTL.after_test()
     os.getenv:revert()
 end)
 

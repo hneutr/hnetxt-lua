@@ -1,5 +1,4 @@
-require("hl")
-require("htl.db").setup()
+require("htl").init()
 
 local Link = require("htl.text.Link")
 

@@ -1,42 +1,28 @@
-local Config = require("htl.Config")
+local sqlite = require("sqlite.db")
+local tbl = require("sqlite.tbl")
 
 local M = {}
+M.schema = Dict({
+    projects = require("htl.db.projects"),
+    urls = require("htl.db.urls"),
+    metadata = require("htl.db.metadata"),
+    samples = require("htl.db.samples"),
+    Taxa = require("htl.db.Taxa"),
+    Relations = require("htl.db.Relations"),
+    Log = require("htl.db.Log"),
+})
 
-function M.before_test()
-    Config.before_test()
-    M.setup()
-end
+function M.init()
+    DB = sqlite({uri = tostring(Conf.paths.db_file)})
 
-function M.after_test()
-    Config.after_test()
-end
-
-function M.setup()
-    M.con = require("sqlite.db")({
-        uri = tostring(Conf.paths.db_file),
-        projects = require("htl.db.projects"),
-        urls = require("htl.db.urls"),
-        metadata = require("htl.db.metadata"),
-        samples = require("htl.db.samples"),
-        Taxa = require("htl.db.Taxa"),
-        Relations = require("htl.db.Relations"),
-        Log = require("htl.db.Log"),
-    })
-    
-    DB = M.con
-end
-
-function M.get()
-    if not M.con then
-        M.setup()
-    end
-
-    return M.con
+    M.schema:foreach(function(key, _tbl)
+        DB[key] = _tbl
+        tbl.set_db(_tbl, DB)
+    end)
 end
 
 function M.clean()
-    local con = M.get()
-    con.urls:clean()
+    DB.urls:clean()
 end
 
 function M.join(rows, to_join, id_col, to_col)

@@ -1,8 +1,5 @@
-require("htl.db").setup()
+require("htl").init()
 
-local Path = require("hl.Path")
-
-require("hl")
 local langdir = Path.home / "eidola/language"
 local src = langdir / "pieroots.md"
 

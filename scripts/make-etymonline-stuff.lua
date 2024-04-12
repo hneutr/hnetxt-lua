@@ -1,7 +1,5 @@
-require("hl")
+require("htl").init()
 local Link = require("htl.text.Link")
-
-local db = require("htl.db")
 
 local bad_lines = Set({
     "before:",

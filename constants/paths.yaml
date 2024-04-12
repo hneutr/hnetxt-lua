@@ -1,6 +1,9 @@
 data_dir:
   path: ".data"
   parent: root
+test_dir:
+  path: "htl-test-dir"
+  parent: tempdir
 lib_dir:
   path: "lib/hnetxt-lua"
   parent: root

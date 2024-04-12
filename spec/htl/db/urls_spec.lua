@@ -1,20 +1,18 @@
-local Path = require("hl.Path")
 local Date = require("pl.Date")
 
-local Config = require("htl.Config")
-local db = require("htl.db")
+local HTL = require("htl")
 
 local Link = require("htl.text.Link")
 
-local d1 = Config.test_root / "dir-1"
-local d2 = Config.test_root / "dir-2"
-local d3 = Config.test_root / "dir-3"
+local d1 = HTL.test_dir / "dir-1"
+local d2 = HTL.test_dir / "dir-2"
+local d3 = HTL.test_dir / "dir-3"
 
-local f1 = d1:join("file-1.md")
-local f2 = d1:join("file-2.md")
-local f3 = d1:join("file-3.md")
-local f4 = d2:join("file-4.md")
-local f5 = d3:join("file-5.md")
+local f1 = d1 / "file-1.md"
+local f2 = d1 / "file-2.md"
+local f3 = d1 / "file-3.md"
+local f4 = d2 / "file-4.md"
+local f5 = d3 / "file-5.md"
 
 local p1 = {title = "test", path = d1, created = "19930120"}
 local p2 = {title = "test2", path = d2, created = "19930121"}
@@ -22,7 +20,7 @@ local p2 = {title = "test2", path = d2, created = "19930121"}
 local M
 
 before_each(function()
-    db.before_test()
+    HTL.before_test()
     DB.projects:insert(p1)
     DB.projects:insert(p2)
     f1:touch()
@@ -35,7 +33,7 @@ before_each(function()
 end)
 
 after_each(function()
-    Config.after_test()
+    HTL.after_test()
 end)
 
 describe("where", function()

@@ -1,7 +1,6 @@
 local Path = require("hl.Path")
 
-local Config = require("htl.Config")
-require("htl.db").setup()
+require("htl").init()
 
 Conf.paths.language_dir:iterdir({dirs = false, recursive = false}):sort(function(a, b)
     return tostring(a) < tostring(b)

@@ -1,12 +1,12 @@
-local Config = require("htl.Config")
+local HTL = require("htl")
 
 local M = require("htl.db")
 
 before_each(function()
-    Config.before_test()
+    HTL.before_test()
     M.setup()
 end)
 
 after_each(function()
-    Config.after_test()
+    HTL.after_test()
 end)

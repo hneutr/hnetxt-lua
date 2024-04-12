@@ -1,6 +1,3 @@
-local Config = require("htl.Config")
-local db = require("htl.db")
-
 -- ┏━━━━━━━━━━━━━━━━━━╸
 -- ┇ relations
 -- ┗━━━━━━━━━━━━━━━━━━╸

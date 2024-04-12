@@ -1,13 +1,11 @@
-local Config = require("htl.Config")
-local db = require("htl.db")
-db.setup()
+require("htl").init()
 
 require("htc.cli")("hnetxt", {
     new = require("htc.new"),
     project = require("htc.project"),
     clean = {
         description = "clean the db",
-        action = db.clean,
+        action = require("htl.db").clean,
     },
     move = {
         description = "mv within a project",
