@@ -1,6 +1,7 @@
 local class = require("pl.class")
 
 local Config = require("htl.Config")
+local db_util = require("htl.db.util")
 
 local Colorize = require("htc.Colorize")
 
@@ -352,7 +353,7 @@ function M.handle_is_a(rows, taxonomy)
 end
 
 function M:get_is_a_to_ids(all_rows, is_a_rows, taxonomy)
-    local rows = db.map_row_to_col(all_rows, is_a_rows, "parent", "_parent")
+    local rows = db_util.map_row_to_col(all_rows, is_a_rows, "parent", "_parent")
 
     local def_keys = Dict()
     local key_to_ids = Dict()

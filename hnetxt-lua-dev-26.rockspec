@@ -39,6 +39,7 @@ build = {
         ["htl.snippet"] = "src/htl/snippet.lua",
 
         ["htl.db"] = "src/htl/db/init.lua",
+        ["htl.db.util"] = "src/htl/db/util.lua",
         ["htl.db.projects"] = "src/htl/db/projects.lua",
         ["htl.db.urls"] = "src/htl/db/urls.lua",
         ["htl.db.mirrors"] = "src/htl/db/mirrors.lua",
