@@ -72,7 +72,6 @@ function M.clean(path)
 end
 
 function M:record_all()
-    DB.Paths:ingest()
     Conf.paths.track_dir:iterdir({dirs = false, recursive = false}):foreach(function(path)
         M.record(path)
         M.clean(path)

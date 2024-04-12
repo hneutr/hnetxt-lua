@@ -1,4 +1,4 @@
-require("htl").init()
+require("htl")
 
 require("htc.cli")("hnetxt", {
     new = require("htc.new"),
@@ -12,6 +12,13 @@ require("htc.cli")("hnetxt", {
         {"source", args = "1", convert = Path.from_commandline},
         {"target", args = "1", convert = Path.from_commandline},
         action = require("htc.move").run,
+    },
+    persist = {
+        description = "save things used by services",
+        action = function()
+            DB.Log:record_all()
+            DB.Paths:ingest()
+        end
     },
     remove = {
         description = "rm within a project",
