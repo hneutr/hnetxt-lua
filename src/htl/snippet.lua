@@ -1,13 +1,9 @@
-local List = require("hl.List")
-local Dict = require("hl.Dict")
-local class = require("pl.class")
 local Yaml = require("hl.yaml")
 local Config = require("htl.Config")
 
 local Link = require("htl.text.Link")
-local db = require("htl.db")
 
-class.Snippet()
+local Snippet = require("pl.class")
 Snippet.FIELD_SEPARATOR = ":"
 
 function Snippet:_init(path)
@@ -64,7 +60,7 @@ function Snippet:parse_line(line)
         val = val:strip()
 
         if Link:str_is_a(val) then
-            val = Snippet(db.get().urls:where({id = Link:from_str(val).url}).path)
+            val = Snippet(DB.urls:where({id = Link:from_str(val).url}).path)
         end
     else
         key = line

@@ -1,23 +1,15 @@
-local stub = require('luassert.stub')
-local List = require("hl.List")
-local Path = require("hl.Path")
-
 local Config = require("htl.Config")
-
 local db = require("htl.db")
-local projects = require("htl.db.projects")
-local Urls = require("htl.db.urls")
 
-local metadata = require("htl.db.metadata")
 local Taxonomy = require("htl.metadata.Taxonomy")
 
-local d1 = Config.test_root:join("dir-1")
-local d2 = Config.test_root:join("dir-2")
+local d1 = Config.test_root / "dir-1"
+local d2 = Config.test_root / "dir-2"
 
-local f1 = d1:join("file-1.md")
-local f2 = d2:join("file-2.md")
-local f3 = d1:join("file-3.md")
-local f4 = d1:join("file-4.md")
+local f1 = d1 / "file-1.md"
+local f2 = d2 / "file-2.md"
+local f3 = d1 / "file-3.md"
+local f4 = d1 / "file-4.md"
 
 local p1 = {title = "test", path = d1, created = "19930120"}
 local p2 = {title = "test2", path = d2, created = "19930120"}
@@ -27,25 +19,28 @@ local u3
 local u4
 local taxonomy
 
+local M
+
 before_each(function()
     db.before_test()
 
-    projects:insert(p1)
-    projects:insert(p2)
+    DB.projects:insert(p1)
+    DB.projects:insert(p2)
+
     f1:touch()
     f2:touch()
     f3:touch()
     f4:touch()
 
-    Urls:insert({project = p1.title, path = f1})
-    Urls:insert({project = p2.title, path = f2})
-    Urls:insert({project = p1.title, path = f3})
-    Urls:insert({project = p1.title, path = f4})
+    DB.urls:insert({project = p1.title, path = f1})
+    DB.urls:insert({project = p2.title, path = f2})
+    DB.urls:insert({project = p1.title, path = f3})
+    DB.urls:insert({project = p1.title, path = f4})
 
-    u1 = Urls:where({path = f1}).id
-    u2 = Urls:where({path = f2}).id
-    u3 = Urls:where({path = f3}).id
-    u4 = Urls:where({path = f4}).id
+    u1 = DB.urls:where({path = f1}).id
+    u2 = DB.urls:where({path = f2}).id
+    u3 = DB.urls:where({path = f3}).id
+    u4 = DB.urls:where({path = f4}).id
 
     Conf.paths.global_taxonomy_file:write({
         "a:",
@@ -62,17 +57,19 @@ before_each(function()
     })
 
     taxonomy = Taxonomy()
+    
+    M = DB.metadata
 end)
 
 after_each(function()
-    db.after_test()
+    Config.after_test()
 end)
 
 describe("insert_dict", function()
     it("tags/fields", function()
-        assert.is_nil(metadata:where({url = u1}))
+        assert.is_nil(M:where({url = u1}))
         
-        metadata:insert_dict(
+        M:insert_dict(
             Dict({
                 ["@a"] = Dict({metadata = {}, datatype = "primitive"}),
                 ["b"] = Dict({metadata = {}, val = "c", datatype = "primitive"}),
@@ -81,15 +78,15 @@ describe("insert_dict", function()
             u1
         )
         
-        assert.is_not.Nil(metadata:where({key = "@a", url = url}))
-        assert.is_not.Nil(metadata:where({key = "b", url = url, val = "c"}))
-        assert.is_not.Nil(metadata:where({key = "d", url = url, val = "123", datatype = "reference"}))
+        assert.is_not.Nil(M:where({key = "@a", url = url}))
+        assert.is_not.Nil(M:where({key = "b", url = url, val = "c"}))
+        assert.is_not.Nil(M:where({key = "d", url = url, val = "123", datatype = "reference"}))
     end)
 
     it("nested", function()
-        assert.is_nil(metadata:where({url = u1}))
+        assert.is_nil(M:where({url = u1}))
         
-        metadata:insert_dict(
+        M:insert_dict(
             Dict({
                 a = Dict({
                     datatype = "primitive",
@@ -103,20 +100,20 @@ describe("insert_dict", function()
             u1
         )
 
-        local root = metadata:where({key = metadata.root_key, url = url})
+        local root = M:where({key = M.root_key, url = url})
 
-        local y = metadata:where({key = "@y", url = url})
+        local y = M:where({key = "@y", url = url})
         assert.is_not.Nil(y)
         assert.are.same(y.parent, root.id)
         assert.is_nil(y.val)
         
-        local a = metadata:where({key = "a", url = url})
+        local a = M:where({key = "a", url = url})
         assert.is_not.Nil(a)
         assert.are.same(a.parent, root.id)
         assert.is_nil(y.val)
 
-        assert.is_not.Nil(metadata:where({key = "@x", url = url, parent = a.id}))
-        assert.is_not.Nil(metadata:where({key = "b", val = "c", url = url, parent = a.id}))
+        assert.is_not.Nil(M:where({key = "@x", url = url, parent = a.id}))
+        assert.is_not.Nil(M:where({key = "b", val = "c", url = url, parent = a.id}))
     end)
 
 end)
@@ -130,44 +127,44 @@ describe("insert", function()
             datatype = 'reference',
         }
 
-        assert.are.same(0, #metadata:get())
-        metadata:insert(row)
-        assert.are.same(1, #metadata:get())
-        Urls:remove({id = u1})
-        assert.are.same(0, #metadata:get())
+        assert.are.same(0, #M:get())
+        M:insert(row)
+        assert.are.same(1, #M:get())
+        DB.urls:remove({id = u1})
+        assert.are.same(0, #M:get())
     end)
 end)
 
 describe("get_urls", function()
     it("dir", function()
-        metadata:insert({key = "a", url = u1})
-        metadata:insert({key = "b", url = u2})
+        M:insert({key = "a", url = u1})
+        M:insert({key = "b", url = u2})
 
         assert.are.same(
             {u1},
-            metadata:get_urls({path = d1, include_values = true}):col('url')
+            M:get_urls({path = d1, include_values = true}):col('url')
         )
     end)
     
     it("conditions", function()
-        metadata:insert({key = "a", url = u1})
-        metadata:insert({key = "b", url = u1})
+        M:insert({key = "a", url = u1})
+        M:insert({key = "b", url = u1})
 
         assert.are.same(
             {u1, u1},
-            metadata:get_urls({conditions = "a", include_values = true}):col('url')
+            M:get_urls({conditions = "a", include_values = true}):col('url')
         )
     end)
 
     it("reference", function()
-        metadata:insert({key = "a", val = u1, url = u1, datatype = "reference"})
-        metadata:insert({key = "b", val = u2, url = u2, datatype = "reference"})
-        metadata:insert({key = "c", val = u1, url = u3, datatype = "reference"})
-        metadata:insert({key = "d", val = u3, url = u4, datatype = "reference"})
+        M:insert({key = "a", val = u1, url = u1, datatype = "reference"})
+        M:insert({key = "b", val = u2, url = u2, datatype = "reference"})
+        M:insert({key = "c", val = u1, url = u3, datatype = "reference"})
+        M:insert({key = "d", val = u3, url = u4, datatype = "reference"})
 
         assert.are.same(
             {u1, u3, u4},
-            metadata:get_urls({reference = u1, include_links = true}):col('url'):sorted()
+            M:get_urls({reference = u1, include_links = true}):col('url'):sorted()
         )
     end)
 end)
@@ -181,7 +178,7 @@ describe("construct_taxonomy_key_map", function()
                 c = {"y"},
                 d = {"z"},
             },
-            metadata:construct_taxonomy_key_map(
+            M:construct_taxonomy_key_map(
                 {
                     c = Set({"x", "y"}),
                     d = Set({"x", "z"}),
@@ -198,7 +195,7 @@ describe("construct_taxonomy_key_map", function()
                 b = {"y"},
                 c = {"z"},
             },
-            metadata:construct_taxonomy_key_map(
+            M:construct_taxonomy_key_map(
                 {
                     b = Set({"x", "y"}),
                     c = Set({"x", "z"}),
@@ -217,7 +214,7 @@ describe("construct_taxonomy_key_map", function()
                 j = {"j"},
                 k = {"k"},
             },
-            metadata:construct_taxonomy_key_map(
+            M:construct_taxonomy_key_map(
                 {
                     i = Set({"g", "h", "i"}),
                     j = Set({"g", "h", "j"}),

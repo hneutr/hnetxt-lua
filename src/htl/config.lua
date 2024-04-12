@@ -1,8 +1,9 @@
+require("hl")
+
 local Yaml = require("hl.yaml")
-local sqlite = require("sqlite.db")
-local class = require("pl.class")
 
 local M = {}
+
 M.constants_dir = Path.home / "lib/hnetxt-lua/constants"
 M.test_root = Path.tempdir / "test-root"
 M.root = Path.home
@@ -119,7 +120,7 @@ end
 
 function M.before_test()
     M.root = M.test_root
-    Conf = M.Constants.get_object()
+    M.init()
 end
 
 function M.after_test()
@@ -127,6 +128,10 @@ function M.after_test()
     M.root = Path.home
 end
 
-Conf = M.Constants.get_object()
+function M.init()
+    Conf = M.Constants.get_object()
+end
+
+M.init()
 
 return M

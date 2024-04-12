@@ -2,14 +2,13 @@ local stub = require("luassert.stub")
 
 local Path = require("hl.path")
 
+local Config = require("htl.Config")
 local db = require("htl.db")
-local projects = require("htl.db.projects")
-local Urls = require("htl.db.urls")
 
 local Move = require("htc.move")
 
-local d1 = Path.tempdir:join("dir-1")
-local d2 = Path.tempdir:join("dir-2")
+local d1 = Config.test_root / "dir-1"
+local d2 = Config.test_root / "dir-2"
 
 local f1 = d1:join("file-1.md")
 local f2 = d1:join("file-2.md")
@@ -22,12 +21,10 @@ local p2 = {title = "test2", path = d2, created = "19930120"}
 local pwd = os.getenv("PWD")
 
 before_each(function()
-    d1:rmdir(true)
-    d2:rmdir(true)
     db.before_test()
 
-    projects:insert(p1)
-    projects:insert(p2)
+    DB.projects:insert(p1)
+    DB.projects:insert(p2)
     stub(os, "getenv")
     os.getenv.on_call_with("PWD").returns(tostring(d1))
 end)
@@ -94,13 +91,13 @@ end)
 
 describe("update", function()
     it("works", function()
-        Urls:insert({path = f1, label = "a"})
+        DB.urls:insert({path = f1, label = "a"})
         
         Move:update(List({
             {source = f1, target = f3}
         }))
 
-        assert.is_nil(Urls:where({path = f1}))
-        assert.are.same("a", Urls:where({path = f3}).label)
+        assert.is_nil(DB.urls:where({path = f1}))
+        assert.are.same("a", DB.urls:where({path = f3}).label)
     end)
 end)

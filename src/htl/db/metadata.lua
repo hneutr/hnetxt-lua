@@ -1,13 +1,6 @@
-local tbl = require("sqlite.tbl")
-
-local Dict = require("hl.Dict")
-local List = require("hl.List")
-local Set = require("hl.Set")
 local class = require("pl.class")
 
 local Config = require("htl.Config")
-local db = require("htl.db")
-local Urls = require("htl.db.urls")
 
 local Colorize = require("htc.Colorize")
 
@@ -50,7 +43,33 @@ TODO:
 - tag handing: group tags by @level1.level2.etc
 ]]
 
-local M = tbl("metadata", Conf.db.metadata)
+local M = require("sqlite.tbl")("metadata", {
+    id = true,
+    key = {
+        type = "text",
+        required = true,
+    },
+    val = {
+        type = "text",
+        required = false,
+    },
+    url = {
+        type = "integer",
+        reference = "urls.id",
+        on_delete = "cascade",
+        required = true,
+    },
+    parent = {
+        type = "integer",
+        reference = "metadata.id",
+        on_delete = "cascade",
+        required = false,
+    },
+    datatype = {
+        type = "text",
+        required = false,
+    },
+})
 
 M.conf = Conf.metadata
 M.conf.excluded_fields = Set(M.conf.excluded_fields)
@@ -69,7 +88,7 @@ end
 --                                                                            --
 --------------------------------------------------------------------------------
 function M.record(path)
-    local url = Urls:get_file(path)
+    local url = DB.urls:get_file(path)
 
     if url then
         M:remove({url = url.id})
@@ -103,14 +122,14 @@ function M:insert_dict(dict, url, parent)
 end
 
 function M.record_missing(url_ids)
-    url_ids = url_ids or Urls:get({where = {resource_type = "file"}}):col('id')
+    url_ids = url_ids or DB.urls:get({where = {resource_type = "file"}}):col('id')
     url_ids = Set(url_ids):difference(M:get():col('url')):vals()
     
     if #url_ids == 0 then
         return
     end
 
-    Urls:get({where = {id = url_ids}}):foreach(function(url)
+    DB.urls:get({where = {id = url_ids}}):foreach(function(url)
         M.record(url.path)
     end)
 end
@@ -126,7 +145,7 @@ function M:get_urls(args)
     local rows = M:get()
 
     if args.path then
-        local urls = Set(Urls:get({
+        local urls = Set(DB.urls:get({
             where = {resource_type = "file"},
             contains = {path = string.format("%s*", args.path)},
         }):col('id'))
@@ -515,10 +534,10 @@ LinkPrinter.color_key = "link"
 
 function LinkPrinter:is_a(s, row) return row.datatype == "reference" end
 function LinkPrinter:for_terminal(s)
-    local url = Urls:where({id = tonumber(s)})
+    local url = DB.urls:where({id = tonumber(s)})
 
     if url then
-        return Urls:get_reference(url):terminal_string(self:colors())
+        return DB.urls:get_reference(url):terminal_string(self:colors())
     end
 end
 

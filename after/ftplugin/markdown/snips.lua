@@ -8,7 +8,6 @@ local i = ls.insert_node
 local Path = require('hl.Path')
 
 local Snippet = require("htl.snippet")
-local db = require("htl.db")
 
 local Header = require("htl.text.header")
 local Divider = require("htl.text.divider")
@@ -16,7 +15,7 @@ local Divider = require("htl.text.divider")
 
 local today = function() return vim.fn.strftime("%Y%m%d") end
 local link_id = function()
-    return tostring(db.get().urls:new_link(Path.this()).id)
+    return tostring(DB.urls:new_link(Path.this()).id)
 end
 
 local function header(trigger, size)

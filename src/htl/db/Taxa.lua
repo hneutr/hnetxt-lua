@@ -2,8 +2,6 @@ local List = require("hl.List")
 
 local Config = require("htl.Config")
 
-local Urls = require("htl.db.urls")
-
 local M = require("sqlite.tbl")("Taxa", {
     id = true,
     url = "integer",
@@ -23,7 +21,7 @@ function M:where(q)
     q = q or {}
     
     if q.url then
-        if not q.project or Urls:where({id = q.url, project = q.project}) then
+        if not q.project or DB.urls:where({id = q.url, project = q.project}) then
             return M:__where({url = q.url})
         end
     elseif q.key then

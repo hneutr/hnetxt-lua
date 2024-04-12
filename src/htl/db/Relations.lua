@@ -1,4 +1,4 @@
-local Taxa = require("htl.db.Taxa")
+local Config = require("htl.Config")
 
 local M = require("sqlite.tbl")("Relations", {
     id = true,
@@ -23,7 +23,7 @@ local M = require("sqlite.tbl")("Relations", {
 function M:insert(r, project)
     local row = {relation = r.relation}
     List({"subject", "object"}):foreach(function(col)
-        local col_taxa = Taxa:find(r[col], project) or {}
+        local col_taxa = DB.Taxa:find(r[col], project) or {}
         row[col] = col_taxa.id
     end)
     

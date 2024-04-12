@@ -3,16 +3,12 @@ local Dict = require("hl.Dict")
 local List = require("hl.List")
 
 local Config = require("htl.Config")
-local db = require("htl.db")
 local Link = require("htl.text.Link")
 local URLDefinition = require("htl.text.URLDefinition")
 
 local BufferLines = require("hn.buffer_lines")
 
-local Urls = require("htl.db.urls")
-local projects = require("htl.db.projects")
 local mirrors = require("htl.db.mirrors")
-local metadata = require("htl.db.metadata")
 
 local M = {}
 
@@ -37,13 +33,13 @@ function M.get_statusline()
         local source = mirrors:get_source(path)
 
         if source.project then
-            local project = projects:where({title = source.project})
+            local project = DB.projects:where({title = source.project})
             pre = string.format("[%s] ", project.title)
             relative_to = project.path
         end
 
         path = source.path
-    elseif Urls:get_file(path) then
+    elseif DB.urls:get_file(path) then
         post = mirrors:get_strings(path)
 
         if #post > 0 then
@@ -69,18 +65,18 @@ end
 function M.set_file_url(path)
     path = path and Path(path) or Path.this()
     if not mirrors:is_mirror(path) and path:suffix() == ".md" then
-        Urls:insert({path = path})
+        DB.urls:insert({path = path})
     end
 end
 
 function M.save_metadata(path)
     path = path and Path(path) or Path.this()
     M.set_file_url(path)
-    metadata.record(path)
+    DB.metadata.record(path)
 end
 
 function M.update_link_urls()
-    Urls:update_link_urls(Path.this(), List(BufferLines.get()))
+    DB.urls:update_link_urls(Path.this(), List(BufferLines.get()))
 end
 
 function M.spellfile(root)
@@ -94,7 +90,7 @@ function M.goto(open_command, fuzzy_path)
 
     if fuzzy_path then
         local project = vim.b.htn_project or {}
-        url = Urls:get_from_fuzzy_path(fuzzy_path, project.path)
+        url = DB.urls:get_from_fuzzy_path(fuzzy_path, project.path)
     else
         local cursor_col = vim.api.nvim_win_get_cursor(0)[2]
         local url_id = Link:get_nearest(vim.fn.getline('.'), cursor_col).url
@@ -103,7 +99,7 @@ function M.goto(open_command, fuzzy_path)
             if Path(url_id):is_url() then
                 os.execute(string.format("open %s", url_id))
             else
-                url = Urls:where({id = url_id})
+                url = DB.urls:where({id = url_id})
             end
         end
     end
@@ -130,8 +126,8 @@ function M.goto_map_fn(open_cmd) return function() M.goto(open_cmd) end end
 
 function M.get_reference(fuzzy_path)
     local project = vim.b.htn_project or {}
-    local url = Urls:get_from_fuzzy_path(fuzzy_path, project.path)
-    return tostring(Urls:get_reference(url))
+    local url = DB.urls:get_from_fuzzy_path(fuzzy_path, project.path)
+    return tostring(DB.urls:get_reference(url))
 end
 
 function M.mirror_mappings()
@@ -176,7 +172,7 @@ end
 function M.quote()
     vim.api.nvim_input("iquote<tab>")
 
-    local source = Urls:get_reference(Urls:where({path = Path.this():parent():join(Conf.paths.dir_file)}))
+    local source = DB.urls:get_reference(DB.urls:where({path = Path.this():parent():join(Conf.paths.dir_file)}))
     if source then
         vim.api.nvim_input(tostring(source))
         vim.api.nvim_input("<C-f>")
@@ -206,10 +202,10 @@ end
 --         return
 --     end
 
---     local old_url_id = Urls:where({path = Path.this(), resource_type = "file"}).id
+--     local old_url_id = DB.urls:where({path = Path.this(), resource_type = "file"}).id
     
---     Urls:remove({id = old_url_id})
---     Urls:update({
+--     DB.urls:remove({id = old_url_id})
+--     DB.urls:update({
 --         where = {id = url_id},
 --         set = {resource_type = "file", label = ""}
 --     })
@@ -219,9 +215,9 @@ end
 --     print("this doesn't work yet")
 --     local path = Path.this()
 --     local file_q = {path = path, resource_type = "file"}
---     local url = Urls:where(file_q)
+--     local url = DB.urls:where(file_q)
 
---     Urls:update({
+--     DB.urls:update({
 --         where = {id = url.id},
 --         set = {
 --             resource_type = "link",
@@ -229,9 +225,9 @@ end
 --         }
 --     })
 
---     Urls:insert({path = path})
+--     DB.urls:insert({path = path})
 
---     vim.api.nvim_put({tostring(Urls:get_reference(url))} , 'c', 1, 0)
+--     vim.api.nvim_put({tostring(DB.urls:get_reference(url))} , 'c', 1, 0)
 -- end
 
 M.scratch_map_fn = function() M.scratch('n') end

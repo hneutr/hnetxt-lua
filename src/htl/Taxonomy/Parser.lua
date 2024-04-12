@@ -1,9 +1,5 @@
 local Config = require("htl.Config")
-local class = require("pl.class")
-
-local Projects = require("htl.db.projects")
-local Taxa = require("htl.db.Taxa")
-local Relations = require("htl.db.Relations")
+local db = require("htl.db")
 
 -- ┏━━━━━━━━━━━━━━━━━━╸
 -- ┇ relations
@@ -37,9 +33,9 @@ M.conf.indent_size = "  "
 M.conf.root_taxon = "__root"
 
 function M:parse_taxonomy(path)
-    local project = Projects.get_by_path(path) or {}
+    local project = DB.projects.get_by_path(path) or {}
     M:parse_taxonomy_lines(path:readlines()):foreach(function(r)
-        Relations:insert(r, project.title)
+        DB.Relations:insert(r, project.title)
     end)
 end
 

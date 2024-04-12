@@ -1,15 +1,3 @@
-io = require("hl.io")
-string = require("hl.string")
-
-local class = require("pl.class")
-
-local Path = require("hl.path")
-local List = require("hl.List")
-local Dict = require("hl.Dict")
-
-local db = require("htl.db")
-local Urls = require("htl.db.urls")
-
 local M = {}
 M.command_str = "/bin/mv -v"
 M.separator = " -> "
@@ -62,7 +50,7 @@ end
 
 function M:update(moves)
     moves:foreach(function(move)
-        Urls:move(move.source, move.target)
+        DB.urls:move(move.source, move.target)
     end)
 end
 

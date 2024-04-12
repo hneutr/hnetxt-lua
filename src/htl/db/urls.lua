@@ -1,12 +1,8 @@
-local sqlite = require("sqlite.db")
-local tbl = require("sqlite.tbl")
-
 local Config = require("htl.Config")
-local projects = require("htl.db.projects")
 local Link = require("htl.text.Link")
 local URLDefinition = require("htl.text.URLDefinition")
 
-local M = tbl("urls", {
+local M = require("sqlite.tbl")("urls", {
     id = true,
     label = "text",
     project = {
@@ -43,7 +39,7 @@ function M:insert(row)
         end
     end
 
-    local project = projects.get_by_path(row.path)
+    local project = DB.projects.get_by_path(row.path)
 
     if not project then
         return
@@ -70,7 +66,7 @@ function M:get_file(path)
 end
 
 function M:move(source, target)
-    local project = projects.get_by_path(target)
+    local project = DB.projects.get_by_path(target)
 
     if project then
         M:insert({path = source})
@@ -188,7 +184,7 @@ function M:get_fuzzy_path(url)
 end
 
 function M:get_fuzzy_paths(dir)
-    local project = projects.get_by_path(dir)
+    local project = DB.projects.get_by_path(dir)
 
     local query
     if project then

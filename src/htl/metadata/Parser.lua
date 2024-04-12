@@ -1,5 +1,3 @@
-local Set = require("hl.Set")
-
 local Config = require("htl.Config")
 local Divider = require("htl.text.divider")
 local Link = require("htl.text.Link")

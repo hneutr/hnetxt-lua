@@ -1,5 +1,3 @@
-local sqlite = require("sqlite.db")
-
 local Config = require("htl.Config")
 
 local M = {}
@@ -13,13 +11,8 @@ function M.after_test()
     Config.after_test()
 end
 
---[[
-TODO:
-- move db creation into `htl.config`
-- have all `htl.db.*` files pull their `M` from the `Conf.db` object
-]] 
 function M.setup()
-    M.con = sqlite({
+    M.con = require("sqlite.db")({
         uri = tostring(Conf.paths.db_file),
         projects = require("htl.db.projects"),
         urls = require("htl.db.urls"),
@@ -29,6 +22,8 @@ function M.setup()
         Relations = require("htl.db.Relations"),
         Log = require("htl.db.Log"),
     })
+    
+    DB = M.con
 end
 
 function M.get()

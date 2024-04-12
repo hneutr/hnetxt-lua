@@ -1,15 +1,10 @@
 local Colorize = require("htc.colorize")
 
-local db = require("htl.db").get()
-local projects = db.projects
-local urls = db.urls
-local metadata = db.metadata
-
 return {
     require_command = false,
     action = function(args)
         if #Dict(args):keys() == 1 then
-            projects:get():sorted(function(a, b)
+            DB.projects:get():sorted(function(a, b)
                 return a.created < b.created
             end):foreach(function(p)
                 local colors = {
@@ -35,17 +30,17 @@ return {
             action = function(args)
                 args.path:mkdir()
             
-                projects:insert(args)
+                DB.projects:insert(args)
                 args.path:glob("%.md$"):foreach(function(path)
-                    urls:insert(path)
-                    metadata.record(path)
+                    DB.urls:insert(path)
+                    DB.metadata.record(path)
                 end)
             end,
         },
         remove = {
             {"title", default = Path.cwd():name(), description = "project title", args = "1"},
             action = function(args)
-                projects:remove({where = {title = args.title}})
+                DB.projects:remove({where = {title = args.title}})
             end,
         },
     }

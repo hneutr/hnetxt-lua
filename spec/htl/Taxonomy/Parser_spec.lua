@@ -1,24 +1,18 @@
-local Parser = require("htl.Taxonomy.Parser")
-local Path = require("hl.Path")
-
 local Config = require("htl.Config")
-local Urls = require("htl.db.urls")
-local Link = require("htl.text.Link")
-
 local db = require("htl.db")
-local Projects = require("htl.db.projects")
-local Taxa = require("htl.db.Taxa")
-local Relations = require("htl.db.Relations")
+local Link = require("htl.text.Link")
 
 local d1 = Config.test_root / "dir-1"
 local p1 = {title = "test", path = d1}
 local f1 = d1 / "file.md"
 
+local M = require("htl.Taxonomy.Parser")
+
 before_each(function()
     Config.before_test()
     db.setup()
     
-    Projects:insert(p1)
+    DB.projects:insert(p1)
 end)
 
 after_each(function()
@@ -27,25 +21,25 @@ end)
 
 describe("parse_predicate", function()
     it("nil", function()
-        assert.are.same("", Parser:parse_predicate())
+        assert.are.same("", M:parse_predicate())
     end)
 
     it("empty str", function()
-        assert.are.same("", Parser:parse_predicate(""))
+        assert.are.same("", M:parse_predicate(""))
     end)
 
     it("no relation", function()
-        assert.are.same("a", Parser:parse_predicate("a"))
+        assert.are.same("a", M:parse_predicate("a"))
     end)
 
     it("relation", function()
-        local object, relation = Parser:parse_predicate("+(a)")
+        local object, relation = M:parse_predicate("+(a)")
         assert.are.same("a", object)
         assert.are.same("instance taxon", relation)
     end)
 
     it("relation: link", function()
-        local object, relation = Parser:parse_predicate("+([a](1))")
+        local object, relation = M:parse_predicate("+([a](1))")
         assert.are.same(1, object)
         assert.are.same("instance taxon", relation)
     end)
@@ -53,19 +47,19 @@ end)
 
 describe("parse_subject", function()
     it("nil", function()
-        assert.are.same("", Parser:parse_subject())
+        assert.are.same("", M:parse_subject())
     end)
 
     it("empty str", function()
-        assert.are.same("", Parser:parse_subject())
+        assert.are.same("", M:parse_subject())
     end)
     
     it("no predicate", function()
-        assert.are.same("a", Parser:parse_subject("a:"))
+        assert.are.same("a", M:parse_subject("a:"))
     end)
 
     it("predicate", function()
-        local subject, str = Parser:parse_subject("a: b")
+        local subject, str = M:parse_subject("a: b")
         assert.are.same("a", subject)
         assert.are.same("b", str)
     end)
@@ -77,11 +71,11 @@ describe("parse_taxonomy_lines", function()
             {
                 {
                     subject = "a",
-                    object = Parser.conf.root_taxon,
+                    object = M.conf.root_taxon,
                     relation = "subset of",
                 }
             },
-            Parser:parse_taxonomy_lines(List({"a:"}))
+            M:parse_taxonomy_lines(List({"a:"}))
         )
     end)
 
@@ -90,7 +84,7 @@ describe("parse_taxonomy_lines", function()
             {
                 {
                     subject = "a",
-                    object = Parser.conf.root_taxon,
+                    object = M.conf.root_taxon,
                     relation = "subset of",
                 },
                 {
@@ -99,7 +93,7 @@ describe("parse_taxonomy_lines", function()
                     relation = "instance taxon",
                 }
             },
-            Parser:parse_taxonomy_lines(List({"a: +(b)"}))
+            M:parse_taxonomy_lines(List({"a: +(b)"}))
         )
     end)
 
@@ -108,7 +102,7 @@ describe("parse_taxonomy_lines", function()
             {
                 {
                     subject = "a",
-                    object = Parser.conf.root_taxon,
+                    object = M.conf.root_taxon,
                     relation = "subset of",
                 },
                 {
@@ -118,7 +112,7 @@ describe("parse_taxonomy_lines", function()
                 },
                 {
                     subject = "c",
-                    object = Parser.conf.root_taxon,
+                    object = M.conf.root_taxon,
                     relation = "subset of",
                 },
                 {
@@ -127,7 +121,7 @@ describe("parse_taxonomy_lines", function()
                     relation = "subset of",
                 },
             },
-            Parser:parse_taxonomy_lines(List({
+            M:parse_taxonomy_lines(List({
                 "a:",
                 "  b:",
                 "c:",
@@ -139,11 +133,11 @@ end)
 
 describe("parse_taxonomy", function()
     it("single line", function()
-        local a = Taxa:find("a", "test")
-        local root = Taxa:find(Parser.conf.root_taxon, "test")
+        local a = DB.Taxa:find("a", "test")
+        local root = DB.Taxa:find(M.conf.root_taxon, "test")
         
         f1:write({"a:"})
-        Parser:parse_taxonomy(f1)
+        M:parse_taxonomy(f1)
 
         assert.are.same(
             {
@@ -154,7 +148,7 @@ describe("parse_taxonomy", function()
                     relation = "subset of",
                 }
             },
-            Relations:get()
+            DB.Relations:get()
         )
     end)
 end)

@@ -1,9 +1,7 @@
 require("hl")
 local Link = require("htl.text.Link")
 
-local db = require("htl.db").get()
-local urls = db.urls
-local metadata = db.metadata
+local db = require("htl.db")
 
 local bad_lines = Set({
     "before:",
@@ -24,6 +22,6 @@ end):foreach(function(p)
 
     if #lines ~= n then
         p:write(lines)
-        metadata.record(p)
+        DB.metadata.record(p)
     end
 end)

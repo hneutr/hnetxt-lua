@@ -3,10 +3,6 @@ local Dict = require("hl.Dict")
 local Path = require('hl.Path')
 local ui = require("htn.ui")
 
-local db = require("htl.db")
-local Urls = require("htl.db.urls")
-local metadata = require('htl.db.metadata')
-
 local BufferLines = require("hn.buffer_lines")
 
 local ui = require("htn.ui")
@@ -15,9 +11,9 @@ local Fold = require('htn.ui.fold')
 local commands = Dict({
     Journal = function() require("htl.journal")():open() end,
     Aim = function() require("htl.goals")():open() end,
-    Track = require("htl.db.Log").ui.cmd,
-    SetDate = {function(args) Urls:set_date(Path.this(), args.args) end, {nargs = 1}},
-    PrintDate = function() print(Urls:where({path = Path.this()}).created) end,
+    Track = DB.Log.ui.cmd,
+    SetDate = {function(args) DB.urls:set_date(Path.this(), args.args) end, {nargs = 1}},
+    PrintDate = function() print(DB.urls:where({path = Path.this()}).created) end,
 })
 
 local autocommands = Dict()
@@ -50,7 +46,7 @@ autocommands.htn_fold = List({
 --                               project stuff                                --
 --------------------------------------------------------------------------------
 local current_file = Path.this()
-local project = db.get().projects.get_by_path(current_file)
+local project = DB.projects.get_by_path(current_file)
 
 if project then
     vim.opt_local.spellfile:append(ui.spellfile(project.path))

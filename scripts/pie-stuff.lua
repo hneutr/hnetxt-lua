@@ -1,5 +1,5 @@
-local db = require("htl.db")
-db.get()
+require("htl.db").setup()
+
 local Path = require("hl.Path")
 
 require("hl")

@@ -1,9 +1,5 @@
 local Path = require("hl.Path")
-
-local db = require("htl.db")
-
 local BufferLines = require("hn.buffer_lines")
-
 local ui = require("htn.ui")
 
 local fuzzy_actions = {
@@ -27,7 +23,7 @@ function M._do(fn)
         dir = vim.b.htn_project.path
     end
 
-    require('fzf-lua').fzf_exec(db.get().urls:get_fuzzy_paths(dir), {actions = actions})
+    require('fzf-lua').fzf_exec(DB.urls:get_fuzzy_paths(dir), {actions = actions})
 end
 
 function M.goto()

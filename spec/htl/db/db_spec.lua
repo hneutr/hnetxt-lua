@@ -1,20 +1,12 @@
-local Path = require("hl.Path")
+local Config = require("htl.Config")
 
-local db
+local M = require("htl.db")
 
--- before_each(function()
---     db = require("htl.db")
---     db.before_test()
--- end)
+before_each(function()
+    Config.before_test()
+    M.setup()
+end)
 
--- after_each(function()
---     db.after_test()
--- end)
-
-describe("it", function()
-    it("works", function()
-        -- db = require("htl.db")
-        -- print(db.blah)
-        -- db = nil
-    end)
+after_each(function()
+    Config.after_test()
 end)

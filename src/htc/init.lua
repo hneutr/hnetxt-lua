@@ -1,10 +1,6 @@
-require("hl")
-
-local db = require("htl.db")
-local Urls = require("htl.db.urls")
-
 local Config = require("htl.Config")
-local metadata = require("htl.db.metadata")
+local db = require("htl.db")
+db.setup()
 
 require("htc.cli")("hnetxt", {
     new = require("htc.new"),
@@ -38,13 +34,13 @@ require("htc.cli")("hnetxt", {
     track = {
         description = "print the tracking path",
         {"date", description = "date (YYYYMMDD); default today", default = os.date('%Y%m%d')},
-        action = require("htl.db.Log").ui.cli,
+        action = DB.Log.ui.cli,
     },
     x_of_the_day = {
         description = "set the x-of-the-day files",
         {"+r", target = "rerun", description = "rerun", switch = "on"},
         {"date", description = "date (YYYYMMDD); default today", default = os.date('%Y%m%d')},
-        action = require("htl.db.samples").run,
+        action = DB.samples.run,
     },
     tags = {
         description = "list tags",
@@ -58,7 +54,7 @@ require("htc.cli")("hnetxt", {
         {
             "--reference",
             description = "print references to this file",
-            convert = function(p) return Urls:where({path = Path.from_commandline(p)}).id end,
+            convert = function(p) return DB.urls:where({path = Path.from_commandline(p)}).id end,
         },
         {"-p --path", default = Path.cwd(), convert=Path.from_commandline},
         {"+f", target = "include_urls", description = "print file urls", switch = "on"},
@@ -75,7 +71,7 @@ require("htc.cli")("hnetxt", {
                 args.include_values = not args.include_values
             end
 
-            print(metadata.get_dict(args))
+            print(DB.metadata.get_dict(args))
         end
     },
     record_metadata = {
@@ -95,13 +91,13 @@ require("htc.cli")("hnetxt", {
                 q.contains = {path = string.format("%s*", args.path)}
             end
 
-            local url_ids = Urls:get(q):col('id')
+            local url_ids = DB.urls:get(q):col('id')
 
             if args.rerecord then
-                url_ids:foreach(function(u) metadata:remove({url = u}) end)
+                url_ids:foreach(function(u) DB.metadata:remove({url = u}) end)
             end
 
-            metadata.record_missing(url_ids)
+            DB.metadata.record_missing(url_ids)
         end,
     },
     quote = {
