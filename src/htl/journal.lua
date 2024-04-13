@@ -6,7 +6,6 @@ return function()
 
     if not path:exists() then
         path:write({
-            "date: " .. date,
             "is a: journal entry",
             "",
             "",
