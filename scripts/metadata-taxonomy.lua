@@ -1,13 +1,16 @@
 require("htl")
 
+local p = Path("/Users/hne/Documents/text/written/fiction/chasefeel/test-clitch-subspecies.md")
+local u = DB.urls:where({path = p})
+print(Dict(u))
 -- local p = Path("/Users/hne/Documents/text/written/fiction/chasefeel/.taxonomy.md")
-local p = Conf.paths.global_taxonomy_file
+-- local p = Conf.paths.global_taxonomy_file
 
-local url = DB.urls:where({path = p})
-print(Dict(url))
-os.exit()
+function print_q(q)
+    DB.Relations:get(q):foreach(function(r)
+        print(Dict(r))
+    end)
+end
 
-print(#DB.metadata:get({where = {url = url.id}}))
-DB.metadata:remove({url = url.id})
-DB.metadata:record(p)
-print(#DB.metadata:get({where = {url = url.id}}))
+print_q({where = {relation = "instance taxon"}})
+print_q({where = {subject_url = u.id}})

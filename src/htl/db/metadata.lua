@@ -87,20 +87,6 @@ end
 --                                                                            --
 --                                                                            --
 --------------------------------------------------------------------------------
-function M.record(path)
-    local url = DB.urls:get_file(path)
-
-    if url then
-        M:remove({url = url.id})
-        
-        if Taxonomy.path_is_taxonomy(path) then
-            Taxonomy.Parser:parse_taxonomy_file(path)
-        else
-            M:insert_dict(Parser:get(path), url.id)
-        end
-    end
-end
-
 function M:insert_dict(dict, url, parent)
     if not parent then
         local root = {key = M.root_key, url = url, datatype = 'root'}
@@ -121,9 +107,27 @@ function M:insert_dict(dict, url, parent)
             datatype = raw.datatype,
         }
 
+        if key == M.conf.is_a_key then
+            Taxonomy.Parser:record_is_a(url, raw.val)
+        end
+        
         M:insert(row)
         M:insert_dict(raw.metadata, url, M:where(row).id)
     end)
+end
+
+function M.record(path)
+    local url = DB.urls:get_file(path)
+
+    if url then
+        M:remove({url = url.id})
+        
+        if Taxonomy.path_is_taxonomy(path) then
+            Taxonomy.Parser:parse_taxonomy_file(path)
+        else
+            M:insert_dict(Parser:get(path), url.id)
+        end
+    end
 end
 
 function M.record_missing(url_ids)

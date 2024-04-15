@@ -48,7 +48,7 @@ eidola_dir:
   path: eidola
   parent: root
 global_taxonomy_file:
-  path: taxonomy.md
+  path: .taxonomy.md
   parent: eidola_dir
 language_dir:
   path: language

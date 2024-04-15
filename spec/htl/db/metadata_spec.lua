@@ -117,9 +117,6 @@ describe("insert_dict", function()
 
 end)
 
-describe("insert", function()
-end)
-
 describe("get_urls", function()
     it("dir", function()
         M:insert({key = "a", url = u1})

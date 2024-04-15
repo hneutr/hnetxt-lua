@@ -3,12 +3,13 @@ M.conf = Dict(Conf.Taxonomy)
 M.conf.relations = Dict(M.conf.relations)
 M.conf.indent_size = "  "
 
-function M:parse_non_taxonomy_line(path, line)
-    local url = DB.urls:get_file(path)
+function M:record_is_a(url, line)
+    DB.Relations:remove({subject_url = url})
+
     local object, relation = M:parse_predicate(line)
     
     DB.Relations:insert({
-        subject_url = url.id,
+        subject_url = url,
         object = object,
         relation = relation or "instance of",
     })
@@ -16,6 +17,9 @@ end
 
 function M:parse_taxonomy_file(path)
     local url = DB.urls:get_file(path)
+    
+    DB.Relations:remove({subject_url = url.id})
+
     M:parse_taxonomy_lines(path:readlines()):foreach(function(r)
         r.subject_url = url.id
         DB.Relations:insert(r)

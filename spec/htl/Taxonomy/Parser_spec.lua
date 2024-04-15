@@ -16,9 +16,7 @@ constructing a taxonomy from Relation rows:
 - then set the attributes for the relations directly?
 
 TODO:
-1. hook `htl.Taxonomy.Parser.parse_non_taxonomy_line` into `htl.db.metadata.Parser:get()`
-2. build taxonomies as described above (filtering by project, etc)
-
+1. build taxonomies as described above (filtering by project, etc)
 ]]
 
 
