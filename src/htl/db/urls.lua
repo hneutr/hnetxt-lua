@@ -1,4 +1,3 @@
-local Config = require("htl.Config")
 local Link = require("htl.text.Link")
 local URLDefinition = require("htl.text.URLDefinition")
 

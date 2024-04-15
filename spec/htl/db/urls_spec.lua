@@ -32,9 +32,7 @@ before_each(function()
     M = DB.urls
 end)
 
-after_each(function()
-    HTL.after_test()
-end)
+after_each(HTL.after_test)
 
 describe("where", function()
     it("works with string", function()

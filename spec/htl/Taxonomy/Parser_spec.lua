@@ -1,7 +1,5 @@
 local HTL = require("htl")
 
-local Link = require("htl.text.Link")
-
 local d1 = HTL.test_dir / "dir-1"
 local p1 = {title = "test", path = d1}
 local f1 = d1 / "file.md"
@@ -9,79 +7,18 @@ local f1 = d1 / "file.md"
 local M = require("htl.Taxonomy.Parser")
 
 --[[
-There are two types of taxonomy:
-1. global
-2. local
-
-local taxonomies extend the global taxonomy
-
-- if an entry in a local taxonomy has a predicate:
-    - create a local taxon for it
-
------------------------------------[ usages ]-----------------------------------
-- get the global/local taxonomy
-- find a taxon's instance type (which we can do from the taxonomy)
-
-----------------------------------------
-
-This all has to change whenever we update a taxonomy.
-- node changes happen on `DB.metadata.record_metadata`
-- how do child changes work?
-    - as in, when a child's parent changes, how do we propogate that?
-        - record the `raw` parent information in the Relation table?
-            - ie: url|string
-        - then, when it comes time to get the taxonomy:
-            - construct it on the fly
-
---------------------------------------------------------------------------------
---                                                                            --
---                                  Parsing                                   --
---                                                                            --
---------------------------------------------------------------------------------
-
---------------------------------------------------------------------------------
---                               taxonomy files                               --
---------------------------------------------------------------------------------
-- add a relation: 'subset of'
-
------------------------------------[ global ]-----------------------------------
-- default parent: root_taxon
-
------------------------------------[ local ]------------------------------------
-- default parent: none
-
---------------------------------------------------------------------------------
---                                                                            --
---                                  Reading                                   --
---                                                                            --
---------------------------------------------------------------------------------
-
------------------------------------[ global ]-----------------------------------
-
------------------------------------[ local ]------------------------------------
-- if parent = nil:
-    - if string and Global[string] exists:
-        - parent = Global[string].parent
-
-
-----------------------------------------
-
-what if I record just the relations, raw?
-Relations table:
-    Subject: url|string
-    SubjectType: "url"|"string"
-    Object: url|string
-    ObjectType: "url"|"string"
-    Relation: ...
-    Project: ...
-
-Then, to construct a taxonomy:
+To construct a taxonomy:
 1. start by constructing the global taxonomy
 2. modify it with the local taxonomy
 
 constructing a taxonomy from Relation rows:
 - just add them all iteratively to the tree
 - then set the attributes for the relations directly?
+
+TODO:
+1. hook `htl.Taxonomy.Parser.parse_non_taxonomy_line` into `htl.db.metadata.Parser:get()`
+2. hook `htl.Taxonomy.Parser.parse_taxonomy_file` into `htl.db.metadata.record`
+3. build taxonomies as described above (filtering by project, etc)
 
 ]]
 
@@ -91,9 +28,7 @@ before_each(function()
     DB.projects:insert(p1)
 end)
 
-after_each(function()
-    HTL.after_test()
-end)
+after_each(HTL.after_test)
 
 describe("parse_predicate", function()
     it("nil", function()
@@ -146,7 +81,7 @@ describe("parse_taxonomy_lines", function()
         assert.are.same(
             {
                 {
-                    subject = "a",
+                    subject_string = "a",
                     relation = "subset of",
                 }
             },
@@ -158,11 +93,11 @@ describe("parse_taxonomy_lines", function()
         assert.are.same(
             {
                 {
-                    subject = "a",
+                    subject_string = "a",
                     relation = "subset of",
                 },
                 {
-                    subject = "a",
+                    subject_string = "a",
                     object = "b",
                     relation = "instance taxon",
                 }
@@ -175,20 +110,20 @@ describe("parse_taxonomy_lines", function()
         assert.are.same(
             {
                 {
-                    subject = "a",
+                    subject_string = "a",
                     relation = "subset of",
                 },
                 {
-                    subject = "b",
+                    subject_string = "b",
                     object = "a",
                     relation = "subset of",
                 },
                 {
-                    subject = "c",
+                    subject_string = "c",
                     relation = "subset of",
                 },
                 {
-                    subject = "d",
+                    subject_string = "d",
                     object = "c",
                     relation = "subset of",
                 },
@@ -203,24 +138,37 @@ describe("parse_taxonomy_lines", function()
     end)
 end)
 
--- describe("parse_taxonomy", function()
---     it("single line", function()
---         local a = DB.Taxa:find("a", "test")
---         local root = DB.Taxa:find(M.conf.root_taxon, "test")
-        
---         f1:write({"a:"})
---         M:parse_taxonomy(f1)
+describe("parse_taxonomy_file", function()
+    it("single line", function()
+        local f1 = d1 / Conf.paths.taxonomy_file
+        f1:write({
+            "a:",
+            "  b:",
+        })
 
---         assert.are.same(
---             {
---                 {
---                     id = 1,
---                     subject = a.id,
---                     object = root.id,
---                     relation = "subset of",
---                 }
---             },
---             DB.Relations:get()
---         )
---     end)
--- end)
+        DB.urls:insert({path = f1})
+
+        local u1 = DB.urls:where({path = f1})
+        
+        M:parse_taxonomy_file(f1)
+
+        assert.are.same(
+            {
+                {
+                    id = 1,
+                    subject_url = u1.id,
+                    subject_string = "a",
+                    relation = "subset of",
+                },
+                {
+                    id = 2,
+                    subject_url = u1.id,
+                    subject_string = "b",
+                    object_string = "a",
+                    relation = "subset of",
+                },
+            },
+            DB.Relations:get()
+        )
+    end)
+end)

@@ -1,39 +1,24 @@
--- ┏━━━━━━━━━━━━━━━━━━╸
--- ┇ relations
--- ┗━━━━━━━━━━━━━━━━━━╸
--- - `instance of`
--- - `instance taxon`
--- - `subtaxon of`
--- - `attribute of`
--- - `list of`
-
-
---[[
-When parsing a row in a taxonomy file, insert into:
-  - `db.taxon`:
-    - `new_taxon`: val = row
-  - `db.taxon_relation`:
-    - {subject: `new_taxon`.id, object: `parent_taxon`.id, relation: "subtaxon of"}
-    - if there is a predicate:
-      - {subject: `new_taxon`.id, object: `predicate.object`.id, relation: "relation"}
-when parsing a file, insert into:
-  - `db.taxon`:
-    - `new_taxon`: url = file.url
-  - `db.taxon_relation`:
-    - {subject: `new_taxon`.id, object: `predicate`.object.id, relation: "instance of" | `predicate.relation`}
-      - make sure to insert the `predicate.object` if none exists
-]]
-
 local M = {}
 M.conf = Dict(Conf.Taxonomy)
 M.conf.relations = Dict(M.conf.relations)
 M.conf.indent_size = "  "
-M.conf.root_taxon = "__root"
 
-function M:parse_taxonomy(path)
-    local project = DB.projects.get_by_path(path) or {}
+function M:parse_non_taxonomy_line(path, line)
+    local url = DB.urls:get_file(path)
+    local object, relation = M:parse_predicate(line)
+    
+    DB.Relations:insert({
+        subject_url = url.id,
+        object = object,
+        relation = relation or "instance of",
+    })
+end
+
+function M:parse_taxonomy_file(path)
+    local url = DB.urls:get_file(path)
     M:parse_taxonomy_lines(path:readlines()):foreach(function(r)
-        DB.Relations:insert(r, project.title)
+        r.subject_url = url.id
+        DB.Relations:insert(r)
     end)
 end
 
@@ -44,25 +29,20 @@ function M:parse_taxonomy_lines(lines)
     lines:foreach(function(l)
         local indent, l = l:match("(%s*)(.*)")
         local parse = M:parse_line(l)
-
-        indent_to_parent[indent .. M.conf.indent_size] = parse.subject
+        indent_to_parent[indent .. M.conf.indent_size] = parse.subject_string
         
         relations:append({
-            subject = parse.subject,
+            subject_string = parse.subject_string,
             object = indent_to_parent[indent],
             relation = "subset of",
         })
         
-        if parse.object and parse.relation then
+        if parse.object and #parse.object > 0 and parse.relation then
             relations:append(parse)
         end
     end)
     
     return relations
-end
-
-function M:record_taxonomy_relations(relations)
-    
 end
 
 function M:parse_line(s, subject)
@@ -73,7 +53,7 @@ function M:parse_line(s, subject)
     local object, relation = M:parse_predicate(s)
 
     return Dict({
-        subject = subject,
+        subject_string = subject,
         object = object,
         relation = relation,
     })

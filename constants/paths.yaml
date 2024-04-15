@@ -41,10 +41,10 @@ mirrors_dir:
   path: .mirrors
   parent: data_dir
 global_taxonomy_file:
-  path: taxonomy.yaml
+  path: taxonomy.md
   parent: data_dir
 taxonomy_file:
-  path: .taxonomy
+  path: .taxonomy.md
 dir_file:
   path: "@.md"
 eidola_dir:

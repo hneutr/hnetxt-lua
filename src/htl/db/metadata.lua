@@ -93,7 +93,10 @@ function M.record(path)
 
     if url then
         M:remove({url = url.id})
-        M:insert_dict(Parser:get(path), url.id)
+        
+        if not Taxonomy.path_is_taxonomy(path) then
+            M:insert_dict(Parser:get(path), url.id)
+        end
     end
 end
 

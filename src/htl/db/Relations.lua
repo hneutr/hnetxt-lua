@@ -1,33 +1,38 @@
-local Config = require("htl.Config")
-
 local M = require("sqlite.tbl")("Relations", {
     id = true,
-    subject = {
+    subject_url = {
         type = "integer",
-        reference = "Taxa.id",
+        reference = "urls.id",
         on_delete = "cascade",
         required = true,
     },
-    object = {
+    subject_string = "string",
+    object_url = {
         type = "integer",
-        reference = "Taxa.id",
+        reference = "urls.id",
         on_delete = "cascade",
-        required = true,
     },
+    object_string = "string",
     relation = {
         type = "text",
         required = true,
     },
 })
 
-function M:insert(r, project)
-    local row = {relation = r.relation}
-    List({"subject", "object"}):foreach(function(col)
-        local col_taxa = DB.Taxa:find(r[col], project) or {}
-        row[col] = col_taxa.id
-    end)
+function M:insert(r)
+    local row = {
+        subject_url = r.subject_url,
+        subject_string = r.subject_string,
+        relation = r.relation,
+    }
+
+    if type(r.object) == "number" then
+        row.object_url = r.object
+    elseif type(r.object) == "string" then
+        row.object_string = r.object
+    end
     
     M:__insert(row)
 end
-      
+
 return M

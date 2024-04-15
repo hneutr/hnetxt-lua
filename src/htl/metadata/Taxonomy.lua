@@ -3,9 +3,11 @@ local lyaml = require("lyaml")
 local Tree = require("hl.Tree")
 local List = require("hl.List")
 
-local Config = require("htl.Config")
-
 local Taxonomy = require("pl.class")()
+
+function Taxonomy.path_is_taxonomy(path)
+    return path:name() == tostring(Conf.paths.taxonomy_file) or path == Conf.paths.global_taxonomy_file
+end
 
 function Taxonomy:_init(path)
     self.tree = self.read_tree(path)
