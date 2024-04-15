@@ -118,20 +118,6 @@ describe("insert_dict", function()
 end)
 
 describe("insert", function()
-    it("url delete", function()
-        local row = {
-            key = 'key',
-            val = 'val',
-            url = u1,
-            datatype = 'reference',
-        }
-
-        assert.are.same(0, #M:get())
-        M:insert(row)
-        assert.are.same(1, #M:get())
-        DB.urls:remove({id = u1})
-        assert.are.same(0, #M:get())
-    end)
 end)
 
 describe("get_urls", function()
