@@ -19,6 +19,10 @@ local M = require("sqlite.tbl")("Relations", {
     },
 })
 
+function M:get(q)
+    return List(M:__get(q))
+end
+
 function M:insert(r)
     local row = {
         subject_url = r.subject_url,

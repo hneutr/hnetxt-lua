@@ -1,6 +1,6 @@
 local HTL = require("htl")
 
-local Taxonomy = require("htl.metadata.Taxonomy")
+local Taxonomy = require("htl.Taxonomy")
 
 local d1 = HTL.test_dir / "dir-1"
 local d2 = HTL.test_dir / "dir-2"

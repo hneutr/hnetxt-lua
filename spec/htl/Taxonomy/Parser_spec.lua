@@ -17,8 +17,7 @@ constructing a taxonomy from Relation rows:
 
 TODO:
 1. hook `htl.Taxonomy.Parser.parse_non_taxonomy_line` into `htl.db.metadata.Parser:get()`
-2. hook `htl.Taxonomy.Parser.parse_taxonomy_file` into `htl.db.metadata.record`
-3. build taxonomies as described above (filtering by project, etc)
+2. build taxonomies as described above (filtering by project, etc)
 
 ]]
 

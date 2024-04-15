@@ -1,6 +1,6 @@
 local HTL = require("htl")
-local Taxonomy = require("htl.metadata.Taxonomy")
 
+local Taxonomy = require("htl.Taxonomy")
 local Condition = require("htl.metadata.Condition")
 
 before_each(function()

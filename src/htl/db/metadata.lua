@@ -1,13 +1,12 @@
 local class = require("pl.class")
 
-local Config = require("htl.Config")
 local db_util = require("htl.db.util")
 
 local Colorize = require("htc.Colorize")
 
 local Parser = require("htl.metadata.Parser")
 local Condition = require("htl.metadata.Condition")
-local Taxonomy = require("htl.metadata.Taxonomy")
+local Taxonomy = require("htl.Taxonomy")
 
 --[[
 Currently, I am doing super weird shit with the taxonomy — I am parsing the rows into the taxonomy form
@@ -94,7 +93,9 @@ function M.record(path)
     if url then
         M:remove({url = url.id})
         
-        if not Taxonomy.path_is_taxonomy(path) then
+        if Taxonomy.path_is_taxonomy(path) then
+            Taxonomy.Parser:parse_taxonomy_file(path)
+        else
             M:insert_dict(Parser:get(path), url.id)
         end
     end

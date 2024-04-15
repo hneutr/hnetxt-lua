@@ -50,7 +50,6 @@ build = {
 
         ["htl.metadata.Parser"] = "src/htl/metadata/Parser.lua",
         ["htl.metadata.Condition"] = "src/htl/metadata/Condition.lua",
-        ['htl.metadata.Taxonomy'] = "src/htl/metadata/Taxonomy.lua",
 
         ["htl.text.divider"] = "src/htl/text/divider.lua",
         ["htl.text.header"] = "src/htl/text/header.lua",
@@ -71,6 +70,7 @@ build = {
         ["htc.remove"] = "src/htc/remove.lua",
         ["htc.move"] = "src/htc/move.lua",
 
+        ["htl.Taxonomy"] = "src/htl/Taxonomy/init.lua",
         ["htl.Taxonomy.Parser"] = "src/htl/Taxonomy/Parser.lua",
         ["htl.db.Taxa"] = "src/htl/db/Taxa.lua",
         ["htl.db.Relations"] = "src/htl/db/Relations.lua",

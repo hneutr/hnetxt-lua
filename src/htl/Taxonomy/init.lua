@@ -5,6 +5,8 @@ local List = require("hl.List")
 
 local Taxonomy = require("pl.class")()
 
+Taxonomy.Parser = require("htl.Taxonomy.Parser")
+
 function Taxonomy.path_is_taxonomy(path)
     return path:name() == tostring(Conf.paths.taxonomy_file) or path == Conf.paths.global_taxonomy_file
 end

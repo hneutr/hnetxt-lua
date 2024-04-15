@@ -1,5 +1,5 @@
 local HTL = require("htl")
-local M = require("htl.metadata.Taxonomy")
+local M = require("htl.Taxonomy")
 
 local taxonomy_file = Conf.paths.taxonomy_file
 local d1 = HTL.test_dir / "taxonomy-test"
@@ -11,9 +11,7 @@ before_each(function()
     HTL.before_test()
 end)
 
-after_each(function()
-    HTL.after_test()
-end)
+after_each(HTL.after_test)
 
 describe("read_tree", function()
     it("no path", function()

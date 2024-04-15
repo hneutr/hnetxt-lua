@@ -40,9 +40,6 @@ snippets_dir:
 mirrors_dir:
   path: .mirrors
   parent: data_dir
-global_taxonomy_file:
-  path: taxonomy.md
-  parent: data_dir
 taxonomy_file:
   path: .taxonomy.md
 dir_file:
@@ -50,6 +47,9 @@ dir_file:
 eidola_dir:
   path: eidola
   parent: root
+global_taxonomy_file:
+  path: taxonomy.md
+  parent: eidola_dir
 language_dir:
   path: language
   parent: eidola_dir
