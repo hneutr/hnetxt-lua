@@ -14,6 +14,20 @@ describe("set", function()
     end)
 end)
 
+describe("pop", function()
+    it("non-existing", function()
+        local t = Tree({a = {}})
+        assert.is_nil(t:pop("b"))
+        assert.are.same(Tree({a = {}}), t)
+    end)
+    
+    it("existing", function()
+        local t = Tree({a = {}, b = {c = {}}})
+        assert.are.same(Tree({c = {}}), t:pop("b"))
+        assert.are.same(Tree({a = {}}), t)
+    end)
+end)
+
 describe("get", function()
     it("exists", function()
         local t = Tree({a = {b = {c = {}}}})
@@ -46,6 +60,36 @@ describe("add", function()
             e = {}
         }))
         assert.are.same({}, t:get("e"))
+    end) 
+end)
+
+describe("add_edge", function()
+    it("new source, new target", function()
+        assert.are.same(
+            Tree({a = {b = {}}}),
+            Tree():add_edge("a", "b")
+        )
+    end)
+
+    it("new source, existing target", function()
+        assert.are.same(
+            Tree({a = {b = {c = {}}}}),
+            Tree({b = {c = {}}}):add_edge("a", "b")
+        )
+    end)
+    
+    it("existing source, new target", function()
+        assert.are.same(
+            Tree({a = {b = {}, c = {}}}),
+            Tree({a = {b = {}}}):add_edge("a", "c")
+        )
+    end)
+    
+    it("existing source, existing target", function()
+        assert.are.same(
+            Tree({a = {b = {}}}),
+            Tree({a = {b = {}}}):add_edge("a", "b")
+        )
     end)
 end)
 

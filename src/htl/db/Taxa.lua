@@ -1,7 +1,3 @@
-local List = require("hl.List")
-
-local Config = require("htl.Config")
-
 local M = require("sqlite.tbl")("Taxa", {
     id = true,
     url = "integer",

@@ -5,6 +5,7 @@
 -- - `instance taxon`
 -- - `subtaxon of`
 -- - `attribute of`
+-- - `list of`
 
 
 --[[
@@ -37,7 +38,7 @@ function M:parse_taxonomy(path)
 end
 
 function M:parse_taxonomy_lines(lines)
-    local indent_to_parent = Dict({[""] = M.conf.root_taxon})
+    local indent_to_parent = Dict()
 
     local relations = List()
     lines:foreach(function(l)

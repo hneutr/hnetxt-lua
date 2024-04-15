@@ -2,3 +2,4 @@ relations:
   subset of: ⊂
   instance taxon: +
   attribute of: ⪽
+  # list of: ?

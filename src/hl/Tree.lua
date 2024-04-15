@@ -38,6 +38,22 @@ function Tree:get(key)
     end
 end
 
+function Tree:pop(key)
+    local trees = List({self})
+
+    while #trees > 0 do
+        local tree = trees:pop()
+
+        if tree[key] then
+            local key_tree = tree[key]
+            tree[key] = nil
+            return key_tree
+        end
+
+        trees:extend(tree:values())
+    end
+end
+
 function Tree:add(tree)
     Tree(tree):keys():foreach(function(key)
         local key_tree = self:get(key)
@@ -48,6 +64,19 @@ function Tree:add(tree)
             self[key] = Tree(tree[key])
         end
     end)
+end
+
+function Tree:add_edge(source, target)
+    local source_tree = self:get(source)
+    
+    if not source_tree then
+        self[source] = Tree()
+        source_tree = self[source]
+    end
+    
+    source_tree[target] = self:pop(target) or Tree()
+
+    return self
 end
 
 function Tree:parents()
