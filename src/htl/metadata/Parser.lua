@@ -96,7 +96,9 @@ function M:parse(lines)
                 parents_by_indent[indent .. M.conf.indent_size] = parents_by_indent[indent]:clone():append(key)
             end
 
-            val, datatype = M:parse_datatype(val)
+            if key ~= M.conf.is_a_key then
+                val, datatype = M:parse_datatype(val)
+            end
 
             local m = metadata
             parents_by_indent[indent]:foreach(function(parent)
