@@ -1,4 +1,3 @@
-default_instance_taxon: "instance"
 relations:
   subset of: ⊂ # subset?
   instance of: ⋐ # instance?
