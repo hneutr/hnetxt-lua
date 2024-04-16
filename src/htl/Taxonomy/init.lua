@@ -1,8 +1,5 @@
 local lyaml = require("lyaml")
 
-local Tree = require("hl.Tree")
-local List = require("hl.List")
-
 local Taxonomy = require("pl.class")()
 
 Taxonomy.Parser = require("htl.Taxonomy.Parser")

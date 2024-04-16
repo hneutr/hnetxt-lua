@@ -1,8 +1,6 @@
 require("htl")
 local M = require("htl.Taxonomy")
 
-local p = Path("/Users/hne/Documents/text/written/fiction/chasefeel/glossary/Rogbonesrogbonebone.md")
-
 -- DB.metadata.record(p)
 -- os.exit()
 

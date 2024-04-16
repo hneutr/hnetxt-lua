@@ -8,5 +8,6 @@ require("hl.string")
 require("hl.io")
 
 require("hl.Path")
+require("hl.Tree")
 
 _G.utils = require("hl.utils")
