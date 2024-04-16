@@ -7,7 +7,7 @@ local M = require("sqlite.tbl")("projects", {
     },
     created = {
         type = "text",
-        default = [[strftime('%Y%m%d')]],
+        default = os.date("%Y%m%d"),
     },
     path = {
         type = "text",

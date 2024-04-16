@@ -7,7 +7,6 @@ class.Link()
 Link.delimiter = Conf.link.delimiter
 Link.label_delimiters = {open = "[", close = "]"}
 Link.url_delimiters = {open = "(", close = ")"}
-Link.get_references_cmd = [[rg '\[.*\]\(.+\)' --no-heading --line-number --hidden]]
 
 function Link:_init(args)
     Dict.update(self, args or {}, {
@@ -87,38 +86,6 @@ function Link:get_nearest(str, position)
     end
 
     return distance_to_link[distance_to_link:keys():sort()[1]]
-end
-
-function Link:get_references(dir)
-    local cmd = List({self.get_references_cmd, dir}):join(" ")
-    
-    local url_to_references = Dict()
-    io.list_command(cmd):foreach(function(line)
-        local path, line_number, str = unpack(line:split(":", 2))
-        path = Path(path)
-
-        if not path:is_relative_to(dir) and dir:join(path):exists() then
-            path = dir:join(path)
-        end
-
-        local link = self:from_str(str)
-        while link do
-            local url = link.url
-            if not url_to_references[url] then
-                url_to_references[url] = Dict()
-            end
-
-            if not url_to_references[url][tostring(path)] then
-                url_to_references[url][tostring(path)] = List()
-            end
-
-            url_to_references[url][tostring(path)]:append(tonumber(line_number))
-
-            link = self:from_str(link.after)
-        end
-    end)
-
-    return url_to_references
 end
 
 return Link

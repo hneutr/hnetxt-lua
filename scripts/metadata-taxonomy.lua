@@ -7,10 +7,13 @@ print(Dict(u))
 -- local p = Conf.paths.global_taxonomy_file
 
 function print_q(q)
-    DB.Relations:get(q):foreach(function(r)
+    DB.Relations:get_annotated(q):foreach(function(r)
         print(Dict(r))
     end)
 end
 
 print_q({where = {relation = "instance taxon"}})
 print_q({where = {subject_url = u.id}})
+
+local M = require("htl.Taxonomy")
+print(M._M(Path("/Users/hne/Documents/text/written/fiction/chasefeel")).taxonomy)

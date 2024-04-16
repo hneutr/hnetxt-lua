@@ -67,14 +67,21 @@ function Tree:add(tree)
 end
 
 function Tree:add_edge(source, target)
-    local source_tree = self:get(source)
-    
-    if not source_tree then
-        self[source] = Tree()
-        source_tree = self[source]
+    local source_tree
+    if source then
+        source_tree = self:get(source)
+        
+        if not source_tree then
+            self[source] = Tree()
+            source_tree = self[source]
+        end
+    else
+        source_tree = self
     end
     
-    source_tree[target] = self:pop(target) or Tree()
+    if target then
+        source_tree[target] = self:pop(target) or Tree()
+    end
 
     return self
 end

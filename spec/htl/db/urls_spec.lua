@@ -250,36 +250,6 @@ describe("update_link_urls", function()
     end)
 end)
 
-describe("get_reference", function()
-    it("label", function()
-        assert.are.same(
-            "[a](1)",
-            tostring(M:get_reference({label = "a", id = 1}))
-        )
-    end)
-
-    it("no label, non-dir file", function()
-        assert.are.same(
-            "[c](1)",
-            tostring(M:get_reference({path = Path("a/b/c.md"), id = 1}))
-        )
-    end)
-
-    it("no label, dir file", function()
-        assert.are.same(
-            "[b](1)",
-            tostring(M:get_reference({path = Path("a/b/@.md"), id = 1}))
-        )
-    end)
-
-    it("language file", function()
-        assert.are.same(
-            "[-suffix](1)",
-            tostring(M:get_reference({path = Conf.paths.language_dir / "_suffix.md", id = 1}))
-        )
-    end)
-end)
-
 describe("set_date", function()
     it("works", function()
         M:insert({path = f1})
@@ -287,5 +257,23 @@ describe("set_date", function()
         local after = 19930120
         M:set_date(f1, after)
         assert.are.same(after, M:where({id = u1}).created)
+    end)
+end)
+
+describe("get_label", function()
+    it("label", function()
+        assert.are.same("a", tostring(M:get_label({label = "a"})))
+    end)
+
+    it("no label, non-dir file", function()
+        assert.are.same("c", M:get_label({path = Path("a/b/c.md")}))
+    end)
+
+    it("no label, dir file", function()
+        assert.are.same("b", M:get_label({path = Path("a/b/@.md")}))
+    end)
+
+    it("language file", function()
+        assert.are.same("-suffix", M:get_label({path = Conf.paths.language_dir / "_suffix.md"}))
     end)
 end)

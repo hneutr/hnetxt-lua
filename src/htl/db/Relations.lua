@@ -23,6 +23,26 @@ function M:get(q)
     return List(M:__get(q))
 end
 
+function M:get_annotated(q)
+    local rows = M:get(q)
+
+    local urls_by_id = Dict.from_list(
+        DB.urls:get(),
+        function(u)
+            u.label = DB.urls:get_label(u)
+            return u.id, Dict(u)
+        end
+    )
+    
+    rows:foreach(function(r)
+        r.subject_url = urls_by_id[r.subject_url]
+        if r.object_url then
+            r.object_url = urls_by_id[r.object_url]
+        end
+    end)
+    return rows
+end
+
 function M:insert(r)
     local row = {
         subject_url = r.subject_url,

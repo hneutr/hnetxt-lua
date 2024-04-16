@@ -6,20 +6,6 @@ local f1 = d1 / "file.md"
 
 local M = require("htl.Taxonomy.Parser")
 
---[[
-To construct a taxonomy:
-1. start by constructing the global taxonomy
-2. modify it with the local taxonomy
-
-constructing a taxonomy from Relation rows:
-- just add them all iteratively to the tree
-- then set the attributes for the relations directly?
-
-TODO:
-1. build taxonomies as described above (filtering by project, etc)
-]]
-
-
 before_each(function()
     HTL.before_test()
     DB.projects:insert(p1)

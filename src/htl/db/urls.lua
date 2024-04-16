@@ -214,7 +214,7 @@ function M:get_from_fuzzy_path(path, dir)
     return M:where(q)
 end
 
-function M:get_reference(url)
+function M:get_label(url)
     local label = url.label
 
     if not label then
@@ -230,9 +230,13 @@ function M:get_reference(url)
             label = label:gsub("_", "-")
         end
     end
+    
+    return label
+end
 
+function M:get_reference(url)
     return Link({
-        label = label,
+        label = M:get_label(url),
         url = url.id,
     })
 end

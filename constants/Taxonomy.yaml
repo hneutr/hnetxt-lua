@@ -1,5 +1,7 @@
+default_instance_taxon: "instance"
 relations:
   subset of: ⊂
   instance taxon: +
   attribute of: ⪽
+  instance of: ⋐
   # list of: ?

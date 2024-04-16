@@ -91,6 +91,20 @@ describe("add_edge", function()
             Tree({a = {b = {}}}):add_edge("a", "b")
         )
     end)
+
+    it("no target", function()
+        assert.are.same(
+            Tree({a = {}}),
+            Tree():add_edge("a")
+        )
+    end)
+
+    it("no subject", function()
+        assert.are.same(
+            Tree({b = {}}),
+            Tree():add_edge(nil, "b")
+        )
+    end)
 end)
 
 describe("parents", function()
