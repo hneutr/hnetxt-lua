@@ -72,62 +72,23 @@ To construct a taxonomy:
 1. start by constructing the global taxonomy
 2. modify it with the local taxonomy
 
-constructing a taxonomy from Relation rows:
-- just add them all iteratively to the tree
-- then set the attributes for the relations directly?
-
-TODO:
-1. build taxonomies as described above (filtering by project, etc)
-
------------------------------------[ steps ]------------------------------------
-1. get rows for a given project
-    - get `strings` for each row
-2. handle row by relation:
+relation types handled:
     ✓ subset of
-    - instance taxon:
-    - attribute of:
-    - instance of:
+    ✓ instance taxon
+    ✓ instance of
+    ⨉ attribute of
 ]]
 function _M:_init(path)
-    self.instance_taxa = Dict()
-    
-    self.projects = self:get_projects(path)
+    self.projects = self.get_projects(path)
+    self.rows = self.get_rows(self.projects)
+
     self.rows_by_relation = self.get_rows_by_relation(self.projects)
-
     self.taxonomy = self.add_subsets(self.rows_by_relation["subset of"])
-    -- TODO:
-    self.instance_taxonomy = self.add_instance_taxa(self.taxonomy, self.rows_by_relation["instance taxon"])
-end
 
---[[
-what's the issue?
-1. we want to retain information about which things are urls (links) and which are strings
-2. we need to have a consistent lookup for (url, string) pairs
-]]
-function _M.add_subsets(rows)
-    local tree = Tree()
-    rows:foreach(function(row)
-        tree:add_edge(_M.get_label(row, "object"), _M.get_label(row, "subject"))
-    end)
-    
-    return tree
-end
-
-function _M.add_instance_taxa(taxonomy, rows)
-    local instances_taxonomy = self.taxonomy:pop("instances") or Tree()
-end
-
-function _M.get_label(row, role)
-    local string_key = string.format("%s_string", role)
-    local url_key = string.format("%s_url", role)
-    
-    local label = row[string_key] or row[url_key] and DB.urls:get_label(row[url_key])
-    
-    if label and #label == 0 then
-        return
-    end
-    
-    return label
+    self.instance_taxonomy = self.get_instances_taxonomy(
+        self.taxonomy,
+        self.rows_by_relation
+    )
 end
 
 function _M.get_projects(path)
@@ -139,25 +100,56 @@ function _M.get_projects(path)
     end):col('title')
 end
 
+function _M.get_rows(projects)
+    local project_to_index = Dict.from_list(projects, function(p) return p, projects:index(p) end)
+    
+    return DB.Relations:get_annotated():filter(function(r)
+        return project_to_index[r.subject_url.project]
+    end):sorted(function(a, b)
+        return project_to_index[a.subject_url.project] < project_to_index[b.subject_url.project]
+    end)
+end
+
 function _M.get_rows_by_relation(projects)
     local rows_by_relation = Dict()
-    DB.Relations:get_annotated():foreach(function(row)
-        row.i = projects:index(row.subject_url.project)
-
-        if row.i then
-            rows_by_relation:default(row.relation, List())
-            rows_by_relation[row.relation]:append(row)
-        end
-    end)
-    
-    rows_by_relation:foreach(function(relation, rows)
-        rows_by_relation[relation] = rows:sorted(function(a, b) return a.i < b.i end)
+    _M.get_rows(projects):foreach(function(row)
+        rows_by_relation:default(row.relation, List())
+        rows_by_relation[row.relation]:append(row)
     end)
     
     return rows_by_relation
 end
 
-function _M:add_row()
+function _M.add_subsets(rows)
+    local tree = Tree()
+    rows:foreach(function(row)
+        tree:add_edge(row.object_label, row.subject_label)
+    end)
+    
+    return tree
+end
+
+-- TODO:
+-- weird stuff will happen if a child comes in before a parent
+-- buuuuut we're going to leave it for now.
+-- (should probably sort by `generation`)
+function _M.get_instances_taxonomy(taxonomy, rows_by_relation)
+    local tree = taxonomy:pop("instance") or Tree()
+    
+    rows_by_relation["instance taxon"]:foreach(function(row)
+        tree:pop(row.subject_label)
+        tree:add({
+            [row.object_label] = {
+                [row.subject_label] = taxonomy:get(row.subject_label) or Tree()
+            }
+        })
+    end)
+    
+    rows_by_relation["instance of"]:foreach(function(row)
+        tree:add_edge(row.object_label, row.subject_label)
+    end)
+    
+    return tree
 end
 
 Taxonomy._M = _M

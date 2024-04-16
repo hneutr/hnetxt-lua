@@ -7,12 +7,14 @@ function M:record_is_a(url, line)
     DB.Relations:remove({subject_url = url})
 
     local object, relation = M:parse_predicate(line)
-    
+
     DB.Relations:insert({
         subject_url = url,
         object = object,
         relation = relation or "instance of",
     })
+    
+    return tostring(object)
 end
 
 function M:parse_taxonomy_file(path)
@@ -33,10 +35,10 @@ function M:parse_taxonomy_lines(lines)
     lines:foreach(function(l)
         local indent, l = l:match("(%s*)(.*)")
         local parse = M:parse_line(l)
-        indent_to_parent[indent .. M.conf.indent_size] = parse.subject_string
+        indent_to_parent[indent .. M.conf.indent_size] = parse.subject_label
         
         relations:append({
-            subject_string = parse.subject_string,
+            subject_label = parse.subject_label,
             object = indent_to_parent[indent],
             relation = "subset of",
         })
@@ -57,7 +59,7 @@ function M:parse_line(s, subject)
     local object, relation = M:parse_predicate(s)
 
     return Dict({
-        subject_string = subject,
+        subject_label = subject,
         object = object,
         relation = relation,
     })
@@ -69,6 +71,14 @@ function M:parse_subject(s)
     return subject, s
 end
 
+function M.parse_link(s)
+    local link = Link:from_str(s)
+    if link then
+        s = tonumber(link.url)
+    end
+    return s
+end
+
 function M:parse_predicate(s)
     s = s or ""
     s = s:strip()
@@ -78,16 +88,16 @@ function M:parse_predicate(s)
         if s:startswith(prefix) and s:endswith(suffix) then
             s = s:removeprefix(prefix):removesuffix(suffix)
             
-            local link = Link:from_str(s)
-            if link then
-                s = tonumber(link.url)
-            end
+            -- local link = Link:from_str(s)
+            -- if link then
+            --     s = tonumber(link.url)
+            -- end
             
-            return s, relation
+            return M.parse_link(s), relation
         end
     end
 
-    return s
+    return M.parse_link(s)
 end
 
 return M

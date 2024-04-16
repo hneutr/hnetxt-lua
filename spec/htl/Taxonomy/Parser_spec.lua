@@ -64,7 +64,7 @@ describe("parse_taxonomy_lines", function()
         assert.are.same(
             {
                 {
-                    subject_string = "a",
+                    subject_label = "a",
                     relation = "subset of",
                 }
             },
@@ -76,11 +76,11 @@ describe("parse_taxonomy_lines", function()
         assert.are.same(
             {
                 {
-                    subject_string = "a",
+                    subject_label = "a",
                     relation = "subset of",
                 },
                 {
-                    subject_string = "a",
+                    subject_label = "a",
                     object = "b",
                     relation = "instance taxon",
                 }
@@ -93,20 +93,20 @@ describe("parse_taxonomy_lines", function()
         assert.are.same(
             {
                 {
-                    subject_string = "a",
+                    subject_label = "a",
                     relation = "subset of",
                 },
                 {
-                    subject_string = "b",
+                    subject_label = "b",
                     object = "a",
                     relation = "subset of",
                 },
                 {
-                    subject_string = "c",
+                    subject_label = "c",
                     relation = "subset of",
                 },
                 {
-                    subject_string = "d",
+                    subject_label = "d",
                     object = "c",
                     relation = "subset of",
                 },
@@ -140,14 +140,14 @@ describe("parse_taxonomy_file", function()
                 {
                     id = 1,
                     subject_url = u1.id,
-                    subject_string = "a",
+                    subject_label = "a",
                     relation = "subset of",
                 },
                 {
                     id = 2,
                     subject_url = u1.id,
-                    subject_string = "b",
-                    object_string = "a",
+                    subject_label = "b",
+                    object_label = "a",
                     relation = "subset of",
                 },
             },

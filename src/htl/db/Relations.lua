@@ -6,13 +6,13 @@ local M = require("sqlite.tbl")("Relations", {
         on_delete = "cascade",
         required = true,
     },
-    subject_string = "string",
+    subject_label = "text",
     object_url = {
         type = "integer",
         reference = "urls.id",
         on_delete = "cascade",
     },
-    object_string = "string",
+    object_label = "text",
     relation = {
         type = "text",
         required = true,
@@ -36,24 +36,38 @@ function M:get_annotated(q)
     
     rows:foreach(function(r)
         r.subject_url = urls_by_id[r.subject_url]
+        r.subject_label = M.get_label(r.subject_label, r.subject_url)
+
         if r.object_url then
             r.object_url = urls_by_id[r.object_url]
+            r.object_label = M.get_label(r.object_label, r.object_url)
         end
     end)
+
     return rows
+end
+
+function M.get_label(label, url)
+    label = label or url and url.label
+    
+    if label and #label == 0 then
+        return
+    end
+    
+    return label
 end
 
 function M:insert(r)
     local row = {
         subject_url = r.subject_url,
-        subject_string = r.subject_string,
+        subject_label = r.subject_label,
         relation = r.relation,
     }
 
     if type(r.object) == "number" then
         row.object_url = r.object
     elseif type(r.object) == "string" then
-        row.object_string = r.object
+        row.object_label = r.object
     end
     
     M:__insert(row)

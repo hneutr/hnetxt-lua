@@ -99,17 +99,19 @@ function M:insert_dict(dict, url, parent)
     end
 
     Dict(dict):foreach(function(key, raw)
+        local val = raw.val
+
+        if key == M.conf.is_a_key then
+            val = Taxonomy.Parser:record_is_a(url, val)
+        end
+
         local row = {
             key = key,
-            val = raw.val,
+            val = val,
             url = url,
             parent = parent,
             datatype = raw.datatype,
         }
-
-        if key == M.conf.is_a_key then
-            Taxonomy.Parser:record_is_a(url, raw.val)
-        end
         
         M:insert(row)
         M:insert_dict(raw.metadata, url, M:where(row).id)
