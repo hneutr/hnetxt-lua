@@ -101,6 +101,8 @@ function M:insert_dict(dict, url, parent)
     Dict(dict):foreach(function(key, raw)
         local val = raw.val
 
+        -- TODO: this is a hacky way of dealing with `is a`
+        -- see also: `htl.metadata.Parser:parse`
         if key == M.conf.is_a_key then
             val = Taxonomy.Parser:record_is_a(url, val)
         end

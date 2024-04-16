@@ -175,3 +175,19 @@ describe("pop", function()
         assert.is_nil(d.a)
     end)
 end)
+
+describe("__newindex/__index", function()
+    it("string", function()
+        local d = Dict()
+        d.a = 1
+        
+        assert.are.same({a = 1}, d)
+    end)
+    
+    it("list", function()
+        local l = List({1, 2})
+        local d = Dict()
+        d[l] = 3
+        assert.are.same(3, d[l])
+    end)
+end)

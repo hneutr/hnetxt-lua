@@ -79,6 +79,12 @@ require("htc.cli")("hnetxt", {
             print(DB.metadata.get_dict(args))
         end
     },
+    tax = {
+        description = "print taxonomy",
+        {"-p --path", default = Path.cwd(), convert=Path.from_commandline},
+        action = function(args)
+        end,
+    },
     record_metadata = {
         description = "record metadata",
         {"-p --path", default = Path.cwd(), description = "restrict to this path", convert=Path.as_path},

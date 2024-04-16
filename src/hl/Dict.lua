@@ -1,5 +1,24 @@
 require("pl.class").Dict()
 
+-- convert tables into strings when setting
+function Dict.__newindex(self, key, val)
+    if type(key) == 'table' then
+        key = tostring(key)
+    end
+    
+    rawset(self, key, val)
+end
+
+-- 1. convert tables into strings when getting
+-- 2. retrieve from Dict first.
+function Dict.__index(self, key)
+    if type(key) == 'table' then
+        key = tostring(key)
+    end
+    
+    return Dict[key] or rawget(self, key)
+end
+
 function Dict:_init(...)
     self:update(...)
 end
