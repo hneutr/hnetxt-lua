@@ -77,6 +77,11 @@ describe("insert", function()
         M:insert({path = f1})
         assert.are.same(1, #M:get(q))
     end)
+    
+    it("sets date", function()
+        M:insert({path = f1, created = 19930120})
+        assert.are.same(19930120, M:where({path = f1}).created)
+    end)
 end)
 
 describe("move", function()
@@ -257,6 +262,14 @@ describe("set_date", function()
         local after = 19930120
         M:set_date(f1, after)
         assert.are.same(after, M:where({id = u1}).created)
+    end)
+
+    it("non-existent url", function()
+        -- M:insert({path = f1})
+        -- local before = M:where({id = u1}).created
+        local after = 19930120
+        M:set_date(f1, after)
+        assert.are.same(after, M:get_file(f1).created)
     end)
 end)
 

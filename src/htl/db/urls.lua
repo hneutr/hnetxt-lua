@@ -49,6 +49,7 @@ function M:insert(row)
         project = project.title,
         label = row.label,
         resource_type = row.resource_type,
+        created = row.created or os.date("%Y%m%d"),
     })
 end
 
@@ -242,10 +243,16 @@ function M:get_reference(url)
 end
 
 function M:set_date(path, date)
-    M:update({
-        where = {path = path, resource_type = "file"},
-        set = {created = date},
-    })
+    local url = M:get_file(path)
+    
+    if url then
+        M:update({
+            where = {id = url.id},
+            set = {created = date},
+        })
+    else
+        M:insert({path = path, created = date})
+    end
 end
 
 return M
