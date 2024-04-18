@@ -1,5 +1,3 @@
-local List = require("hl.List")
-
 local Parser = require("htl.text.Parser")
 
 local Divider = require("htl.text.divider")

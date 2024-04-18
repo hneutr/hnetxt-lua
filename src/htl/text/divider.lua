@@ -1,10 +1,5 @@
-local Dict = require("hl.Dict")
-local List = require("hl.List")
-local class = require("pl.class")
+local Divider = class()
 
-local Config = require("htl.Config")
-
-class.Divider()
 Divider.config = Conf.divider
 Divider.sizes = Conf.sizes
 

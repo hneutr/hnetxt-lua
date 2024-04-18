@@ -1,10 +1,8 @@
-local HTL = require("htl")
-
 local Taxonomy = require("htl.Taxonomy")
 local Condition = require("htl.metadata.Condition")
 
 before_each(function()
-    HTL.before_test()
+    htl.before_test()
 
     Conf.paths.global_taxonomy_file:write({
         "a:",
@@ -23,9 +21,7 @@ before_each(function()
     Condition.taxonomy = Taxonomy()
 end)
 
-after_each(function()
-    HTL.after_test()
-end)
+after_each(htl.after_test)
 
 describe("parse", function()
     it("startswith: +", function()

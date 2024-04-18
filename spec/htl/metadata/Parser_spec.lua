@@ -1,3 +1,5 @@
+require("htl")
+
 local M = require("htl.metadata.Parser")
 
 describe("parse", function()

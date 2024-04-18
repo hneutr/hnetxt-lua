@@ -3,7 +3,7 @@ local Link = require("htl.text.Link")
 
 local mirrors = require("htl.db.mirrors")
 
-local M = require("pl.class")()
+local M = class()
 
 local function get_conf()
     local c = Dict(Conf.metadata)

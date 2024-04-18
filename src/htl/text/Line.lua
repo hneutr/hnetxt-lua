@@ -1,6 +1,5 @@
-local class = require("pl.class")
+local Line = class()
 
-class.Line()
 Line.regex = "^(%s*)(.*)$"
 Line.indent_size = 2
 Line.name = 'line'

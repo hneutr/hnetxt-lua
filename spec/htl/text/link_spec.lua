@@ -1,3 +1,5 @@
+require("htl")
+
 local Link = require("htl.text.Link")
 
 describe("str_is_a", function() 

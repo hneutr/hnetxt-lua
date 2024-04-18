@@ -1,13 +1,8 @@
-local class = require("pl.class")
-local Dict = require("hl.Dict")
-local List = require("hl.List")
-
-local Config = require("htl.Config")
 local ListConfig = Dict(Conf.list)
 
 local Line = require("htl.text.Line")
 
-class.Item(Line)
+local Item = class(Line)
 Item.sigil_separator = " "
 Item.type_configs = Dict(ListConfig.types)
 Item.default_type = Item.type_configs[ListConfig.default_type]

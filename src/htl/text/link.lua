@@ -1,9 +1,7 @@
-local class = require("pl.class")
 local Colorize = require("htc.Colorize")
 
-local Config = require("htl.Config")
+local Link = class()
 
-class.Link()
 Link.delimiter = Conf.link.delimiter
 Link.label_delimiters = {open = "[", close = "]"}
 Link.url_delimiters = {open = "(", close = ")"}

@@ -1,6 +1,6 @@
 local lyaml = require("lyaml")
 
-local Taxonomy = require("pl.class")()
+local Taxonomy = class()
 
 Taxonomy.Parser = require("htl.Taxonomy.Parser")
 
@@ -59,7 +59,7 @@ end
 --                                                                            --
 --                                                                            --
 --------------------------------------------------------------------------------
-local _M = require("pl.class")()
+local _M = class()
 _M.conf = Dict(Conf.Taxonomy)
 _M.conf.relations = Dict(_M.conf.relations)
 _M.conf.all_relation_key = "__all"

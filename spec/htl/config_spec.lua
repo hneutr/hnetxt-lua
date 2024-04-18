@@ -1,16 +1,10 @@
-local HTL = require("htl")
-
 local M = require("htl.Config")
 
-local test_dir = HTL.test_dir
+local test_dir = htl.test_dir
 
-before_each(function()
-    HTL.before_test()
-end)
+before_each(htl.before_test)
 
-after_each(function()
-    HTL.after_test()
-end)
+after_each(htl.after_test)
 
 describe("Paths", function()
     describe("__newindex", function()

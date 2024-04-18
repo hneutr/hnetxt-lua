@@ -1,7 +1,5 @@
 local Colorize = require("htc.Colorize")
 
-local class = require("pl.class")
-
 local Colors = Dict(Conf.Taxonomy.colors)
 
 local TaxonPrinter = class()
@@ -28,9 +26,6 @@ function TaxonLinkPrinter:entity_is_a(entity) return not entity.from_taxonomy an
 function TaxonLinkPrinter:__tostring()
     return DB.urls:get_reference(self.entity):terminal_string(self.colors)
 end
-
--- local LinePrinter = class()
-
 
 --------------------------------------------------------------------------------
 --                                                                            --

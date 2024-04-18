@@ -3,7 +3,7 @@ local Config = require("htl.Config")
 
 local Link = require("htl.text.Link")
 
-local Snippet = require("pl.class")
+local Snippet = class()
 Snippet.FIELD_SEPARATOR = ":"
 
 function Snippet:_init(path)

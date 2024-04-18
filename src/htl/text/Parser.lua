@@ -1,12 +1,8 @@
-local List = require("hl.List")
-local Dict = require("hl.Dict")
-local class = require("pl.class")
-
 local Header = require("htl.text.header")
 local Divider = require("htl.text.divider")
 local Line = require("htl.text.Line")
 
-class.Parser()
+local Parser = class()
 
 function Parser:_init()
     self.headers = Header.headers()

@@ -1,3 +1,5 @@
+require("htl")
+
 local Item = require("htl.text.List.Item")
 
 describe("parse_sigil", function()

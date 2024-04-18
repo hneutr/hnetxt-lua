@@ -1,4 +1,4 @@
-_G.class = require("pl.class")
+class = require("pl.class")
 
 require("hl.List")
 require("hl.Dict")
@@ -10,4 +10,4 @@ require("hl.io")
 require("hl.Path")
 require("hl.Tree")
 
-_G.utils = require("hl.utils")
+utils = require("hl.utils")

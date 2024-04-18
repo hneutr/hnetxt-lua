@@ -1,7 +1,6 @@
-local class = require("pl.class")
 local Item = require("htl.text.List.Item")
 
-class.NumberedItem(Item)
+local NumberedItem = class(Item)
 NumberedItem.sigil_separator = ". "
 
 function NumberedItem:str_is_a(s)

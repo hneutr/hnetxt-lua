@@ -1,5 +1,3 @@
-local class = require("pl.class")
-
 local db_util = require("htl.db.util")
 
 local Colorize = require("htc.Colorize")

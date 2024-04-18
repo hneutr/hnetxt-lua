@@ -1,3 +1,5 @@
+require("htl")
+
 local TextList = require("htl.text.List")
 
 local Line = require("htl.text.Line")

@@ -1,3 +1,5 @@
+local Link = require("htl.text.Link")
+
 local M = {}
 M.conf = Dict(Conf.Taxonomy)
 M.conf.relations = Dict(M.conf.relations)

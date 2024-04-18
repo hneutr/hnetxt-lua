@@ -1,9 +1,7 @@
-local HTL = require("htl")
-
 local Taxonomy = require("htl.Taxonomy")
 
-local d1 = HTL.test_dir / "dir-1"
-local d2 = HTL.test_dir / "dir-2"
+local d1 = htl.test_dir / "dir-1"
+local d2 = htl.test_dir / "dir-2"
 
 local f1 = d1 / "file-1.md"
 local f2 = d2 / "file-2.md"
@@ -21,7 +19,7 @@ local taxonomy
 local M
 
 before_each(function()
-    HTL.before_test()
+    htl.before_test()
 
     DB.projects:insert(p1)
     DB.projects:insert(p2)
@@ -61,7 +59,7 @@ before_each(function()
 end)
 
 after_each(function()
-    HTL.after_test()
+    htl.after_test()
 end)
 
 describe("insert_dict", function()

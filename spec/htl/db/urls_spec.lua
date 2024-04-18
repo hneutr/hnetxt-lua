@@ -1,12 +1,10 @@
 local Date = require("pl.Date")
 
-local HTL = require("htl")
-
 local Link = require("htl.text.Link")
 
-local d1 = HTL.test_dir / "dir-1"
-local d2 = HTL.test_dir / "dir-2"
-local d3 = HTL.test_dir / "dir-3"
+local d1 = htl.test_dir / "dir-1"
+local d2 = htl.test_dir / "dir-2"
+local d3 = htl.test_dir / "dir-3"
 
 local f1 = d1 / "file-1.md"
 local f2 = d1 / "file-2.md"
@@ -20,7 +18,7 @@ local p2 = {title = "test2", path = d2, created = "19930121"}
 local M
 
 before_each(function()
-    HTL.before_test()
+    htl.before_test()
     DB.projects:insert(p1)
     DB.projects:insert(p2)
     f1:touch()
@@ -32,7 +30,7 @@ before_each(function()
     M = DB.urls
 end)
 
-after_each(HTL.after_test)
+after_each(htl.after_test)
 
 describe("where", function()
     it("works with string", function()

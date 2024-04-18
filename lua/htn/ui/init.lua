@@ -169,7 +169,6 @@ function M.scratch(mode)
     end
 end
 
--- currently doesn't work _within_ an nvim session because of the `split without nesting` stuff
 function M.quote()
     vim.api.nvim_input("iquote<tab>")
 

@@ -1,8 +1,7 @@
-local class = require("pl.class")
-
 local Link = require("htl.text.Link")
 
-class.URLDefinition(Link)
+local URLDefinition = class(Link)
+
 URLDefinition.url_delimiters = {
     open = "(" .. URLDefinition.delimiter,
     close = URLDefinition.delimiter .. ")",

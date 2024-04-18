@@ -1,8 +1,7 @@
-local HTL = require("htl")
 local M = require("htl.Taxonomy")
 
 local taxonomy_file = Conf.paths.taxonomy_file
-local d1 = HTL.test_dir / "taxonomy-test"
+local d1 = htl.test_dir / "taxonomy-test"
 local d2 = d1 / "subdir"
 local t1 = d1 / taxonomy_file
 local t2 = d2 / taxonomy_file
@@ -13,7 +12,7 @@ local p_global
 local p_local
 
 before_each(function()
-    HTL.before_test()
+    htl.before_test()
 
     p_global = {path = Conf.paths.global_taxonomy_file:parent(), title = "global"}
     p_local = {path = d1, title = "local"}
@@ -22,7 +21,7 @@ before_each(function()
     DB.projects:insert(p_local)
 end)
 
-after_each(HTL.after_test)
+after_each(htl.after_test)
 
 describe("is_taxonomy_file", function()
     it("+: global taxonomy file", function()

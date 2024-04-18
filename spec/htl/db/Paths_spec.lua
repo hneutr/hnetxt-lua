@@ -1,15 +1,11 @@
-local HTL = require("htl")
-
 local M
 
 before_each(function()
-    HTL.before_test()
+    htl.before_test()
     M = DB.Paths
 end)
 
-after_each(function()
-    HTL.after_test()
-end)
+after_each(htl.after_test)
 
 describe("ingest", function()
     it("+", function()

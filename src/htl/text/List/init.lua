@@ -1,11 +1,8 @@
-local class = require("pl.class")
-local List = require("hl.List")
-
 local Line = require("htl.text.Line")
 local Item = require("htl.text.List.Item")
 local NumberedItem = require("htl.text.List.NumberedItem")
 
-class.TextList()
+local TextList = class()
 TextList.LineClasses = List({
     NumberedItem,
     Item,

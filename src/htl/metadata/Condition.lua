@@ -2,7 +2,7 @@ local Set = require("hl.Set")
 local Config = require("htl.Config")
 local Parser = require("htl.metadata.Parser")
 
-local M = require("pl.class")()
+local M = class()
 M.conf = Conf.metadata
 
 function M.filter(rows, conditions, taxonomy)

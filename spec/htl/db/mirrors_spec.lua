@@ -1,9 +1,7 @@
-local HTL = require("htl")
-
 local M = require("htl.db.mirrors")
 
-local d1 = HTL.test_dir / "dir-1"
-local d2 = HTL.test_dir / "dir-2"
+local d1 = htl.test_dir / "dir-1"
+local d2 = htl.test_dir / "dir-2"
 
 local f1 = d1 / "file-1.md"
 local f2 = d2 / "file-2.md"
@@ -18,7 +16,7 @@ local test_config = Dict({
 })
 
 before_each(function()
-    HTL.before_test()
+    htl.before_test()
 
     f1:touch()
     f2:touch()
@@ -33,9 +31,7 @@ before_each(function()
     M:set_conf()
 end)
 
-after_each(function()
-    HTL.after_test()
-end)
+after_each(htl.after_test)
 
 describe("is_mirror", function()
     it("+", function()

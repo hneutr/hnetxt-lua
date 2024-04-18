@@ -1,17 +1,15 @@
-local HTL = require("htl")
-
-local d1 = HTL.test_dir / "dir-1"
+local d1 = htl.test_dir / "dir-1"
 local p1 = {title = "test", path = d1}
 local f1 = d1 / "file.md"
 
 local M = require("htl.Taxonomy.Parser")
 
 before_each(function()
-    HTL.before_test()
+    htl.before_test()
     DB.projects:insert(p1)
 end)
 
-after_each(HTL.after_test)
+after_each(htl.after_test)
 
 describe("parse_predicate", function()
     it("nil", function()

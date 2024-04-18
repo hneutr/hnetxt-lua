@@ -1,4 +1,2 @@
-local HTL = require("htl")
-
-before_each(HTL.before_test)
-after_each(HTL.after_test)
+before_each(htl.before_test)
+after_each(htl.after_test)
