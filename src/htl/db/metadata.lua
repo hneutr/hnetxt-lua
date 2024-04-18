@@ -126,7 +126,7 @@ function M.record(path)
     if url then
         M:remove({url = url.id})
         
-        if Taxonomy.path_is_taxonomy(path) then
+        if Taxonomy.is_taxonomy_file(path) then
             Taxonomy.Parser:parse_taxonomy_file(path)
         else
             M:insert_dict(Parser:get(path), url.id)

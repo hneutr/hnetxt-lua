@@ -83,6 +83,23 @@ require("htc.cli")("hnetxt", {
         description = "print taxonomy",
         {"-p --path", default = Path.cwd(), convert=Path.from_commandline},
         action = function(args)
+            local Taxonomy = require("htl.Taxonomy")
+
+            -- DB.metadata.record(p)
+            -- os.exit()
+            local p = Path("/Users/hne/Documents/text/written/fiction/chasefeel")
+
+            -- Taxonomy.Parser:parse_taxonomy_file(Conf.paths.global_taxonomy_file)
+            local taxonomy = Taxonomy._M(p)
+
+            local printer = taxonomy.Printer(
+                taxonomy.label_to_entity,
+                taxonomy.taxonomy,
+                taxonomy.taxon_to_instance_taxon,
+                taxonomy.instances
+            )
+
+            printer:print_tree(printer.taxonomy)
         end,
     },
     record_metadata = {

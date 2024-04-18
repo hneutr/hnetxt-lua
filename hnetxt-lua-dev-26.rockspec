@@ -47,6 +47,7 @@ build = {
         ["htl.db.metadata"] = "src/htl/db/metadata.lua",
         ["htl.db.Log"] = "src/htl/db/Log.lua",
         ["htl.db.Paths"] = "src/htl/db/Paths.lua",
+        ["htl.db.Relations"] = "src/htl/db/Relations.lua",
 
         ["htl.metadata.Parser"] = "src/htl/metadata/Parser.lua",
         ["htl.metadata.Condition"] = "src/htl/metadata/Condition.lua",
@@ -72,7 +73,7 @@ build = {
 
         ["htl.Taxonomy"] = "src/htl/Taxonomy/init.lua",
         ["htl.Taxonomy.Parser"] = "src/htl/Taxonomy/Parser.lua",
-        ["htl.db.Relations"] = "src/htl/db/Relations.lua",
+        ["htl.Taxonomy.Printer"] = "src/htl/Taxonomy/Printer.lua",
     }
 }
 test = {

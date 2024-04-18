@@ -6,7 +6,9 @@ function Dict.__newindex(self, key, val)
         key = tostring(key)
     end
     
-    rawset(self, key, val)
+    if key ~= nil then
+        rawset(self, key, val)
+    end
 end
 
 -- 1. convert tables into strings when getting
