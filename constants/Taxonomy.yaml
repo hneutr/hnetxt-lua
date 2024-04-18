@@ -4,3 +4,13 @@ relations:
   attribute of: ⪽ # attribute?
   instance taxon: + # instantiates?
   # list of: ?
+colors:
+  key: blue
+  tag: magenta
+  val: blue
+  taxon: yellow
+  link:
+    label: [cyan, underline]
+    label_delimiters: black
+    url: black
+    url_delimiters: [black]
