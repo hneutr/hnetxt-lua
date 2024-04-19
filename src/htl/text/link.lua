@@ -32,6 +32,13 @@ function Link:__tostring()
     return self.before .. self:bare_link_string() .. self.after
 end
 
+function Link:bare_link_string()
+    return List({
+        self.label_delimiters.open .. self.label .. self.label_delimiters.close,
+        self.url_delimiters.open .. self.url .. self.url_delimiters.close,
+    }):join("")
+end
+
 function Link:terminal_string(colors)
     return List({
         Colorize(self.label_delimiters.open, colors.label_delimiters),
@@ -41,13 +48,6 @@ function Link:terminal_string(colors)
         Colorize(self.url, colors.url),
         Colorize(self.url_delimiters.close, colors.url_delimiters),
         "",
-    }):join("")
-end
-
-function Link:bare_link_string()
-    return List({
-        self.label_delimiters.open .. self.label .. self.label_delimiters.close,
-        self.url_delimiters.open .. self.url .. self.url_delimiters.close,
     }):join("")
 end
 

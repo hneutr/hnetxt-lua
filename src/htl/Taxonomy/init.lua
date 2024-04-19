@@ -88,18 +88,30 @@ function _M:_init(path)
     self.projects = self.get_projects(path)
     
     self.rows = self.get_rows(self.projects)
-    
+
     self.label_to_entity = self.get_label_map(self.rows)
 
     self.rows_by_relation = _M.get_rows_by_relation(self.rows)
     
     self.taxonomy = self.make_taxonomy(self.rows_by_relation["subset of"])
-    self.taxon_to_instance_taxon = self.make_taxon_to_instance_taxon_map(
-        self.taxonomy,
-        self.rows_by_relation["instance taxon"]
-    )
 
-    self.instances = self.map_subject_to_object(self.rows_by_relation["instance of"])
+    self.taxon_to_instance_taxon = self.map_subject_to_object(self.rows_by_relation["instance taxon"])
+    self.instance_to_taxon = self.map_subject_to_object(self.rows_by_relation["instance of"])
+    
+    if path then
+        path = path:is_dir() and path or path:parent()
+
+        self.instance_to_taxon = self.instance_to_taxon:filterk(function(label)
+            local url = self.label_to_entity[label]
+            return url.path:is_relative_to(path)
+        end)
+    end
+    
+    self.instance_taxonomy = self.make_instance_taxonomy(
+        self.taxonomy,
+        self.taxon_to_instance_taxon,
+        self.instance_to_taxon
+    )
 end
 
 function _M.get_projects(path)
@@ -212,6 +224,36 @@ function _M.make_taxonomy(rows)
     
     return tree
 end
+
+--[[
+when we start here:
+- we take an instance
+- we follow its parent change, subbing in by taxon_to_instance_taxon
+- and we add each of those to the tree
+- that's it
+]]
+function _M.make_instance_taxonomy(taxonomy, taxon_to_instance_taxon, instance_to_taxon)
+    local tree = Tree()
+    local parents = taxonomy:parents()
+    
+    taxon_to_instance_taxon.abstract = "instance"
+    
+    instance_to_taxon:foreach(function(instance, taxon)
+        local child = instance
+        local parent = taxon
+
+        while parent and child do
+            parent = taxon_to_instance_taxon[parent] or parent
+            tree:add_edge(parent, child)
+            
+            child = parent
+            parent = parents[parent]
+        end
+    end)
+    
+    return tree
+end
+
 
 function _M.make_taxon_to_instance_taxon_map(taxonomy, taxon_to_instance_taxon_rows)
     local map = _M.map_subject_to_object(taxon_to_instance_taxon_rows)

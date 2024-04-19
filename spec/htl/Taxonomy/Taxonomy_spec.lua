@@ -208,6 +208,7 @@ describe("_M", function()
                 }))
             )
         end)
+
         it("'subject' > 'object'", function()
             assert.are.same(
                 {a = {label = "a", id = "subject"}},

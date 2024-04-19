@@ -40,10 +40,10 @@ M.conf = Dict(Conf.Taxonomy)
 M.conf.indent_size = "  "
 M.conf.Printers = List({TaxonPrinter, TaxonLinkPrinter})
 
-function M:_init(label_to_entity, taxonomy, taxon_to_instance_taxon, instances)
+function M:_init(label_to_entity, taxonomy, instance_taxonomy, instances)
     self.label_to_entity = label_to_entity
     self.taxonomy = taxonomy
-    self.taxon_to_instance_taxon = taxon_to_instance_taxon
+    self.instance_taxonomy = instance_taxonomy
     self.instances = instances
 end
 
