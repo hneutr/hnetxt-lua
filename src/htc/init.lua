@@ -137,6 +137,10 @@ require("htc.cli")("hnetxt", {
             print(path)
         end,
     },
+    language = {
+        description = "print the language dir",
+        action = function(args) print(Conf.paths.language_dir) end,
+    },
     test = {
         description = "test",
         {"+r", target = "rerun", description = "rerun", switch = "on"},
