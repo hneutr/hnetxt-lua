@@ -61,6 +61,7 @@ build = {
         ["htl.text.List.NumberedItem"] = "src/htl/text/List/NumberedItem.lua",
         ["htl.text.Link"] = "src/htl/text/Link.lua",
         ["htl.text.URLDefinition"] = "src/htl/text/URLDefinition.lua",
+        ["htl.text.TerminalLink"] = "src/htl/text/TerminalLink.lua",
 
         -- cli
         ["htc"] = "src/htc/init.lua",

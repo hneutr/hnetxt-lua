@@ -1,7 +1,11 @@
+local TerminalLink = require("htl.text.TerminalLink")
 local Colorize = require("htc.Colorize")
 
 local Colors = Dict(Conf.Taxonomy.colors)
 
+--------------------------------------------------------------------------------
+--                                   Taxon                                    --
+--------------------------------------------------------------------------------
 local TaxonPrinter = class()
 TaxonPrinter.color_key = "taxon"
 
@@ -10,22 +14,29 @@ function TaxonPrinter:_init(entity)
     self.colors = Colors[self.color_key]
 end
 
-function TaxonPrinter:entity_is_a(entity) return entity.from_taxonomy or not entity.id end
-
 function TaxonPrinter:__tostring()
-    return Colorize(self.entity.label, self.colors)
+    if not self.entity.from_taxonomy and self.entity.id then
+        return tostring(TerminalLink({
+            label = self.entity.label,
+            url = self.entity.id,
+            colors = self.colors,
+        }))
+    else
+        return Colorize(self.entity.label, self.colors.label)
+    end
 end
 
---------------------------------------------------------------------------------
---                              TaxonLinkPrinter                              --
---------------------------------------------------------------------------------
-local TaxonLinkPrinter = class(TaxonPrinter)
-TaxonLinkPrinter.color_key = "link"
+function TaxonPrinter:entity_is_a(entity) return true end
 
-function TaxonLinkPrinter:entity_is_a(entity) return not entity.from_taxonomy and entity.id end
-function TaxonLinkPrinter:__tostring()
-    return DB.urls:get_reference(self.entity):terminal_string(self.colors)
-end
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                  Instance                                  --
+--                                                                            --
+--------------------------------------------------------------------------------
+local InstancePrinter = class(TaxonPrinter)
+InstancePrinter.color_key = "instance"
+
+function InstancePrinter:entity_is_a(entity) return entity.type == "instance" end
 
 --------------------------------------------------------------------------------
 --                                                                            --
@@ -38,13 +49,15 @@ local M = class()
 
 M.conf = Dict(Conf.Taxonomy)
 M.conf.indent_size = "  "
-M.conf.Printers = List({TaxonPrinter, TaxonLinkPrinter})
+M.conf.Printers = List({
+    InstancePrinter,
+    TaxonPrinter,
+})
 
-function M:_init(label_to_entity, taxonomy, instance_taxonomy, instances)
+function M:_init(label_to_entity, taxonomy, instance_taxonomy)
     self.label_to_entity = label_to_entity
     self.taxonomy = taxonomy
     self.instance_taxonomy = instance_taxonomy
-    self.instances = instances
 end
 
 function M:get_entity_printer(entity)

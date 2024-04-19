@@ -1,16 +1,14 @@
 relations:
-  subset of: ⊂ # subset?
-  instance of: ⋐ # instance?
-  attribute of: ⪽ # attribute?
+  subset: ⊂
+  instance: ⋐ # instance?
   instance taxon: + # instantiates?
+  # attribute of: ⪽ # attribute?
   # list of: ?
 colors:
   key: blue
   tag: magenta
   val: blue
-  taxon: yellow
-  link:
-    label: [cyan, underline]
-    label_delimiters: black
-    url: black
-    url_delimiters: [black]
+  taxon:
+    label: [yellow]
+  instance:
+    label: [blue]

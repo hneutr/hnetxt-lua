@@ -91,10 +91,9 @@ require("htc.cli")("hnetxt", {
             local printer = taxonomy.Printer(
                 taxonomy.label_to_entity,
                 taxonomy.taxonomy,
-                taxonomy.instance_taxonomy,
-                taxonomy.instances
+                taxonomy.instance_taxonomy
             )
-
+            
             -- print(printer:print_tree(printer.taxonomy):join("\n"))
             print(printer:print_tree(printer.instance_taxonomy):join("\n"))
         end,

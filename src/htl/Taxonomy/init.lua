@@ -70,8 +70,8 @@ _M.conf.label_priority = Dict({
     }),
     relation = List({
         "other",
-        "subset of",
-        "instance of",
+        "subset",
+        "instance",
     }),
 })
 
@@ -79,9 +79,9 @@ _M.Printer = require("htl.Taxonomy.Printer")
 
 --[[
 relation types handled:
-    ✓ subset of
+    ✓ subset
     ✓ instance taxon
-    ✓ instance of
+    ✓ instance
     ⨉ attribute of
 ]]
 function _M:_init(path)
@@ -91,21 +91,21 @@ function _M:_init(path)
 
     self.label_to_entity = self.get_label_map(self.rows)
 
-    self.rows_by_relation = _M.get_rows_by_relation(self.rows)
+    self.rows_by_relation = self.get_rows_by_relation(self.rows)
     
-    self.taxonomy = self.make_taxonomy(self.rows_by_relation["subset of"])
+    self.taxonomy = self.make_taxonomy(self.rows_by_relation.subset)
 
     self.taxon_to_instance_taxon = self.map_subject_to_object(self.rows_by_relation["instance taxon"])
-    self.instance_to_taxon = self.map_subject_to_object(self.rows_by_relation["instance of"])
     
-    if path then
-        path = path:is_dir() and path or path:parent()
-
-        self.instance_to_taxon = self.instance_to_taxon:filterk(function(label)
-            local url = self.label_to_entity[label]
-            return url.path:is_relative_to(path)
-        end)
-    end
+    self.instance_to_taxon = self.make_instance_to_taxon_map(
+        self.rows_by_relation.instance,
+        self.label_to_entity,
+        path
+    )
+    
+    self.instance_to_taxon:keys():foreach(function(label)
+        self.label_to_entity[label].type = "instance"
+    end)
     
     self.instance_taxonomy = self.make_instance_taxonomy(
         self.taxonomy,
@@ -225,6 +225,20 @@ function _M.make_taxonomy(rows)
     return tree
 end
 
+function _M.make_instance_to_taxon_map(rows, label_to_entity, path)
+    local map = _M.map_subject_to_object(rows)
+    
+    if path then
+        path = path:is_dir() and path or path:parent()
+
+        map = map:filterk(function(label)
+            return label_to_entity[label].path:is_relative_to(path)
+        end)
+    end
+    
+    return map
+end
+
 --[[
 when we start here:
 - we take an instance
@@ -252,23 +266,6 @@ function _M.make_instance_taxonomy(taxonomy, taxon_to_instance_taxon, instance_t
     end)
     
     return tree
-end
-
-
-function _M.make_taxon_to_instance_taxon_map(taxonomy, taxon_to_instance_taxon_rows)
-    local map = _M.map_subject_to_object(taxon_to_instance_taxon_rows)
-    local parents = taxonomy:parents()
-    parents:keys():foreach(_M.get_instance_taxon, parents, map)
-end
-
-function _M.get_instance_taxon(taxon, parents, taxon_to_instance_taxon_map)
-    local instance_taxon
-    while taxon and not instance_taxon do
-        instance_taxon = taxon_to_instance_taxon_map[taxon]
-        taxon = parents[taxon]
-    end
-
-    return instance_taxon or "instance"
 end
 
 Taxonomy._M = _M

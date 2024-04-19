@@ -63,7 +63,7 @@ describe("parse_taxonomy_lines", function()
             {
                 {
                     subject_label = "a",
-                    relation = "subset of",
+                    relation = "subset",
                 }
             },
             M:parse_taxonomy_lines(List({"a:"}))
@@ -75,7 +75,7 @@ describe("parse_taxonomy_lines", function()
             {
                 {
                     subject_label = "a",
-                    relation = "subset of",
+                    relation = "subset",
                 },
                 {
                     subject_label = "a",
@@ -92,21 +92,21 @@ describe("parse_taxonomy_lines", function()
             {
                 {
                     subject_label = "a",
-                    relation = "subset of",
+                    relation = "subset",
                 },
                 {
                     subject_label = "b",
                     object = "a",
-                    relation = "subset of",
+                    relation = "subset",
                 },
                 {
                     subject_label = "c",
-                    relation = "subset of",
+                    relation = "subset",
                 },
                 {
                     subject_label = "d",
                     object = "c",
-                    relation = "subset of",
+                    relation = "subset",
                 },
             },
             M:parse_taxonomy_lines(List({
@@ -139,14 +139,14 @@ describe("parse_taxonomy_file", function()
                     id = 1,
                     subject_url = u1.id,
                     subject_label = "a",
-                    relation = "subset of",
+                    relation = "subset",
                 },
                 {
                     id = 2,
                     subject_url = u1.id,
                     subject_label = "b",
                     object_label = "a",
-                    relation = "subset of",
+                    relation = "subset",
                 },
             },
             DB.Relations:get()

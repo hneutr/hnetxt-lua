@@ -548,7 +548,18 @@ function LinkPrinter:for_terminal(s)
     local url = DB.urls:where({id = tonumber(s)})
 
     if url then
-        return DB.urls:get_reference(url):terminal_string(self:colors())
+        local colors = self:colors()
+        local l = DB.urls:get_reference(url)
+
+        return List({
+            Colorize(l.label_delimiters.open, colors.label_delimiters),
+            Colorize(l.label, colors.label),
+            Colorize(l.label_delimiters.close, colors.label_delimiters),
+            Colorize(l.url_delimiters.open, colors.url_delimiters),
+            Colorize(l.url, colors.url),
+            Colorize(l.url_delimiters.close, colors.url_delimiters),
+            "",
+        }):join("")
     end
 end
 

@@ -1,1 +1,6 @@
 delimiter: ":"
+colors:
+  label: [cyan, underline]
+  label_delimiters: black
+  url: black
+  url_delimiters: black

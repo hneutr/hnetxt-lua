@@ -189,17 +189,17 @@ describe("_M", function()
     end)
     
     describe("get_label_map", function()
-        it("'instance of' > 'subset of' > 'other'", function()
+        it("'instance' > 'subset' > 'other'", function()
             assert.are.same(
-                {a = {label = "a", id = "instance of"}},
+                {a = {label = "a", id = "instance"}},
                 M.get_label_map(List({
                     {
-                        relation = "subset of",
-                        subject = {label = "a", id = "subset of"},
+                        relation = "subset",
+                        subject = {label = "a", id = "subset"},
                     },
                     {
-                        relation = "instance of",
-                        subject = {label = "a", id = "instance of"},
+                        relation = "instance",
+                        subject = {label = "a", id = "instance"},
                     },
                     {
                         relation = "instance taxon",
@@ -222,44 +222,11 @@ describe("_M", function()
                         subject = {label = "a", id = "subject"},
                     },
                     {
-                        relation = "instance of",
+                        relation = "instance",
                         object = {label = "a", id = "object"},
                     }
                 }))
             )
         end)
-    end)
-    
-    describe("get_instance_taxon", function()
-        local parents = {a = "b", b = "c"}
-
-        it("taxon has taxon_to_instance_taxon", function()
-            assert.are.same(
-                "a instance taxon",
-                M.get_instance_taxon("a", parents, {a = "a instance taxon"})
-            )
-        end)
-        
-        it("taxon parent taxon_to_instance_taxon", function()
-            assert.are.same(
-                "b instance taxon",
-                M.get_instance_taxon("a", parents, {b = "b instance taxon", c = "c instance taxon"})
-            )
-        end)
-        
-        it("taxon ancestor has taxon_to_instance_taxon", function()
-            assert.are.same(
-                "c instance taxon",
-                M.get_instance_taxon("a", parents, {c = "c instance taxon"})
-            )
-        end)
-        
-        it("no taxon_to_instance_taxon", function()
-            assert.are.same(
-                "instance",
-                M.get_instance_taxon("d", parents, {})
-            )
-        end)
-        
     end)
 end)

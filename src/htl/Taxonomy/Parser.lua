@@ -13,7 +13,7 @@ function M:record_is_a(url, line)
     DB.Relations:insert({
         subject_url = url,
         object = object,
-        relation = relation or "instance of",
+        relation = relation or "instance",
     })
     
     return tostring(object)
@@ -42,7 +42,7 @@ function M:parse_taxonomy_lines(lines)
         relations:append({
             subject_label = parse.subject_label,
             object = indent_to_parent[indent],
-            relation = "subset of",
+            relation = "subset",
         })
         
         if parse.object and #parse.object > 0 and parse.relation then
