@@ -1,13 +1,10 @@
 relations:
-  subset: ⊂
+  subset: ⊃
   instance: ⋐ # instance?
   instance taxon: + # instantiates?
   # attribute of: ⪽ # attribute?
   # list of: ?
 colors:
-  key: blue
-  tag: magenta
-  val: blue
   taxon:
     label: [yellow]
   instance:
