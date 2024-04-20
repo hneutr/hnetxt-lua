@@ -46,7 +46,8 @@ function Taxonomy.read_tree(path)
     local tree = Tree()
 
     paths:foreach(function(path)
-        tree:add(Tree(lyaml.load(path:read())))
+        local lines = path:readlines():transform(function(l) return l:gsub(": .*", ":") end)
+        tree:add(Tree(lyaml.load(lines:join("\n"))))
     end)
 
     return tree
