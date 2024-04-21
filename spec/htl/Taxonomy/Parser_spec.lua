@@ -2,6 +2,8 @@ local d1 = htl.test_dir / "dir-1"
 local p1 = {title = "test", path = d1}
 local f1 = d1 / "file.md"
 
+local instance_taxon_symbol = Conf.Taxonomy.relations['instance taxon']
+
 local M = require("htl.Taxonomy.Parser")
 
 before_each(function()
@@ -25,13 +27,13 @@ describe("parse_predicate", function()
     end)
 
     it("relation", function()
-        local object, relation = M:parse_predicate("+(a)")
+        local object, relation = M:parse_predicate(instance_taxon_symbol .. "(a)")
         assert.are.same("a", object)
         assert.are.same("instance taxon", relation)
     end)
 
     it("relation: link", function()
-        local object, relation = M:parse_predicate("+([a](1))")
+        local object, relation = M:parse_predicate(instance_taxon_symbol .. "([a](1))")
         assert.are.same(1, object)
         assert.are.same("instance taxon", relation)
     end)
@@ -83,7 +85,7 @@ describe("parse_taxonomy_lines", function()
                     relation = "instance taxon",
                 }
             },
-            M:parse_taxonomy_lines(List({"a: +(b)"}))
+            M:parse_taxonomy_lines(List({string.format("a: %s(b)", instance_taxon_symbol)}))
         )
     end)
 

@@ -1,7 +1,7 @@
 relations:
   subset: ⊃
-  instance: ⋐ # instance?
-  instance taxon: + # instantiates?
+  instance: ⪾
+  instance taxon: ⪽ # instantiates?
   # attribute of: ⪽ # attribute?
   # list of: ?
 colors:
