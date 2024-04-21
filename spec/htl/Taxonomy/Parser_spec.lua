@@ -124,6 +124,41 @@ describe("parse_taxonomy_lines", function()
     end)
 end)
 
+describe("parse_taxonomy_file", function()
+    it("single line", function()
+        local f1 = d1 / Conf.paths.taxonomy_file
+        f1:write({
+            "a:",
+            "  b:",
+        })
+
+        DB.urls:insert({path = f1})
+
+        local u1 = DB.urls:where({path = f1})
+        
+        M:parse_taxonomy_file(f1)
+
+        assert.are.same(
+            {
+                {
+                    id = 1,
+                    subject_url = u1.id,
+                    subject_label = "a",
+                    relation = "subset",
+                },
+                {
+                    id = 2,
+                    subject_url = u1.id,
+                    subject_label = "b",
+                    object_label = "a",
+                    relation = "subset",
+                },
+            },
+            DB.Relations:get()
+        )
+    end)
+end)
+
 describe("SubsetRelation", function()
     local M = M.SubsetRelation
 
@@ -230,6 +265,7 @@ describe("GiveInstancesRelation", function()
                 {M:parse(M.symbol .. "(b, c)", "a")}
             )
         end)
+
         it("known relation", function()
             assert.are.same(
                 {
