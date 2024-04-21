@@ -16,62 +16,16 @@ end)
 
 after_each(htl.after_test)
 
-describe("parse_predicate", function()
-    it("nil", function()
-        assert.are.same("", M:parse_predicate())
-    end)
-
-    it("empty str", function()
-        assert.are.same("", M:parse_predicate(""))
-    end)
-
-    it("no relation", function()
-        assert.are.same("a", M:parse_predicate("a"))
-    end)
-
-    it("relation", function()
-        local object, relation = M:parse_predicate(give_instances_symbol .. "(a)")
-        assert.are.same("a", object)
-        assert.are.same("give_instances", relation)
-    end)
-
-    it("relation: link", function()
-        local object, relation = M:parse_predicate(give_instances_symbol .. "([a](1))")
-        assert.are.same(1, object)
-        assert.are.same("give_instances", relation)
-    end)
-end)
-
-describe("parse_subject", function()
-    it("nil", function()
-        assert.are.same("", M:parse_subject())
-    end)
-
-    it("empty str", function()
-        assert.are.same("", M:parse_subject())
-    end)
-    
-    it("no predicate", function()
-        assert.are.same("a", M:parse_subject("a:"))
-    end)
-
-    it("predicate", function()
-        local subject, str = M:parse_subject("a: b")
-        assert.are.same("a", subject)
-        assert.are.same("b", str)
-    end)
-end)
-
 describe("parse_taxonomy_lines", function()
     it("single line", function()
         assert.are.same(
             {
                 {
-                    subject_label = "a",
+                    subject = "a",
                     relation = "subset",
                 }
             },
-            M:parse_taxonomy_lines(List({"a:"}))
+            M.FileParser:parse_taxonomy_lines(List({"a:"}))
         )
     end)
 
@@ -79,16 +33,21 @@ describe("parse_taxonomy_lines", function()
         assert.are.same(
             {
                 {
-                    subject_label = "a",
-                    relation = "subset",
+                    subject = "a",
+                    object = "c",
+                    relation = "give_instances",
+                    type = "b"
                 },
                 {
-                    subject_label = "a",
-                    object = "b",
-                    relation = "give_instances",
-                }
+                    subject = "a",
+                    relation = "subset",
+                },
             },
-            M:parse_taxonomy_lines(List({string.format("a: %s(b)", give_instances_symbol)}))
+            M.FileParser:parse_taxonomy_lines(List({
+                string.format("a: %s(b, c)", give_instances_symbol)}
+            )):sorted(function(a, b)
+                return a.relation < b.relation
+            end)
         )
     end)
 
@@ -96,25 +55,25 @@ describe("parse_taxonomy_lines", function()
         assert.are.same(
             {
                 {
-                    subject_label = "a",
+                    subject = "a",
                     relation = "subset",
                 },
                 {
-                    subject_label = "b",
+                    subject = "b",
                     object = "a",
                     relation = "subset",
                 },
                 {
-                    subject_label = "c",
+                    subject = "c",
                     relation = "subset",
                 },
                 {
-                    subject_label = "d",
+                    subject = "d",
                     object = "c",
                     relation = "subset",
                 },
             },
-            M:parse_taxonomy_lines(List({
+            M.FileParser:parse_taxonomy_lines(List({
                 "a:",
                 "  b:",
                 "c:",
