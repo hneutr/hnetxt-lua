@@ -1,3 +1,4 @@
+local htl = require("htl")
 local M = require("htl.text.URLDefinition")
 
 describe("str_is_a", function() 

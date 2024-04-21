@@ -1,3 +1,4 @@
+local htl = require("htl")
 local Line = require("htl.text.Line")
 
 describe("parse_indent", function()

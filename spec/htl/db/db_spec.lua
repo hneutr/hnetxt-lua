@@ -1,3 +1,5 @@
+local htl = require("htl")
+
 local M = require("htl.db")
 
 before_each(function()

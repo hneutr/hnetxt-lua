@@ -1,3 +1,4 @@
+local htl = require("htl")
 local d1 = htl.test_dir / "dir-1"
 local d2 = htl.test_dir / "dir-2"
 local d3 = htl.test_dir / "dir-3"

@@ -1,3 +1,4 @@
+local htl = require("htl")
 local M = require("htl.db.mirrors")
 
 local d1 = htl.test_dir / "dir-1"

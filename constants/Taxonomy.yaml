@@ -1,9 +1,8 @@
 relations:
   subset: ⊃
   instance: ⪾
-  instance taxon: ⪽ # instantiates?
-  # attribute of: ⪽ # attribute?
-  # list of: ?
+  connection: ∴
+  give_instances: ⪽
 colors:
   taxon:
     label: [yellow]

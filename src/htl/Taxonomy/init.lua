@@ -78,13 +78,6 @@ _M.conf.label_priority = Dict({
 
 _M.Printer = require("htl.Taxonomy.Printer")
 
---[[
-relation types handled:
-    ✓ subset
-    ✓ instance taxon
-    ✓ instance
-    ⨉ attribute of
-]]
 function _M:_init(path)
     self.projects = self.get_projects(path)
     
@@ -96,7 +89,7 @@ function _M:_init(path)
     
     self.taxonomy = self.make_taxonomy(self.rows_by_relation.subset)
 
-    self.taxon_to_instance_taxon = self.map_subject_to_object(self.rows_by_relation["instance taxon"])
+    self.taxon_to_instance_taxon = self.map_subject_to_object(self.rows_by_relation.give_instances)
     
     self.instance_to_taxon = self.make_instance_to_taxon_map(
         self.rows_by_relation.instance,

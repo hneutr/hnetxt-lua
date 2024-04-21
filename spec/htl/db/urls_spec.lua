@@ -1,3 +1,4 @@
+local htl = require("htl")
 local Date = require("pl.Date")
 
 local Link = require("htl.text.Link")

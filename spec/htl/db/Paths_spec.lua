@@ -1,3 +1,5 @@
+local htl = require("htl")
+
 local M
 
 before_each(function()

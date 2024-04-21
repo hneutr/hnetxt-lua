@@ -1,3 +1,4 @@
+local htl = require("htl")
 local mirrors = require("htl.db.mirrors")
 
 local M = require("htc.remove")

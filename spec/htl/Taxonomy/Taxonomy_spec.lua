@@ -1,3 +1,4 @@
+local htl = require("htl")
 local M = require("htl.Taxonomy")
 
 local taxonomy_file = Conf.paths.taxonomy_file

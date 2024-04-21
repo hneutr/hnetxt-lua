@@ -1,3 +1,4 @@
+local htl = require("htl")
 local Divider = require("htl.text.divider")
 
 describe("str_is_a", function()

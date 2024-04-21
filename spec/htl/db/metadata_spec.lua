@@ -1,3 +1,4 @@
+local htl = require("htl")
 local Taxonomy = require("htl.Taxonomy")
 
 local d1 = htl.test_dir / "dir-1"

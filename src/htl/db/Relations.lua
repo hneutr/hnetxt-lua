@@ -17,6 +17,7 @@ local M = require("sqlite.tbl")("Relations", {
         type = "text",
         required = true,
     },
+    type = "type",
 })
 
 function M:get(q)
@@ -28,6 +29,7 @@ function M:insert(r)
         subject_url = r.subject_url,
         subject_label = r.subject_label,
         relation = r.relation,
+        type = r.type,
     }
 
     if type(r.object) == "number" then

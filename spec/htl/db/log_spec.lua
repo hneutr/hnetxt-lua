@@ -1,3 +1,5 @@
+local htl = require("htl")
+
 local today = os.date("%Y%m%d")
 local d1 = htl.test_dir / "dir-1"
 local f1 = d1 / string.format("%s.md", today)

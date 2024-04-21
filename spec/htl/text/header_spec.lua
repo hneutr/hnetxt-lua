@@ -1,3 +1,4 @@
+local htl = require("htl")
 local Header = require("htl.text.header")
 
 describe("str_is_upper", function()

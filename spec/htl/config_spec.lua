@@ -1,3 +1,4 @@
+local htl = require("htl")
 local M = require("htl.Config")
 
 local test_dir = htl.test_dir

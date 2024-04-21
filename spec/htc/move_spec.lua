@@ -1,5 +1,7 @@
 local stub = require("luassert.stub")
 
+local htl = require("htl")
+
 local Move = require("htc.move")
 
 local d1 = htl.test_dir / "dir-1"

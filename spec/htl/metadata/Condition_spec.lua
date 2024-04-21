@@ -1,3 +1,4 @@
+local htl = require("htl")
 local Taxonomy = require("htl.Taxonomy")
 local Condition = require("htl.metadata.Condition")
 

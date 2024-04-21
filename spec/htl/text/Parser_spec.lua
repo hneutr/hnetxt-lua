@@ -1,3 +1,4 @@
+local htl = require("htl")
 local Parser = require("htl.text.Parser")
 
 local Divider = require("htl.text.divider")
