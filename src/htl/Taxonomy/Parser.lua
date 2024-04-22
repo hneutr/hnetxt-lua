@@ -23,11 +23,11 @@ function Relation.parse_link(s)
         local link = Link:from_str(s)
 
         if link then
-            s = tonumber(link.url)
+            s = link.url
         end
     end
 
-    return s
+    return tonumber(s, 10) or s
 end
 
 function Relation:make(subject, object, type)
@@ -91,12 +91,12 @@ end
 function ConnectionRelation:parse_one(l)
     l = l:removeprefix("("):removesuffix(")"):strip()
     
-    local object, relation
+    local object, type
     if l:match(",") then
-        relation, object = unpack(l:split(","):mapm("strip"))
+        type, object = unpack(l:split(","):mapm("strip"))
     end
     
-    return object or l, relation
+    return object or l, type
 end
 
 --------------------------------------------------------------------------------
@@ -208,7 +208,7 @@ function FileParser:parse_taxonomy_lines(lines)
     return relations
 end
 
-function FileParser:parse_taxonomy_file(path)
+function FileParser:parse_taxonomy(path)
     local url = DB.urls:get_file(path)
     
     DB.Relations:remove({subject_url = url.id})
@@ -220,10 +220,24 @@ function FileParser:parse_taxonomy_file(path)
     end)
 end
 
+function FileParser:parse_file(url, lines)
+    DB.Relations:remove({subject_url = url.id})
+
+    local indent_to_parent = Dict()
+    lines:foreach(function(l)
+        local indent, l = l:match("(%s*)(.*)")
+
+        r.subject_label = r:pop('subject')
+        r.subject_url = url.id
+        DB.Relations:insert(r)
+    end)
+end
+
 M.SubsetRelation = SubsetRelation
 M.ConnectionRelation = ConnectionRelation
 M.GiveInstancesRelation = GiveInstancesRelation
 M.InstanceRelation = InstanceRelation
+M.Relation = Relation
 
 M.LineParser = LineParser
 M.FileParser = FileParser
@@ -233,7 +247,7 @@ function M:record_is_a(url, line)
 end
 
 function M:parse_taxonomy_file(path)
-    return M.FileParser:parse_taxonomy_file(path)
+    return M.FileParser:parse_taxonomy(path)
 end
 
 return M

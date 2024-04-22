@@ -16,6 +16,16 @@ end)
 
 after_each(htl.after_test)
 
+describe("parse_link", function()
+    it("link", function()
+        assert.are.same(1, M.Relation.parse_link(tostring(Link({label = "a", url = 1}))))
+    end)
+    
+    it("non-link", function()
+        assert.are.same("a", M.Relation.parse_link(" a "))
+    end)
+end)
+
 describe("parse_taxonomy_lines", function()
     it("single line", function()
         assert.are.same(
@@ -83,7 +93,7 @@ describe("parse_taxonomy_lines", function()
     end)
 end)
 
-describe("parse_taxonomy_file", function()
+describe("parse_taxonomy", function()
     it("single line", function()
         local f1 = d1 / Conf.paths.taxonomy_file
         f1:write({
@@ -95,7 +105,7 @@ describe("parse_taxonomy_file", function()
 
         local u1 = DB.urls:where({path = f1})
         
-        M:parse_taxonomy_file(f1)
+        M.FileParser:parse_taxonomy(f1)
 
         assert.are.same(
             {

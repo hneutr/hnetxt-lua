@@ -18,10 +18,10 @@ end
 M.conf = get_conf()
 
 function M:get(path)
-    return M:parse(M:get_metadata_lines(path))
+    return M:parse(M:get_lines(path))
 end
 
-function M:get_metadata_lines(source)
+function M:get_lines(source)
     local lines = M:separate_metadata(source:readlines())
     local metadata_path = mirrors:get_path(source, "metadata")
 

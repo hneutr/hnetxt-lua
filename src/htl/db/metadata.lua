@@ -127,7 +127,8 @@ function M.record(path)
         if Taxonomy.is_taxonomy_file(path) then
             Taxonomy.Parser:parse_taxonomy_file(path)
         else
-            M:insert_dict(Parser:get(path), url.id)
+            local lines = Parser:get_lines(path)
+            M:insert_dict(Parser:parse(lines), url.id)
         end
     end
 end
