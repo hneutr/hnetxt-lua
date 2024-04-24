@@ -147,6 +147,13 @@ function M.mirror_mappings()
     return Dict(vim.g.htn_mirror_mappings)
 end
 
+function M.taxonomy_mappings(prefix)
+    return Dict.from_list(
+        Dict(Conf.Taxonomy.relations):keys(),
+        function(key) return prefix .. key:sub(1, 1), Conf.Taxonomy.relations[key] end
+    )
+end
+
 function M.scratch(mode)
     local lines = List(BufferLines.selection.get({mode = mode}))
     BufferLines.selection.cut({mode = mode})

@@ -16,8 +16,8 @@ local mappings = Dict(
             -- set time
             ["<C-t>"] = ui.set_time,
         }),
-        v = Dict({}),
-        i = Dict({}),
+        v = Dict(),
+        i = Dict(),
     },
     require("htn.text.list").toggle_mappings()
 )
@@ -27,8 +27,8 @@ if vim.b.htn_project then
 
     -- fuzzy
     mappings.n["<leader>df"] = Fuzzy.goto
-    mappings.n["<c-/>"] = Fuzzy.put
-    mappings.i["<c-/>"] = Fuzzy.insert
+    mappings.n["<C-/>"] = Fuzzy.put
+    mappings.i["<C-/>"] = Fuzzy.insert
 
     -- scratch
     mappings.n["<leader>s"] = ui.scratch_map_fn
@@ -36,6 +36,9 @@ if vim.b.htn_project then
 
     -- mirrors
     mappings.n:update(ui.mirror_mappings())
+    
+    -- taxonomy symbols
+    mappings.i:update(ui.taxonomy_mappings("<M-t>"))
 end
 
 mappings:foreach(function(mode, mode_mappings)
