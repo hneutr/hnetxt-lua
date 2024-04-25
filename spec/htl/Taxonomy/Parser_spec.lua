@@ -85,7 +85,7 @@ describe("ConnectionRelation", function()
     end)
 
     describe("parse", function()
-        it("one", function()
+        it("with type", function()
             assert.are.same(
                 {
                     "xyz",
@@ -95,13 +95,23 @@ describe("ConnectionRelation", function()
             )
         end)
         
-        it("multiple", function()
+        it("no type", function()
             assert.are.same(
                 {
                     "",
                     {subject = "a", object = "b", relation = "connection"},
                 },
                 {M:parse(M.symbol .. " b ", "a")}
+            )
+        end)
+
+        it("link", function()
+            assert.are.same(
+                {
+                    "",
+                    {subject = "a", object = 1, relation = "connection"},
+                },
+                {M:parse(M.symbol .. " " .. tostring(Link({text = "xyz", url = 1})), "a")}
             )
         end)
     end)
@@ -228,186 +238,184 @@ describe("TagRelation", function()
     end)
 end)
 
-describe("FileParser", function()
-    describe("parse_taxonomy_lines", function()
-        it("single line", function()
-            assert.are.same(
+describe("parse_taxonomy_lines", function()
+    it("single line", function()
+        assert.are.same(
+            {
                 {
-                    {
-                        subject = "a",
-                        relation = "subset",
-                    }
-                },
-                M.FileParser:parse_taxonomy_lines(List({"a:"}))
-            )
-        end)
-
-        it("single line + predicate", function()
-            assert.are.same(
-                {
-                    {
-                        subject = "a",
-                        object = "c",
-                        relation = "give_instances",
-                        type = "b"
-                    },
-                    {
-                        subject = "a",
-                        relation = "subset",
-                    },
-                },
-                M.FileParser:parse_taxonomy_lines(List({
-                    string.format("a: %s(b, c)", give_instances_symbol)}
-                )):sorted(function(a, b)
-                    return a.relation < b.relation
-                end)
-            )
-        end)
-
-        it("multiple lines", function()
-            assert.are.same(
-                {
-                    {
-                        subject = "a",
-                        relation = "subset",
-                    },
-                    {
-                        subject = "b",
-                        object = "a",
-                        relation = "subset",
-                    },
-                    {
-                        subject = "c",
-                        relation = "subset",
-                    },
-                    {
-                        subject = "d",
-                        object = "c",
-                        relation = "subset",
-                    },
-                },
-                M.FileParser:parse_taxonomy_lines(List({
-                    "a:",
-                    "  b:",
-                    "c:",
-                    "  d:",
-                }))
-            )
-        end)
+                    subject = "a",
+                    relation = "subset",
+                }
+            },
+            M:parse_taxonomy_lines(List({"a:"}))
+        )
     end)
 
-    describe("record_taxonomy", function()
-        it("single line", function()
-            local f1 = d1 / Conf.paths.taxonomy_file
-            f1:write({
+    it("single line + predicate", function()
+        assert.are.same(
+            {
+                {
+                    subject = "a",
+                    object = "c",
+                    relation = "give_instances",
+                    type = "b"
+                },
+                {
+                    subject = "a",
+                    relation = "subset",
+                },
+            },
+            M:parse_taxonomy_lines(List({
+                string.format("a: %s(b, c)", give_instances_symbol)}
+            )):sorted(function(a, b)
+                return a.relation < b.relation
+            end)
+        )
+    end)
+
+    it("multiple lines", function()
+        assert.are.same(
+            {
+                {
+                    subject = "a",
+                    relation = "subset",
+                },
+                {
+                    subject = "b",
+                    object = "a",
+                    relation = "subset",
+                },
+                {
+                    subject = "c",
+                    relation = "subset",
+                },
+                {
+                    subject = "d",
+                    object = "c",
+                    relation = "subset",
+                },
+            },
+            M:parse_taxonomy_lines(List({
                 "a:",
                 "  b:",
-            })
+                "c:",
+                "  d:",
+            }))
+        )
+    end)
+end)
 
-            DB.urls:insert({path = f1})
+describe("record_taxonomy", function()
+    it("single line", function()
+        local f1 = d1 / Conf.paths.taxonomy_file
+        f1:write({
+            "a:",
+            "  b:",
+        })
 
-            local u1 = DB.urls:where({path = f1})
-            
-            M.FileParser:record_taxonomy(u1)
+        DB.urls:insert({path = f1})
 
-            assert.are.same(
+        local u1 = DB.urls:where({path = f1})
+        
+        M:record_taxonomy(u1)
+
+        assert.are.same(
+            {
                 {
-                    {
-                        id = 1,
-                        subject_url = u1.id,
-                        subject_label = "a",
-                        relation = "subset",
-                    },
-                    {
-                        id = 2,
-                        subject_url = u1.id,
-                        subject_label = "b",
-                        object_label = "a",
-                        relation = "subset",
-                    },
+                    id = 1,
+                    subject_url = u1.id,
+                    subject_label = "a",
+                    relation = "subset",
                 },
-                DB.Relations:get()
-            )
-        end)
+                {
+                    id = 2,
+                    subject_url = u1.id,
+                    subject_label = "b",
+                    object_label = "a",
+                    relation = "subset",
+                },
+            },
+            DB.Relations:get()
+        )
+    end)
+end)
+
+describe("parse_file_lines", function()
+    local url = {id = 1, path = f1}
+
+    it("is a", function()
+        assert.are.same(
+            {{subject = 1, object = "a", relation = "instance"}},
+            M:parse_file_lines(List({"is a: a "}), url)
+        )
     end)
     
-    describe("parse_file_lines", function()
-        local url = {id = 1, path = f1}
-
-        it("is a", function()
-            assert.are.same(
-                {{subject = 1, object = "a", relation = "instance"}},
-                M.FileParser:parse_file_lines(List({"is a: a "}), url)
+    it("field: val", function()
+        assert.are.same(
+            {{subject = 1, object = 2, relation = "connection", type = "key"}},
+            M:parse_file_lines(List({"key: [abc](2)"}), url)
+        )
+    end)
+    
+    it("field: {newline} val, val", function()
+        assert.are.same(
+            {
+                {subject = 1, object = 2, relation = "connection", type = "key"},
+                {subject = 1, object = 3, relation = "connection", type = "key"}
+            },
+            M:parse_file_lines(
+                List({
+                    "key:",
+                    "[abc](2)",
+                    "  [def](3)",
+                }),
+                url
             )
-        end)
-        
-        it("field: val", function()
-            assert.are.same(
-                {{subject = 1, object = 2, relation = "connection", type = "key"}},
-                M.FileParser:parse_file_lines(List({"key: [abc](2)"}), url)
+        )
+    end)
+    
+    it("keys overwrite", function()
+        assert.are.same(
+            {
+                {subject = 1, object = 2, relation = "connection", type = "t1"},
+                {subject = 1, object = 3, relation = "connection", type = "t2"}
+            },
+            M:parse_file_lines(
+                List({
+                    "t1:",
+                    "[abc](2)",
+                    "t2: [def](3)",
+                    "[xyz](4)",
+                }),
+                url
             )
-        end)
-        
-        it("field: {newline} val, val", function()
-            assert.are.same(
-                {
-                    {subject = 1, object = 2, relation = "connection", type = "key"},
-                    {subject = 1, object = 3, relation = "connection", type = "key"}
-                },
-                M.FileParser:parse_file_lines(
-                    List({
-                        "key:",
-                        "[abc](2)",
-                        "  [def](3)",
-                    }),
-                    url
-                )
+        )
+    end)
+    
+    it("tag", function()
+        assert.are.same(
+            {{subject = 1, object = "abc", relation = "tag"}},
+            M:parse_file_lines(List({"@abc"}), url)
+        )
+    end)
+    
+    it("kitchen sink", function()
+        assert.are.same(
+            {
+                {subject = 1, object = "x", relation = "connection"},
+                {subject = 1, object = "a", relation = "instance"},
+                {subject = 1, object = 2, relation = "connection", type = "t1"},
+                {subject = 1, object = 3, relation = "connection", type = "t1"}
+            },
+            M:parse_file_lines(
+                List({
+                    string.format("is a: a %s x", M.ConnectionRelation.symbol),
+                    "t1:",
+                    "[abc](2)",
+                    "  [def](3)",
+                }),
+                url
             )
-        end)
-        
-        it("keys overwrite", function()
-            assert.are.same(
-                {
-                    {subject = 1, object = 2, relation = "connection", type = "t1"},
-                    {subject = 1, object = 3, relation = "connection", type = "t2"}
-                },
-                M.FileParser:parse_file_lines(
-                    List({
-                        "t1:",
-                        "[abc](2)",
-                        "t2: [def](3)",
-                        "[xyz](4)",
-                    }),
-                    url
-                )
-            )
-        end)
-        
-        it("tag", function()
-            assert.are.same(
-                {{subject = 1, object = "abc", relation = "tag"}},
-                M.FileParser:parse_file_lines(List({"@abc"}), url)
-            )
-        end)
-        
-        it("kitchen sink", function()
-            assert.are.same(
-                {
-                    {subject = 1, object = "x", relation = "connection"},
-                    {subject = 1, object = "a", relation = "instance"},
-                    {subject = 1, object = 2, relation = "connection", type = "t1"},
-                    {subject = 1, object = 3, relation = "connection", type = "t1"}
-                },
-                M.FileParser:parse_file_lines(
-                    List({
-                        string.format("is a: a %s x", M.ConnectionRelation.symbol),
-                        "t1:",
-                        "[abc](2)",
-                        "  [def](3)",
-                    }),
-                    url
-                )
-            )
-        end)
+        )
     end)
 end)

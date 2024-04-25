@@ -77,7 +77,9 @@ function ConnectionRelation:line_is_a(l) return l and l:match(self.symbol) and t
 function ConnectionRelation:parse(l, subject)
     local l, str = utils.parsekv(l, self.symbol)
     
-    str = str:removeprefix("("):removesuffix(")")
+    if str:startswith("(") then
+        str = str:removeprefix("("):removesuffix(")")
+    end
     
     local object, type
     if str:match(",") then
@@ -132,11 +134,10 @@ function TagRelation:line_is_a(l) return l and l:strip():startswith(self.symbol)
 
 --------------------------------------------------------------------------------
 --                                                                            --
---                                 LineParser                                 --
+--                                   Parser                                   --
 --                                                                            --
 --------------------------------------------------------------------------------
-local LineParser = {}
-LineParser.Relations = List({
+M.Relations = List({
     ConnectionRelation,
     SubsetRelation,
     GiveInstancesRelation,
@@ -144,7 +145,7 @@ LineParser.Relations = List({
     InstanceRelation,
 })
 
-function LineParser:get_relations(url, line)
+function M:get_relations(url, line)
     local relations = List()
     self.Relations:foreach(function(Relation)
         if line and #line > 0 and Relation:line_is_a(line) then
@@ -162,29 +163,7 @@ function LineParser:get_relations(url, line)
     return relations
 end
 
-function LineParser:record_is_a(url, line)
-    if DB.Relations:where({subject_url = url}) then
-        DB.Relations:remove({subject_url = url})
-    end
-
-    local object
-    self:get_relations(url, line):foreach(function(relation)
-        object = relation.object
-        relation.subject_url = relation:pop('subject')
-        DB.Relations:insert(relation)
-    end)
-    
-    return object and tostring(object)
-end
-
---------------------------------------------------------------------------------
---                                                                            --
---                                 FileParser                                 --
---                                                                            --
---------------------------------------------------------------------------------
-local FileParser = {}
-
-function FileParser:parse_taxonomy_lines(lines)
+function M:parse_taxonomy_lines(lines)
     local indent_to_parent = Dict()
 
     local relations = List()
@@ -196,17 +175,17 @@ function FileParser:parse_taxonomy_lines(lines)
 
             indent_to_parent[indent .. M.conf.indent_size] = subject
 
-            relations:extend(LineParser:get_relations(subject, relation_str))
+            relations:extend(M:get_relations(subject, relation_str))
             relations:append(SubsetRelation:make(subject, indent_to_parent[indent]))
         else
-            relations:extend(LineParser:get_relations(subject, indent_to_parent[indent]))
+            relations:extend(M:get_relations(subject, indent_to_parent[indent]))
         end
     end)
     
     return relations
 end
 
-function FileParser:record_taxonomy(url, lines)
+function M:record_taxonomy(url, lines)
     lines = lines or url.path:readlines()
 
     self:parse_taxonomy_lines(lines):foreach(function(r)
@@ -216,14 +195,14 @@ function FileParser:record_taxonomy(url, lines)
     end)
 end
 
-function FileParser:parse_file_lines(lines, url)
+function M:parse_file_lines(lines, url)
     local last_type
     local relations = List()
     
     lines:foreach(function(l)
         l = l:strip()
         if InstanceRelation:line_is_a(l) or TagRelation:line_is_a(l) then
-            relations:extend(LineParser:get_relations(url.id, l))
+            relations:extend(M:get_relations(url.id, l))
             last_type = nil
         else
             if l:match(":") then
@@ -243,7 +222,7 @@ function FileParser:parse_file_lines(lines, url)
     return relations
 end
 
-function FileParser:record_file(url)
+function M:record_file(url)
     local lines = MetadataParser:get_lines(url.path)
 
     if #lines > 0 and lines[1]:strip() == "is a: taxonomy" then
@@ -256,7 +235,7 @@ function FileParser:record_file(url)
     end
 end
 
-function FileParser:record(url)
+function M:record(url)
     DB.Relations:remove({subject_url = url.id})
     
     if M.is_taxonomy_file(url.path) then
@@ -272,12 +251,5 @@ M.GiveInstancesRelation = GiveInstancesRelation
 M.InstanceRelation = InstanceRelation
 M.TagRelation = TagRelation
 M.Relation = Relation
-
-M.LineParser = LineParser
-M.FileParser = FileParser
-
-function M:record_is_a(url, line)
-    return M.LineParser:record_is_a(url, line)
-end
 
 return M

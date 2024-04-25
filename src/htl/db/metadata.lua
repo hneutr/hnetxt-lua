@@ -100,10 +100,9 @@ function M:insert_dict(dict, url, parent)
     Dict(dict):foreach(function(key, raw)
         local val = raw.val
 
-        -- TODO: this is a hacky way of dealing with `is a`
-        -- see also: `htl.metadata.Parser:parse`
         if key == M.conf.is_a_key then
-            val = Taxonomy.Parser:record_is_a(url, val)
+            local relation = DB.Relations:where({subject_url = url, relation = "instance"})
+            val = relation.object_label or tostring(relation.object_url)
         end
 
         local row = {
@@ -125,11 +124,9 @@ function M.record(path)
     if url then
         M:remove({url = url.id})
         
-        if TaxonomyParser.is_taxonomy_file(path) then
-            TaxonomyParser.FileParser:record_taxonomy(url)
-        else
-            local lines = Parser:get_lines(path)
-            M:insert_dict(Parser:parse(lines), url.id)
+        TaxonomyParser:record(url)
+        if not TaxonomyParser.is_taxonomy_file(path) then
+            M:insert_dict(Parser:get(path), url.id)
         end
     end
 end

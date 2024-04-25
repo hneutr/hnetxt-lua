@@ -4,8 +4,6 @@ local Taxonomy = class()
 
 Taxonomy.Parser = require("htl.Taxonomy.Parser")
 
-Taxonomy.is_taxonomy_file = Taxonomy.Parser.is_taxonomy_file
-
 function Taxonomy:_init(path)
     self.tree = self.read_tree(path)
     self:solidify()
@@ -61,7 +59,6 @@ end
 local _M = class()
 _M.conf = Dict(Conf.Taxonomy)
 _M.conf.relations = Dict(_M.conf.relations)
-_M.conf.all_relation_key = "__all"
 _M.conf.label_priority = Dict({
     role = List({
         "object",
@@ -146,7 +143,7 @@ function _M.get_entity(row, role, urls_by_id)
     
     entity:update(url)
     entity.label = _M.get_label(row[fmt:format(role, "label")], url)
-    entity.from_taxonomy = url.path and Taxonomy.is_taxonomy_file(url.path) or false
+    entity.from_taxonomy = url.path and Taxonomy.Parser.is_taxonomy_file(url.path) or false
 
     return entity
 end
