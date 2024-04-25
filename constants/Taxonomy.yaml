@@ -1,13 +1,37 @@
 relations:
-  subset: ⊃
-  instance: ⪾
-  connection: ∴
-  give_instances: ⪽
-  tag: "@"
-colors:
-  taxon:
-    label: [yellow]
+  subset:
+    symbol: ⊃
+    color:
+      syntax: yellow
+      term:
+        label: yellow
   instance:
-    label: [blue]
-  attribute:
-    label: [magenta]
+    symbol: ⪾
+    color:
+      syntax: blue
+      term:
+        label: blue
+  connection:
+    symbol: ∴
+    color:
+      syntax: white
+      term:
+        label: blue
+  give_instances:
+    symbol: ⪽
+    color:
+      syntax: maroon
+  tag:
+    symbol: "@"
+    color:
+      syntax: pink
+      term:
+        label: magenta
+colors:
+  term:
+    taxon:
+      label: [yellow]
+    instance:
+      label: [blue]
+    attribute:
+      label: [magenta]

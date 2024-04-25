@@ -1,7 +1,7 @@
 local TerminalLink = require("htl.text.TerminalLink")
 local Colorize = require("htc.Colorize")
 
-local Colors = Dict(Conf.Taxonomy.colors)
+local Colors = Dict(Conf.Taxonomy.colors.term)
 
 --------------------------------------------------------------------------------
 --                                   Taxon                                    --

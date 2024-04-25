@@ -5,7 +5,7 @@ local d1 = htl.test_dir / "dir-1"
 local p1 = {title = "test", path = d1}
 local f1 = d1 / "file.md"
 
-local give_instances_symbol = Conf.Taxonomy.relations.give_instances
+local give_instances_symbol = Conf.Taxonomy.relations.give_instances.symbol
 
 local M = require("htl.Taxonomy.Parser")
 
@@ -163,7 +163,7 @@ describe("GiveInstancesRelation", function()
                         type = "subset",
                     }
                 },
-                {M:parse(M.symbol .. string.format("(%s, b)", Conf.Taxonomy.relations.subset), "a")}
+                {M:parse(M.symbol .. string.format("(%s, b)", Conf.Taxonomy.relations.subset.symbol), "a")}
             )
         end)
     end)

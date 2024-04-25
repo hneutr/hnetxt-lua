@@ -1,6 +1,7 @@
 local Color = require("hn.color")
 local Divider = require("htl.text.divider")
 local Header = require("htl.text.header")
+local TaxonomyParser = require("htl.Taxonomy.Parser")
 
 require("htn.text.list").add_syntax_highlights()
 require("htn.ui.fold").add_syntax_highlights()
@@ -10,6 +11,7 @@ local elements = Dict(Conf.syntax)
 List.from(
     Header.headers(),
     Divider.dividers(),
+    TaxonomyParser.Relations,
     {Divider("large", "metadata")}
 ):foreach(function(e)
     elements:update(e:syntax())

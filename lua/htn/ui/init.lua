@@ -150,7 +150,7 @@ end
 function M.taxonomy_mappings(prefix)
     return Dict.from_list(
         Dict(Conf.Taxonomy.relations):keys(),
-        function(key) return prefix .. key:sub(1, 1), Conf.Taxonomy.relations[key] end
+        function(key) return prefix .. key:sub(1, 1), Conf.Taxonomy.relations[key].symbol end
     )
 end
 

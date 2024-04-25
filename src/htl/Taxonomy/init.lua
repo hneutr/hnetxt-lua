@@ -58,7 +58,6 @@ end
 --------------------------------------------------------------------------------
 local _M = class()
 _M.conf = Dict(Conf.Taxonomy)
-_M.conf.relations = Dict(_M.conf.relations)
 _M.conf.label_priority = Dict({
     role = List({
         "object",

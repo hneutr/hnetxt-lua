@@ -50,13 +50,17 @@ function Relation:parse(object, subject, type)
     return "", self:make(subject, object, type)
 end
 
+function Relation:syntax()
+    local conf = M.conf.relations[self.name]
+    return {[self.name .. "TaxonomySymbol"] = {string = conf.symbol, color = conf.color.syntax}}
+end
 
 --------------------------------------------------------------------------------
 --                               SubsetRelation                               --
 --------------------------------------------------------------------------------
 local SubsetRelation = class(Relation)
 SubsetRelation.name = "subset"
-SubsetRelation.symbol = M.conf.relations.subset
+SubsetRelation.symbol = M.conf.relations.subset.symbol
 
 function SubsetRelation:parse(l, subject)
     local object = l:split(self.symbol, 1):mapm("strip")[2]
@@ -69,7 +73,7 @@ end
 --------------------------------------------------------------------------------
 local ConnectionRelation = class(Relation)
 ConnectionRelation.name = "connection"
-ConnectionRelation.symbol = M.conf.relations.connection
+ConnectionRelation.symbol = M.conf.relations.connection.symbol
 
 function ConnectionRelation:clean(l) return l:removesuffix(self.symbol):strip() end
 function ConnectionRelation:line_is_a(l) return l and l:match(self.symbol) and true or false end
@@ -96,15 +100,15 @@ end
 --------------------------------------------------------------------------------
 local GiveInstancesRelation = class(Relation)
 GiveInstancesRelation.name = "give_instances"
-GiveInstancesRelation.symbol = M.conf.relations.give_instances
+GiveInstancesRelation.symbol = M.conf.relations.give_instances.symbol
 
 function GiveInstancesRelation:parse(l, subject)
     l, str = utils.parsekv(l, self.symbol)
     
     local type, object = utils.parsekv(str:removeprefix("("):removesuffix(")"), ",")
     
-    M.conf.relations:foreach(function(key, symbol)
-        if type == symbol then
+    M.conf.relations:foreach(function(key, info)
+        if type == info.symbol then
             type = key
         end
     end)
@@ -117,7 +121,7 @@ end
 --------------------------------------------------------------------------------
 local InstanceRelation = class(Relation)
 InstanceRelation.name = "instance"
-InstanceRelation.symbol = M.conf.relations.instance
+InstanceRelation.symbol = M.conf.relations.instance.symbol
 
 function InstanceRelation:clean(l) return l:removeprefix("is a:"):strip() end
 function InstanceRelation:line_is_a(l) return l and l:strip():startswith("is a:") or false end
@@ -127,7 +131,7 @@ function InstanceRelation:line_is_a(l) return l and l:strip():startswith("is a:"
 --------------------------------------------------------------------------------
 local TagRelation = class(Relation)
 TagRelation.name = "tag"
-TagRelation.symbol = M.conf.relations.tag
+TagRelation.symbol = M.conf.relations.tag.symbol
 
 function TagRelation:clean(l) return l:strip():removeprefix(self.symbol) end
 function TagRelation:line_is_a(l) return l and l:strip():startswith(self.symbol) or false end
