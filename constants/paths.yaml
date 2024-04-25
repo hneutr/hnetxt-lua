@@ -1,9 +1,6 @@
 data_dir:
   path: ".data"
   parent: root
-nvim_constants:
-  path: ".config/nvim/constants.yaml"
-  parent: root
 test_dir:
   path: "htl-test-dir"
   parent: tempdir

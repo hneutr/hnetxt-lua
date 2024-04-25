@@ -5,17 +5,11 @@ local mirrors = require("htl.db.mirrors")
 
 local M = class()
 
-local function get_conf()
-    local c = Dict(Conf.metadata)
-    c.metadata_dividers = List({
-        "",
-        tostring(Divider("large", "metadata"))
-    })
-
-    return c
-end
-
-M.conf = get_conf()
+M.conf = Dict(Conf.metadata)
+M.conf.metadata_dividers = List({
+    "",
+    tostring(Divider("large", "metadata"))
+})
 
 function M:get(path)
     return M:parse(M:get_lines(path))

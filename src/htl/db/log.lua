@@ -1,7 +1,5 @@
 local Date = require("pl.Date")
 
-local Config = require("htl.Config")
-
 local M = require("sqlite.tbl")("Log", {
     id = true,
     key = {
@@ -22,11 +20,6 @@ local M = require("sqlite.tbl")("Log", {
 M.conf = Conf.Log
 M.conf.entry_dir = Conf.paths.track_dir
 M.conf.date_fmt = Date.Format("yyyymmdd")
-
-M.ui = {
-    cli = function(args) print(M.touch(args)) end,
-    cmd = function() M.touch():open() end,
-}
 
 function M:get(q)
     return List(M:__get(q))
@@ -93,11 +86,9 @@ function M.touch(args)
     return path
 end
 
-function M.UI()
-    return {
-        cli = function(args) print(M.touch(args)) end,
-        cmd = function() M.touch():open() end,
-    }
-end
+M.ui = {
+    cli = function(args) print(M.touch(args)) end,
+    cmd = function() M.touch():open() end,
+}
 
 return M

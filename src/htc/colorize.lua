@@ -1,6 +1,3 @@
-local List = require("hl.List")
-local Dict = require("hl.Dict")
-
 local color_to_code = Dict({
     reset        = 0,
     bright       = 1,

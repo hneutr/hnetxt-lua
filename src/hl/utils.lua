@@ -10,4 +10,10 @@ function M.randint(args)
     return math.random(args.min, args.max)
 end
 
+function M.parsekv(s, delimiter)
+    delimiter = delimiter or ":"
+    s = s or ""
+    return unpack(s:split(delimiter, 1):mapm("strip"))
+end
+
 return M

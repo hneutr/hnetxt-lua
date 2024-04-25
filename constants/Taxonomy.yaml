@@ -3,8 +3,11 @@ relations:
   instance: ⪾
   connection: ∴
   give_instances: ⪽
+  tag: "@"
 colors:
   taxon:
     label: [yellow]
   instance:
     label: [blue]
+  attribute:
+    label: [magenta]

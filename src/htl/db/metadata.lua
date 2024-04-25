@@ -5,6 +5,7 @@ local Colorize = require("htc.Colorize")
 local Parser = require("htl.metadata.Parser")
 local Condition = require("htl.metadata.Condition")
 local Taxonomy = require("htl.Taxonomy")
+local TaxonomyParser = require("htl.Taxonomy.Parser")
 
 --[[
 Currently, I am doing super weird shit with the taxonomy — I am parsing the rows into the taxonomy form
@@ -124,8 +125,8 @@ function M.record(path)
     if url then
         M:remove({url = url.id})
         
-        if Taxonomy.is_taxonomy_file(path) then
-            Taxonomy.Parser:parse_taxonomy_file(path)
+        if TaxonomyParser.is_taxonomy_file(path) then
+            TaxonomyParser.FileParser:record_taxonomy(url)
         else
             local lines = Parser:get_lines(path)
             M:insert_dict(Parser:parse(lines), url.id)

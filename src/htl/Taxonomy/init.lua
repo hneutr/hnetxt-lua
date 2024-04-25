@@ -4,9 +4,7 @@ local Taxonomy = class()
 
 Taxonomy.Parser = require("htl.Taxonomy.Parser")
 
-function Taxonomy.is_taxonomy_file(path)
-    return path:name() == tostring(Conf.paths.taxonomy_file) or path == Conf.paths.global_taxonomy_file
-end
+Taxonomy.is_taxonomy_file = Taxonomy.Parser.is_taxonomy_file
 
 function Taxonomy:_init(path)
     self.tree = self.read_tree(path)

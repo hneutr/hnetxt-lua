@@ -24,20 +24,6 @@ end)
 
 after_each(htl.after_test)
 
-describe("is_taxonomy_file", function()
-    it("+: global taxonomy file", function()
-        assert(M.is_taxonomy_file(Conf.paths.global_taxonomy_file))
-    end)
-    
-    it("+: project taxonomy file", function()
-        assert(M.is_taxonomy_file(d1 / Conf.paths.taxonomy_file))
-    end)
-    
-    it("-", function()
-        assert.is_false(M.is_taxonomy_file(d1))
-    end)
-end)
-
 describe("read_tree", function()
     it("no path", function()
         Conf.paths.global_taxonomy_file:write({
