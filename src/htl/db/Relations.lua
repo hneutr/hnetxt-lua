@@ -38,7 +38,9 @@ function M:insert(r)
         row.object_label = r.object
     end
     
-    M:__insert(row)
+    if not M:where(row) then
+        M:__insert(row)
+    end
 end
 
 return M

@@ -32,7 +32,7 @@ return {
             
                 DB.projects:insert(args)
                 args.path:glob("%.md$"):foreach(function(path)
-                    DB.urls:insert(path)
+                    DB.urls:insert({path = path})
                     DB.metadata.record(path)
                 end)
             end,

@@ -1,14 +1,8 @@
-local Path = require("hl.Path")
-local Dict = require("hl.Dict")
-local List = require("hl.List")
-
-local Config = require("htl.Config")
 local Link = require("htl.text.Link")
 local URLDefinition = require("htl.text.URLDefinition")
+local mirrors = require("htl.db.mirrors")
 
 local BufferLines = require("hn.buffer_lines")
-
-local mirrors = require("htl.db.mirrors")
 
 local M = {}
 

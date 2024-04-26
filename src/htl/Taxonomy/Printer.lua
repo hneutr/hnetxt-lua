@@ -84,7 +84,11 @@ function M:print_tree(tree, instances, indent)
         local entity = self.T.label_to_entity[label]
         local entity_printer = self.relation_to_printer[entity.type](entity)
         
-        local sublines = self:print_tree(tree[label], self.T.taxon_to_instances[label], indent .. self.conf.indent_size)
+        local sublines = self:print_tree(
+            tree[label],
+            self.T.taxon_to_instances[label],
+            indent .. self.conf.indent_size
+        )
         
         local line = indent .. tostring(entity_printer)
         
