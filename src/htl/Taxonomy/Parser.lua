@@ -18,6 +18,10 @@ end
 --                                                                            --
 --------------------------------------------------------------------------------
 local Relation = class()
+Relation.contexts = Dict({
+    file = true,
+    taxonomy = true,
+})
 
 function Relation:line_is_a(l) return l and l:startswith(self.symbol) or false end
 
@@ -54,21 +58,6 @@ function Relation:syntax()
     local conf = M.conf.relations[self.name]
     return {[self.name .. "TaxonomySymbol"] = {string = conf.symbol, color = conf.color.syntax}}
 end
-
---------------------------------------------------------------------------------
---                               SubsetRelation                               --
---------------------------------------------------------------------------------
-local SubsetRelation = class(Relation)
-SubsetRelation.name = "subset"
-SubsetRelation.symbol = M.conf.relations.subset.symbol
-
-function SubsetRelation:line_is_a(l) return l and l:match(self.symbol) or false end
-
-function SubsetRelation:parse(l, subject)
-    local object = l:split(self.symbol, 1):mapm("strip")[2]
-    return "", self:make(subject, object)
-end
-
 
 --------------------------------------------------------------------------------
 --                             ConnectionRelation                             --
@@ -119,9 +108,32 @@ function GiveInstancesRelation:parse(l, subject)
 end
 
 --------------------------------------------------------------------------------
+--                                                                            --
+--                                FileRelation                                --
+--                                                                            --
+--------------------------------------------------------------------------------
+local FileRelation = class(Relation)
+FileRelation.contexts = Dict({file = true})
+
+--------------------------------------------------------------------------------
+--                               SubsetRelation                               --
+--------------------------------------------------------------------------------
+local SubsetRelation = class(FileRelation)
+SubsetRelation.name = "subset"
+SubsetRelation.symbol = M.conf.relations.subset.symbol
+
+function SubsetRelation:line_is_a(l) return l and l:match(self.symbol) or false end
+
+function SubsetRelation:parse(l, subject)
+    local object = l:split(self.symbol, 1):mapm("strip")[2]
+    return "", self:make(subject, object)
+end
+
+
+--------------------------------------------------------------------------------
 --                              InstanceRelation                              --
 --------------------------------------------------------------------------------
-local InstanceRelation = class(Relation)
+local InstanceRelation = class(FileRelation)
 InstanceRelation.name = "instance"
 InstanceRelation.symbol = M.conf.relations.instance.symbol
 
@@ -131,7 +143,7 @@ function InstanceRelation:line_is_a(l) return l and l:strip():startswith("is a:"
 --------------------------------------------------------------------------------
 --                                TagRelation                                 --
 --------------------------------------------------------------------------------
-local TagRelation = class(Relation)
+local TagRelation = class(FileRelation)
 TagRelation.name = "tag"
 TagRelation.symbol = M.conf.relations.tag.symbol
 
@@ -151,9 +163,11 @@ M.Relations = List({
     InstanceRelation,
 })
 
-function M:get_relations(url, line)
+function M:get_relations(url, line, context)
     local relations = List()
-    self.Relations:foreach(function(Relation)
+    self.Relations:filter(function(Relation)
+        return Relation.contexts[context]
+    end):foreach(function(Relation)
         if line and #line > 0 and Relation:line_is_a(line) then
             line = Relation:clean(line)
             local relation
@@ -181,10 +195,10 @@ function M:parse_taxonomy_lines(lines)
 
             indent_to_parent[indent .. M.conf.indent_size] = subject
 
-            relations:extend(M:get_relations(subject, relation_str))
+            relations:extend(M:get_relations(subject, relation_str, "taxonomy"))
             relations:append(SubsetRelation:make(subject, indent_to_parent[indent]))
         else
-            relations:extend(M:get_relations(subject, indent_to_parent[indent]))
+            relations:extend(M:get_relations(subject, indent_to_parent[indent], "taxonomy"))
         end
     end)
     
@@ -202,30 +216,44 @@ function M:record_taxonomy(url, lines)
 end
 
 function M:parse_file_lines(lines, url)
-    local last_type
+    local indent_to_type = Dict()
     local relations = List()
     
     lines:foreach(function(l)
-        l = l:strip()
+        local indent, l = l:match("(%s*)(.*)")
+        indent_to_type:filterk(function(_indent) return #_indent <= #indent end)
+
         if InstanceRelation:line_is_a(l) or TagRelation:line_is_a(l) then
-            relations:extend(M:get_relations(url.id, l))
-            last_type = nil
+            relations:extend(M:get_relations(url.id, l, "file"))
         else
+            local type, object
             if l:match(":") then
-                if l:endswith(":") then
-                    last_type = l:removesuffix(":")
-                else
-                    local type, object = utils.parsekv(l)
-                    relations:append(ConnectionRelation:make(url.id, object, type))
-                    last_type = nil
-                end
-            elseif last_type then
-                relations:append(ConnectionRelation:make(url.id, l:strip(), last_type))
+                type, object = utils.parsekv(l)
+                type = self.get_nested_type(type, indent, indent_to_type, not object)
+            else
+                type = indent_to_type[indent]
+                object = l:strip()
+            end
+
+            if object and type then
+                relations:append(ConnectionRelation:make(url.id, object, type))
             end
         end
     end)
     
     return relations
+end
+
+function M.get_nested_type(type, indent, indent_to_type, add)
+    if indent_to_type[indent] then
+        type = string.format("%s.%s", indent_to_type[indent], type)
+    end
+
+    if add then
+        indent_to_type[indent .. M.conf.indent_size] = type
+    end
+    
+    return type
 end
 
 function M:record_file(url)

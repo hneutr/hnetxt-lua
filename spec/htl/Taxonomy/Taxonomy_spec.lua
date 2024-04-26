@@ -135,7 +135,6 @@ describe("_M", function()
                     id = "a",
                     label = "relation label",
                     path = Conf.paths.global_taxonomy_file,
-                    created = 1,
                     project = "test",
                     from_taxonomy = true,
                 },

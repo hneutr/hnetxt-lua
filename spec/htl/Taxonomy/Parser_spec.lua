@@ -369,8 +369,27 @@ describe("parse_file_lines", function()
             M:parse_file_lines(
                 List({
                     "key:",
-                    "[abc](2)",
+                    "  [abc](2)",
                     "  [def](3)",
+                }),
+                url
+            )
+        )
+    end)
+    
+    it("nested keys", function()
+        assert.are.same(
+            {
+                {subject = 1, object = 2, relation = "connection", type = "k1.k2"},
+                {subject = 1, object = 3, relation = "connection", type = "k1.k3"}
+            },
+            M:parse_file_lines(
+                List({
+                    "k1:",
+                    "  k2:",
+                    "    [abc](2)",
+                    "  k3:",
+                    "    [abc](3)",
                 }),
                 url
             )
@@ -380,14 +399,14 @@ describe("parse_file_lines", function()
     it("keys overwrite", function()
         assert.are.same(
             {
-                {subject = 1, object = 2, relation = "connection", type = "t1"},
-                {subject = 1, object = 3, relation = "connection", type = "t2"}
+                {subject = 1, object = 2, relation = "connection", type = "k1"},
+                {subject = 1, object = 3, relation = "connection", type = "k2"}
             },
             M:parse_file_lines(
                 List({
-                    "t1:",
-                    "[abc](2)",
-                    "t2: [def](3)",
+                    "k1:",
+                    "  [abc](2)",
+                    "k2: [def](3)",
                     "[xyz](4)",
                 }),
                 url
@@ -414,7 +433,7 @@ describe("parse_file_lines", function()
                 List({
                     string.format("is a: a %s x", M.ConnectionRelation.symbol),
                     "t1:",
-                    "[abc](2)",
+                    "  [abc](2)",
                     "  [def](3)",
                 }),
                 url

@@ -151,6 +151,18 @@ function Tree:children()
     return children
 end
 
+function Tree:nodes()
+    local nodes = Set()
+    local trees = List({self})
+    while #trees > 0 do
+        local tree = trees:pop()
+        nodes:add(tree:keys())
+        trees:extend(tree:values())
+    end
+
+    return nodes:vals()
+end
+
 function Tree:clean()
     self:transformv(function(v)
         if type(v) ~= 'function' then

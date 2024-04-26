@@ -1,38 +1,5 @@
 local lyaml = require("lyaml")
 
---[[
-what are we trying to do?
-1. determine instance types
-2. print taxonomies (relative to a directory)
-
-to determine an instance's type:
-- construct the taxonomy
-- it matches:
-    - its lineage (itself + parents)
-    - the lineage of anything inherited via a `give_instances` relation
-
-so, how do we construct the taxonomy?
-- for now, without `give_instances` stuff
-
-the seeds are:
-- instances
-- subsets
-    - from both files and taxonomies
-relative to the given dir
-
-for each of those:
-- add them to the tree
-
-we also want to add the global taxonomy, but we're going to do that _AFTER_
-- for subsets that don't have a parent:
-    - chase them up the global taxonomy tree
-
-----------------------------------------
-Fuck it, we're just gonna be lazy and do this:
-- for all `subset` relations, add it to the taxonomy
-
-]]
-
 local Taxonomy = class()
 
 Taxonomy.Parser = require("htl.Taxonomy.Parser")
@@ -103,6 +70,13 @@ _M.conf.label_priority = Dict({
         "instance",
     }),
 })
+_M.conf.entity_type_map = Dict({
+    subset = {subject = "subset", object = "subset"},
+    instance = {subject = "instance", object = "subset"},
+    connection = {object = "attribute"},
+    give_instances = {subject = "subset"},
+    tag = {subject = "instance", object = "tag"},
+})
 
 _M.Printer = require("htl.Taxonomy.Printer")
 
@@ -113,7 +87,7 @@ function _M:_init(path)
 
     self.label_to_entity = self.get_label_map(self.rows)
 
-    self.rows_by_relation = self.get_rows_by_relation(self.rows)
+    self.rows_by_relation = self.get_rows_by_relation(self.rows, self.label_to_entity, self.projects)
     
     self.taxonomy = self.make_taxonomy(self.rows_by_relation.subset, self.label_to_entity)
     
@@ -126,15 +100,41 @@ function _M:_init(path)
         self.rows_by_relation.connection
     )
     
-    self.instances = self.make_instances(
-        self.taxon_to_instances,
-        self.label_to_entity
-    )
-    
     self.map_attributes(
         self.label_to_entity,
         self.rows_by_relation.connection
     )
+end
+
+function _M:trim_for_relevance(path, include_instances)
+    local relevant_instances = Set()
+    local relevant_subsets = Set()
+    self.label_to_entity:foreach(function(label, entity)
+        if entity.path and entity.path:is_relative_to(path) then
+            if entity.type == "instance" then
+                relevant_instances:add(label)
+            elseif entity.type == "subset" then
+                relevant_subsets:add(label)
+            end
+        end
+    end)
+    
+    self.taxon_to_instances:transformv(function(instances)
+        return instances:filterk(function(k) return relevant_instances:has(k) end)
+    end):filterk(function(taxon)
+        return #self.taxon_to_instances[taxon]:keys() > 0
+    end)
+    
+    relevant_subsets:add(self.taxon_to_instances:keys())
+
+    local ancestors = self.taxonomy:ancestors()
+    relevant_subsets:foreach(function(subset)
+        relevant_subsets:add(ancestors[subset])
+    end)
+    
+    Set(self.taxonomy:nodes()):difference(relevant_subsets):foreach(function(subset_to_remove)
+        self.taxonomy:pop(subset_to_remove)
+    end)
 end
 
 function _M.get_projects(path)
@@ -176,11 +176,19 @@ function _M.get_entity(row, role, urls_by_id)
     
     local url = urls_by_id[row[fmt:format(role, "url")]] or {}
     
-    entity:update(url)
+    List({"id", "path", "label", "project"}):foreach(function(k) entity[k] = url[k] end)
+    
     entity.label = _M.get_label(row[fmt:format(role, "label")], url)
     entity.from_taxonomy = url.path and Taxonomy.Parser.is_taxonomy_file(url.path) or false
+    entity.type = _M.get_entity_type(row, role)
 
     return entity
+end
+
+function _M.get_entity_type(row, role)
+    row = row or {}
+    local role_to_type = _M.conf.entity_type_map[row.relation] or {}
+    return role_to_type[role]
 end
 
 function _M.get_label(label, url)
@@ -208,13 +216,15 @@ function _M.get_label_map(rows)
     
     rows:foreach(function(row)
         _M.conf.label_priority.role:foreach(function(role)
-            if row[role] then
+            local entity = row[role]
+
+            if entity then
                 local priority = _M.get_priority(role, row.relation)
                 while #labels_by_priority < priority do
                     labels_by_priority:append(Dict())
                 end
                 
-                labels_by_priority[priority][row[role].label] = row[role]
+                labels_by_priority[priority][entity.label] = entity
             end
         end)
     end)
@@ -226,16 +236,25 @@ function _M.get_label_map(rows)
     return map
 end
 
-function _M.get_rows_by_relation(rows)
+function _M.get_rows_by_relation(rows, label_to_entity, projects)
     local rows_by_relation = Dict()
     rows:foreach(function(row)
         rows_by_relation:default(row.relation, List())
+        
         rows_by_relation[row.relation]:append({
             subject = row.subject.label,
             object = row.object.label,
             type = row.type,
         })
     end)
+    
+    if #projects > 1 then
+        local primary_project = projects[#projects]
+        rows_by_relation.instance = rows_by_relation.instance:filter(function(r)
+            local project = label_to_entity[r.subject].project
+            return project and project == primary_project
+        end)
+    end
     
     return rows_by_relation
 end
@@ -248,10 +267,15 @@ function _M.make_taxonomy(rows, label_to_entity)
     local tree = Tree()
     rows:foreach(function(row)
         tree:add_edge(row.object or tree:parents()[row.subject], row.subject)
-        
-        if label_to_entity[row.subject] then
-            label_to_entity[row.subject].type = "subset"
-        end
+    end)
+    
+    local nodes = Set(tree:nodes())
+    local subset_entities = label_to_entity:keys():filter(function(label)
+        return label_to_entity[label].type == "subset"
+    end)
+    
+    Set(subset_entities):difference(nodes):vals():foreach(function(label)
+        tree[label] = Tree()
     end)
     
     return tree
@@ -307,20 +331,6 @@ function _M.apply_inheritence(taxonomy, inheritence_rows, taxon_to_instances, co
     end)
 end
 
-function _M.make_instances(taxon_to_instances, label_to_entity)
-    local instances = Set()
-    taxon_to_instances:foreach(function(taxon, taxon_instances_dict)
-        instances:add(taxon_instances_dict:keys())
-    end)
-    
-    instances = instances:vals()
-    instances:foreach(function(instance)
-        label_to_entity[instance].type = "instance"
-    end)
-    
-    return instances
-end
-
 function _M.map_attributes(label_to_entity, connection_rows)
     connection_rows:foreach(function(row)
         local subject = row.subject
@@ -333,49 +343,6 @@ function _M.map_attributes(label_to_entity, connection_rows)
             entity.attributes[attribute_key]:append(row.object)
         end
     end)
-end
-
-function _M.make_instance_to_taxon_map(rows, label_to_entity, path)
-    local map = _M.map_subject_to_object(rows)
-    
-    if path then
-        path = path:is_dir() and path or path:parent()
-
-        map = map:filterk(function(label)
-            return label_to_entity[label].path:is_relative_to(path)
-        end)
-    end
-    
-    return map
-end
-
---[[
-when we start here:
-- we take an instance
-- we follow its parent change, subbing in by taxon_to_instance_taxon
-- and we add each of those to the tree
-- that's it
-]]
-function _M.make_instance_taxonomy(taxonomy, taxon_to_instance_taxon, instance_to_taxon)
-    local tree = Tree()
-    local parents = taxonomy:parents()
-    
-    taxon_to_instance_taxon.abstract = "instance"
-    
-    instance_to_taxon:foreach(function(instance, taxon)
-        local child = instance
-        local parent = taxon
-
-        while parent and child do
-            parent = taxon_to_instance_taxon[parent] or parent
-            tree:add_edge(parent, child)
-            
-            child = parent
-            parent = parents[parent]
-        end
-    end)
-    
-    return tree
 end
 
 Taxonomy._M = _M

@@ -1,3 +1,4 @@
+require("hl.string")
 local Dict = require("hl.Dict")
 
 local M = {}
@@ -13,7 +14,14 @@ end
 function M.parsekv(s, delimiter)
     delimiter = delimiter or ":"
     s = s or ""
-    return unpack(s:split(delimiter, 1):mapm("strip"))
+
+    local key, val = unpack(s:split(delimiter, 1):mapm("strip"))
+    
+    if val and #val == 0 then
+        val = nil
+    end
+
+    return key, val
 end
 
 return M

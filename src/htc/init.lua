@@ -87,14 +87,8 @@ require("htc.cli")("hnetxt", {
             local p = Path("/Users/hne/Documents/text/written/fiction/chasefeel")
 
             local taxonomy = Taxonomy._M(p)
-
-            local printer = taxonomy.Printer(
-                taxonomy.label_to_entity,
-                taxonomy.taxonomy,
-                taxonomy.taxon_to_instances
-            )
-            
-            print(printer:get_string({include_instances = true}))
+            local printer = taxonomy.Printer(taxonomy, {include_instances = true, path = p})
+            print(printer)
         end,
     },
     record_metadata = {

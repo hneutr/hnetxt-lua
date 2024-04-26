@@ -51,18 +51,21 @@ M.relation_to_printer = Dict({
     instance = InstancePrinter,
 })
 
-function M:_init(label_to_entity, taxonomy, taxon_to_instances)
-    self.label_to_entity = label_to_entity
-    self.taxonomy = taxonomy
-    self.taxon_to_instances = taxon_to_instances
-end
-
-function M:get_string(args)
+function M:_init(T, args)
     args = Dict(args or {}, {include_instances = false})
 
+    self.path = args.path
     self.include_instances = args.include_instances
-    
-    return self:print_tree(self.taxonomy):join("\n")
+
+    self.T = T
+
+    if self.path then
+        self.T:trim_for_relevance(self.path, self.include_instances)
+    end
+end
+
+function M:__tostring()
+    return self:print_tree(self.T.taxonomy):join("\n")
 end
 
 function M:print_tree(tree, instances, indent)
@@ -71,17 +74,17 @@ function M:print_tree(tree, instances, indent)
     
     if instances and self.include_instances then
         instances:keys():sorted():foreach(function(instance)
-            local entity = self.label_to_entity[instance]
+            local entity = self.T.label_to_entity[instance]
             local entity_printer = self.relation_to_printer[entity.type](entity)
             lines:append(indent .. tostring(entity_printer))
         end)
     end
     
     Tree(tree):keys():sorted():foreach(function(label)
-        local entity = self.label_to_entity[label]
+        local entity = self.T.label_to_entity[label]
         local entity_printer = self.relation_to_printer[entity.type](entity)
         
-        local sublines = self:print_tree(tree[label], self.taxon_to_instances[label], indent .. self.conf.indent_size)
+        local sublines = self:print_tree(tree[label], self.T.taxon_to_instances[label], indent .. self.conf.indent_size)
         
         local line = indent .. tostring(entity_printer)
         
