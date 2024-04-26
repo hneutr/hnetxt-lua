@@ -27,11 +27,11 @@ relations:
       syntax: pink
       term:
         label: magenta
-colors:
-  term:
-    taxon:
-      label: [yellow]
-    instance:
-      label: [blue]
-    attribute:
-      label: [magenta]
+# colors:
+#   term:
+#     taxon:
+#       label: [yellow]
+#     instance:
+#       label: [blue]
+#     attribute:
+#       label: [magenta]

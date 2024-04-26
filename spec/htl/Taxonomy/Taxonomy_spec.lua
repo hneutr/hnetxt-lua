@@ -95,7 +95,7 @@ describe("_M", function()
                     {subject = "b", object = "a"},
                     {subject = "b"},
                     {subject = "c", object = "b"},
-                }))
+                }), Dict())
             )
         end)
     end)

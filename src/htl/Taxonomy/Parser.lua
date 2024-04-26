@@ -62,6 +62,8 @@ local SubsetRelation = class(Relation)
 SubsetRelation.name = "subset"
 SubsetRelation.symbol = M.conf.relations.subset.symbol
 
+function SubsetRelation:line_is_a(l) return l and l:match(self.symbol) or false end
+
 function SubsetRelation:parse(l, subject)
     local object = l:split(self.symbol, 1):mapm("strip")[2]
     return "", self:make(subject, object)

@@ -102,6 +102,7 @@ function M:insert_dict(dict, url, parent)
 
         if key == M.conf.is_a_key then
             local relation = DB.Relations:where({subject_url = url, relation = "instance"})
+            relation = relation or DB.Relations:where({subject_url = url, relation = "subset"})
             val = relation.object_label or tostring(relation.object_url)
         end
 

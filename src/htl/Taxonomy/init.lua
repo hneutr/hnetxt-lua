@@ -1,5 +1,38 @@
 local lyaml = require("lyaml")
 
+--[[
+what are we trying to do?
+1. determine instance types
+2. print taxonomies (relative to a directory)
+
+to determine an instance's type:
+- construct the taxonomy
+- it matches:
+    - its lineage (itself + parents)
+    - the lineage of anything inherited via a `give_instances` relation
+
+so, how do we construct the taxonomy?
+- for now, without `give_instances` stuff
+
+the seeds are:
+- instances
+- subsets
+    - from both files and taxonomies
+relative to the given dir
+
+for each of those:
+- add them to the tree
+
+we also want to add the global taxonomy, but we're going to do that _AFTER_
+- for subsets that don't have a parent:
+    - chase them up the global taxonomy tree
+
+----------------------------------------
+Fuck it, we're just gonna be lazy and do this:
+- for all `subset` relations, add it to the taxonomy
+
+]]
+
 local Taxonomy = class()
 
 Taxonomy.Parser = require("htl.Taxonomy.Parser")
@@ -58,6 +91,7 @@ end
 --------------------------------------------------------------------------------
 local _M = class()
 _M.conf = Dict(Conf.Taxonomy)
+_M.conf.all_attribute_key = "__all"
 _M.conf.label_priority = Dict({
     role = List({
         "object",
@@ -81,24 +115,25 @@ function _M:_init(path)
 
     self.rows_by_relation = self.get_rows_by_relation(self.rows)
     
-    self.taxonomy = self.make_taxonomy(self.rows_by_relation.subset)
-
-    self.taxon_to_instance_taxon = self.map_subject_to_object(self.rows_by_relation.give_instances)
+    self.taxonomy = self.make_taxonomy(self.rows_by_relation.subset, self.label_to_entity)
     
-    self.instance_to_taxon = self.make_instance_to_taxon_map(
-        self.rows_by_relation.instance,
-        self.label_to_entity,
-        path
+    self.taxon_to_instances = self.map_instances_to_taxa(self.rows_by_relation.instance)
+    
+    self.apply_inheritence(
+        self.taxonomy,
+        self.rows_by_relation.give_instances,
+        self.taxon_to_instances,
+        self.rows_by_relation.connection
     )
     
-    self.instance_to_taxon:keys():foreach(function(label)
-        self.label_to_entity[label].type = "instance"
-    end)
+    self.instances = self.make_instances(
+        self.taxon_to_instances,
+        self.label_to_entity
+    )
     
-    self.instance_taxonomy = self.make_instance_taxonomy(
-        self.taxonomy,
-        self.taxon_to_instance_taxon,
-        self.instance_to_taxon
+    self.map_attributes(
+        self.label_to_entity,
+        self.rows_by_relation.connection
     )
 end
 
@@ -125,6 +160,7 @@ function _M.get_rows(projects)
             subject = _M.get_entity(r, "subject", urls_by_id),
             object = _M.get_entity(r, "object", urls_by_id),
             relation = r.relation,
+            type = r.type,
         })
     end):filter(function(r)
         return projects:index(r.subject.project)
@@ -194,7 +230,11 @@ function _M.get_rows_by_relation(rows)
     local rows_by_relation = Dict()
     rows:foreach(function(row)
         rows_by_relation:default(row.relation, List())
-        rows_by_relation[row.relation]:append({subject = row.subject.label, object = row.object.label})
+        rows_by_relation[row.relation]:append({
+            subject = row.subject.label,
+            object = row.object.label,
+            type = row.type,
+        })
     end)
     
     return rows_by_relation
@@ -204,13 +244,95 @@ function _M.map_subject_to_object(rows)
     return Dict.from_list(rows or List(), function(row) return row.subject, row.object end)
 end
 
-function _M.make_taxonomy(rows)
+function _M.make_taxonomy(rows, label_to_entity)
     local tree = Tree()
     rows:foreach(function(row)
         tree:add_edge(row.object or tree:parents()[row.subject], row.subject)
+        
+        if label_to_entity[row.subject] then
+            label_to_entity[row.subject].type = "subset"
+        end
     end)
     
     return tree
+end
+
+function _M.map_instances_to_taxa(rows)
+    local map = Dict()
+    rows:foreach(function(row)
+        map:set({row.object, row.subject})
+    end)
+    
+    return map
+end
+
+function _M.apply_inheritence(taxonomy, inheritence_rows, taxon_to_instances, connection_rows)
+    local children = taxonomy:children()
+    inheritence_rows:foreach(function(row)
+        local subject = row.subject
+        local object = row.object
+
+        local instances = Dict(taxon_to_instances[subject])
+        List(children[subject]):foreach(function(_subject)
+            instances:update(taxon_to_instances[_subject])
+        end)
+        
+        instances:keys():foreach(function(instance)
+            if row.type == "instance" then
+                taxon_to_instances:set({object, instance})
+            else
+                connection_rows:append({
+                    subject = instance,
+                    object = object,
+                    relation = "connection",
+                    type = row.type,
+                })
+            end
+        end)
+    end)
+    
+    -- if an instance receives multiple parents in the same lineage, only show the most specific
+    local ancestors = taxonomy:ancestors()
+    taxon_to_instances:foreach(function(taxon, instances_dict)
+        local instances = instances_dict:keys()
+        if ancestors[taxon] then
+            ancestors[taxon]:foreach(function(ancestor)
+                instances:foreach(function(instance)
+                    if taxon_to_instances[ancestor] then
+                        taxon_to_instances[ancestor][instance] = nil
+                    end
+                end)
+            end)
+        end
+    end)
+end
+
+function _M.make_instances(taxon_to_instances, label_to_entity)
+    local instances = Set()
+    taxon_to_instances:foreach(function(taxon, taxon_instances_dict)
+        instances:add(taxon_instances_dict:keys())
+    end)
+    
+    instances = instances:vals()
+    instances:foreach(function(instance)
+        label_to_entity[instance].type = "instance"
+    end)
+    
+    return instances
+end
+
+function _M.map_attributes(label_to_entity, connection_rows)
+    connection_rows:foreach(function(row)
+        local subject = row.subject
+        local entity = label_to_entity[subject] or Dict()
+
+        if entity then
+            entity:default("attributes", Dict())
+            local attribute_key = row.type or _M.conf.all_attribute_key
+            entity.attributes:default(attribute_key, List())
+            entity.attributes[attribute_key]:append(row.object)
+        end
+    end)
 end
 
 function _M.make_instance_to_taxon_map(rows, label_to_entity, path)
