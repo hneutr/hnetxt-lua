@@ -1,5 +1,4 @@
-local Path = require("hl.Path")
-
+local TaxonomyParser = require("htl.Taxonomy.Parser")
 local mirrors = require("htl.db.mirrors")
 
 local M = {}
@@ -45,14 +44,27 @@ end
 
 function M:remove_file(path)
     if DB.urls:get_file(path) then
-        mirrors:get_paths(path):values():foreach(function(p)
-            p:unlink()
-        end)
+        mirrors:get_paths(path):values():foreach(function(p) p:unlink() end)
     end
 
+    DB.urls:get({where = {path = path}}):foreach(M.remove_links_to_dead_url)
     DB.urls:remove({path = path})
 
     path:unlink()
+end
+
+function M.remove_links_to_dead_url(dead_url)
+    local link = DB.urls:get_reference(dead_url)
+    local link_s = tostring(link)
+    local label = link.label
+
+    DB.Relations:get({where = {object_url = dead_url.id}}):col('subject_url'):foreach(function(url_id)
+        local url = DB.urls:where({id = url_id})
+        local path = url.path
+        local content = path:read():gsub(link_s:escape(), label)
+        path:write(content)
+        TaxonomyParser:record(url)
+    end)
 end
 
 return M

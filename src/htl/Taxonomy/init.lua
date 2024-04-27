@@ -106,7 +106,7 @@ function _M:_init(path)
     )
 end
 
-function _M:trim_for_relevance(path, include_instances)
+function _M:trim_for_relevance(path, subsets)
     local relevant_instances = Set()
     local relevant_subsets = Set()
     self.label_to_entity:foreach(function(label, entity)
@@ -340,7 +340,7 @@ function _M.map_attributes(label_to_entity, connection_rows)
             entity:default("attributes", Dict())
             local attribute_key = row.type or _M.conf.all_attribute_key
             entity.attributes:default(attribute_key, List())
-            entity.attributes[attribute_key]:append(row.object)
+            entity.attributes[attribute_key]:append(label_to_entity[row.object])
         end
     end)
 end

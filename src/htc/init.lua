@@ -82,13 +82,22 @@ require("htc.cli")("hnetxt", {
     tax = {
         description = "print taxonomy",
         {"-p --path", default = Path.cwd(), convert=Path.from_commandline},
+        {"+I", target = "include_instances", description = "exclude instances", switch = "off"},
+        {"+a", target = "include_attributes", description = "include attributes", switch = "on"},
+        {
+            "-s --subsets",
+            target = "subsets",
+            args = "*",
+            default = List(),
+            description = "subsets to include", 
+            action = "concat",
+        },
         action = function(args)
             local Taxonomy = require("htl.Taxonomy")
-            local p = Path("/Users/hne/Documents/text/written/fiction/chasefeel")
+            args.path = Path("/Users/hne/Documents/text/written/fiction/chasefeel")
 
-            local taxonomy = Taxonomy._M(p)
-            local printer = taxonomy.Printer(taxonomy, {include_instances = true, path = p})
-            print(printer)
+            local taxonomy = Taxonomy._M(args.path)
+            print(taxonomy.Printer(taxonomy, args))
         end,
     },
     record_metadata = {
