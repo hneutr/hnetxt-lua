@@ -1,5 +1,6 @@
 local TerminalLink = require("htl.text.TerminalLink")
 local Colorize = require("htc.Colorize")
+local Taxonomy = require("htl.Taxonomy")
 
 local M = class()
 
@@ -9,17 +10,18 @@ M.conf.indent_size = "  "
 --------------------------------------------------------------------------------
 --                                   Taxon                                    --
 --------------------------------------------------------------------------------
-local SubsetPrinter = class()
-SubsetPrinter.key = "subset"
+local LinePrinter = class()
 
-function SubsetPrinter:_init(entity, indent)
+function LinePrinter:_init(entity, indent, suffix)
     self.entity = entity
-    self.colors = M.conf.relations[self.key].color.term
     self.indent = indent or ""
-    self.suffix = ""
+    self.suffix = suffix or ""
+    
+    self.conf = M.conf.relations[self.entity.type] or {color = {term = 'white'}}
+    self.colors = self.conf.color.term
 end
 
-function SubsetPrinter:__tostring()
+function LinePrinter:__tostring()
     local s
     if not self.entity.from_taxonomy and self.entity.id then
         s = tostring(TerminalLink({
@@ -34,18 +36,6 @@ function SubsetPrinter:__tostring()
     return self.indent .. s .. self.suffix
 end
 
-function SubsetPrinter:entity_is_a(entity) return entity.type == self.key end
-
---------------------------------------------------------------------------------
---                                                                            --
---                                  Instance                                  --
---                                                                            --
---------------------------------------------------------------------------------
-local InstancePrinter = class(SubsetPrinter)
-InstancePrinter.key = "instance"
-
-local AttributePrinter = class(SubsetPrinter)
-AttributePrinter.key = "attribute"
 --------------------------------------------------------------------------------
 --                                                                            --
 --                                                                            --
@@ -53,95 +43,80 @@ AttributePrinter.key = "attribute"
 --                                                                            --
 --                                                                            --
 --------------------------------------------------------------------------------
-M.relation_to_printer = Dict({
-    subset = SubsetPrinter,
-    instance = InstancePrinter,
-    attribute = AttributePrinter,
-})
-
-function M:_init(T, args)
+function M:_init(args)
     args = args or {}
 
     self.path = args.path
     self.include_instances = args.include_instances
     self.include_attributes = args.include_attributes
+    self.instances_only = args.instances_only
     self.subsets = args.subsets
 
-    self.T = T
+    self.T = Taxonomy._M(args.path)
 
-    if self.path then
+    if self.path or self.subsets then
         self.T:trim_for_relevance(self.path, self.subsets)
     end
 end
 
 function M:__tostring()
-    return self:print_tree(self.T.taxonomy):transform(tostring):join("\n")
-end
-
-function M:print_attributes(attributes, indent)
     local lines = List()
-    local seen_keys = Dict()
-    attributes:keys():sorted():foreach(function(key)
-        local key_parts = key:split(".")
-        
-        local val = attributes[key]
-        local entity = self.T.label_to_entity[val]
+    if self.instances_only then
+        lines = self:get_instance_lines()
+    else
+        lines = self:get_lines()
+    end
 
-        if entity then
-            local _indent = indent
-            key_parts:foreach(function(key_part)
-                if not seen_keys[key_part] then
-                    lines:append(_indent .. key_part .. ":")
-                end
-                
-                _indent = _indent .. "  "
-            end)
-            
-            -- local entity_printer = self.relation_to_printer[entity.type](entity)
-            -- lines:append(_indent .. tostring(entity_printer))
-            -- lines:append(val)
-            
-            seen_keys:set(key_parts)
+    return lines:transform(function(l)
+        if type(l) == "string" then
+            l = {l}
         end
-    end)
 
-    return lines
+        local key, indent, suffix = unpack(l)
+        return tostring(LinePrinter(self.T.label_to_entity[key], indent, suffix))
+    end):join("\n")
 end
 
-function M:print_tree(tree, instances, indent)
-    indent = indent or ""
-    local lines = List()
-    
-    if instances and self.include_instances then
-        instances:keys():sorted():foreach(function(instance)
-            local entity = self.T.label_to_entity[instance]
-            lines:append(self.relation_to_printer[entity.type](entity, indent))
-            
-            -- print(entity.attributes)
-            -- print(require("inspect")(entity.attributes))
-            -- if self.include_attributes and entity.attributes then
-            --     lines:extend(self:print_attributes(entity.attributes, indent))
-            -- end
+function M:add_keys(dict, keys, indent)
+    if dict then
+        dict:keys():sorted():reverse():foreach(function(key)
+            keys:append({key, indent or ""})
         end)
     end
+end
+
+function M:add_instances(dict, lines, indent)
+    if self.include_instances and dict then
+        dict:keys():sorted():foreach(function(instance)
+            lines:append({instance, indent or ""})
+        end)
+    end
+end
+
+function M:get_instance_lines()
+    local instances = Set()
+    self.T.taxon_to_instances:values():foreach(function(_instances) instances:add(_instances:keys()) end)
+    return instances:vals():sorted()
+end
+
+function M:get_lines()
+    local keys = List()
+    self:add_keys(self.T.taxonomy, keys)
     
-    Tree(tree):keys():sorted():foreach(function(label)
-        local entity = self.T.label_to_entity[label]
-        local entity_printer = self.relation_to_printer[entity.type](entity, indent)
+    local lines = List()
+    while #keys > 0 do
+        local key, indent = unpack(keys:pop())
+        local key_i = #lines + 1
+        local pre_count = #keys + #lines
+        local _indent = indent .. "  "
         
-        local sublines = self:print_tree(
-            tree[label],
-            self.T.taxon_to_instances[label],
-            indent .. self.conf.indent_size
-        )
+        self:add_keys(self.T.taxonomy:get(key), keys, _indent)
         
-        if #sublines > 0 then
-            entity_printer.suffix = ":"
-        end
-        
-        lines:append(entity_printer)
-        lines:extend(sublines)
-    end)
+        self:add_instances(self.T.taxon_to_instances[key], lines, _indent)
+
+        local suffix = (#keys + #lines) > pre_count and ":"
+        lines:insert(key_i, {key, indent, suffix})
+    end
     
     return lines
 end

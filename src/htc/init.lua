@@ -84,6 +84,7 @@ require("htc.cli")("hnetxt", {
         {"-p --path", default = Path.cwd(), convert=Path.from_commandline},
         {"+I", target = "include_instances", description = "exclude instances", switch = "off"},
         {"+a", target = "include_attributes", description = "include attributes", switch = "on"},
+        {"+f", target = "instances_only", description = "only print instances", switch = "on"},
         {
             "-s --subsets",
             target = "subsets",
@@ -93,11 +94,10 @@ require("htc.cli")("hnetxt", {
             action = "concat",
         },
         action = function(args)
-            local Taxonomy = require("htl.Taxonomy")
             args.path = Path("/Users/hne/Documents/text/written/fiction/chasefeel")
 
-            local taxonomy = Taxonomy._M(args.path)
-            print(taxonomy.Printer(taxonomy, args))
+            local Printer = require("htl.Taxonomy.Printer")
+            print(Printer(args))
         end,
     },
     record_metadata = {

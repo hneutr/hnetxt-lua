@@ -78,8 +78,6 @@ _M.conf.entity_type_map = Dict({
     tag = {subject = "instance", object = "tag"},
 })
 
-_M.Printer = require("htl.Taxonomy.Printer")
-
 function _M:_init(path)
     self.projects = self.get_projects(path)
     
@@ -106,7 +104,7 @@ function _M:_init(path)
     )
 end
 
-function _M:trim_for_relevance(path, subsets)
+function _M:trim_for_relevance(path, subset_filters)
     local relevant_instances = Set()
     local relevant_subsets = Set()
     self.label_to_entity:foreach(function(label, entity)
@@ -132,9 +130,36 @@ function _M:trim_for_relevance(path, subsets)
         relevant_subsets:add(ancestors[subset])
     end)
     
-    Set(self.taxonomy:nodes()):difference(relevant_subsets):foreach(function(subset_to_remove)
-        self.taxonomy:pop(subset_to_remove)
+    if #subset_filters > 0 then
+        subset_filters = Set(subset_filters)
+        local descendants = self.taxonomy:descendants()
+        subset_filters:foreach(function(subset)
+            subset_filters:add(descendants[subset])
+        end)
+        
+        relevant_subsets = relevant_subsets * subset_filters 
+    end
+    
+    local taxonomy = Tree()
+    local generations = self.taxonomy:generations()
+    local irrelevant_subsets = List()
+    self.taxonomy:nodes():sorted(function(a, b)
+        return (generations[a] or 0) < (generations[b] or 0)
+    end):foreach(function(subset)
+        if relevant_subsets:has(subset) then
+            if not taxonomy:get(subset) then
+                taxonomy[subset] = self.taxonomy:get(subset)
+            end
+        else
+            irrelevant_subsets:append(subset)
+        end
     end)
+    
+    irrelevant_subsets:foreach(function(s) taxonomy:pop(s) end)
+
+    local nodes = Set(taxonomy:nodes())
+    self.taxon_to_instances:filterk(function(taxon) return nodes:has(taxon) end)
+    self.taxonomy = taxonomy
 end
 
 function _M.get_projects(path)
