@@ -102,7 +102,7 @@ require("htc.cli")("hnetxt", {
             utils.time_it("printer")
             local str = tostring(printer)
             utils.time_it("stringifying")
-            -- print(str)
+            print(str)
         end,
     },
     -- refs = {

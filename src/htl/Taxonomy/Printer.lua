@@ -56,10 +56,68 @@ function M:_init(args)
     utils.time_it("taxonomy creation")
 
     if self.path or self.subsets then
-        self.T:trim_for_relevance(self.path, self.subsets)
+        self:trim_for_relevance(self.path, self.subsets)
     end
 
     utils.time_it("taxonomy filtering")
+end
+
+function M:trim_for_relevance(path, subset_filters)
+    local relevant_instances = Set()
+    local relevant_subsets = Set()
+    self.T.label_to_entity:foreach(function(label, entity)
+        if entity.path and entity.path:is_relative_to(path) then
+            if entity.type == "instance" then
+                relevant_instances:add(label)
+            elseif entity.type == "subset" then
+                relevant_subsets:add(label)
+            end
+        end
+    end)
+    
+    self.T.taxon_to_instances:transformv(function(instances)
+        return instances:filterk(function(k) return relevant_instances:has(k) end)
+    end):filterk(function(taxon)
+        return #self.T.taxon_to_instances[taxon]:keys() > 0
+    end)
+    
+    relevant_subsets:add(self.T.taxon_to_instances:keys())
+
+    local ancestors = self.T.taxonomy:ancestors()
+    relevant_subsets:foreach(function(subset)
+        relevant_subsets:add(ancestors[subset])
+    end)
+    
+    if #subset_filters > 0 then
+        subset_filters = Set(subset_filters)
+        local descendants = self.T.taxonomy:descendants()
+        subset_filters:foreach(function(subset)
+            subset_filters:add(descendants[subset])
+        end)
+        
+        relevant_subsets = relevant_subsets * subset_filters 
+    end
+    
+    local taxonomy = Tree()
+    local generations = self.T.taxonomy:generations()
+    local irrelevant_subsets = List()
+    self.T.taxonomy:nodes():sorted(function(a, b)
+        return (generations[a] or 0) < (generations[b] or 0)
+    end):foreach(function(subset)
+        if relevant_subsets:has(subset) then
+            if not taxonomy:get(subset) then
+                taxonomy[subset] = self.T.taxonomy:get(subset)
+            end
+        else
+            irrelevant_subsets:append(subset)
+        end
+    end)
+    
+    irrelevant_subsets:foreach(function(s) taxonomy:pop(s) end)
+
+    local nodes = Set(taxonomy:nodes())
+    self.T.taxon_to_instances:filterk(function(taxon) return nodes:has(taxon) end)
+    self.T.taxonomy = taxonomy
 end
 
 function M:__tostring()
