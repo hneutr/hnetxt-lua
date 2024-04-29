@@ -33,7 +33,7 @@ function M:find(element, source)
     end
     
     M:insert(q)
-    return M:where(q).id
+    return M:where(q)
 end
 
 function M:insert(r)

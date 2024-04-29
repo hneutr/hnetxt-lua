@@ -326,15 +326,13 @@ describe("record_taxonomy", function()
             {
                 {
                     id = 1,
-                    subject_url = u1.id,
-                    subject_label = "a",
+                    subject = 1,
                     relation = "subset",
                 },
                 {
                     id = 2,
-                    subject_url = u1.id,
-                    subject_label = "b",
-                    object_label = "a",
+                    subject = 2,
+                    object = 1,
                     relation = "subset",
                 },
             },

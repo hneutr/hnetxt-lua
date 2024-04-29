@@ -209,9 +209,7 @@ function M:record_taxonomy(url, lines)
     lines = lines or url.path:readlines()
 
     self:parse_taxonomy_lines(lines):foreach(function(r)
-        r.subject_label = r:pop('subject')
-        r.subject_url = url.id
-        DB.Relations:insert(r)
+        DB.Relations:insert(r, url.id)
     end)
 end
 
@@ -263,8 +261,7 @@ function M:record_file(url)
         self:record_taxonomy(urls, lines:slice(2))
     else
         self:parse_file_lines(lines, url):foreach(function(r)
-            r.subject_url = r:pop('subject')
-            DB.Relations:insert(r)
+            DB.Relations:insert(r, url.id)
         end)
     end
 end

@@ -92,34 +92,48 @@ describe("remove_file", function()
         TaxonomyParser:record(u1)
         TaxonomyParser:record(u2)
         
+        local s1 = DB.Elements:find(u1.id, u1.id)
+        local o1 = DB.Elements:find("x", u1.id)
+        
         assert(DB.Relations:where({
-            subject_url = u1.id,
+            subject = s1.id,
             relation = "instance",
-            object_label = "x",
+            object = o1.id,
         }))
         
+        local s2 = DB.Elements:find(u2.id, u2.id)
+        local o2 = DB.Elements:find("y", u2.id)
+
         local u2_instance_r = {
-            subject_url = u2.id,
+            subject = s2.id,
             relation = "instance",
-            object_label = "y",
+            object = o2.id,
         }
-        
+
         assert(DB.Relations:where(u2_instance_r))
+        
+        local s3 = s2
+        local o3 = DB.Elements:find(u1.id, u2.id)
+        
         assert(DB.Relations:where({
-            subject_url = u2.id,
+            subject = s3.id,
             relation = "connection",
-            object_url = u1.id,
+            object = o3.id,
             type = "test_connection",
         }))
         
         M:remove_file(u1.path)
         
-        assert.is_nil(DB.Relations:where({subject_url = u1.id}))
+        assert.is_nil(DB.Relations:where({subject = o1.id}))
         assert(DB.Relations:where(u2_instance_r))
+        
+        local s4 = s2
+        local o4 = DB.Elements:find(l1, u2.id)
+
         assert(DB.Relations:where({
-            subject_url = u2.id,
+            subject = s4.id,
             relation = "connection",
-            object_label = l1,
+            object = o4.id,
             type = "test_connection",
         }))
         
