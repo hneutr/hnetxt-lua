@@ -7,6 +7,6 @@ outlines:
     mapkey: o
     statusline_str: outline
 meta: 
-    mapkey: m
+    mapkey: M
 metadata:
-    mapkey: d
+    mapkey: m

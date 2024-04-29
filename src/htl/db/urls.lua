@@ -216,6 +216,16 @@ function M:get_from_fuzzy_path(path, dir)
 end
 
 function M:get_label(url)
+    local label_relation = DB.Relations:where({
+        subject_url = url.id,
+        relation = "connection",
+        type = "label",
+    })
+    
+    if label_relation then
+        return label_relation.object_label
+    end
+    
     local label = url.label
 
     if not label then
