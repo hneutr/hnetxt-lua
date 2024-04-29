@@ -270,7 +270,7 @@ function M:record_file(url)
 end
 
 function M:record(url)
-    DB.Relations:remove({subject_url = url.id})
+    DB.Relations:remove_url(url)
     
     if M.is_taxonomy_file(url.path) then
         self:record_taxonomy(url)

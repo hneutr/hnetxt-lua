@@ -77,12 +77,15 @@ build = {
         ["htl.Taxonomy.Parser"] = "src/htl/Taxonomy/Parser.lua",
         ["htl.Taxonomy.Printer"] = "src/htl/Taxonomy/Printer.lua",
         
+        ["htl.Taxonomy.Persistent"] = "src/htl/Taxonomy/Persistent.lua",
+        
         -- Taxonomy DB
-        -- ["htl.db.Taxa"] = "src/htl/db/Taxa.lua",
-        -- ["htl.db.Instances"] = "src/htl/db/Instances.lua",
-        -- ["htl.db.References"] = "src/htl/db/References.lua",
-        -- ["htl.db.Attributes"] = "src/htl/db/Attributes.lua",
-        -- ["htl.db.Tags"] = "src/htl/db/Tags.lua",
+        ["htl.db.Elements"] = "src/htl/db/Elements.lua",
+        ["htl.db.Taxa"] = "src/htl/db/Taxa.lua",
+        ["htl.db.Instances"] = "src/htl/db/Instances.lua",
+        ["htl.db.References"] = "src/htl/db/References.lua",
+        ["htl.db.Attributes"] = "src/htl/db/Attributes.lua",
+        ["htl.db.Tags"] = "src/htl/db/Tags.lua",
 
         -- `Taxa`: the tree (without instances)
         --   url: url.id|nil

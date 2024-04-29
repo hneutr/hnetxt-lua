@@ -104,6 +104,10 @@ function M:get(q)
     end
 
     local rows = List(M:map(function(url)
+        if url.label and #url.label == 0 then
+            url.label = nil
+        end
+
         url.path = Path(url.path)
         return url
     end, q))
@@ -215,17 +219,14 @@ function M:get_from_fuzzy_path(path, dir)
     return M:where(q)
 end
 
-function M:get_label(url)
-    local label_relation = DB.Relations:where({
-        subject_url = url.id,
-        relation = "connection",
-        type = "label",
+function M:set_label(id, label)
+    M:update({
+        where = {id = id},
+        set = {label = label or ""},
     })
-    
-    if label_relation then
-        return label_relation.object_label
-    end
-    
+end
+
+function M:get_label(url)
     local label = url.label
 
     if not label then

@@ -10,6 +10,7 @@ M.schema = Dict({
     Paths = require("htl.db.Paths"),
     Log = require("htl.db.Log"),
     Relations = require("htl.db.Relations"),
+    Elements = require("htl.db.Elements"),
 })
 
 function M.init()

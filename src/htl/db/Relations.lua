@@ -40,7 +40,37 @@ function M:insert(r)
     
     if not M:where(row) then
         M:__insert(row)
+        M:set_url_label(row)
     end
+end
+
+-- function M:test_insert(r, source)
+--     local subject = DB.Elements:find(r.subject or source, source)
+--     local object = DB.Elements:find(r.object, source)
+
+--     local row = {
+--         subject = subject.id,
+--         object = object.id,
+--         relation = r.relation,
+--         type = r.type,
+--     }
+
+--     if not M:where(row) then
+--         M:__insert(row)
+--         M:set_url_label(row)
+--     end
+-- end
+
+function M:set_url_label(r)
+    if r.subject_url and r.relation == "connection" and r.type == "label" then
+        DB.urls:set_label(r.subject_url, r.object_label)
+    end
+end
+
+function M:remove_url(url)
+    DB.urls:set_label(url.id)
+    DB.Relations:remove({subject_url = url.id})
+    DB.Elements:remove({source = url.id})
 end
 
 return M

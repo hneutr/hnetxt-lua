@@ -289,3 +289,32 @@ describe("get_label", function()
         assert.are.same("-suffix", M:get_label({path = Conf.paths.language_dir / "_suffix.md"}))
     end)
 end)
+
+describe("set_label", function()
+    it("str", function()
+        local q = {path = f1}
+        f1:touch()
+
+        M:insert(q)
+        local u = M:where(q)
+        assert.is_nil(u.label)
+        
+        M:set_label(u.id, "a")
+        
+        assert.are.same("a", M:where(q).label)
+    end)
+
+    it("nil", function()
+        local q = {path = f1}
+        f1:touch()
+
+        M:insert(q)
+        local u = M:where(q)
+        assert.is_nil(u.label)
+        
+        M:set_label(u.id, "a")
+        assert.are.same("a", M:where(q).label)
+        M:set_label(u.id)
+        assert.is_nil(M:where(q).label)
+    end)
+end)

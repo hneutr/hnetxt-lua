@@ -95,14 +95,17 @@ require("htc.cli")("hnetxt", {
             action = "concat",
         },
         action = function(args)
-            args.path = Path("/Users/hne/Documents/text/written/fiction/chasefeel")
+            -- args.path = Path("/Users/hne/Documents/text/written/fiction/chasefeel")
 
-            utils.time_it("start")
-            local printer = require("htl.Taxonomy.Printer")(args)
-            utils.time_it("printer")
-            local str = tostring(printer)
-            utils.time_it("stringifying")
-            print(str)
+            -- utils.time_it("start")
+            -- local printer = require("htl.Taxonomy.Printer")(args)
+            -- utils.time_it("printer")
+            -- local str = tostring(printer)
+            -- utils.time_it("stringifying")
+            -- print(str)
+            
+            local PTaxonomy = require("htl.Taxonomy.Persistent")
+            PTaxonomy("chasefeel")
         end,
     },
     -- refs = {
