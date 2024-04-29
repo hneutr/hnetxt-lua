@@ -53,10 +53,13 @@ function M:_init(args)
     self.subsets = args.subsets
 
     self.T = Taxonomy._M(args.path)
+    utils.time_it("taxonomy creation")
 
     if self.path or self.subsets then
         self.T:trim_for_relevance(self.path, self.subsets)
     end
+
+    utils.time_it("taxonomy filtering")
 end
 
 function M:__tostring()

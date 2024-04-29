@@ -83,8 +83,9 @@ require("htc.cli")("hnetxt", {
         description = "print taxonomy",
         {"-p --path", default = Path.cwd(), convert=Path.from_commandline},
         {"+I", target = "include_instances", description = "exclude instances", switch = "off"},
-        {"+a", target = "include_attributes", description = "include attributes", switch = "on"},
+        -- {"+a", target = "include_attributes", description = "include attributes", switch = "on"},
         {"+f", target = "instances_only", description = "only print instances", switch = "on"},
+        -- {"+a", target = "attributes_only", description = "only attributes instances", switch = "on"},
         {
             "-s --subsets",
             target = "subsets",
@@ -96,10 +97,21 @@ require("htc.cli")("hnetxt", {
         action = function(args)
             args.path = Path("/Users/hne/Documents/text/written/fiction/chasefeel")
 
-            local Printer = require("htl.Taxonomy.Printer")
-            print(Printer(args))
+            utils.time_it("start")
+            local printer = require("htl.Taxonomy.Printer")(args)
+            utils.time_it("printer")
+            local str = tostring(printer)
+            utils.time_it("stringifying")
+            -- print(str)
         end,
     },
+    -- refs = {
+    --     description = "print references to a file",
+    --     {"-p --path", default = Path.cwd(), convert=Path.from_commandline},
+    --     {"+T", target = "by taxonomy", description = "don't print within the taxonomy", switch = "off"},
+    --     action = function(args)
+    --     end,
+    -- },
     record_metadata = {
         description = "record metadata",
         {"-p --path", default = Path.cwd(), description = "restrict to this path", convert=Path.as_path},

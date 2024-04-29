@@ -98,10 +98,10 @@ function _M:_init(path)
         self.rows_by_relation.connection
     )
     
-    self.map_attributes(
-        self.label_to_entity,
-        self.rows_by_relation.connection
-    )
+    -- self.map_attributes(
+    --     self.label_to_entity,
+    --     self.rows_by_relation.connection
+    -- )
 end
 
 function _M:trim_for_relevance(path, subset_filters)

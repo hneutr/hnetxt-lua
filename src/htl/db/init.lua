@@ -7,8 +7,8 @@ M.schema = Dict({
     urls = require("htl.db.urls"),
     metadata = require("htl.db.metadata"),
     samples = require("htl.db.samples"),
-    Log = require("htl.db.Log"),
     Paths = require("htl.db.Paths"),
+    Log = require("htl.db.Log"),
     Relations = require("htl.db.Relations"),
 })
 
