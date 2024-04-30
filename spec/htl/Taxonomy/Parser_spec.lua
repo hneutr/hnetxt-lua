@@ -5,7 +5,7 @@ local d1 = htl.test_dir / "dir-1"
 local p1 = {title = "test", path = d1}
 local f1 = d1 / "file.md"
 
-local give_instances_symbol = Conf.Taxonomy.relations.give_instances.symbol
+local instances_are_also_symbol = Conf.Taxonomy.relations.instances_are_also.symbol
 
 local M = require("htl.Taxonomy.Parser")
 
@@ -120,8 +120,8 @@ describe("ConnectionRelation", function()
     end)
 end)
 
-describe("GiveInstancesRelation", function()
-    local M = M.GiveInstancesRelation
+describe("InstancesAreAlsoRelation", function()
+    local M = M.InstancesAreAlsoRelation
 
     describe("line_is_a", function()
         it("nil", function()
@@ -133,7 +133,11 @@ describe("GiveInstancesRelation", function()
         end)
         
         it("+", function()
-            assert(M:line_is_a(M.symbol .. "(a, b)"))
+            assert(M:line_is_a(M.symbol .. "(a)"))
+        end)
+
+        it("+", function()
+            assert(M:line_is_a(M.symbol .. " a"))
         end)
     end)
 
@@ -144,29 +148,12 @@ describe("GiveInstancesRelation", function()
                     "",
                     {
                         subject = "a",
-                        object = "c",
-                        relation = "give_instances",
-                        type = "b"
-                    }
-
-                },
-                {M:parse(M.symbol .. "(b, c)", "a")}
-            )
-        end)
-
-        it("known relation", function()
-            assert.are.same(
-                {
-                    "",
-                    {
-
-                        subject = "a",
                         object = "b",
-                        relation = "give_instances",
-                        type = "subset",
+                        relation = "instances_are_also",
                     }
+
                 },
-                {M:parse(M.symbol .. string.format("(%s, b)", Conf.Taxonomy.relations.subset.symbol), "a")}
+                {M:parse(M.symbol .. "(b)", "a")}
             )
         end)
     end)
@@ -259,9 +246,8 @@ describe("parse_taxonomy_lines", function()
             {
                 {
                     subject = "a",
-                    object = "c",
-                    relation = "give_instances",
-                    type = "b"
+                    object = "b",
+                    relation = "instances_are_also",
                 },
                 {
                     subject = "a",
@@ -269,7 +255,7 @@ describe("parse_taxonomy_lines", function()
                 },
             },
             M:parse_taxonomy_lines(List({
-                string.format("a: %s(b, c)", give_instances_symbol)}
+                string.format("a: %s(b)", instances_are_also_symbol)}
             )):sorted(function(a, b)
                 return a.relation < b.relation
             end)

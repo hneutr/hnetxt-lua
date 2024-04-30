@@ -92,25 +92,15 @@ end
 --------------------------------------------------------------------------------
 --                          InstancesAreAlsoRelation                          --
 --------------------------------------------------------------------------------
---------------------------------------------------------------------------------
---                           GiveInstancesRelation                            --
---------------------------------------------------------------------------------
-local GiveInstancesRelation = class(Relation)
-GiveInstancesRelation.name = "give_instances"
-GiveInstancesRelation.symbol = M.conf.relations.give_instances.symbol
+local InstancesAreAlsoRelation = class(Relation)
+InstancesAreAlsoRelation.name = "instances_are_also"
+InstancesAreAlsoRelation.symbol = M.conf.relations.instances_are_also.symbol
 
-function GiveInstancesRelation:parse(l, subject)
-    l, str = utils.parsekv(l, self.symbol)
+function InstancesAreAlsoRelation:parse(l, subject)
+    l, object = utils.parsekv(l, self.symbol)
+    object = object:removeprefix("("):removesuffix(")")
     
-    local type, object = utils.parsekv(str:removeprefix("("):removesuffix(")"), ",")
-    
-    M.conf.relations:foreach(function(key, info)
-        if type == info.symbol then
-            type = key
-        end
-    end)
-    
-    return l, self:make(subject, object, type)
+    return l, self:make(subject, object)
 end
 
 --------------------------------------------------------------------------------
@@ -164,7 +154,7 @@ function TagRelation:line_is_a(l) return l and l:strip():startswith(self.symbol)
 M.Relations = List({
     ConnectionRelation,
     SubsetRelation,
-    GiveInstancesRelation,
+    InstancesAreAlsoRelation,
     TagRelation,
     InstanceRelation,
 })
@@ -309,7 +299,7 @@ end
 
 M.SubsetRelation = SubsetRelation
 M.ConnectionRelation = ConnectionRelation
-M.GiveInstancesRelation = GiveInstancesRelation
+M.InstancesAreAlsoRelation = InstancesAreAlsoRelation
 M.InstanceRelation = InstanceRelation
 M.TagRelation = TagRelation
 M.Relation = Relation

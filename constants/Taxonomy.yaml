@@ -18,7 +18,6 @@ relations:
       term:
         label: blue
   instances_are_also:
-  give_instances:
     symbol: ⪽
     color:
       syntax: maroon
