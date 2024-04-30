@@ -88,6 +88,10 @@ function ConnectionRelation:parse(l, subject)
     return l, self:make(subject, object, type)
 end
 
+
+--------------------------------------------------------------------------------
+--                          InstancesAreAlsoRelation                          --
+--------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --                           GiveInstancesRelation                            --
 --------------------------------------------------------------------------------
@@ -299,6 +303,7 @@ function M:persist_relations(url, relations)
             DB.Relations:remove({where = {id = to_remove}})
         end
         -- TODO: handle persisted taxonomy!
+        -- ALSO: delete vacuous elements!
     end
 end
 

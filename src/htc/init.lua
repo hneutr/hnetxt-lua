@@ -47,6 +47,23 @@ require("htc.cli")("hnetxt", {
         {"date", description = "date (YYYYMMDD); default today", default = os.date('%Y%m%d')},
         action = DB.samples.run,
     },
+    quote = {
+        description = "add a quote",
+        {"-p --path", default = Path.cwd(), description = "media dir", convert=Path.as_path},
+        action = function(args)
+            local path = args.path:join("1.md")
+
+            while path:exists() do
+                path = path:with_stem(tostring(tonumber(path:stem()) + 1))
+            end
+
+            print(path)
+        end,
+    },
+    language = {
+        description = "print the language dir",
+        action = function(args) print(Conf.paths.language_dir) end,
+    },
     tags = {
         description = "list tags",
         {
@@ -79,6 +96,32 @@ require("htc.cli")("hnetxt", {
             print(DB.metadata.get_dict(args))
         end
     },
+    record_metadata = {
+        description = "record metadata",
+        {"-p --path", default = Path.cwd(), description = "restrict to this path", convert=Path.as_path},
+        {"+a", target = "all", description = "don't restrict by path", switch = "on"},
+        {
+            "+r",
+            target = "rerecord",
+            description = "rerecord metadata for all files; if off, only operates on files missing metadata",
+            switch = "on",
+        },
+        action = function(args)
+            local q = {where = {resource_type = "file"}}
+
+            if not args.all then
+                q.contains = {path = string.format("%s*", args.path)}
+            end
+
+            local url_ids = DB.urls:get(q):col('id')
+
+            if args.rerecord then
+                url_ids:foreach(function(u) DB.metadata:remove({url = u}) end)
+            end
+
+            DB.metadata.record_missing(url_ids)
+        end,
+    },
     tax = {
         description = "print taxonomy",
         {"-p --path", default = Path.cwd(), convert=Path.from_commandline},
@@ -110,6 +153,42 @@ require("htc.cli")("hnetxt", {
             print(ptaxonomy.taxon_instances)
         end,
     },
+    reparse_relations = {
+        description = "reparse relations",
+        {"+C", target = "clean", description = "clean bad urls", switch = "off"},
+        acton = function(args)
+            local urls = DB.urls:get({where = {resource_type = "file"}}):sorted(function(a, b)
+                return tostring(a.path) < tostring(b.path)
+            end)
+
+            if args.clean then
+                urls = urls:filter(function(u)
+                    local keep = true
+
+                    if not DB.projects.get_by_path(u.path) then
+                        keep = false
+                    end
+
+                    if not u.path:exists() then
+                        keep = false
+                    end
+
+                    if not keep then
+                        DB.urls:remove({id = u.id})
+                    end
+
+                    return keep
+                end)
+            end
+
+            local TParser = require("htl.Taxonomy.Parser")
+
+            urls:foreach(function(u)
+                print(u.path)
+                TParser:record(u)
+            end)
+        end,
+    },
     -- refs = {
     --     description = "print references to a file",
     --     {"-p --path", default = Path.cwd(), convert=Path.from_commandline},
@@ -117,49 +196,6 @@ require("htc.cli")("hnetxt", {
     --     action = function(args)
     --     end,
     -- },
-    record_metadata = {
-        description = "record metadata",
-        {"-p --path", default = Path.cwd(), description = "restrict to this path", convert=Path.as_path},
-        {"+a", target = "all", description = "don't restrict by path", switch = "on"},
-        {
-            "+r",
-            target = "rerecord",
-            description = "rerecord metadata for all files; if off, only operates on files missing metadata",
-            switch = "on",
-        },
-        action = function(args)
-            local q = {where = {resource_type = "file"}}
-
-            if not args.all then
-                q.contains = {path = string.format("%s*", args.path)}
-            end
-
-            local url_ids = DB.urls:get(q):col('id')
-
-            if args.rerecord then
-                url_ids:foreach(function(u) DB.metadata:remove({url = u}) end)
-            end
-
-            DB.metadata.record_missing(url_ids)
-        end,
-    },
-    quote = {
-        description = "add a quote",
-        {"-p --path", default = Path.cwd(), description = "media dir", convert=Path.as_path},
-        action = function(args)
-            local path = args.path:join("1.md")
-
-            while path:exists() do
-                path = path:with_stem(tostring(tonumber(path:stem()) + 1))
-            end
-
-            print(path)
-        end,
-    },
-    language = {
-        description = "print the language dir",
-        action = function(args) print(Conf.paths.language_dir) end,
-    },
     test = {
         description = "test",
         {"+r", target = "rerun", description = "rerun", switch = "on"},

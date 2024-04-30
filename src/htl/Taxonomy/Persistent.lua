@@ -64,7 +64,7 @@ function M.get_urls(project)
 
                 if r.relation == "instance" then
                     if object then
-                        taxon_instances[object]:add(subject_id)
+                        taxon_instances[object]:add(element_id_to_url_id[subject_id])
                     end
                 elseif r.relation == "subset" then
                     taxonomy:add_edge(object, subject)

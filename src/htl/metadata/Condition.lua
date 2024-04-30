@@ -1,8 +1,6 @@
-local Set = require("hl.Set")
-local Config = require("htl.Config")
 local Parser = require("htl.metadata.Parser")
 
-local M = class()
+local M = {}
 M.conf = Conf.metadata
 
 function M.filter(rows, conditions, taxonomy)
