@@ -88,30 +88,6 @@ build = {
         ["htl.db.References"] = "src/htl/db/References.lua",
         ["htl.db.Attributes"] = "src/htl/db/Attributes.lua",
         ["htl.db.Tags"] = "src/htl/db/Tags.lua",
-
-        -- `Taxa`: the tree (without instances)
-        --   element: id
-        --   parent: Taxa.id|nil
-        --   project:
-        -- `Instances`: 
-        --   url: url.id
-        --   taxon: Taxa.id
-        --   generation: 1 if parent, 2 if grandparent, etc
-        --   project:
-        -- `References`:
-        --   subject: url.id (referencing url)
-        --   object: url.id (referenced url)
-        --   type: `Relation.type`
-        --   project:
-        -- `Attributes`: attributes
-        --   url: url.id
-        --   type: `Relation.type`
-        --   val: string
-        --   project:
-        -- `Tags`:
-        --   url: url.id
-        --   val: string
-        --   project:
     }
 }
 test = {
