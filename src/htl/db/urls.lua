@@ -1,7 +1,7 @@
 local Link = require("htl.text.Link")
 local URLDefinition = require("htl.text.URLDefinition")
 
-local M = require("sqlite.tbl")("urls", {
+local M = SqliteTable("urls", {
     id = true,
     label = "text",
     project = {
@@ -44,7 +44,7 @@ function M:insert(row)
         return
     end
 
-    M:__insert({
+    return SqliteTable.insert(M, {
         path = tostring(row.path),
         project = project.title,
         label = row.label,

@@ -308,7 +308,7 @@ describe("parse_taxonomy_lines", function()
     end)
 end)
 
-describe("record_taxonomy", function()
+describe("record", function()
     it("single line", function()
         local f1 = d1 / Conf.paths.taxonomy_file
         f1:write({
@@ -320,7 +320,7 @@ describe("record_taxonomy", function()
 
         local u1 = DB.urls:where({path = f1})
         
-        M:record_taxonomy(u1)
+        M:record(u1)
 
         assert.are.same(
             {
@@ -347,14 +347,14 @@ describe("parse_file_lines", function()
     it("is a", function()
         assert.are.same(
             {{subject = 1, object = "a", relation = "instance"}},
-            M:parse_file_lines(List({"is a: a "}), url)
+            M:parse_file_lines(url, List({"is a: a "}))
         )
     end)
     
     it("field: val", function()
         assert.are.same(
             {{subject = 1, object = 2, relation = "connection", type = "key"}},
-            M:parse_file_lines(List({"key: [abc](2)"}), url)
+            M:parse_file_lines(url, List({"key: [abc](2)"}))
         )
     end)
     
@@ -365,12 +365,12 @@ describe("parse_file_lines", function()
                 {subject = 1, object = 3, relation = "connection", type = "key"}
             },
             M:parse_file_lines(
+                url,
                 List({
                     "key:",
                     "  [abc](2)",
                     "  [def](3)",
-                }),
-                url
+                })
             )
         )
     end)
@@ -382,14 +382,14 @@ describe("parse_file_lines", function()
                 {subject = 1, object = 3, relation = "connection", type = "k1.k3"}
             },
             M:parse_file_lines(
+                url,
                 List({
                     "k1:",
                     "  k2:",
                     "    [abc](2)",
                     "  k3:",
                     "    [abc](3)",
-                }),
-                url
+                })
             )
         )
     end)
@@ -401,13 +401,13 @@ describe("parse_file_lines", function()
                 {subject = 1, object = 3, relation = "connection", type = "k2"}
             },
             M:parse_file_lines(
+                url,
                 List({
                     "k1:",
                     "  [abc](2)",
                     "k2: [def](3)",
                     "[xyz](4)",
-                }),
-                url
+                })
             )
         )
     end)
@@ -415,7 +415,7 @@ describe("parse_file_lines", function()
     it("tag", function()
         assert.are.same(
             {{subject = 1, object = "abc", relation = "tag"}},
-            M:parse_file_lines(List({"@abc"}), url)
+            M:parse_file_lines(url, List({"@abc"}))
         )
     end)
     
@@ -428,14 +428,97 @@ describe("parse_file_lines", function()
                 {subject = 1, object = 3, relation = "connection", type = "t1"}
             },
             M:parse_file_lines(
+                url,
                 List({
                     string.format("is a: a %s x", M.ConnectionRelation.symbol),
                     "t1:",
                     "  [abc](2)",
                     "  [def](3)",
-                }),
-                url
+                })
             )
         )
+    end)
+end)
+
+describe("persist_relations", function()
+    local url
+    local url_id
+    before_each(function()
+        f1:touch()
+        url_id = DB.urls:insert({path = f1})
+        url = DB.urls:where({id = url_id})
+    end)
+
+    it("no change", function()
+        local relations = List({{
+            subject = url_id,
+            object = "a",
+            relation = "subset",
+            source = url_id,
+        }})
+
+        local row = {
+            id = 1,
+            subject = 1,
+            object = 2,
+            relation = "subset",
+        }
+
+        assert.are.same({}, DB.Relations:get())
+        M:persist_relations(url, relations)
+        assert.are.same({row}, DB.Relations:get())
+
+        M:persist_relations(url, relations)
+        assert.are.same({row}, DB.Relations:get())
+    end)
+
+    it("one old missing, one old existing", function()
+        local r1 = {
+            subject = url_id,
+            object = "a",
+            relation = "subset",
+            source = url_id,
+        }
+
+        local r2 = {
+            subject = url_id,
+            object = "b",
+            relation = "subset",
+            source = url_id,
+        }
+
+        local r3 = {
+            subject = url_id,
+            object = "c",
+            relation = "subset",
+            source = url_id,
+        }
+
+        local rel1 = {
+            id = 1,
+            subject = 1,
+            object = 2,
+            relation = "subset",
+        }
+
+        local rel2 = {
+            id = 2,
+            subject = 1,
+            object = 3,
+            relation = "subset",
+        }
+
+        local rel3 = {
+            id = 3,
+            subject = 1,
+            object = 4,
+            relation = "subset",
+        }
+
+        M:persist_relations(url, List({r1, r2}))
+        assert.are.same({rel1, rel2}, DB.Relations:get())
+
+        M:persist_relations(url, List({r1, r3}))
+        assert.are.same({rel1, rel3}, DB.Relations:get())
     end)
 end)

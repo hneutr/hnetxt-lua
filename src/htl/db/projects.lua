@@ -1,4 +1,4 @@
-local M = require("sqlite.tbl")("projects", {
+local M = SqliteTable("projects", {
     title = {
         type = "text",
         required = true,

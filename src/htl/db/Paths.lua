@@ -1,4 +1,4 @@
-local M = require("sqlite.tbl")("Paths", {
+local M = SqliteTable("Paths", {
     key = {
         type = "text",
         required = true,

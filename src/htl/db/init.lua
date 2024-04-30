@@ -1,5 +1,4 @@
 local sqlite = require("sqlite.db")
-local tbl = require("sqlite.tbl")
 
 local M = {}
 M.schema = Dict({
@@ -18,7 +17,7 @@ function M.init()
 
     M.schema:foreach(function(key, _tbl)
         DB[key] = _tbl
-        tbl.set_db(_tbl, DB)
+        SqliteTable.set_db(_tbl, DB)
     end)
 end
 

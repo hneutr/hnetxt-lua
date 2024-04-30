@@ -42,7 +42,7 @@ TODO:
 - tag handing: group tags by @level1.level2.etc
 ]]
 
-local M = require("sqlite.tbl")("metadata", {
+local M = SqliteTable("metadata", {
     id = true,
     key = {
         type = "text",
@@ -101,8 +101,9 @@ function M:insert_dict(dict, url, parent)
         local val = raw.val
 
         if key == M.conf.is_a_key then
-            local relation = DB.Relations:where({subject_url = url, relation = "instance"})
-            relation = relation or DB.Relations:where({subject_url = url, relation = "subset"})
+            local element = DB.Elements:where({source = url, url = url})
+            local relation = DB.Relations:where({subject = element.id, relation = "instance"})
+            relation = relation or DB.Relations:where({subject = element.id, relation = "subset"})
             val = relation.object_label or tostring(relation.object_url)
         end
 

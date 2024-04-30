@@ -1,8 +1,6 @@
-local Config = require("htl.Config")
-
 local Snippet = require("htl.snippet")
 
-local M = require("sqlite.tbl")("samples", {
+local M = SqliteTable("samples", {
     id = true,
     date = {
         type = "text",

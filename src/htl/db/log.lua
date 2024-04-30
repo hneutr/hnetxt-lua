@@ -1,6 +1,6 @@
 local Date = require("pl.Date")
 
-local M = require("sqlite.tbl")("Log", {
+local M = SqliteTable("Log", {
     id = true,
     key = {
         "text",

@@ -91,7 +91,7 @@ describe("remove_file", function()
         
         TaxonomyParser:record(u1)
         TaxonomyParser:record(u2)
-        
+
         local s1 = DB.Elements:find(u1.id, u1.id)
         local o1 = DB.Elements:find("x", u1.id)
         

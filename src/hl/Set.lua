@@ -16,11 +16,6 @@ function Set.add_val(self, val)
     return self
 end
 
-function Set.remove(self, val)
-    self._vals[val] = nil
-    return self
-end
-
 function Set.has(self, val)
     return self._vals[val] or false
 end
@@ -112,22 +107,14 @@ function Set.isdisjoint(self, other)
 end
 
 function Set:add(other)
-    local other_vals
-    if type(other) == 'table' then
-        local mt = getmetatable(other)
-        if mt == Set then
-            other_vals = other:vals()
-        else
-            other_vals = other
-        end
-    else
-        other_vals = {other}
-    end
-
-    List(other_vals):foreach(function(val)
-        self:add_val(val)
-    end)
+    Set.__get_vals(other):foreach(function(val) self:add_val(val) end)
 end
+
+function Set:remove(other)
+    Set.__get_vals(other):foreach(function(val) self._vals[val] = nil end)
+    return self
+end
+
 
 function Set:foreach(...)
     self:vals():foreach(...)

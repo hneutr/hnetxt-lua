@@ -1,4 +1,4 @@
-local M = require("sqlite.tbl")("Relations", {
+local M = SqliteTable("Relations", {
     id = true,
     subject = {
         type = "integer",
@@ -30,28 +30,31 @@ function M:insert(r, source)
     local subject = DB.Elements:find(r.subject or source, source)
     local object = DB.Elements:find(r.object, source)
 
-    local row = {
+    local q = {
         subject = subject.id,
         object = object.id,
         relation = r.relation,
         type = r.type,
     }
 
-    if not M:where(row) then
-        M:__insert(row)
-        M:set_url_label(row, object)
+    local row = M:where(q)
+    
+    if not row then
+        M:set_url_label(q, object)
+        return SqliteTable.insert(M, q)
     end
+    
+    return row.id
+end
+
+function M:is_label_relation(r)
+    return r.relation == "connection" and r.type == "label"
 end
 
 function M:set_url_label(row, object)
-    if row.relation == "connection" and row.type == "label" and object.label then
+    if M:is_label_relation(row) then
         DB.urls:set_label(object.source, object.label)
     end
-end
-
-function M:remove_url(url)
-    DB.urls:set_label(url.id)
-    DB.Elements:remove({source = url.id})
 end
 
 return M

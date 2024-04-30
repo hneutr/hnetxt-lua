@@ -1,7 +1,9 @@
 require("pl.class").List(require("pl.List"))
 
 function List:extend(l, ...)
-    self = self._base.extend(self, l)
+    if l then
+        self = self._base.extend(self, l)
+    end
 
     if ... then
         self = self:extend(...)

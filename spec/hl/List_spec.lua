@@ -1,5 +1,11 @@
 local List = require("hl.List")
 
+describe("init", function()
+    it("nil", function()
+        assert.are.same({}, List(nil))
+    end)
+end)
+
 describe("append", function()
     it("works", function()
         local l = List()
@@ -7,6 +13,15 @@ describe("append", function()
         l:append("b")
 
         assert.are.same({"a", "b"}, l)
+    end)
+    
+    it("nil", function()
+        local l = List()
+        l:append(1)
+        l:append(nil)
+        l:append(2)
+        
+        assert.are.same({1, 2}, l)
     end)
 end)
 
@@ -23,6 +38,12 @@ describe("extend", function()
 
     it("multiple", function()
         assert.are.same({1, 2, 3}, List():extend({1}, {2}, {3}))
+    end)
+
+    it("null", function()
+        local l = List({1, 2, 3})
+        l = l:extend()
+        assert.are.same({1, 2, 3}, l)
     end)
 end)
 

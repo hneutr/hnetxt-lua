@@ -28,6 +28,7 @@ build = {
         ["hl.yaml"] = "src/hl/yaml.lua",
         ["hl.List"] = "src/hl/List.lua",
         ["hl.Dict"] = "src/hl/Dict.lua",
+        ["hl.DefaultDict"] = "src/hl/DefaultDict.lua",
         ['hl.Set'] = "src/hl/Set.lua",
         ["hl.Path"] = "src/hl/Path.lua",
         ["hl.Tree"] = "src/hl/Tree.lua",
@@ -81,6 +82,7 @@ build = {
         
         -- Taxonomy DB
         ["htl.db.Elements"] = "src/htl/db/Elements.lua",
+
         ["htl.db.Taxa"] = "src/htl/db/Taxa.lua",
         ["htl.db.Instances"] = "src/htl/db/Instances.lua",
         ["htl.db.References"] = "src/htl/db/References.lua",
@@ -88,8 +90,7 @@ build = {
         ["htl.db.Tags"] = "src/htl/db/Tags.lua",
 
         -- `Taxa`: the tree (without instances)
-        --   url: url.id|nil
-        --   label: string|nil
+        --   element: id
         --   parent: Taxa.id|nil
         --   project:
         -- `Instances`: 

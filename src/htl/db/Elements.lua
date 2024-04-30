@@ -1,5 +1,5 @@
 
-local M = require("sqlite.tbl")("Elements", {
+local M = SqliteTable("Elements", {
     id = true,
     url = {
         type = "integer",

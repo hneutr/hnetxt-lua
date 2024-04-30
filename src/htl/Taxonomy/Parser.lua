@@ -205,15 +205,7 @@ function M:parse_taxonomy_lines(lines)
     return relations
 end
 
-function M:record_taxonomy(url, lines)
-    lines = lines or url.path:readlines()
-
-    self:parse_taxonomy_lines(lines):foreach(function(r)
-        DB.Relations:insert(r, url.id)
-    end)
-end
-
-function M:parse_file_lines(lines, url)
+function M:parse_file_lines(url, lines)
     local indent_to_type = Dict()
     local relations = List()
     
@@ -254,25 +246,55 @@ function M.get_nested_type(type, indent, indent_to_type, add)
     return type
 end
 
-function M:record_file(url)
+function M:parse_file(url)
     local lines = MetadataParser:get_lines(url.path)
 
     if #lines > 0 and lines[1]:strip() == "is a: taxonomy" then
-        self:record_taxonomy(urls, lines:slice(2))
+        return self:parse_taxonomy_lines(lines:slice(2))
     else
-        self:parse_file_lines(lines, url):foreach(function(r)
-            DB.Relations:insert(r, url.id)
-        end)
+        return self:parse_file_lines(url, lines)
     end
 end
 
 function M:record(url)
-    DB.Relations:remove_url(url)
-    
+    local relations
     if M.is_taxonomy_file(url.path) then
-        self:record_taxonomy(url)
+        relations = self:parse_taxonomy_lines(url.path:readlines())
     else
-        self:record_file(url)
+        relations = self:parse_file(url)
+    end
+
+    M:persist_relations(url, relations)
+end
+
+function M:persist_relations(url, relations)
+    local elements = DB.Elements:get({where = {source = url.id}}):col('id')
+    local old_ids = Set()
+    
+    if #elements > 0 then
+        old_ids = Set(DB.Relations:get({
+            where = {subject = elements, object = elements}
+        }):col('id'))
+    end
+
+    local has_label = false
+    local new_ids = Set()
+    relations:foreach(function(r)
+        has_label = has_label or DB.Relations:is_label_relation(r)
+        new_ids:add(DB.Relations:insert(r, url.id))
+    end)
+
+    if not has_label then
+        DB.urls:set_label(url.id)
+    end
+    
+    if old_ids ~= new_ids then
+        local to_remove = old_ids:difference(new_ids):vals()
+        
+        if #to_remove > 0 then
+            DB.Relations:remove({where = {id = to_remove}})
+        end
+        -- TODO: handle persisted taxonomy!
     end
 end
 

@@ -2,6 +2,8 @@ string = require("hl.string")
 
 local class = require("pl.class")
 local Dict = require("hl.Dict")
+local Set = require("hl.Set")
+local DefaultDict = require("hl.DefaultDict")
 local List = require("hl.List")
 
 class.Tree(Dict)
@@ -102,12 +104,11 @@ function Tree:parents()
 end
 
 function Tree:ancestors()
-    local ancestors = Dict()
+    local ancestors = DefaultDict(List)
     local parents = self:parents()
     parents:foreach(function(key, ancestor)
-        while ancestor ~= nil do
-            ancestors:default(key, List()):append(ancestor)
-            ancestors:default(ancestor, List())
+        while ancestor do
+            ancestors[key]:append(ancestor)
             ancestor = parents[ancestor]
         end
     end)
@@ -116,26 +117,23 @@ function Tree:ancestors()
 end
 
 function Tree:generations()
-    local generations = Dict()
-    self:ancestors():foreach(function(key, key_ancestors)
-        generations[key] = #key_ancestors + 1
-    end)
-
-    return generations
+    local ancestors = self:ancestors()
+    return Dict.from_list(
+        self:nodes(),
+        function(key) return key, #ancestors[key] + 1 end
+    )
 end
 
 function Tree:descendants()
-    local descendants = Dict()
+    local descendants = DefaultDict(List)
     local parents = self:parents()
     parents:foreach(function(key, parent)
-        while parent ~= nil do
-            descendants:default(parent, List()):append(key)
+        while parent do
+            descendants[parent]:append(key)
             parent = parents[parent]
         end
-        descendants:default(key, List())
     end)
 
-    descendants:values():foreach(function(l) l:sort() end)
     return descendants
 end
 
