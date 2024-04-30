@@ -6,4 +6,4 @@ question:
   path: "~/corpus"
   conditions:
     - "is a: question"
-    - "@remind"
+    # - "@remind"

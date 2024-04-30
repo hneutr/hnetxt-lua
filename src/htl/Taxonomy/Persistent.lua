@@ -25,6 +25,7 @@ function M.get_urls(project)
     )
     
     local element_id_to_label = Dict()
+    local element_id_to_url_id = Dict()
     local seeds = List()
 
     DB.Elements:get():foreach(function(e)
@@ -37,6 +38,7 @@ function M.get_urls(project)
             end
         end
 
+        element_id_to_url_id[e.id] = e.url
         element_id_to_label[e.id] = label
     end)
     
