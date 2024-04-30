@@ -10,7 +10,12 @@ M.conf = Dict(Conf.Taxonomy)
 
 function M:_init(project)
     self.project = project
-    M.get_urls(project)
+    local info = M.get_urls(project)
+    
+    self.element_id_to_label = info.element_id_to_label
+    self.taxonomy = info.taxonomy
+    self.taxon_instances = info.taxon_instances
+    self.inheritances_by_type = info.inheritances_by_type
 end
 
 function M.get_urls(project)
@@ -27,7 +32,8 @@ function M.get_urls(project)
         if e.url then
             label = url_id_to_label[e.url]
             if e.project == project then
-                seeds:append(label)
+                -- seeds:append(label)
+                seeds:append(e.id)
             end
         end
 
@@ -45,25 +51,28 @@ function M.get_urls(project)
     local taxon_instances = DefaultDict(Set)
     local inheritances_by_type = DefaultDict(List)
     
-    local to_check = seeds:copy()
+    local to_check = seeds:clone()
     while #to_check > 0 do
-        local subject = to_check:pop()
+        local subject_id = to_check:pop()
+        local subject = element_id_to_label[subject_id]
         
-        label_to_relations:pop(subject):foreach(function(r)
-            local object = element_id_to_label[r.object]
+        if subject then
+            label_to_relations:pop(subject):foreach(function(r)
+                local object = element_id_to_label[r.object]
 
-            if r.relation == "instance" then
-                if object then
-                    taxon_instances[object]:add(subject)
+                if r.relation == "instance" then
+                    if object then
+                        taxon_instances[object]:add(subject_id)
+                    end
+                elseif r.relation == "subset" then
+                    taxonomy:add_edge(object, subject)
+                else
+                    inheritances_by_type[r.type]:append({subject = subject, object = object})
                 end
-            elseif r.relation == "subset" then
-                taxonomy:add_edge(object, subject)
-            else
-                inheritances_by_type[r.type]:append({subject = subject, object = object})
-            end
-            
-            to_check:append(object)
-        end)
+                
+                to_check:append(r.object)
+            end)
+        end
     end
     
     -- apply inheritance
@@ -123,13 +132,14 @@ function M.get_urls(project)
     --   project:
 
     -- print(taxon_instances)
-    print(taxonomy)
+    -- print(taxonomy)
 
-    -- element_id_to_label
-    -- taxonomy
-    -- taxon_instances
-    -- inheritances_by_type
-    
+    return {
+        element_id_to_label = element_id_to_label,
+        taxonomy = taxonomy,
+        taxon_instances = taxon_instances,
+        inheritances_by_type = inheritances_by_type,
+    }
 end
 
 return M

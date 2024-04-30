@@ -104,8 +104,10 @@ require("htc.cli")("hnetxt", {
             -- utils.time_it("stringifying")
             -- print(str)
             
-            local PTaxonomy = require("htl.Taxonomy.Persistent")
-            PTaxonomy("chasefeel")
+            local project = "chasefeel"
+            project = "eidola"
+            local ptaxonomy = require("htl.Taxonomy.Persistent")(project)
+            print(ptaxonomy.taxon_instances)
         end,
     },
     -- refs = {

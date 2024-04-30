@@ -5,6 +5,7 @@ local M = {}
 M.conf = Dict(Conf.Taxonomy)
 M.conf.relations = Dict(M.conf.relations)
 M.conf.indent_size = "  "
+M.conf.to_skip = Set({"on page", "page"})
 
 function M.is_taxonomy_file(path)
     return path:name() == tostring(Conf.paths.taxonomy_file) or path == Conf.paths.global_taxonomy_file
@@ -33,10 +34,11 @@ function Relation.parse_link(s)
 
         if link then
             s = link.url
+            s = tonumber(s, 10) or s
         end
     end
 
-    return tonumber(s, 10) or s
+    return s
 end
 
 function Relation:make(subject, object, type)
@@ -279,7 +281,9 @@ function M:persist_relations(url, relations)
 
     local has_label = false
     local new_ids = Set()
-    relations:foreach(function(r)
+    relations:filter(function(r)
+        return r.relation ~= "connection" or not self.conf.to_skip:has(r.type)
+    end):foreach(function(r)
         has_label = has_label or DB.Relations:is_label_relation(r)
         new_ids:add(DB.Relations:insert(r, url.id))
     end)
