@@ -148,19 +148,24 @@ require("htc.cli")("hnetxt", {
             -- print(str)
             
             local project = "chasefeel"
-            project = "eidola"
-            local ptaxonomy = require("htl.Taxonomy.Persistent")(project)
+            -- project = "eidola"
+            local path = DB.projects:where({title = project}).path
+            -- path = path / "glossary"
+
+            local ptaxonomy = require("htl.Taxonomy.Persistent")(path)
             print(ptaxonomy.taxon_instances)
         end,
     },
     reparse_relations = {
         description = "reparse relations",
         {"+C", target = "clean", description = "clean bad urls", switch = "off"},
-        acton = function(args)
+        action = function(args)
+            DB.Relations:drop()
+            DB.Elements:drop()
             local urls = DB.urls:get({where = {resource_type = "file"}}):sorted(function(a, b)
                 return tostring(a.path) < tostring(b.path)
             end)
-
+            
             if args.clean then
                 urls = urls:filter(function(u)
                     local keep = true

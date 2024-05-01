@@ -101,7 +101,7 @@ function M:insert_dict(dict, url, parent)
         local val = raw.val
 
         if key == M.conf.is_a_key then
-            local element = DB.Elements:where({source = url, url = url})
+            local element = DB.Elements:where({url = url})
             local relation = DB.Relations:where({subject = element.id, relation = "instance"})
             relation = relation or DB.Relations:where({subject = element.id, relation = "subset"})
             val = relation.object_label or tostring(relation.object_url)

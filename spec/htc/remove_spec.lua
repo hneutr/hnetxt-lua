@@ -76,7 +76,7 @@ describe("remove_file", function()
 
         DB.urls:insert({path = f1})
         local u1 = DB.urls:where({path = f1})
-        local l1 = DB.urls:get_label(u1)
+        local l1 = u1.label
 
         f2:write(List({
             "is a: y",
@@ -92,48 +92,44 @@ describe("remove_file", function()
         TaxonomyParser:record(u1)
         TaxonomyParser:record(u2)
 
-        local s1 = DB.Elements:find(u1.id, u1.id)
-        local o1 = DB.Elements:find("x", u1.id)
+        local e_u1 = DB.Elements:insert(u1.id)
+        local e_x = DB.Elements:insert("x")
         
         assert(DB.Relations:where({
-            subject = s1.id,
+            subject = e_u1,
             relation = "instance",
-            object = o1.id,
+            object = e_x,
         }))
         
-        local s2 = DB.Elements:find(u2.id, u2.id)
-        local o2 = DB.Elements:find("y", u2.id)
+        local e_u2 = DB.Elements:insert(u2.id)
+        local e_y = DB.Elements:insert("y")
 
         local u2_instance_r = {
-            subject = s2.id,
+            subject = e_u2,
             relation = "instance",
-            object = o2.id,
+            object = e_y,
         }
 
         assert(DB.Relations:where(u2_instance_r))
         
-        local s3 = s2
-        local o3 = DB.Elements:find(u1.id, u2.id)
-        
         assert(DB.Relations:where({
-            subject = s3.id,
+            subject = e_u2,
             relation = "connection",
-            object = o3.id,
+            object = e_u1,
             type = "test_connection",
         }))
         
         M:remove_file(u1.path)
         
-        assert.is_nil(DB.Relations:where({subject = o1.id}))
+        assert.is_nil(DB.Relations:where({subject = e_u1}))
         assert(DB.Relations:where(u2_instance_r))
         
-        local s4 = s2
-        local o4 = DB.Elements:find(l1, u2.id)
+        local e_l = DB.Elements:insert(l1)
 
         assert(DB.Relations:where({
-            subject = s4.id,
+            subject = e_u2,
             relation = "connection",
-            object = o4.id,
+            object = e_l,
             type = "test_connection",
         }))
         

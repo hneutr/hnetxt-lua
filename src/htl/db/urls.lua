@@ -103,20 +103,21 @@ function M:get(q)
         q.where = nil
     end
 
-    local rows = List(M:map(function(url)
-        if url.label and #url.label == 0 then
-            url.label = nil
-        end
-
-        url.path = Path(url.path)
-        return url
-    end, q))
+    local rows = List(M:map(M.__fmt, q))
 
     long_vals:foreach(function(col, vals)
         rows = rows:filter(function(r) return vals:contains(r[col]) end)
     end)
 
     return rows
+end
+
+function M.__fmt(u)
+    u.path = Path(u.path)
+
+    u.label = M:get_label(u)
+
+    return Dict(u)
 end
 
 function M:clean()
@@ -180,7 +181,7 @@ end
 function M:get_fuzzy_path(url)
     local path = url.path
     
-    if url.resource_type == 'link' and url.label ~= nil and #url.label > 0 then
+    if url.resource_type == 'link' and url.label and #url.label > 0 then
         path = path:with_name(path:name() .. M.link_delimiter .. url.label)
     end
 
@@ -229,7 +230,7 @@ end
 function M:get_label(url)
     local label = url.label
 
-    if not label then
+    if not label or #label == 0 then
         local path = url.path
 
         if path:name() == tostring(Conf.paths.dir_file) then
@@ -242,13 +243,13 @@ function M:get_label(url)
             label = label:gsub("_", "-")
         end
     end
-    
+
     return label
 end
 
 function M:get_reference(url)
     return Link({
-        label = M:get_label(url),
+        label = url.label or M:get_label(url),
         url = url.id,
     })
 end

@@ -52,8 +52,8 @@ end
 
 function Relation:clean(line) return line end
 
-function Relation:parse(object, subject, type)
-    return "", self:make(subject, object, type)
+function Relation:parse(object, subject)
+    return "", self:make(subject, object)
 end
 
 function Relation:syntax()
@@ -145,6 +145,16 @@ TagRelation.symbol = M.conf.relations.tag.symbol
 
 function TagRelation:clean(l) return l:strip():removeprefix(self.symbol) end
 function TagRelation:line_is_a(l) return l and l:strip():startswith(self.symbol) or false end
+function TagRelation:parse(tag, subject)
+    return "", self:make(subject, nil, tag)
+end
+
+function TagRelation:meets_condition(subject, val)
+    return DB.Relations:get({
+        where = {subject = subject, relation = "tag"},
+        contains = {type = string.format("%s*", self:clean(val))},
+    }):col('subject')
+end
 
 --------------------------------------------------------------------------------
 --                                                                            --
@@ -260,41 +270,13 @@ function M:record(url)
         relations = self:parse_file(url)
     end
 
-    M:persist_relations(url, relations)
-end
-
-function M:persist_relations(url, relations)
-    local elements = DB.Elements:get({where = {source = url.id}}):col('id')
-    local old_ids = Set()
-    
-    if #elements > 0 then
-        old_ids = Set(DB.Relations:get({
-            where = {subject = elements, object = elements}
-        }):col('id'))
+    if #DB.Relations:get() > 0 then
+        DB.Relations:remove({source = url.id})
     end
 
-    local has_label = false
-    local new_ids = Set()
-    relations:filter(function(r)
-        return r.relation ~= "connection" or not self.conf.to_skip:has(r.type)
-    end):foreach(function(r)
-        has_label = has_label or DB.Relations:is_label_relation(r)
-        new_ids:add(DB.Relations:insert(r, url.id))
+    relations:foreach(function(r)
+        DB.Relations:insert(r, url.id)
     end)
-
-    if not has_label then
-        DB.urls:set_label(url.id)
-    end
-    
-    if old_ids ~= new_ids then
-        local to_remove = old_ids:difference(new_ids):vals()
-        
-        if #to_remove > 0 then
-            DB.Relations:remove({where = {id = to_remove}})
-        end
-        -- TODO: handle persisted taxonomy!
-        -- ALSO: delete vacuous elements!
-    end
 end
 
 M.SubsetRelation = SubsetRelation

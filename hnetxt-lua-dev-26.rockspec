@@ -49,6 +49,7 @@ build = {
         ["htl.db.metadata"] = "src/htl/db/metadata.lua",
         ["htl.db.Log"] = "src/htl/db/Log.lua",
         ["htl.db.Paths"] = "src/htl/db/Paths.lua",
+        ["htl.db.Elements"] = "src/htl/db/Elements.lua",
         ["htl.db.Relations"] = "src/htl/db/Relations.lua",
 
         ["htl.metadata.Parser"] = "src/htl/metadata/Parser.lua",
@@ -81,7 +82,7 @@ build = {
         ["htl.Taxonomy.Persistent"] = "src/htl/Taxonomy/Persistent.lua",
         
         -- Taxonomy DB
-        ["htl.db.Elements"] = "src/htl/db/Elements.lua",
+
 
         ["htl.db.Taxa"] = "src/htl/db/Taxa.lua",
         ["htl.db.Instances"] = "src/htl/db/Instances.lua",

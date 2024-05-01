@@ -35,12 +35,23 @@ describe("set_url_label", function()
     end)
 
     it("right relation", function()
-        M:set_url_label({relation = "connection", type = "label"}, {label = "a", source = 1})
+        M:set_url_label({
+            object = DB.Elements:insert("a"),
+            relation = "connection",
+            type = "label",
+            source = u1,
+        })
+
         assert.stub(DB.urls.set_label).was.called()
     end)
     
     it("wrong relation", function()
-        M:set_url_label({relation = "connection", type = "abc"}, {label = "a", source = 1})
+        M:set_url_label({
+            relation = "connection",
+            type = "etc",
+            source = u1,
+            object = DB.Elements:insert("a"),
+        })
         assert.stub(DB.urls.set_label).was_not.called()
     end)
 end)
@@ -48,16 +59,11 @@ end)
 describe("insert", function()
     it("works", function()
         M:insert({subject = "a", object = u2, relation = "abc"}, u1)
-        assert.not_nil(M:where({relation = "abc"}))
+        assert.not_nil(M:where({relation = "abc", source = u1}))
     end)
     
     it("works without subject", function()
         M:insert({object = u2, relation = "abc"}, u1)
-        assert.not_nil(M:where({relation = "abc"}))
-    end)
-
-    it("doesn't insert if existing", function()
-        assert.are.same(1, M:insert({subject = "a", object = u2, relation = "abc"}, u1))
-        assert.are.same(1, M:insert({subject = "a", object = u2, relation = "abc"}, u1))
+        assert.not_nil(M:where({relation = "abc", source = u1}))
     end)
 end)

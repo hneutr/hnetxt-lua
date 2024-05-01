@@ -114,13 +114,7 @@ function _M.get_projects(path)
 end
 
 function _M.get_rows(projects)
-    local urls_by_id = Dict.from_list(
-        DB.urls:get(),
-        function(u)
-            u.label = DB.urls:get_label(u)
-            return u.id, Dict(u)
-        end
-    )
+    local urls_by_id = Dict.from_list(DB.urls:get(), function(u) return u.id, u end)
     
     return DB.Relations:get():transform(function(r)
         return Dict({

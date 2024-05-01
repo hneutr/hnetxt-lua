@@ -58,25 +58,22 @@ function M.remove_links_to_dead_url(dead_url)
     local link_s = tostring(link)
     local label = link.label
     
-    local dead_objects = DB.Elements:get({where = {url = dead_url.id}}):col('id')
+    local dead_element = DB.Elements:where({url = dead_url.id})
     
-    if #dead_objects > 0 then
-        local subjects = DB.Relations:get({where = {object = dead_objects}}):col('subject')
+    if dead_element then
+        local url_ids = DB.Relations:get({where = {object = dead_element}}):col('source')
         
-        if #subjects > 0 then
-            local urls = DB.Elements:get({where = {id = subjects}}):col("url"):filter(function(u)
-                return u
-            end):foreach(function(url_id)
-                local url = DB.urls:where({id = url_id})
+        if #url_ids > 0 then
+            DB.urls:get({where = {id = url_ids}}):foreach(function(url)
                 local path = url.path
                 local content = path:read():gsub(link_s:escape(), label)
                 path:write(content)
                 TaxonomyParser:record(url)
             end)
         end
-    end
 
-    DB.Elements:remove({url = dead_url.id})
+        DB.Elements:remove({url = dead_url.id})
+    end
 end
 
 return M

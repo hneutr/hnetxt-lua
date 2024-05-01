@@ -3,7 +3,9 @@ local Link = require("htl.text.Link")
 
 local d1 = htl.test_dir / "dir-1"
 local p1 = {title = "test", path = d1}
-local f1 = d1 / "file.md"
+local f1 = d1 / "file-1.md"
+local f2 = d1 / "file-2.md"
+local f3 = d1 / "file-3.md"
 
 local instances_are_also_symbol = Conf.Taxonomy.relations.instances_are_also.symbol
 
@@ -217,13 +219,50 @@ describe("TagRelation", function()
                     "",
                     {
                         subject = "a",
-                        object = "b",
                         relation = "tag",
+                        type = "b",
                     }
 
                 },
                 {M:parse("b", "a")}
             )
+        end)
+    end)
+    
+    describe("meets condition", function()
+        local u1, u2, u3
+        local e1, e2, e3
+        local subjects
+
+        before_each(function()
+            f1:touch()
+            f2:touch()
+            f3:touch()
+            u1 = DB.urls:insert({path = f1})
+            u2 = DB.urls:insert({path = f2})
+            u3 = DB.urls:insert({path = f3})
+            
+            DB.Relations:insert(M:make(u1, nil, "a.b"), u1)
+            DB.Relations:insert(M:make(u2, nil, "a"), u2)
+            DB.Relations:insert(M:make(u3, nil, "c"), u3)
+            
+            e1 = DB.Elements:where({url = u1}).id
+            e2 = DB.Elements:where({url = u2}).id
+            e3 = DB.Elements:where({url = u3}).id
+            subjects = {e1, e2, e3}
+        end)
+    
+    
+        it("exact match", function()
+            assert.are.same({e1}, M:meets_condition(subjects, "a.b"))
+        end)
+
+        it("startswith", function()
+            assert.are.same({e1, e2}, M:meets_condition(subjects, "a"))
+        end)
+        
+        it("no match", function()
+            assert.are.same({}, M:meets_condition(subjects, "x"))
         end)
     end)
 end)
@@ -303,6 +342,7 @@ describe("record", function()
         })
 
         DB.urls:insert({path = f1})
+        DB.Elements:insert("a")
 
         local u1 = DB.urls:where({path = f1})
         
@@ -314,12 +354,14 @@ describe("record", function()
                     id = 1,
                     subject = 1,
                     relation = "subset",
+                    source = u1.id,
                 },
                 {
                     id = 2,
                     subject = 2,
                     object = 1,
                     relation = "subset",
+                    source = u1.id,
                 },
             },
             DB.Relations:get()
@@ -400,7 +442,7 @@ describe("parse_file_lines", function()
     
     it("tag", function()
         assert.are.same(
-            {{subject = 1, object = "abc", relation = "tag"}},
+            {{subject = 1, type = "abc", relation = "tag"}},
             M:parse_file_lines(url, List({"@abc"}))
         )
     end)
@@ -423,88 +465,5 @@ describe("parse_file_lines", function()
                 })
             )
         )
-    end)
-end)
-
-describe("persist_relations", function()
-    local url
-    local url_id
-    before_each(function()
-        f1:touch()
-        url_id = DB.urls:insert({path = f1})
-        url = DB.urls:where({id = url_id})
-    end)
-
-    it("no change", function()
-        local relations = List({{
-            subject = url_id,
-            object = "a",
-            relation = "subset",
-            source = url_id,
-        }})
-
-        local row = {
-            id = 1,
-            subject = 1,
-            object = 2,
-            relation = "subset",
-        }
-
-        assert.are.same({}, DB.Relations:get())
-        M:persist_relations(url, relations)
-        assert.are.same({row}, DB.Relations:get())
-
-        M:persist_relations(url, relations)
-        assert.are.same({row}, DB.Relations:get())
-    end)
-
-    it("one old missing, one old existing", function()
-        local r1 = {
-            subject = url_id,
-            object = "a",
-            relation = "subset",
-            source = url_id,
-        }
-
-        local r2 = {
-            subject = url_id,
-            object = "b",
-            relation = "subset",
-            source = url_id,
-        }
-
-        local r3 = {
-            subject = url_id,
-            object = "c",
-            relation = "subset",
-            source = url_id,
-        }
-
-        local rel1 = {
-            id = 1,
-            subject = 1,
-            object = 2,
-            relation = "subset",
-        }
-
-        local rel2 = {
-            id = 2,
-            subject = 1,
-            object = 3,
-            relation = "subset",
-        }
-
-        local rel3 = {
-            id = 3,
-            subject = 1,
-            object = 4,
-            relation = "subset",
-        }
-
-        M:persist_relations(url, List({r1, r2}))
-        assert.are.same({rel1, rel2}, DB.Relations:get())
-
-        M:persist_relations(url, List({r1, r3}))
-        assert.are.same({rel1, rel3}, DB.Relations:get())
     end)
 end)

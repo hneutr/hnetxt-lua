@@ -1,4 +1,3 @@
-
 local M = SqliteTable("Elements", {
     id = true,
     url = {
@@ -7,52 +6,24 @@ local M = SqliteTable("Elements", {
         on_delete = "cascade",
     },
     label = "text",
-    source = {
-        type = "integer",
-        reference = "urls.id",
-        on_delete = "cascade",
-        required = true,
-    },
-    project = {
-        type = "text",
-        reference = "projects.title",
-        on_delete = "cascade",
-        required = true,
-    },
 })
 
-function M:find(element, source)
-    local q = {source = source}
-
+function M:insert(element)
+    local r = {}
     if type(element) == "number" then
-        q.url = element
+        r.url = element
     elseif type(element) == "string" then
-        q.label = element
-    else
-        return {}
-    end
-    
-    M:insert(q)
-    return M:where(q)
-end
-
-function M:insert(r)
-    local row = {
-        source = r.source,
-    }
-    
-    if r.url and not r.label then
-        row.url = r.url
-    elseif r.label and not r.url then
-        row.label = r.label
+        r.label = element
     else
         return
     end
     
-    if not M:where(row) then
-        row.project = DB.urls:where({id = r.source}).project
-        M:__insert(row)
+    local row = M:where(r)
+    if not row then
+        return SqliteTable.insert(M, r)
     end
+    
+    return row.id
 end
 
 function M:get(q)

@@ -99,10 +99,10 @@ describe("move", function()
         assert.is_nil(M:where(b))
         assert.is_not.Nil(M:where(c))
 
-        a.path = f3
-        b.path = f3
-
-        assert.are.same({"a", "b"}, M:get({where = {path = f3}}):col('label'):sorted())
+        assert.are.same(
+            {"a", "b"},
+            M:get({where = {path = f3, resource_type = "link"}}):col('label'):sorted()
+        )
     end)
 
     it("deletes if moving into a non-project dir", function()
@@ -140,10 +140,10 @@ end)
 describe("get", function()
     it("works", function()
         M:insert({path = f1, label = "a"})
-        M:insert({path = f2})
+        M:insert({path = f2, label = "b"})
 
         assert.are.same(
-            {"a"},
+            {"a", "b"},
             M:get():transform(function(u)
                 return u.label
             end):sorted()
@@ -291,13 +291,15 @@ describe("get_label", function()
 end)
 
 describe("set_label", function()
+    local l1 = M:get_label({path = f1})
+
     it("str", function()
         local q = {path = f1}
         f1:touch()
 
         M:insert(q)
         local u = M:where(q)
-        assert.is_nil(u.label)
+        assert.are.same(l1, u.label)
         
         M:set_label(u.id, "a")
         
@@ -305,16 +307,11 @@ describe("set_label", function()
     end)
 
     it("nil", function()
-        local q = {path = f1}
         f1:touch()
+        local id = M:insert({path = f1, label = "a"})
+        assert.are.same("a", M:where({id = id}).label)
 
-        M:insert(q)
-        local u = M:where(q)
-        assert.is_nil(u.label)
-        
-        M:set_label(u.id, "a")
-        assert.are.same("a", M:where(q).label)
-        M:set_label(u.id)
-        assert.is_nil(M:where(q).label)
+        M:set_label(id)
+        assert.are.same(l1, M:where({id = id}).label)
     end)
 end)

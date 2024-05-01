@@ -16,6 +16,12 @@ local M = SqliteTable("Relations", {
         required = true,
     },
     type = "type",
+    source = {
+        type = "integer",
+        reference = "urls.id",
+        on_delete = "cascade",
+        required = true,
+    },
 })
 
 function M:get(q)
@@ -27,33 +33,26 @@ function M:insert(r, source)
         return
     end
 
-    local subject = DB.Elements:find(r.subject or source, source)
-    local object = DB.Elements:find(r.object, source)
-
     local q = {
-        subject = subject.id,
-        object = object.id,
+        subject = DB.Elements:insert(r.subject or source),
+        object = DB.Elements:insert(r.object),
         relation = r.relation,
         type = r.type,
+        source = source,
     }
-
-    local row = M:where(q)
     
-    if not row then
-        M:set_url_label(q, object)
-        return SqliteTable.insert(M, q)
-    end
-    
-    return row.id
+    M:set_url_label(q)
+    return SqliteTable.insert(M, q)
 end
 
 function M:is_label_relation(r)
     return r.relation == "connection" and r.type == "label"
 end
 
-function M:set_url_label(row, object)
-    if M:is_label_relation(row) then
-        DB.urls:set_label(object.source, object.label)
+function M:set_url_label(r)
+    if M:is_label_relation(r) and r.object then
+        local object = DB.Elements:where({id = r.object}) or {}
+        DB.urls:set_label(r.source, object.label)
     end
 end
 

@@ -8,9 +8,8 @@ what to do first:
 local M = class()
 M.conf = Dict(Conf.Taxonomy)
 
-function M:_init(project)
-    self.project = project
-    local info = M.get_urls(project)
+function M:_init(path)
+    local info = M.get_urls(path)
     
     self.element_id_to_label = info.element_id_to_label
     self.taxonomy = info.taxonomy
@@ -18,58 +17,86 @@ function M:_init(project)
     self.inheritances_by_type = info.inheritances_by_type
 end
 
-function M.get_urls(project)
-    local url_id_to_label = Dict.from_list(
+function M:get_seed_elements(elements, conditions)
+    -- this is applied BEFORE we build the taxonomy.
+
+
+    --[[
+    conditions grammar:
+    
+    1. "x"
+        Relations.relation = "connection"
+        Relations.type = startswith(x)
+    2. "x: y"
+        Relations.relation = "connection"
+        Relations.type = x
+        Relations.object = y
+    3. "x: file.md"
+        Relations.relation = "connection"
+        Relations.type = "x"
+        Relations.object = Elements.id for file.md
+    4. ": file.md"
+        Relations.relation = "connection"
+        Relations.object = Elements.id for file.md
+    5. "@x"
+        Relations.relation = "tag"
+        Relations.type = startswith(X)
+    ]]
+end
+
+function M:element_meets_conditions(element, conditions)
+end
+
+function M.get_urls(path)
+    local url_id_to_url = Dict.from_list(
         DB.urls:get({where = {resource_type = "file"}}),
-        function(u) return u.id, DB.urls:get_label(u) end
+        function(u) return u.id, u end
     )
     
-    local element_id_to_label = Dict()
-    local element_id_to_url_id = Dict()
     local seeds = List()
-
+    local element_id_to_element = Dict()
     DB.Elements:get():foreach(function(e)
-        local label = e.label
+        e.url = url_id_to_url[e.url]
+
         if e.url then
-            label = url_id_to_label[e.url]
-            if e.project == project then
-                -- seeds:append(label)
+            e.label = e.url.label
+
+            if not path or path and e.url.path and e.url.path:is_relative_to(path) then
                 seeds:append(e.id)
             end
         end
 
-        element_id_to_url_id[e.id] = e.url
-        element_id_to_label[e.id] = label
+        element_id_to_element[e.id] = e
     end)
     
     local label_to_relations = DefaultDict(List)
     DB.Relations:get({
-        where = {relation = {"instance", "subset", "give_instances"}}
+        where = {relation = {"instance", "subset", "instances_are_also"}}
     }):foreach(function(r)
-        label_to_relations[element_id_to_label[r.subject]]:append(r)
+        label_to_relations[element_id_to_element[r.subject].label]:append(r)
     end)
     
     local taxonomy = Tree()
     local taxon_instances = DefaultDict(Set)
-    local inheritances_by_type = DefaultDict(List)
+    local instances_are_also = List()
     
     local to_check = seeds:clone()
     while #to_check > 0 do
         local subject_id = to_check:pop()
-        local subject = element_id_to_label[subject_id]
+        local subject = element_id_to_element[subject_id].label
         
         if subject then
             label_to_relations:pop(subject):foreach(function(r)
-                local object = element_id_to_label[r.object]
+                local object_element = element_id_to_element[r.object]
+                
+                local object = object_element and object_element.label
 
                 if r.relation == "instance" then
-                    if object then
-                        taxon_instances[object]:add(element_id_to_url_id[subject_id])
-                    end
+                    taxon_instances[object]:add(subject_id)
                 elseif r.relation == "subset" then
                     taxonomy:add_edge(object, subject)
                 else
-                    inheritances_by_type[r.type]:append({subject = subject, object = object})
+                    instances_are_also:append({subject = subject, object = object})
                 end
                 
                 to_check:append(r.object)
@@ -81,7 +108,7 @@ function M.get_urls(project)
     local generations = taxonomy:generations()
     local descendants = taxonomy:descendants()
     local ancestors = taxonomy:ancestors()
-    inheritances_by_type:pop("instance"):sorted(function(a, b)
+    instances_are_also:sorted(function(a, b)
         return generations[a.object] < generations[b.object]
     end):foreach(function(r)
         local instances = Set(taxon_instances[r.subject])
@@ -91,50 +118,17 @@ function M.get_urls(project)
         ancestors[r.object]:foreach(function(a) taxon_instances[a]:remove(instances) end)
     end)
     
-    --[[
-    all that's left to do at this point is:
-    - set up:
-        - db.Taxa
-        - db.Instances
-
-        - db.References
-        - db.Attributes
-        - db.Tags
-
-    ]]
+    taxon_instances:transformv(function(instances)
+        return Set(instances:vals():map(function(id) return element_id_to_element[id].label end))
+    end)
     
 
     --[[
-    TaxonomySeeds:
+    Instances:
         url: url
         taxon: taxon label
         generation: 1 if parent, 2 if grandparent, etc
-        type: instance|taxon
-        project:
-
-    We're going to use the Taxonomy tree thing for the printer. It's just simpler that way.
-    
-    The Seed table described above is for Snippet/dashboard/x_of_the_day.
-
     ]]
-
-    -- `References`:
-    --   subject: url.id (referencing url)
-    --   object: url.id (referenced url)
-    --   type: `Relation.type`
-    --   project:
-    -- `Attributes`: attributes
-    --   url: url.id
-    --   type: `Relation.type`
-    --   val: string
-    --   project:
-    -- `Tags`:
-    --   url: url.id
-    --   val: string
-    --   project:
-
-    -- print(taxon_instances)
-    -- print(taxonomy)
 
     return {
         element_id_to_label = element_id_to_label,

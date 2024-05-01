@@ -1,4 +1,3 @@
-local stub = require("luassert.stub")
 local htl = require("htl")
 
 local d1 = htl.test_dir / "dir-1"
@@ -31,34 +30,21 @@ end)
 after_each(htl.after_test)
 
 describe("insert", function()
-    it("url + label", function()
-        local q = {url = u1, label = "a", source = u2}
-        M:insert(q)
-        assert.is_nil(M:where(q))
-    end)
-    
-    it("no row + no label", function()
-        local q = {source = u2}
-        M:insert(q)
-        assert.is_nil(M:where(q))
+    it("string", function()
+        M:insert("a")
+        assert.not_nil(M:where({label = "a"}))
     end)
     
     it("url", function()
-        local q = {url = u1, source = u2}
-        M:insert(q)
-        assert.not_nil(M:where(q))
-    end)
-
-    it("label", function()
-        local q = {label = "a", source = u2}
-        M:insert(q)
-        assert.not_nil(M:where(q))
+        local q = {source = u2}
+        M:insert(u2)
+        assert.not_nil(M:where({url = u2}))
     end)
     
     it("doesn't overwrite", function()
         local q = {label = "a", source = u2}
-        M:insert(q)
-        M:insert(q)
-        assert.are.same(1, #M:get({where = q}))
+        assert.are.same(1, M:insert("a"))
+        assert.are.same(1, M:insert("a"))
+        assert.are.same(1, #M:get({where = {label = "a"}}))
     end)
 end)

@@ -8,8 +8,8 @@ M.schema = Dict({
     samples = require("htl.db.samples"),
     Paths = require("htl.db.Paths"),
     Log = require("htl.db.Log"),
-    Relations = require("htl.db.Relations"),
     Elements = require("htl.db.Elements"),
+    Relations = require("htl.db.Relations"),
 })
 
 function M.init()
