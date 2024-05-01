@@ -131,15 +131,18 @@ function string.strip(str, charsToStrip)
 end
 
 function string.removeprefix(str, prefix, plain)
+    local removed = false
     if str:startswith(prefix, plain) then
         str = str:sub(#prefix + 1)
+        removed = true
     end
 
-    return str
+    return str, removed
 end
 
 function string.removesuffix(str, suffix, plain)
-    return str:reverse():removeprefix(suffix:reverse(), plain):reverse()
+    local str, removed = str:reverse():removeprefix(suffix:reverse(), plain)
+    return str:reverse(), removed
 end
 
 function string.partition(str, sep, plain)

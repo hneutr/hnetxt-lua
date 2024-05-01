@@ -31,6 +31,7 @@ function M:get_seed_elements(elements, conditions)
         Relations.relation = "connection"
         Relations.type = x
         Relations.object = y
+
     3. "x: file.md"
         Relations.relation = "connection"
         Relations.type = "x"
@@ -38,13 +39,11 @@ function M:get_seed_elements(elements, conditions)
     4. ": file.md"
         Relations.relation = "connection"
         Relations.object = Elements.id for file.md
+
     5. "@x"
         Relations.relation = "tag"
         Relations.type = startswith(X)
     ]]
-end
-
-function M:element_meets_conditions(element, conditions)
 end
 
 function M.get_urls(path)
@@ -80,9 +79,8 @@ function M.get_urls(path)
     local taxon_instances = DefaultDict(Set)
     local instances_are_also = List()
     
-    local to_check = seeds:clone()
-    while #to_check > 0 do
-        local subject_id = to_check:pop()
+    while #seeds > 0 do
+        local subject_id = seeds:pop()
         local subject = element_id_to_element[subject_id].label
         
         if subject then
@@ -99,7 +97,7 @@ function M.get_urls(path)
                     instances_are_also:append({subject = subject, object = object})
                 end
                 
-                to_check:append(r.object)
+                seeds:append(r.object)
             end)
         end
     end

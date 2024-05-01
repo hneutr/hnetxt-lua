@@ -1,3 +1,4 @@
+local stub = require("luassert.stub")
 local htl = require("htl")
 local Link = require("htl.text.Link")
 
@@ -264,6 +265,26 @@ describe("TagRelation", function()
         it("no match", function()
             assert.are.same({}, M:meets_condition(subjects, "x"))
         end)
+    end)
+end)
+
+describe("apply_condition", function()
+    local elements = Set({"a", "b", "c", "d"})
+    before_each(function()
+        stub(M.TagRelation, "meets_condition")
+        M.TagRelation.meets_condition.returns({"a", "b", "c"})
+    end)
+    
+    after_each(function()
+        M.TagRelation.meets_condition:revert()
+    end)
+
+    it("+: basic", function()
+        assert.are.same(Set({"a", "b", "c"}), M:apply_condition(elements, "@abc"))
+    end)
+    
+    it("+: exclusion", function()
+        assert.are.same(Set({"d"}), M:apply_condition(elements, "@abc-"))
     end)
 end)
 

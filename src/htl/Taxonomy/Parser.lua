@@ -152,7 +152,7 @@ end
 function TagRelation:meets_condition(subject, val)
     return DB.Relations:get({
         where = {subject = subject, relation = "tag"},
-        contains = {type = string.format("%s*", self:clean(val))},
+        contains = {type = string.format("%s*", val)},
     }):col('subject')
 end
 
@@ -277,6 +277,29 @@ function M:record(url)
     relations:foreach(function(r)
         DB.Relations:insert(r, url.id)
     end)
+end
+
+function M:apply_conditions(elements, conditions)
+    conditions:foreach(function(l)
+    end)
+end
+
+function M:apply_condition(elements, c)
+    local Relations = List({
+        TagRelation,
+    })
+
+    local c, is_exclusion = c:removesuffix(M.conf.grammar.exclusion_suffix)
+    
+    local Operation = is_exclusion and Set.difference or Set.intersection
+
+    for Relation in Relations:iter() do
+        if Relation:line_is_a(c) then
+            return Operation(elements, Set(Relation:meets_condition(elements, Relation:clean(c))))
+        end
+    end
+    
+    return elements
 end
 
 M.SubsetRelation = SubsetRelation
