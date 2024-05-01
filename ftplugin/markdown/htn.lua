@@ -1,8 +1,3 @@
-local List = require("hl.List")
-local Dict = require("hl.Dict")
-local Path = require('hl.Path')
-local ui = require("htn.ui")
-
 local BufferLines = require("hn.buffer_lines")
 
 local ui = require("htn.ui")
@@ -16,7 +11,14 @@ local commands = Dict({
     PrintDate = function() print(DB.urls:where({path = Path.this()}).created) end,
 })
 
-local autocommands = Dict()
+local event_to_nvim_events = Dict({
+    text_change = {'TextChanged', "InsertLeave"},
+    enter = {'VimEnter', 'WinEnter', "BufEnter", 'BufWinEnter'},
+    leave = {'VimLeave', 'WinLeave', 'BufLeave'},
+    enter_and_leave = {'VimEnter', 'WinEnter', 'BufEnter', "BufWinEnter", 'VimLeave', 'WinLeave', 'BufLeave'},
+})
+
+local autocommands = DefaultDict(List)
 
 vim.b.htn_mirror_prefix = "<leader>o"
 
@@ -35,12 +37,7 @@ vim.opt_local.fillchars = {fold = " "}
 vim.opt_local.foldminlines = 0
 vim.opt_local.foldenable = true
 
-autocommands.htn_fold = List({
-    {
-        events = {'TextChanged', 'InsertLeave'},
-        callback=Fold.set_line_info,
-    }
-})
+autocommands.text_change:append(Fold.set_line_info)
 
 --------------------------------------------------------------------------------
 --                               project stuff                                --
@@ -56,36 +53,23 @@ if project then
 
     ui.set_file_url(current_file)
 
-    autocommands.htn_link_update = List({
-        {
-            events = {'VimEnter', 'WinEnter', 'BufEnter', 'VimLeave', 'WinLeave', 'BufLeave'},
-            callback = ui.update_link_urls,
-        }
-    })
+    autocommands.enter_and_leave:append(ui.update_link_urls)
 
     -- commands.FileToLink = ui.FileToLink
     -- commands.LinkToFile = ui.LinkToFile
 end
 
-autocommands.htn_statusline = List({
-    {
-        events = {'VimEnter', 'WinEnter', "BufEnter", 'BufWinEnter'},
-        callback = function()
-            vim.opt_local.statusline = ui.get_statusline()
-        end,
-    }
-})
+autocommands.enter:append(function()
+    vim.opt_local.statusline = ui.get_statusline()
+    vim.b.htn_modified = false
+end)
 
 
-autocommands.htn_link_update = List({
-    {
-        events = {'VimLeave', 'WinLeave', 'BufLeave'},
-        callback = function()
-            ui.save_metadata(current_file)
-        end
-    }
-})
+autocommands.text_change:append(function()
+    vim.b.htn_modified = true
+end)
 
+autocommands.leave:append(function() ui.save_metadata(current_file) end)
 
 commands:foreach(function(name, cmd)
     local opts
@@ -95,12 +79,12 @@ commands:foreach(function(name, cmd)
     vim.api.nvim_buf_create_user_command(0, name, cmd, opts or {})
 end)
 
-autocommands:keys():foreach(function(group_name)
-    local group = vim.api.nvim_create_augroup(group_name, {clear = true})
-    autocommands[group_name]:foreach(function(autocommand)
+autocommands:foreach(function(event_key, callbacks)
+    local group = vim.api.nvim_create_augroup("htn_" .. event_key, {clear = true})
+    callbacks:foreach(function(callback)
         vim.api.nvim_create_autocmd(
-            autocommand.events,
-            {pattern = "*.md", group = group, callback = autocommand.callback}
+            event_to_nvim_events[event_key],
+            {pattern = "*.md", group = group, callback = callback}
         )
     end)
 end)

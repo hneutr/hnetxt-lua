@@ -64,9 +64,11 @@ function M.set_file_url(path)
 end
 
 function M.save_metadata(path)
-    path = path and Path(path) or Path.this()
-    M.set_file_url(path)
-    DB.metadata.record(path)
+    if vim.b.htn_modified then
+        path = path and Path(path) or Path.this()
+        M.set_file_url(path)
+        DB.metadata.record(path)
+    end
 end
 
 function M.update_link_urls()
