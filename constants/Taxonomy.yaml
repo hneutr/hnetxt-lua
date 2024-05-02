@@ -30,6 +30,9 @@ relations:
 grammar:
   exclusion_suffix: "-"
   or_delimiter: ","
+metadata:
+  exclude_startswith: "-"
+  max_length: 120
 # colors:
 #   term:
 #     taxon:

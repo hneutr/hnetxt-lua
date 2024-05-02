@@ -7,5 +7,6 @@ lua/htl
 lua/hl
 scripts/htc-py/data/figures/track/weekly-dashboard.png
 scripts/htc-py/data/figures/track/weekly-dashboard.pdf
+scripts/htc-py
 .Session.vim
 .DS_Store

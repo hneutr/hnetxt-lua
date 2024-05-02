@@ -10,3 +10,4 @@ meta:
     mapkey: M
 metadata:
     mapkey: m
+    exclude_from_statusline: true

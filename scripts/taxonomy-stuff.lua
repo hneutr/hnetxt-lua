@@ -1,6 +1,6 @@
 require("htl")
 
--- DB.Elements:drop()
+os.exit()
 -- DB.Relations:drop()
 -- DB.drop(DB, "Elements")
 -- require("htl.db").drop_table("Elements")

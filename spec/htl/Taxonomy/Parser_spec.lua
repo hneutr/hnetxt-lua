@@ -1,6 +1,9 @@
 local stub = require("luassert.stub")
 local htl = require("htl")
+
+local Divider = require("htl.text.divider")
 local Link = require("htl.text.Link")
+local mirrors = require("htl.db.mirrors")
 
 local d1 = htl.test_dir / "dir-1"
 local p1 = {title = "test", path = d1}
@@ -15,6 +18,7 @@ local M = require("htl.Taxonomy.Parser")
 before_each(function()
     htl.before_test()
     DB.projects:insert(p1)
+    mirrors:set_conf()
 end)
 
 after_each(htl.after_test)
@@ -196,6 +200,92 @@ describe("InstanceRelation", function()
         end)
     end)
 end)
+
+describe("get_metadata_lines", function()
+    it("works", function()
+        f1:write({
+            "a:",
+            "b",
+            "c",
+            "",
+            "d",
+        })
+
+        DB.urls:insert({path = f1})
+        
+        mirrors:get_path(f1, "metadata"):write({"x", "y", "z"})
+        
+        assert.are.same(
+            {"a:", "b", "c", "x", "y", "z"},
+            M.get_metadata_lines(f1)
+        )
+    end)
+end)
+
+describe("separate_metadata", function()
+    it("whole thing", function()
+        assert.are.same(
+            {"a:", "b", "c", "d"},
+            M.separate_metadata(List({
+                "a:",
+                "b",
+                "c",
+                "d",
+            }))
+        )
+    end)
+
+    it("chops", function()
+        assert.are.same(
+            {"a:", "b"},
+            M.separate_metadata(List({
+                "a:",
+                "b",
+                "",
+                "c",
+                "d",
+            }))
+        )
+    end)
+end)
+
+describe("is_metadata_line", function()
+    local F = M.is_metadata_line
+
+    it("+: k:", function()
+        assert(F("k:"))
+    end)
+    
+    it("+: k: v", function()
+        assert(F("k: v"))
+    end)
+
+    it("+: link", function()
+        assert(F(tostring(Link({label = "a", url = 1}))))
+    end)
+    
+    it("+: tag", function()
+        assert(F("@abc"))
+    end)
+    
+    it("-: too long", function()
+        assert.is_false(F(string.rep("a", 500)))
+    end)
+    
+    it("-: divider", function()
+        assert.is_false(F(tostring(Divider("large", "metadata"))))
+    
+    end)
+
+    it("-: nil", function()
+        assert.is_false(F())
+    end)
+    
+    it("-: ''", function()
+        assert.is_false(F(''))
+    end)
+end)
+
 describe("TagRelation", function()
     local M = M.TagRelation
     

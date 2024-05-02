@@ -5,7 +5,6 @@ M.conf = Dict(Conf.Taxonomy)
 
 function M:_init(args)
     args = self:format_args(args)
-    print(args)
     self.elements_by_id, self.seeds = self:get_elements(args.path, args.conditions)
 
     self.taxonomy, self.taxon_instances = M:get_taxonomy(self.elements_by_id, self.seeds)
@@ -66,7 +65,6 @@ function M:get_rows(elements_by_id, taxonomy, taxon_instances)
     
     return rows
 end
-
 
 function M:get_printable_taxon_instances()
     local taxon_instances = DefaultDict(Set)

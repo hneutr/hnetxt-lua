@@ -4,7 +4,6 @@ local M = {}
 M.schema = Dict({
     projects = require("htl.db.projects"),
     urls = require("htl.db.urls"),
-    metadata = require("htl.db.metadata"),
     samples = require("htl.db.samples"),
     Paths = require("htl.db.Paths"),
     Log = require("htl.db.Log"),

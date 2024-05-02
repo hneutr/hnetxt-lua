@@ -1,15 +1,64 @@
+local Divider = require("htl.text.divider")
+local mirrors = require("htl.db.mirrors")
 local Link = require("htl.text.Link")
-local MetadataParser = require("htl.metadata.Parser")
 
 local M = {}
 M.conf = Dict(Conf.Taxonomy)
 M.conf.relations = Dict(M.conf.relations)
 M.conf.indent_size = "  "
 M.conf.to_skip = Set({"on page", "page"})
+M.conf.metadata = Dict(M.conf.metadata)
+M.conf.metadata.divider = tostring(Divider("large", "metadata"))
 
 function M.is_taxonomy_file(path)
     return path:name() == tostring(Conf.paths.taxonomy_file) or path == Conf.paths.global_taxonomy_file
 end
+
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                  Metadata                                  --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
+function M.get_metadata_lines(path)
+    local lines = M.separate_metadata(path:readlines())
+    local metadata_path = mirrors:get_path(path, "metadata")
+
+    if metadata_path:exists() then
+        lines:extend(metadata_path:readlines())
+    end
+
+    return lines
+end
+
+function M.separate_metadata(lines)
+    if #lines > 0 and not lines[1]:match(":") then
+        return List()
+    end
+
+    for i, l in ipairs(lines) do
+        if not M.is_metadata_line(l) then
+            return lines:chop(i, #lines)
+        end
+    end
+    
+    return lines
+end
+
+function M.is_metadata_line(l)
+    l = l or ""
+    l = l:strip()
+
+    local result = true
+
+    result = result and #l > 0
+    result = result and #l <= M.conf.metadata.max_length
+    result = result and l ~= divider
+    
+    return result or false
+end
+
 
 --------------------------------------------------------------------------------
 --                                                                            --
@@ -245,7 +294,7 @@ function M.get_nested_type(type, indent, indent_to_type, add)
 end
 
 function M:parse_file(url)
-    local lines = MetadataParser:get_lines(url.path)
+    local lines = M.get_metadata_lines(url.path)
 
     if #lines > 0 and lines[1]:strip() == "is a: taxonomy" then
         return self:parse_taxonomy_lines(lines:slice(2))
@@ -255,6 +304,10 @@ function M:parse_file(url)
 end
 
 function M:record(url)
+    if not url then
+        return
+    end
+
     local relations
     if M.is_taxonomy_file(url.path) then
         relations = self:parse_taxonomy_lines(url.path:readlines())

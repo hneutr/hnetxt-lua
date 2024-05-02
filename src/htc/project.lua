@@ -1,4 +1,5 @@
 local Colorize = require("htc.colorize")
+local TaxonomyParser = require("htl.Taxonomy.Parser")
 
 return {
     require_command = false,
@@ -33,7 +34,7 @@ return {
                 DB.projects:insert(args)
                 args.path:glob("%.md$"):foreach(function(path)
                     DB.urls:insert({path = path})
-                    DB.metadata.record(path)
+                    TaxonomyParser:record(DB.urls:get_file(path))
                 end)
             end,
         },

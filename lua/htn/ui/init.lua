@@ -1,6 +1,7 @@
 local Link = require("htl.text.Link")
 local URLDefinition = require("htl.text.URLDefinition")
 local mirrors = require("htl.db.mirrors")
+local TaxonomyParser = require("htl.Taxonomy.Parser")
 
 local BufferLines = require("hn.buffer_lines")
 
@@ -67,7 +68,7 @@ function M.save_metadata(path)
     if vim.b.htn_modified then
         path = path and Path(path) or Path.this()
         M.set_file_url(path)
-        DB.metadata.record(path)
+        TaxonomyParser:record(DB.urls:get_file(path))
     end
 end
 
