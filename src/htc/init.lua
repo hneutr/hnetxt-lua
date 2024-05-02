@@ -64,8 +64,15 @@ require("htc.cli")("hnetxt", {
         description = "print the language dir",
         action = function(args) print(Conf.paths.language_dir) end,
     },
-    tags = {
-        description = "list tags",
+    tax = {
+        -- {
+        --     "--reference",
+        --     description = "print references to this file",
+        --     convert = function(p) return DB.urls:where({path = Path.from_commandline(p)}).id end,
+        -- },
+        -- {"+v", target = "include_values", description = "print values", switch = "off"},
+        -- {"+V", target = "exclude_unique_values", description = "exclude unique values", switch = "off"},
+        description = "print taxonomy",
         {
             "conditions",
             args = "*",
@@ -74,86 +81,42 @@ require("htc.cli")("hnetxt", {
             action="concat",
         },
         {
-            "--reference",
-            description = "print references to this file",
-            convert = function(p) return DB.urls:where({path = Path.from_commandline(p)}).id end,
-        },
-        {"-p --path", default = Path.cwd(), convert=Path.from_commandline},
-        {"+f", target = "include_urls", description = "print file urls", switch = "on"},
-        {"+l", target = "include_links", description = "print links", switch = "on"},
-        {"+v", target = "include_values", description = "print values", switch = "off"},
-        {"+t", target = "include_tags", description = "print tags", switch = "off"},
-        {"+V", target = "exclude_unique_values", description = "exclude unique values", switch = "off"},
-        {"+m", target = "record_missing", description = "record metadata for files without any", switch = "off"},
-        {"+I", target = "is_a_only", description = "show non-'is a' keys", switch = "on"},
-        {"+T", target = "apply_taxonomy", description = "don't apply the taxonomy", switch = "off"},
-        action = function(args)
-            if #args.conditions > 0 then
-                args.include_urls = not args.include_urls
-                args.include_values = not args.include_values
-            end
-
-            print(DB.metadata.get_dict(args))
-        end
-    },
-    record_metadata = {
-        description = "record metadata",
-        {"-p --path", default = Path.cwd(), description = "restrict to this path", convert=Path.as_path},
-        {"+a", target = "all", description = "don't restrict by path", switch = "on"},
-        {
-            "+r",
-            target = "rerecord",
-            description = "rerecord metadata for all files; if off, only operates on files missing metadata",
-            switch = "on",
-        },
-        action = function(args)
-            local q = {where = {resource_type = "file"}}
-
-            if not args.all then
-                q.contains = {path = string.format("%s*", args.path)}
-            end
-
-            local url_ids = DB.urls:get(q):col('id')
-
-            if args.rerecord then
-                url_ids:foreach(function(u) DB.metadata:remove({url = u}) end)
-            end
-
-            DB.metadata.record_missing(url_ids)
-        end,
-    },
-    tax = {
-        description = "print taxonomy",
-        {"-p --path", default = Path.cwd(), convert=Path.from_commandline},
-        {"+I", target = "include_instances", description = "exclude instances", switch = "off"},
-        -- {"+a", target = "include_attributes", description = "include attributes", switch = "on"},
-        {"+f", target = "instances_only", description = "only print instances", switch = "on"},
-        -- {"+a", target = "attributes_only", description = "only attributes instances", switch = "on"},
-        {
-            "-s --subsets",
-            target = "subsets",
+            "-t --taxa",
+            target = "taxa",
             args = "*",
             default = List(),
-            description = "subsets to include", 
+            description = "taxa to include", 
             action = "concat",
         },
+        {"-p --path", default = Path.cwd(), convert=Path.from_commandline},
+        {"+I", target = "include_instances", description = "exclude instances", switch = "off"},
+        {"+f", target = "instances_only", description = "only print instances", switch = "on"},
         action = function(args)
-            -- args.path = Path("/Users/hne/Documents/text/written/fiction/chasefeel")
+            --[[
+            conditions grammar:
 
-            -- utils.time_it("start")
-            -- local printer = require("htl.Taxonomy.Printer")(args)
-            -- utils.time_it("printer")
-            -- local str = tostring(printer)
-            -- utils.time_it("stringifying")
-            -- print(str)
-            
-            local project = "chasefeel"
-            -- project = "eidola"
-            local path = DB.projects:where({title = project}).path
-            -- path = path / "glossary"
+            1. "x"
+                Relations.relation = "connection"
+                Relations.type = startswith(x)
+            2. "x: y"
+                Relations.relation = "connection"
+                Relations.type = x
+                Relations.object = y
 
-            local ptaxonomy = require("htl.Taxonomy.Persistent")(path)
-            print(ptaxonomy.taxon_instances)
+            3. "x: file.md"
+                Relations.relation = "connection"
+                Relations.type = "x"
+                Relations.object = Elements.id for file.md
+            4. ": file.md"
+                Relations.relation = "connection"
+                Relations.object = Elements.id for file.md
+
+            5. "@x"
+                Relations.relation = "tag"
+                Relations.type = startswith(X)
+            ]]
+            local printer = require("htl.Taxonomy.Printer")(args)
+            print(printer)
         end,
     },
     reparse_relations = {
@@ -206,8 +169,6 @@ require("htc.cli")("hnetxt", {
         {"+r", target = "rerun", description = "rerun", switch = "on"},
         {"date", description = "date (YYYYMMDD); default today", default = os.date('%Y%m%d')},
         action = function(args)
-            print(os.date("%H:%M"))
-            -- local Date = require("")
         end,
     },
 })

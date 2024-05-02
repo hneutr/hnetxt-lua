@@ -1,3 +1,4 @@
+local Taxonomy = require("htl.Taxonomy.Persistent")
 local Snippet = require("htl.snippet")
 
 local M = SqliteTable("samples", {
@@ -18,24 +19,17 @@ local M = SqliteTable("samples", {
     },
 })
 
-M.conf = Dict(Conf['x-of-the-day'])
+M.conf = Dict(Conf.samples)
 
 function M:set(args)
-    if args.rerun then
-        M:remove({date = args.date})
-    end
-    
-    M.conf:foreach(function(frame, cmd)
-        if not M:where({date = args.date, frame = frame}) then
-            cmd.path = Path(cmd.path)
-            local ids = Set(DB.metadata:get_urls(cmd):filter(function(u) return u.url end):col('url')):vals()
-            local url = DB.urls:where({id = ids[utils.randint({max = #ids})]})
-            M:insert({
-                date = args.date,
-                url = url.id,
-                frame = frame,
-            })
-        end
+    M.conf:foreach(function(frame, args)
+        local ids = Set(Taxonomy(args).rows:col('url')):vals()
+
+        M:insert({
+            date = args.date,
+            url = ids[utils.randint({max = #ids})],
+            frame = frame,
+        })
     end)
 end
 

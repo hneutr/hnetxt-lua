@@ -229,63 +229,6 @@ describe("TagRelation", function()
             )
         end)
     end)
-    
-    describe("meets condition", function()
-        local u1, u2, u3
-        local e1, e2, e3
-        local subjects
-
-        before_each(function()
-            f1:touch()
-            f2:touch()
-            f3:touch()
-            u1 = DB.urls:insert({path = f1})
-            u2 = DB.urls:insert({path = f2})
-            u3 = DB.urls:insert({path = f3})
-            
-            DB.Relations:insert(M:make(u1, nil, "a.b"), u1)
-            DB.Relations:insert(M:make(u2, nil, "a"), u2)
-            DB.Relations:insert(M:make(u3, nil, "c"), u3)
-            
-            e1 = DB.Elements:where({url = u1}).id
-            e2 = DB.Elements:where({url = u2}).id
-            e3 = DB.Elements:where({url = u3}).id
-            subjects = {e1, e2, e3}
-        end)
-    
-    
-        it("exact match", function()
-            assert.are.same({e1}, M:meets_condition(subjects, "a.b"))
-        end)
-
-        it("startswith", function()
-            assert.are.same({e1, e2}, M:meets_condition(subjects, "a"))
-        end)
-        
-        it("no match", function()
-            assert.are.same({}, M:meets_condition(subjects, "x"))
-        end)
-    end)
-end)
-
-describe("apply_condition", function()
-    local elements = Set({"a", "b", "c", "d"})
-    before_each(function()
-        stub(M.TagRelation, "meets_condition")
-        M.TagRelation.meets_condition.returns({"a", "b", "c"})
-    end)
-    
-    after_each(function()
-        M.TagRelation.meets_condition:revert()
-    end)
-
-    it("+: basic", function()
-        assert.are.same(Set({"a", "b", "c"}), M:apply_condition(elements, "@abc"))
-    end)
-    
-    it("+: exclusion", function()
-        assert.are.same(Set({"d"}), M:apply_condition(elements, "@abc-"))
-    end)
 end)
 
 describe("parse_taxonomy_lines", function()

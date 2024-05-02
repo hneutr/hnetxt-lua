@@ -1,0 +1,9 @@
+quote:
+  taxa:
+    - quote
+question:
+  path: "~/corpus"
+  taxa:
+    - question
+  # conditions:
+  #   - "@remind"

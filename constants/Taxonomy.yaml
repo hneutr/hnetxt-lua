@@ -29,7 +29,7 @@ relations:
         label: magenta
 grammar:
   exclusion_suffix: "-"
-  or_delimiter: "|"
+  or_delimiter: ","
 # colors:
 #   term:
 #     taxon:

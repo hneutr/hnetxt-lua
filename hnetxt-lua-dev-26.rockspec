@@ -82,13 +82,7 @@ build = {
         ["htl.Taxonomy.Persistent"] = "src/htl/Taxonomy/Persistent.lua",
         
         -- Taxonomy DB
-
-
-        ["htl.db.Taxa"] = "src/htl/db/Taxa.lua",
         ["htl.db.Instances"] = "src/htl/db/Instances.lua",
-        ["htl.db.References"] = "src/htl/db/References.lua",
-        ["htl.db.Attributes"] = "src/htl/db/Attributes.lua",
-        ["htl.db.Tags"] = "src/htl/db/Tags.lua",
     }
 }
 test = {
