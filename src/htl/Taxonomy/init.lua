@@ -1,311 +1,315 @@
-local lyaml = require("lyaml")
+local Parser = require("htl.Taxonomy.Parser")
 
-local Taxonomy = class()
+local M = class()
+M.conf = Dict(Conf.Taxonomy)
 
-Taxonomy.Parser = require("htl.Taxonomy.Parser")
+function M:_init(args)
+    args = self:format_args(args)
+    self.elements_by_id, self.seeds = self:get_elements(args.path, args.conditions)
 
-function Taxonomy:_init(path)
-    self.tree = self.read_tree(path)
-    self:solidify()
-end
-
-function Taxonomy:solidify()
-    List({
-        "parents",
-        "ancestors",
-        "generations",
-        "descendants",
-        "children",
-    }):foreach(function(key)
-        self[key] = self.tree[key](self.tree)
-    end)
-end
-
-function Taxonomy.read_tree(path)
-    local paths = List()
-    if path then
-        paths = path:parents()
-
-        if path:is_dir() then
-            paths:append(path)
-        end
-
-        paths = paths:transform(function(p)
-            return p:join(Conf.paths.taxonomy_file)
-        end):filter(function(p)
-            return p:exists()
-        end)
-    end
-
-    paths:put(Conf.paths.global_taxonomy_file)
-
-    local tree = Tree()
-
-    paths:foreach(function(path)
-        local lines = path:readlines():transform(function(l) return l:gsub(": .*", ":") end)
-        tree:add(Tree(lyaml.load(lines:join("\n"))))
-    end)
-
-    return tree
-end
-
---------------------------------------------------------------------------------
---                                                                            --
---                                                                            --
---                                  testing                                   --
---                                                                            --
---                                                                            --
---------------------------------------------------------------------------------
-local _M = class()
-_M.conf = Dict(Conf.Taxonomy)
-_M.conf.all_attribute_key = "__all"
-_M.conf.label_priority = Dict({
-    role = List({
-        "object",
-        "subject",
-    }),
-    relation = List({
-        "other",
-        "subset",
-        "instance",
-    }),
-})
-_M.conf.entity_type_map = Dict({
-    subset = {subject = "subset", object = "subset"},
-    instance = {subject = "instance", object = "subset"},
-    connection = {object = "attribute"},
-    give_instances = {subject = "subset"},
-    tag = {subject = "instance", object = "tag"},
-})
-
-function _M:_init(path)
-    self.projects = self.get_projects(path)
+    self.taxonomy, self.taxon_instances = M:get_taxonomy(self.elements_by_id, self.seeds)
     
-    self.rows = self.get_rows(self.projects)
-
-    self.label_to_entity = self.get_label_map(self.rows)
-
-    self.rows_by_relation = self.get_rows_by_relation(self.rows, self.label_to_entity, self.projects)
-    
-    self.taxonomy = self.make_taxonomy(self.rows_by_relation.subset, self.label_to_entity)
-    
-    self.taxon_to_instances = self.map_instances_to_taxa(self.rows_by_relation.instance)
-    
-    self.apply_inheritence(
-        self.taxonomy,
-        self.rows_by_relation.give_instances,
-        self.taxon_to_instances,
-        self.rows_by_relation.connection
-    )
-    
-    -- self.map_attributes(
-    --     self.label_to_entity,
-    --     self.rows_by_relation.connection
-    -- )
-end
-
-function _M.get_projects(path)
-    return List({
-        Conf.paths.global_taxonomy_file,
-        path,
-    }):map(DB.projects.get_by_path):filter(function(p)
-        return p
-    end):col('title')
-end
-
-function _M.get_rows(projects)
-    local urls_by_id = Dict.from_list(DB.urls:get(), function(u) return u.id, u end)
-    
-    return DB.Relations:get():transform(function(r)
-        return Dict({
-            subject = _M.get_entity(r, "subject", urls_by_id),
-            object = _M.get_entity(r, "object", urls_by_id),
-            relation = r.relation,
-            type = r.type,
-        })
-    end):filter(function(r)
-        return projects:index(r.subject.project)
-    end):sorted(function(a, b)
-        return projects:index(a.subject.project) < projects:index(b.subject.project)
-    end)
-end
-
-function _M.get_entity(row, role, urls_by_id)
-    local entity = Dict()
-    
-    local fmt = "%s_%s"
-    
-    local url = urls_by_id[row[fmt:format(role, "url")]] or {}
-    
-    List({"id", "path", "label", "project"}):foreach(function(k) entity[k] = url[k] end)
-    
-    entity.label = _M.get_label(row[fmt:format(role, "label")], url)
-    entity.from_taxonomy = url.path and Taxonomy.Parser.is_taxonomy_file(url.path) or false
-    entity.type = _M.get_entity_type(row, role)
-
-    return entity
-end
-
-function _M.get_entity_type(row, role)
-    row = row or {}
-    local role_to_type = _M.conf.entity_type_map[row.relation] or {}
-    return role_to_type[role]
-end
-
-function _M.get_label(label, url)
-    label = label or url and url.label
-    
-    if label and #label == 0 then
-        return
+    if #args.taxa > 0 then
+        self.taxonomy, self.taxon_instances = self:filter_taxa(
+            self.elements_by_id,
+            self.taxonomy,
+            self.taxon_instances,
+            args.taxa
+        )
     end
     
-    return label
-end
-
-function _M.get_priority(role, relation)
-    local order = _M.conf.label_priority
-
-    local role = order.role:index(role) * #order.relation
-    local relation = order.relation:index(relation) or order.relation:index("other")
+    self.rows = M:get_rows(self.elements_by_id, self.taxonomy, self.taxon_instances)
     
-    return 1 + role + relation
-end
-
--- TODO: we might need to change this to prefer more information over less
-function _M.get_label_map(rows)
-    local labels_by_priority = List()
-    
-    rows:foreach(function(row)
-        _M.conf.label_priority.role:foreach(function(role)
-            local entity = row[role]
-
-            if entity then
-                local priority = _M.get_priority(role, row.relation)
-                while #labels_by_priority < priority do
-                    labels_by_priority:append(Dict())
-                end
-                
-                labels_by_priority[priority][entity.label] = entity
-            end
-        end)
-    end)
-    
-    local map = Dict()
-    while #labels_by_priority > 0 do
-        map = map:update(labels_by_priority:pop())
+    if self:should_persist(args) then
+        DB.Instances:replace(self.rows)
     end
-    return map
 end
 
-function _M.get_rows_by_relation(rows, label_to_entity, projects)
-    local rows_by_relation = Dict()
-    rows:foreach(function(row)
-        rows_by_relation:default(row.relation, List())
-        
-        rows_by_relation[row.relation]:append({
-            subject = row.subject.label,
-            object = row.object.label,
-            type = row.type,
-        })
-    end)
+function M:format_args(args)
+    args = Dict(args or {})
+    args.conditions = List(args.conditions)
+    args.taxa = List(args.taxa)
     
-    if #projects > 1 then
-        local primary_project = projects[#projects]
-        rows_by_relation.instance = rows_by_relation.instance:filter(function(r)
-            local project = label_to_entity[r.subject].project
-            return project and project == primary_project
-        end)
+    if args.path then
+        args.path = Path.from_commandline(args.path)
     end
-    
-    return rows_by_relation
+
+    return args
 end
 
-function _M.map_subject_to_object(rows)
-    return Dict.from_list(rows or List(), function(row) return row.subject, row.object end)
+function M:should_persist(args)
+    return not List({
+        args.path,
+        #args.conditions > 0,
+        #args.taxa > 0,
+    }):any()
 end
 
-function _M.make_taxonomy(rows, label_to_entity)
-    local tree = Tree()
-    rows:foreach(function(row)
-        tree:add_edge(row.object or tree:parents()[row.subject], row.subject)
-    end)
-    
-    local nodes = Set(tree:nodes())
-    local subset_entities = label_to_entity:keys():filter(function(label)
-        return label_to_entity[label].type == "subset"
-    end)
-    
-    Set(subset_entities):difference(nodes):vals():foreach(function(label)
-        tree[label] = Tree()
-    end)
-    
-    return tree
-end
-
-function _M.map_instances_to_taxa(rows)
-    local map = Dict()
-    rows:foreach(function(row)
-        map:set({row.object, row.subject})
-    end)
-    
-    return map
-end
-
-function _M.apply_inheritence(taxonomy, inheritence_rows, taxon_to_instances, connection_rows)
-    local children = taxonomy:children()
-    inheritence_rows:foreach(function(row)
-        local subject = row.subject
-        local object = row.object
-
-        local instances = Dict(taxon_to_instances[subject])
-        List(children[subject]):foreach(function(_subject)
-            instances:update(taxon_to_instances[_subject])
-        end)
-        
-        instances:keys():foreach(function(instance)
-            if row.type == "instance" then
-                taxon_to_instances:set({object, instance})
-            else
-                connection_rows:append({
-                    subject = instance,
-                    object = object,
-                    relation = "connection",
-                    type = row.type,
-                })
-            end
-        end)
-    end)
-    
-    -- if an instance receives multiple parents in the same lineage, only show the most specific
+function M:get_rows(elements_by_id, taxonomy, taxon_instances)
     local ancestors = taxonomy:ancestors()
-    taxon_to_instances:foreach(function(taxon, instances_dict)
-        local instances = instances_dict:keys()
-        if ancestors[taxon] then
-            ancestors[taxon]:foreach(function(ancestor)
-                instances:foreach(function(instance)
-                    if taxon_to_instances[ancestor] then
-                        taxon_to_instances[ancestor][instance] = nil
-                    end
-                end)
+    local rows = List()
+    taxon_instances:foreach(function(taxon_id, instance_ids)
+        local urls = instance_ids:vals():transform(function(id) return elements_by_id[id].url.id end)
+        local taxa = ancestors[taxon_id]:put(taxon_id):map(function(id) return elements_by_id[id].label end)
+        
+        for generation, taxon in ipairs(taxa) do
+            urls:foreach(function(url)
+                rows:append({
+                    url = url,
+                    taxon = taxon,
+                    generation = generation,
+                })
             end)
         end
     end)
+    
+    return rows
 end
 
-function _M.map_attributes(label_to_entity, connection_rows)
-    connection_rows:foreach(function(row)
-        local subject = row.subject
-        local entity = label_to_entity[subject] or Dict()
+function M:get_printable_taxon_instances()
+    local taxon_instances = DefaultDict(Set)
+    self.taxon_instances:foreach(function(taxon_id, instance_ids)
+        local taxon = self.elements_by_id[taxon_id].label
+        instance_ids:foreach(function(instance_id)
+            taxon_instances[taxon]:add(self.elements_by_id[instance_id].label)
+        end)
+    end)
+    
+    return taxon_instances
+end
 
-        if entity then
-            entity:default("attributes", Dict())
-            local attribute_key = row.type or _M.conf.all_attribute_key
-            entity.attributes:default(attribute_key, List())
-            entity.attributes[attribute_key]:append(label_to_entity[row.object])
+function M:get_elements(path, conditions)
+    local urls_by_id = Dict.from_list(
+        DB.urls:get({where = {resource_type = "file"}}),
+        function(u) return u.id, u end
+    )
+    
+    local seeds = Set()
+    local elements_by_id = Dict()
+    DB.Elements:get():foreach(function(e)
+        e.url = urls_by_id[e.url]
+
+        if e.url then
+            e.label = e.url.label
+
+            if not path or path and e.url.path and e.url.path:is_relative_to(path) then
+                seeds:add(e.id)
+            end
+        end
+
+        elements_by_id[e.id] = e
+    end)
+    
+    return elements_by_id, self:apply_conditions(seeds, conditions):vals()
+end
+
+function M:get_taxonomy(elements_by_id, seeds)
+    local relations_by_subject = DefaultDict(List)
+
+    DB.Relations:get({
+        where = {relation = {"instance", "subset", "instances_are_also"}}
+    }):foreach(function(r)
+        relations_by_subject[r.subject]:append(r)
+    end)
+    
+    local taxonomy = Tree()
+    local taxon_instances = DefaultDict(Set)
+    local instances_are_also = List()
+    
+    seeds = seeds:clone()
+    while #seeds > 0 do
+        local subject = seeds:pop()
+
+        relations_by_subject:pop(subject):foreach(function(r)
+            local object = r.object
+
+            if r.relation == "instance" then
+                taxon_instances[object]:add(subject)
+            elseif r.relation == "subset" then
+                taxonomy:add_edge(object, subject)
+            else
+                instances_are_also:append({subject = subject, object = object})
+            end
+            
+            seeds:append(object)
+        end)
+    end
+    
+    -- apply inheritance
+    local generations = taxonomy:generations()
+    local descendants = taxonomy:descendants()
+    local ancestors = taxonomy:ancestors()
+    instances_are_also:sorted(function(a, b)
+        return generations[a.object] < generations[b.object]
+    end):foreach(function(r)
+        local instances = Set(taxon_instances[r.subject])
+        descendants[r.subject]:foreach(function(s) instances:add(taxon_instances[s]) end)
+
+        taxon_instances[r.object]:add(instances)
+        ancestors[r.object]:foreach(function(a) taxon_instances[a]:remove(instances) end)
+    end)
+    
+    Set(taxon_instances:keys()):difference(Set(taxonomy:nodes())):foreach(function(t)
+        taxonomy:add_edge(nil, t)
+    end)
+    
+    return taxonomy, taxon_instances
+end
+
+function M:filter_taxa(elements_by_id, taxonomy, taxon_instances, taxon_strings)
+    taxon_strings = Set(taxon_strings)
+
+    local taxa = List()
+    local nodes = taxonomy:nodes()
+
+    local descendants = taxonomy:descendants()
+    local generations = taxonomy:generations()
+
+    local clean_taxonomy = Tree()
+    
+    nodes:sorted(function(a, b)
+        return (generations[a] or 0) < (generations[b] or 0)
+    end):foreach(function(taxon)
+        if taxon_strings:has(elements_by_id[taxon].label) then
+            taxa:append(taxon)
+            taxa:extend(descendants[taxon])            
         end
     end)
+    
+    taxa:foreach(function(t)
+        if not clean_taxonomy:get(t) then
+            clean_taxonomy[t] = taxonomy:get(t)
+        end
+    end)
+    
+    taxa = Set(taxa)
+
+    Set(nodes):difference(taxa):foreach(function(t)
+        taxon_instances:pop(t)
+        clean_taxonomy:pop(t)
+    end)
+
+    return clean_taxonomy, taxon_instances
+end
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                 Conditions                                 --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
+M.TagRelation = Parser.TagRelation
+
+function M:apply_conditions(seeds, conditions)
+    M:transform_conditions(conditions):foreach(function(condition)
+        seeds = self.apply_condition(seeds, condition)
+    end)
+    
+    return seeds
 end
 
-Taxonomy._M = _M
+function M.apply_condition(seeds, c)
+    local q = {
+        where = {
+            relation = c.relation,
+            object = c.object,
+        },
+    }
+    
+    if c.type and #c.type > 0 then
+        local fmt = c.relation == "tag" and "%s*" or "*%s"
+        q.contains = {type = fmt:format(c.type)}
+    end
+    
+    local Operation = c.is_exclusion and Set.difference or Set.intersection
+    return Operation(seeds, Set(DB.Relations:get(q):col('subject')))
+end
 
-return Taxonomy
+function M:transform_conditions(conditions)
+    conditions:transform(M.clean_condition)
+    conditions = M.merge_conditions(conditions)
+    conditions:transform(M.parse_condition)
+    conditions:foreach(function(c)
+        if c.object then
+            c.object = c.object:transform(M.parse_condition_value_into_element)
+        end
+    end)
+
+    return conditions
+end
+
+function M.parse_condition(s)
+    local c = Dict({relation = "connection"})
+
+    s, c.is_exclusion = s:removesuffix(M.conf.grammar.exclusion_suffix)
+    
+    c.type, c.object = utils.parsekv(s)
+    
+    if c.object then
+        c.object = c.object:split(",")
+    end
+    
+    if M.TagRelation:line_is_a(c.type) then
+        c.type = M.TagRelation:clean(c.type)
+        c.relation = "tag"
+    end
+    
+    return c
+end
+
+function M.merge_conditions(conditions)
+    local start_chars = List({":", ",", "-"})
+    local end_chars = List({":", ","})
+    local cant_start_chars = Set({",", "-"})
+    
+    local startswith = function(c) return start_chars:map(function(s) return c:startswith(s) end):any() end
+    local endswith = function(c) return end_chars:map(function(e) return c:endswith(e) end):any() end
+    
+    local merged = List()
+    while #conditions > 0 do
+        local c = conditions:pop(1)
+        if startswith(c) then
+            c = (#merged > 0 and merged:pop() or "") .. c
+        end
+        
+        if endswith(c) then
+            c = c .. (#conditions > 0 and conditions:pop(1) or "")
+        end
+
+        merged:append(c)
+    end
+    
+    merged:transform(string.rstrip, end_chars)
+    
+    return merged:filter(function(c) return not cant_start_chars:has(c:sub(1, 1)) end)
+end
+
+function M.clean_condition(c)
+    c = c:gsub("  ", " ")
+    c = c:gsub("%s*:%s*", ":")
+    c = c:gsub("%s*,%s*", ",")
+    c = c:gsub("%s*%-", "%-")
+    return c:strip()
+end
+
+function M.parse_condition_value_into_element(c)
+    local path = Path.from_commandline(c)
+    
+    if path:exists() then
+        local url = DB.urls:get_file(path)
+        c = url and url.id or tostring(path)
+    end
+
+    local q = {}
+    if type(c) == "number" then
+        q.url = c
+    elseif type(c) == "string" then
+        q.label = c
+    end
+    
+    local element = DB.Elements:where(q)
+    return element and element.id
+end
+
+
+return M

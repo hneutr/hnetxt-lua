@@ -1,4 +1,4 @@
-local Taxonomy = require("htl.Taxonomy.Persistent")
+local Taxonomy = require("htl.Taxonomy")
 local Snippet = require("htl.snippet")
 
 local M = SqliteTable("samples", {

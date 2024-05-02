@@ -50,6 +50,12 @@ build = {
         ["htl.db.Paths"] = "src/htl/db/Paths.lua",
         ["htl.db.Elements"] = "src/htl/db/Elements.lua",
         ["htl.db.Relations"] = "src/htl/db/Relations.lua",
+        ["htl.db.Instances"] = "src/htl/db/Instances.lua",
+
+        -- ["htl.Taxonomy"] = "src/htl/Taxonomy/init.lua",
+        ["htl.Taxonomy"] = "src/htl/Taxonomy/init.lua",
+        ["htl.Taxonomy.Parser"] = "src/htl/Taxonomy/Parser.lua",
+        ["htl.Taxonomy.Printer"] = "src/htl/Taxonomy/Printer.lua",
 
         ["htl.text.divider"] = "src/htl/text/divider.lua",
         ["htl.text.header"] = "src/htl/text/header.lua",
@@ -71,14 +77,6 @@ build = {
         ["htc.remove"] = "src/htc/remove.lua",
         ["htc.move"] = "src/htc/move.lua",
 
-        ["htl.Taxonomy"] = "src/htl/Taxonomy/init.lua",
-        ["htl.Taxonomy.Parser"] = "src/htl/Taxonomy/Parser.lua",
-        ["htl.Taxonomy.Printer"] = "src/htl/Taxonomy/Printer.lua",
-        
-        ["htl.Taxonomy.Persistent"] = "src/htl/Taxonomy/Persistent.lua",
-        
-        -- Taxonomy DB
-        ["htl.db.Instances"] = "src/htl/db/Instances.lua",
     }
 }
 test = {

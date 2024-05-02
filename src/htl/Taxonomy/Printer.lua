@@ -1,6 +1,6 @@
 local TerminalLink = require("htl.text.TerminalLink")
 local Colorize = require("htc.Colorize")
-local PTaxonomy = require("htl.Taxonomy.Persistent")
+local Taxonomy = require("htl.Taxonomy")
 
 local M = class()
 
@@ -51,8 +51,7 @@ function M:_init(args)
     self.include_attributes = args.include_attributes
     self.instances_only = args.instances_only
 
-    self.T = PTaxonomy(args)
-    -- print(self.T:get_printable_taxon_instances())
+    self.T = Taxonomy(args)
 end
 
 function M:__tostring()
