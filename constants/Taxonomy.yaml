@@ -29,6 +29,7 @@ relations:
         label: magenta
 grammar:
   exclusion_suffix: "-"
+  recursive_prefix: "+"
   or_delimiter: ","
 metadata:
   max_length: 120

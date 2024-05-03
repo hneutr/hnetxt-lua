@@ -5,6 +5,7 @@ M.conf = Dict(Conf.Taxonomy)
 
 function M:_init(args)
     args = self:format_args(args)
+    
     self.elements_by_id, self.seeds = self:get_elements(args.path, args.conditions)
 
     self.taxonomy, self.taxon_instances = M:get_taxonomy(self.elements_by_id, self.seeds)
@@ -212,7 +213,6 @@ function M.apply_condition(seeds, c)
     local q = {
         where = {
             relation = c.relation,
-            object = c.object,
         },
     }
     
@@ -221,9 +221,23 @@ function M.apply_condition(seeds, c)
         q.contains = {type = fmt:format(c.type)}
     end
     
+    local objects = List(c.object)
+
+    local subjects = Set()
+    while #objects > 0 do
+        q.where.object = objects:pop()
+        local _subjects = DB.Relations:get(q):col('subject')
+        subjects:add(_subjects)
+        
+        if c.is_recursive and #_subjects > 0 then
+            objects:append(_subjects)
+        end
+    end
+    
     local Operation = c.is_exclusion and Set.difference or Set.intersection
-    return Operation(seeds, Set(DB.Relations:get(q):col('subject')))
+    return Operation(seeds, subjects)
 end
+
 
 function M:transform_conditions(conditions)
     conditions:transform(M.clean_condition)
@@ -246,6 +260,7 @@ function M.parse_condition(s)
     c.type, c.object = utils.parsekv(s)
     
     if c.object then
+        c.object, c.is_recursive = c.object:removeprefix(M.conf.grammar.recursive_prefix)
         c.object = c.object:split(",")
     end
     
@@ -259,7 +274,7 @@ end
 
 function M.merge_conditions(conditions)
     local start_chars = List({":", ",", "-"})
-    local end_chars = List({":", ","})
+    local end_chars = List({":", ",", "+"})
     local cant_start_chars = Set({",", "-"})
     
     local startswith = function(c) return start_chars:map(function(s) return c:startswith(s) end):any() end
@@ -268,12 +283,12 @@ function M.merge_conditions(conditions)
     local merged = List()
     while #conditions > 0 do
         local c = conditions:pop(1)
-        if startswith(c) then
-            c = (#merged > 0 and merged:pop() or "") .. c
+        while startswith(c) and #merged > 0 do
+            c = merged:pop() .. c
         end
         
-        if endswith(c) then
-            c = c .. (#conditions > 0 and conditions:pop(1) or "")
+        while endswith(c) and #conditions > 0 do
+            c = c .. conditions:pop(1)
         end
 
         merged:append(c)
@@ -281,7 +296,13 @@ function M.merge_conditions(conditions)
     
     merged:transform(string.rstrip, end_chars)
     
-    return merged:filter(function(c) return not cant_start_chars:has(c:sub(1, 1)) end)
+    merged:transform(function(m)
+        return m:match("%+") and not m:match(":%+") and m:gsub("%+", "") or m
+    end)
+    
+    return merged:filter(function(c) return not cant_start_chars:has(c:sub(1, 1)) end):filter(function(c)
+        return #c > 0
+    end)
 end
 
 function M.clean_condition(c)
@@ -289,6 +310,7 @@ function M.clean_condition(c)
     c = c:gsub("%s*:%s*", ":")
     c = c:gsub("%s*,%s*", ",")
     c = c:gsub("%s*%-", "%-")
+    c = c:gsub("%s*%+", "%+")
     return c:strip()
 end
 
