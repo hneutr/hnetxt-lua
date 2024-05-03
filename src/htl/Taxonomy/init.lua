@@ -4,45 +4,42 @@ local M = class()
 M.conf = Dict(Conf.Taxonomy)
 
 function M:_init(args)
-    args = self:format_args(args)
+    self:read_args(args)
     
-    self.elements_by_id, self.seeds = self:get_elements(args.path, args.conditions)
+    self.elements_by_id, self.seeds = self:get_elements(self.path, self.conditions)
 
     self.taxonomy, self.taxon_instances = M:get_taxonomy(self.elements_by_id, self.seeds)
     
-    if #args.taxa > 0 then
+    if #self.taxa > 0 then
         self.taxonomy, self.taxon_instances = self:filter_taxa(
             self.elements_by_id,
             self.taxonomy,
             self.taxon_instances,
-            args.taxa
+            self.taxa
         )
     end
     
     self.rows = M:get_rows(self.elements_by_id, self.taxonomy, self.taxon_instances)
     
-    if self:should_persist(args) then
+    if self.should_persist then
         DB.Instances:replace(self.rows)
     end
 end
 
-function M:format_args(args)
+function M:read_args(args)
     args = Dict(args or {})
-    args.conditions = List(args.conditions)
-    args.taxa = List(args.taxa)
+    self.conditions = M:transform_conditions(List(args.conditions))
+    
+    self.taxa = List(args.taxa)
     
     if args.path then
-        args.path = Path.from_commandline(args.path)
+        self.path = Path.from_commandline(args.path)
     end
-
-    return args
-end
-
-function M:should_persist(args)
-    return not List({
-        args.path,
-        #args.conditions > 0,
-        #args.taxa > 0,
+    
+    self.should_persist = not List({
+        self.path,
+        #self.conditions > 0,
+        #self.taxa > 0,
     }):any()
 end
 
@@ -202,7 +199,7 @@ end
 M.TagRelation = Parser.TagRelation
 
 function M:apply_conditions(seeds, conditions)
-    M:transform_conditions(conditions):foreach(function(condition)
+    conditions:foreach(function(condition)
         seeds = self.apply_condition(seeds, condition)
     end)
     
@@ -210,6 +207,11 @@ function M:apply_conditions(seeds, conditions)
 end
 
 function M.apply_condition(seeds, c)
+    local Operation = c.is_exclusion and Set.difference or Set.intersection
+    return Operation(seeds, Set(M.get_condition_rows(c):col('subject')))
+end
+
+function M.get_condition_rows(c)
     local q = {
         where = {
             relation = c.relation,
@@ -217,27 +219,53 @@ function M.apply_condition(seeds, c)
     }
     
     if c.type and #c.type > 0 then
-        local fmt = c.relation == "tag" and "%s*" or "*%s"
-        q.contains = {type = fmt:format(c.type)}
+        q = M.add_condition_type_to_query(c, q)
     end
     
-    local objects = List(c.object)
+    local objects = List()
+    objects:append(c.object or {})
 
-    local subjects = Set()
+    local rows = List()
     while #objects > 0 do
-        q.where.object = objects:pop()
-        local _subjects = DB.Relations:get(q):col('subject')
-        subjects:add(_subjects)
+        local object = objects:pop()
+        q.where.object = #object > 0 and object or nil
         
-        if c.is_recursive and #_subjects > 0 then
-            objects:append(_subjects)
+        local subrows = DB.Relations:get(q)
+        rows:extend(subrows)
+        
+        if c.is_recursive then
+            objects:append(subrows:col('subject'))
         end
     end
     
-    local Operation = c.is_exclusion and Set.difference or Set.intersection
-    return Operation(seeds, subjects)
+    return rows
 end
 
+function M.add_condition_type_to_query(c, q)
+    local type = c.type
+
+    if c.relation == "tag" then
+        type = string.format("%s*", type)
+    else
+        if type:startswith("+") then
+            type = string.format("*%s", type:removeprefix("+"))
+        end
+
+        if type:endswith("+") then
+            type = string.format("%s*", type:removesuffix("+"))
+        end
+    end
+    
+    if type:match("%*") then
+        q.contains = q.contains or {}
+        q.contains.type = type
+    else
+        q.where = q.where or {}
+        q.where.type = type
+    end
+    
+    return q
+end
 
 function M:transform_conditions(conditions)
     conditions:transform(M.clean_condition)

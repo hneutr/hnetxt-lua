@@ -27,6 +27,14 @@ relations:
       syntax: pink
       term:
         label: magenta
+  # value:
+  #   color:
+  #     term:
+  #       label: [hidden]
+  attribute:
+    color:
+      term:
+        label: green
 grammar:
   exclusion_suffix: "-"
   recursive: "::"

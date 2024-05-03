@@ -6,6 +6,11 @@ local M = class()
 
 M.conf = Dict(Conf.Taxonomy)
 M.conf.indent_size = "  "
+M.conf.__all_relation_type = "__all"
+
+function M.indent(i)
+    return M.conf.indent_size:rep(i or 0)
+end
 
 --------------------------------------------------------------------------------
 --                                   Taxon                                    --
@@ -17,6 +22,7 @@ function LinePrinter:_init(element, type, indent, suffix)
     self.type = type
     self.indent = indent or ""
     self.suffix = suffix or ""
+    self.sublines = List()
     
     self.conf = M.conf.relations[self.type] or {color = {term = 'white'}}
     self.colors = self.conf.color.term
@@ -34,7 +40,13 @@ function LinePrinter:__tostring()
         s = Colorize(self.element.label, self.colors.label)
     end
     
-    return self.indent .. tostring(s) .. self.suffix
+    local sublines_s = self.sublines:map(tostring):mapm("lstrip"):join(" ")
+    
+    if #sublines_s > 0 then
+        sublines_s = " " .. sublines_s
+    end
+
+    return self.indent .. tostring(s) .. self.suffix .. sublines_s
 end
 
 --------------------------------------------------------------------------------
@@ -64,27 +76,21 @@ function M:__tostring()
         lines = self:get_lines()
     end
 
-    return lines:transform(function(l)
-        return tostring(LinePrinter(unpack(l)))
-    end):join("\n")
+    return lines:transform(tostring):join("\n")
 end
 
 function M:get_attribute_lines()
-    local q = {
-        where = {
-            relation = "connection",
-            subject = self.T.seeds,
-        }
-    }
-
-    local relations_by_attribute = DefaultDict(List)
-    DB.Relations:get(q):foreach(function(r)
-        relations_by_attribute[r.type or "__all"]:append({
-            object = r.object,
-            subject = r.subject,
-        })
+    local relations_by_attribute = DefaultDict(function() return DefaultDict(Set) end)
+    self.T.conditions:filter(function(c)
+        return c.relation and c.relation == "connection"
+    end):foreach(function(c)
+        self.T.get_condition_rows(c):foreach(function(r)
+            if r.object then
+                relations_by_attribute[r.type or M.conf.__all_relation_type][r.object]:add(r.subject)
+            end
+        end)
     end)
-    
+
     local lines = List()
     local printed_keys = Set()
     relations_by_attribute:keys():sorted():foreach(function(attribute_line)
@@ -95,14 +101,39 @@ function M:get_attribute_lines()
             local _key = parts:join(".")
             if not printed_keys:has(_key) then
                 printed_keys:add(_key)
-                lines:append(string.format("%s%s:", string.rep("  ", #parts - 1), part))
+                lines:append(LinePrinter(
+                    {label = part},
+                    "attribute",
+                    M.indent(#parts - 1),
+                    ":"
+                ))
+            end
+        end)
+
+        local vals_by_object = relations_by_attribute[attribute_line]
+        self:get_elements(
+            vals_by_object:keys(),
+            "value",
+            M.indent(#parts),
+            ":"
+        ):foreach(function(object)
+            lines:append(object)
+
+            local val_lines = self:get_elements(
+                vals_by_object[object.element.id]:vals(),
+                "instance",
+                M.indent(#parts + 1)
+            )
+            
+            if #val_lines == 1 then
+                object.sublines = val_lines
+            else
+                lines:extend(val_lines)
             end
         end)
     end)
     
-    lines:foreach(print)
-    
-    os.exit()
+    return lines
 end
 
 function M:get_element(id) return self.T.elements_by_id[id] end
@@ -115,13 +146,13 @@ function M.sort_label(e)
     return e.label:lower():removeprefix("the ")
 end
 
-function M:get_elements(ids, type, indent)
+function M:get_elements(ids, type, indent, suffix)
     local elements = List()
     if ids then
         ids:transform(function(id)
             return self:get_element(id)
         end):sorted(self.element_sort):foreach(function(element)
-            elements:append({element, type, indent or ""})
+            elements:append(LinePrinter(element, type, indent or "", suffix or ""))
         end)
     end
     
@@ -152,16 +183,17 @@ function M:get_lines()
     
     local lines = List()
     while #taxa > 0 do
-        local taxon, type, indent = unpack(taxa:pop())
+        local taxon = taxa:pop()
+        -- local taxon, type, indent = unpack()
         local i = #lines + 1
         local pre_count = #taxa + #lines
-        local _indent = indent .. "  "
+        local _indent = taxon.indent .. "  "
         
-        self:add_taxa(self.T.taxonomy:get(taxon.id), taxa, _indent)
-        self:add_instances(self.T.taxon_instances[taxon.id], lines, _indent)
+        self:add_taxa(self.T.taxonomy:get(taxon.element.id), taxa, _indent)
+        self:add_instances(self.T.taxon_instances[taxon.element.id], lines, _indent)
 
-        local suffix = (#taxa + #lines) > pre_count and ":"
-        lines:insert(i, {taxon, "subset", indent, suffix})
+        taxon.suffix = (#taxa + #lines) > pre_count and ":" or ""
+        lines:insert(i, taxon)
     end
     
     return lines

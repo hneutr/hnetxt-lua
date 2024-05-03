@@ -208,6 +208,10 @@ function Dict:__tostring()
     return lines:join("\n")
 end
 
+function Dict.print(d)
+    print(Dict(d))
+end
+
 function Dict:pop(key)
     local val = self[key]
     self[key] = nil

@@ -66,7 +66,9 @@ require("htc.cli")("hnetxt", {
             description = List({
                 "filter conditions:",
                 "    @tag        →    @tag*",
-                "    key         →    *key",
+                "    key         →    key (any val)",
+                "    +key        →    *key",
+                "    key+        →    key*",
                 "    key:val     →    key = val (val can be a file)",
                 "    key:val-    →    key ≠ val",
                 "    key:a,b     →    key = a or b",

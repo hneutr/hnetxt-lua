@@ -95,3 +95,40 @@ describe("parse_condition", function()
         assert.are.same({"d", "e", "f"}, M.parse_condition("abc:d,e,f").object)
     end)
 end)
+
+describe("add_condition_type_to_query", function()
+    it("tag", function()
+        assert.are.same(
+            {contains = {type = "a*"}},
+            M.add_condition_type_to_query({relation = "tag", type = "a"}, {})
+        )
+    end)
+    
+    it("non-tag, basic", function()
+        assert.are.same(
+            {where = {a = 1, type = "a"}},
+            M.add_condition_type_to_query({type = "a"}, {where = {a = 1}})
+        )
+    end)
+    
+    it("+type", function()
+        assert.are.same(
+            {contains = {type = "*a"}},
+            M.add_condition_type_to_query({type = "+a"}, {})
+        )
+    end)
+    
+    it("type+", function()
+        assert.are.same(
+            {contains = {type = "a*"}},
+            M.add_condition_type_to_query({type = "a+"}, {})
+        )
+    end)
+    
+    it("+type+", function()
+        assert.are.same(
+            {contains = {type = "*a*"}},
+            M.add_condition_type_to_query({type = "+a+"}, {})
+        )
+    end)
+end)
