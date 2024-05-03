@@ -80,12 +80,13 @@ function M:__tostring()
 end
 
 function M:get_attribute_lines()
+    local seeds = Set(self.T.seeds)
     local relations_by_attribute = DefaultDict(function() return DefaultDict(Set) end)
     self.T.conditions:filter(function(c)
         return c.relation and c.relation == "connection"
     end):foreach(function(c)
         self.T.get_condition_rows(c):foreach(function(r)
-            if r.object then
+            if r.object and seeds:has(r.subject) then
                 relations_by_attribute[r.type or M.conf.__all_relation_type][r.object]:add(r.subject)
             end
         end)
