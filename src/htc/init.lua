@@ -2,9 +2,18 @@ require("htl")
 
 require("htc.cli")("hnetxt", {
     project = require("htc.project"),
-    clean = {
-        description = "clean the db",
-        action = require("htl.db").clean,
+    clean = {description = "clean the db", action = require("htl.db").clean},
+    persist = {
+        description = "save things used by services",
+        {"+r", target = "reparse_taxonomy", description = "reparse taxonomy", switch = "on"},
+        action = function(args)
+            DB.Log:persist()
+            DB.Paths:persist()
+            
+            if args.reparse_taxonomy then
+                require("htl.Taxonomy.Parser"):persist()
+            end
+        end
     },
     move = {
         description = "mv within a project",
@@ -20,21 +29,8 @@ require("htc.cli")("hnetxt", {
         {"+f", target = "force", description = "force", switch = "on"},
         action = require("htc.remove").run,
     },
-    persist = {
-        description = "save things used by services",
-        action = function()
-            DB.Log:record_all()
-            DB.Paths:ingest()
-        end
-    },
-    journal = {
-        description = "print the journal path",
-        print = require("htl.journal"),
-    },
-    aim = {
-        description = "print the goals path",
-        print = require("htl.goals"),
-    },
+    journal = {description = "print the journal path", print = require("htl.journal")},
+    aim = {description = "print the goals path", print = require("htl.goals")},
     track = {
         description = "print the tracking path",
         {"date", description = "date (YYYYMMDD); default today", default = os.date('%Y%m%d')},
@@ -64,13 +60,6 @@ require("htc.cli")("hnetxt", {
         print = function() return Conf.paths.language_dir end,
     },
     tax = {
-        -- {
-        --     "--reference",
-        --     description = "print references to this file",
-        --     convert = function(p) return DB.urls:where({path = Path.from_commandline(p)}).id end,
-        -- },
-        -- {"+v", target = "include_values", description = "print values", switch = "off"},
-        -- {"+V", target = "exclude_unique_values", description = "exclude unique values", switch = "off"},
         description = "print the taxonomy",
         {
             "conditions",
@@ -116,53 +105,9 @@ require("htc.cli")("hnetxt", {
                 Relations.type = startswith(X)
             ]]
     },
-    reparse = {
-        description = "reparse relations",
-        {"+C", target = "clean", description = "clean bad urls", switch = "off"},
-        action = function(args)
-            DB.Relations:drop()
-            DB.Elements:drop()
-            local urls = DB.urls:get({where = {resource_type = "file"}}):sorted(function(a, b)
-                return tostring(a.path) < tostring(b.path)
-            end)
-            
-            if args.clean then
-                urls = urls:filter(function(u)
-                    local keep = true
-
-                    if not DB.projects.get_by_path(u.path) then
-                        keep = false
-                    end
-
-                    if not u.path:exists() then
-                        keep = false
-                    end
-
-                    if not keep then
-                        DB.urls:remove({id = u.id})
-                    end
-
-                    return keep
-                end)
-            end
-
-            local TParser = require("htl.Taxonomy.Parser")
-
-            urls:foreach(function(u)
-                print(u.path)
-                TParser:record(u)
-            end)
-        end,
-    },
-    -- refs = {
-    --     description = "print references to a file",
-    --     {"-p --path", default = Path.cwd(), convert=Path.from_commandline},
-    --     {"+T", target = "by taxonomy", description = "don't print within the taxonomy", switch = "off"},
-    --     action = function(args)
-    --     end,
-    -- },
+    -- {"+v", target = "include_values", description = "print values", switch = "off"},
+    -- {"+V", target = "exclude_unique_values", description = "exclude unique values", switch = "off"},
     test = {
-        description = "test",
         action = function(args)
         end,
     },

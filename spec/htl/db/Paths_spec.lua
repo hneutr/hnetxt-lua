@@ -9,11 +9,11 @@ end)
 
 after_each(htl.after_test)
 
-describe("ingest", function()
+describe("persist", function()
     it("+", function()
         M:insert({key = "abc", val = "xyz"})
         assert(#M:get() > 0)
-        M:ingest()
+        M:persist()
         assert(#M:get() > 0)
         assert.is_nil(M:where({key = "abc"}))
     end)

@@ -14,14 +14,13 @@ function M:get(q)
     return List(M:__get(q))
 end
 
-function M:ingest()
-    M:drop()
-    
-    local rows = Conf.paths:keys():map(function(key)
-        return {key = key, val = tostring(Conf.paths[key])}
-    end)
-
-    M:insert(rows)
+function M:persist()
+    M:replace(Conf.paths:keys():map(function(key)
+        return {
+            key = key,
+            val = tostring(Conf.paths[key])
+        }
+    end))
 end
 
 return M

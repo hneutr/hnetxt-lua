@@ -42,7 +42,7 @@ function M.parse_line(l, date)
     local row = {date = date}
 
     if #l > 0 then
-        row.key, row.val = unpack(l:split(M.conf.separator, 1):mapm("strip"))
+        row.key, row.val = utils.parsekv(l)
     end
 
     return row
@@ -51,6 +51,7 @@ end
 function M.record(path)
     local date = path:stem()
     M:remove({date = date})
+
     local rows = M:parse_lines(path:readlines(), date)
     
     if #rows > 0 then
@@ -64,7 +65,7 @@ function M.clean(path)
     end
 end
 
-function M:record_all()
+function M:persist()
     Conf.paths.track_dir:iterdir({dirs = false, recursive = false}):foreach(function(path)
         M.record(path)
         M.clean(path)
@@ -75,7 +76,7 @@ end
 --                                UI functions                                --
 --------------------------------------------------------------------------------
 function M.touch(args)
-    M:record_all()
+    M:persist()
     args = Dict(args or {}, {date = os.date("%Y%m%d")})
     local path = Conf.paths.track_dir / string.format("%s.md", args.date)
 

@@ -121,14 +121,22 @@ function M.__fmt(u)
 end
 
 function M:clean()
-    local ids_to_delete =  M:get():filter(function(url)
-        return not url.path:exists() or url.path == M.unanchored_path
-    end):transform(function(url)
-        return url.id
-    end)
+    local project_to_path = Dict.from_list(
+        DB.projects:get(),
+        function(p) return p.title, p.path end
+    )
 
-    if #ids_to_delete > 0 then
-        M:remove({id = ids_to_delete})
+    local ids_to_remove =  M:get():filter(function(u)
+        local keep = true
+        
+        keep = keep and u.path:exists()
+        keep = keep and u.path ~= M.unanchored_path
+        keep = keep and u.path:is_relative_to(project_to_path[u.project])
+        return not keep
+    end):col('id')
+
+    if #ids_to_remove > 0 then
+        M:remove({id = ids_to_remove})
     end
 end
 

@@ -327,6 +327,20 @@ function M:record(url)
     end)
 end
 
+function M:persist()
+    DB.Relations:drop()
+    DB.Elements:drop()
+
+    DB.urls:get({where = {resource_type = "file"}}):sorted(function(a, b)
+        return tostring(a.path) < tostring(b.path)
+    end):foreach(function(u)
+        if not pcall(function() M:record(u) end) then
+            print(u.path)
+            os.exit()
+        end
+    end)
+end
+
 M.SubsetRelation = SubsetRelation
 M.ConnectionRelation = ConnectionRelation
 M.InstancesAreAlsoRelation = InstancesAreAlsoRelation

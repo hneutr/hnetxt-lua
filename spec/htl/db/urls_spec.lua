@@ -152,36 +152,51 @@ describe("get", function()
 end)
 
 describe("clean", function()
-    it("non-existent file", function()
-        f1:touch()
-        local row = {path = f1}
-        M:insert(row)
-        assert.is_not.Nil(M:where(row))
-        f1:unlink()
-        M:clean()
-        assert.is_nil(M:where(row))
-    end)
+    it("deleted file", function()
+        local r = {path = f1}
+        M:insert(r)
 
-    it("deleted project", function()
-        local row = {path = f1}
-        M:insert(row)
-        assert.is_not.Nil(M:where(row))
-        DB.projects:remove({title = p1.title})
-        assert.is_nil(M:where(row))
+        assert(M:where(r))
+
+        f1:unlink()
+
+        M:clean()
+
+        assert.is_nil(M:where(r))
     end)
 
     it("unanchored file", function()
-        M:insert({path = f1})
-        local u1 = M:where({path = f1}).id
+        local r = {id = M:insert({path = f1})}
+
         M:update({
-            where = {id = u1},
+            where = r,
             set = {path = tostring(M.unanchored_path)},
         })
 
-        local row = {path = M.unanchored_path}
-        assert.is_not.Nil(M:where(row))
+        assert(M:where(r))
         M:clean()
-        assert.is_nil(M:where(row))
+        assert.is_nil(M:where(r))
+    end)
+    
+    it("not relative to project", function()
+        local r = {id = M:insert({path = f1})}
+
+        M:update({
+            where = r,
+            set = {path = tostring(d2 / f1:name())},
+        })
+
+        assert(M:where(r))
+        M:clean()
+        assert.is_nil(M:where(r))
+    end)
+    
+    it("+", function()
+        local r = {id = M:insert({path = f1})}
+
+        assert(M:where(r))
+        M:clean()
+        assert(M:where(r))
     end)
 end)
 
