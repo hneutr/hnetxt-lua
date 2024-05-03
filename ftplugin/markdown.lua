@@ -13,9 +13,9 @@ local commands = Dict({
 
 local event_to_nvim_events = Dict({
     text_change = {'TextChanged', "InsertLeave"},
-    enter = {'VimEnter', 'WinEnter', "BufEnter", 'BufWinEnter'},
-    leave = {'VimLeave', 'WinLeave', 'BufLeave'},
-    enter_and_leave = {'VimEnter', 'WinEnter', 'BufEnter', "BufWinEnter", 'VimLeave', 'WinLeave', 'BufLeave'},
+    enter = {'VimEnter', 'WinEnter'},
+    leave = {'VimLeave', 'WinLeave'},
+    enter_and_leave = {'VimEnter', 'WinEnter', 'VimLeave', 'WinLeave'},
 })
 
 local autocommands = DefaultDict(List)
@@ -69,7 +69,7 @@ autocommands.text_change:append(function()
     vim.b.htn_modified = true
 end)
 
-autocommands.leave:append(function() ui.save_metadata(current_file) end)
+autocommands.leave:append(ui.save_metadata)
 
 commands:foreach(function(name, cmd)
     local opts

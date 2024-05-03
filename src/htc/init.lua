@@ -92,6 +92,16 @@ require("htc.cli")("hnetxt", {
     -- {"+V", target = "exclude_unique_values", description = "exclude unique values", switch = "off"},
         print = require("htl.Taxonomy.Printer"),
     },
+    ref = {
+        description = "print a reference to the file",
+        {"path", args = "1", convert = Path.from_commandline},
+        print = function(args)
+            local url = DB.urls:get_file(args.path)
+            if url then
+                return require("htl.text.TerminalLink")({label = url.label, url = url.id})
+            end
+        end,
+    },
     test = {
         action = function(args)
         end,

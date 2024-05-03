@@ -1,6 +1,6 @@
 require("htl")
 
-local p = Path("/Users/hne/eidola/language/atelo_.md")
+local p = Path("/Users/hne/Documents/text/written/fiction/chasefeel/glossary/theochire.md")
 
 local u = DB.urls:get_file(p)
 local e = DB.Elements:where({url = u.id})

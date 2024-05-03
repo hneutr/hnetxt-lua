@@ -64,9 +64,9 @@ function M.set_file_url(path)
     end
 end
 
-function M.save_metadata(path)
+function M.save_metadata()
     if vim.b.htn_modified then
-        path = path and Path(path) or Path.this()
+        local path = Path.this()
         M.set_file_url(path)
         TaxonomyParser:record(DB.urls:get_file(path))
     end
