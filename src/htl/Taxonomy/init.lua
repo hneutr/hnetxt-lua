@@ -264,7 +264,6 @@ function M.parse_condition(s)
     c.type, c.object = utils.parsekv(s)
     
     if c.object then
-        -- c.object, c.is_recursive = c.object:removeprefix(M.conf.grammar.recursive_prefix)
         c.object = c.object:split(",")
     end
     

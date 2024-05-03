@@ -48,7 +48,7 @@ function M:_init(args)
     args = args or {}
 
     self.include_instances = args.include_instances
-    self.include_attributes = args.include_attributes
+    self.by_attribute = args.by_attribute
     self.instances_only = args.instances_only
 
     self.T = Taxonomy(args)
@@ -58,6 +58,8 @@ function M:__tostring()
     local lines = List()
     if self.instances_only then
         lines = self:get_instance_lines()
+    elseif self.by_attribute then
+        lines = self:get_attribute_lines()
     else
         lines = self:get_lines()
     end
@@ -65,6 +67,42 @@ function M:__tostring()
     return lines:transform(function(l)
         return tostring(LinePrinter(unpack(l)))
     end):join("\n")
+end
+
+function M:get_attribute_lines()
+    local q = {
+        where = {
+            relation = "connection",
+            subject = self.T.seeds,
+        }
+    }
+
+    local relations_by_attribute = DefaultDict(List)
+    DB.Relations:get(q):foreach(function(r)
+        relations_by_attribute[r.type or "__all"]:append({
+            object = r.object,
+            subject = r.subject,
+        })
+    end)
+    
+    local lines = List()
+    local printed_keys = Set()
+    relations_by_attribute:keys():sorted():foreach(function(attribute_line)
+        local parts = List()
+        attribute_line:split("."):foreach(function(part)
+            parts:append(part)
+            
+            local _key = parts:join(".")
+            if not printed_keys:has(_key) then
+                printed_keys:add(_key)
+                lines:append(string.format("%s%s:", string.rep("  ", #parts - 1), part))
+            end
+        end)
+    end)
+    
+    lines:foreach(print)
+    
+    os.exit()
 end
 
 function M:get_element(id) return self.T.elements_by_id[id] end

@@ -3,6 +3,9 @@ require("htl")
 require("htc.cli")("hnetxt", {
     project = require("htc.project"),
     clean = {description = "clean the db", action = require("htl.db").clean},
+    journal = {description = "print the journal path", print = require("htl.journal")},
+    aim = {description = "print the goals path", print = require("htl.goals")},
+    language = {description = "print the language dir", print = function() return Conf.paths.language_dir end},
     persist = {
         description = "save things used by services",
         {"+r", target = "reparse_taxonomy", description = "reparse taxonomy", switch = "on"},
@@ -29,8 +32,6 @@ require("htc.cli")("hnetxt", {
         {"+f", target = "force", description = "force", switch = "on"},
         action = require("htc.remove").run,
     },
-    journal = {description = "print the journal path", print = require("htl.journal")},
-    aim = {description = "print the goals path", print = require("htl.goals")},
     track = {
         description = "print the tracking path",
         {"date", description = "date (YYYYMMDD); default today", default = os.date('%Y%m%d')},
@@ -55,18 +56,23 @@ require("htc.cli")("hnetxt", {
             return p
         end,
     },
-    language = {
-        description = "print the language dir",
-        print = function() return Conf.paths.language_dir end,
-    },
     tax = {
         description = "print the taxonomy",
         {
             "conditions",
             args = "*",
             default = List(),
-            description = "the conditions to meet (fields:value?/@tag.subtag/exclusion-)", 
             action="concat",
+            description = List({
+                "filter conditions:",
+                "    @tag        →    @tag*",
+                "    key         →    *key",
+                "    key:val     →    key = val (val can be a file)",
+                "    key:val-    →    key ≠ val",
+                "    key:a,b     →    key = a or b",
+                "    :val        →    anykey = val",
+                "    ::val       →    apply recursively",
+            }):join("\n"),
         },
         {
             "-t --taxa",
@@ -77,33 +83,10 @@ require("htc.cli")("hnetxt", {
             action = "concat",
         },
         {"-p --path", default = Path.cwd(), convert=Path.from_commandline},
-        {"+I", target = "include_instances", description = "exclude instances", switch = "off"},
+        {"+i", target = "include_instances", description = "include instances", switch = "on"},
+        {"+a", target = "by_attribute", description = "by attribute", switch = "on"},
         {"+f", target = "instances_only", description = "only print instances", switch = "on"},
         print = require("htl.Taxonomy.Printer"),
-        --[[
-            conditions grammar:
-            :: , : etc
-
-            1. "x"
-                Relations.relation = "connection"
-                Relations.type = startswith(x)
-            2. "x: y"
-                Relations.relation = "connection"
-                Relations.type = x
-                Relations.object = y
-
-            3. "x: file.md"
-                Relations.relation = "connection"
-                Relations.type = "x"
-                Relations.object = Elements.id for file.md
-            4. ": file.md"
-                Relations.relation = "connection"
-                Relations.object = Elements.id for file.md
-
-            5. "@x"
-                Relations.relation = "tag"
-                Relations.type = startswith(X)
-            ]]
     },
     -- {"+v", target = "include_values", description = "print values", switch = "off"},
     -- {"+V", target = "exclude_unique_values", description = "exclude unique values", switch = "off"},
