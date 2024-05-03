@@ -1,1 +1,3 @@
-This is intended to be the single location for code that deals with writing.
+# hnetxt-lua
+
+A bunch of silly code for writing.

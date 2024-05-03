@@ -189,6 +189,16 @@ function Command:get_component_type(settings)
 end
 
 function Command:add(parent, settings, name)
+    if settings then
+        local print_fn = Dict.pop(settings, "print")
+        
+        if print_fn then
+            settings.action = function(args)
+                print(print_fn(args))
+            end
+        end
+    end
+
     local object = self:attach(parent, settings, name)
 
     local components = Dict()

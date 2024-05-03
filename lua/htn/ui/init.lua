@@ -73,7 +73,9 @@ function M.save_metadata(path)
 end
 
 function M.update_link_urls()
-    DB.urls:update_link_urls(Path.this(), List(BufferLines.get()))
+    if vim.b.htn_modified then
+        DB.urls:update_link_urls(Path.this(), List(BufferLines.get()))
+    end
 end
 
 function M.spellfile(root)

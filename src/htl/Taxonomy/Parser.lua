@@ -33,8 +33,11 @@ function M.get_metadata_lines(path)
 end
 
 function M.separate_metadata(lines)
-    if #lines > 0 and not lines[1]:match(":") then
-        return List()
+    if #lines > 0 then
+        local l1 = lines[1]
+        if not l1:match(":") and not M.TagRelation:line_is_a(l1) then
+            return List()
+        end
     end
 
     for i, l in ipairs(lines) do

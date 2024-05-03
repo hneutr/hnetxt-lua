@@ -53,7 +53,7 @@ if project then
 
     ui.set_file_url(current_file)
 
-    autocommands.enter_and_leave:append(ui.update_link_urls)
+    autocommands.leave:append(ui.update_link_urls)
 
     -- commands.FileToLink = ui.FileToLink
     -- commands.LinkToFile = ui.LinkToFile

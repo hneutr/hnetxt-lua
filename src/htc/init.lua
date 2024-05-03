@@ -1,7 +1,6 @@
 require("htl")
 
 require("htc.cli")("hnetxt", {
-    new = require("htc.new"),
     project = require("htc.project"),
     clean = {
         description = "clean the db",
@@ -13,13 +12,6 @@ require("htc.cli")("hnetxt", {
         {"target", args = "1", convert = Path.from_commandline},
         action = require("htc.move").run,
     },
-    persist = {
-        description = "save things used by services",
-        action = function()
-            DB.Log:record_all()
-            DB.Paths:ingest()
-        end
-    },
     remove = {
         description = "rm within a project",
         {"path", args = "1", convert = Path.from_commandline},
@@ -28,13 +20,20 @@ require("htc.cli")("hnetxt", {
         {"+f", target = "force", description = "force", switch = "on"},
         action = require("htc.remove").run,
     },
+    persist = {
+        description = "save things used by services",
+        action = function()
+            DB.Log:record_all()
+            DB.Paths:ingest()
+        end
+    },
     journal = {
         description = "print the journal path",
-        action = function() print(require("htl.journal")()) end,
+        print = require("htl.journal"),
     },
     aim = {
         description = "print the goals path",
-        action = function() print(require("htl.goals")()) end,
+        print = require("htl.goals"),
     },
     track = {
         description = "print the tracking path",
@@ -50,19 +49,19 @@ require("htc.cli")("hnetxt", {
     quote = {
         description = "add a quote",
         {"-p --path", default = Path.cwd(), description = "media dir", convert=Path.as_path},
-        action = function(args)
-            local path = args.path:join("1.md")
+        print = function(args)
+            local p = args.path:join("1.md")
 
-            while path:exists() do
-                path = path:with_stem(tostring(tonumber(path:stem()) + 1))
+            while p:exists() do
+                p = p:with_stem(tostring(tonumber(p:stem()) + 1))
             end
 
-            print(path)
+            return p
         end,
     },
     language = {
         description = "print the language dir",
-        action = function(args) print(Conf.paths.language_dir) end,
+        print = function() return Conf.paths.language_dir end,
     },
     tax = {
         -- {
@@ -72,7 +71,7 @@ require("htc.cli")("hnetxt", {
         -- },
         -- {"+v", target = "include_values", description = "print values", switch = "off"},
         -- {"+V", target = "exclude_unique_values", description = "exclude unique values", switch = "off"},
-        description = "print taxonomy",
+        description = "print the taxonomy",
         {
             "conditions",
             args = "*",
@@ -91,8 +90,8 @@ require("htc.cli")("hnetxt", {
         {"-p --path", default = Path.cwd(), convert=Path.from_commandline},
         {"+I", target = "include_instances", description = "exclude instances", switch = "off"},
         {"+f", target = "instances_only", description = "only print instances", switch = "on"},
-        action = function(args)
-            --[[
+        print = require("htl.Taxonomy.Printer"),
+        --[[
             conditions grammar:
 
             1. "x"
@@ -115,11 +114,8 @@ require("htc.cli")("hnetxt", {
                 Relations.relation = "tag"
                 Relations.type = startswith(X)
             ]]
-            local printer = require("htl.Taxonomy.Printer")(args)
-            print(printer)
-        end,
     },
-    reparse_relations = {
+    reparse = {
         description = "reparse relations",
         {"+C", target = "clean", description = "clean bad urls", switch = "off"},
         action = function(args)
@@ -166,8 +162,6 @@ require("htc.cli")("hnetxt", {
     -- },
     test = {
         description = "test",
-        {"+r", target = "rerun", description = "rerun", switch = "on"},
-        {"date", description = "date (YYYYMMDD); default today", default = os.date('%Y%m%d')},
         action = function(args)
         end,
     },

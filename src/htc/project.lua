@@ -1,4 +1,4 @@
-local Colorize = require("htc.colorize")
+local Colorize = require("htc.Colorize")
 local TaxonomyParser = require("htl.Taxonomy.Parser")
 
 return {

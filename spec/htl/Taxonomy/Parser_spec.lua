@@ -237,9 +237,9 @@ describe("separate_metadata", function()
 
     it("chops", function()
         assert.are.same(
-            {"a:", "b"},
+            {"@a", "b"},
             M.separate_metadata(List({
-                "a:",
+                "@a",
                 "b",
                 "",
                 "c",

@@ -145,14 +145,14 @@ function M:new_link(path)
 end
 
 function M:update_link_urls(path, lines)
-    local observed_ids = List()
+    local present = Set()
 
     for line in lines:iter() do
         local link = URLDefinition:from_str(line)
 
         if link then
             local id = tonumber(link.url)
-            observed_ids:append(id)
+            present:add(id)
             M:update({
                 where = {id = id},
                 set = {
@@ -164,15 +164,13 @@ function M:update_link_urls(path, lines)
         end
     end
 
-    local unobserved_ids = M:get({where = {path = path, resource_type = "link"}}):transform(function(u)
-        return u.id
-    end):filter(function(id)
-        return not observed_ids:contains(id)
-    end)
+    local absent = Set(
+        M:get({where = {path = path, resource_type = "link"}}):col('id')
+    ):difference(present):vals()
 
-    if #unobserved_ids > 0 then
+    if #absent > 0 then
         M:update({
-            where = {id = unobserved_ids},
+            where = {id = absent},
             set = {path = tostring(M.unanchored_path)},
         })
     end

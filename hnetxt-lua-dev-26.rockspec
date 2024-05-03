@@ -52,7 +52,6 @@ build = {
         ["htl.db.Relations"] = "src/htl/db/Relations.lua",
         ["htl.db.Instances"] = "src/htl/db/Instances.lua",
 
-        -- ["htl.Taxonomy"] = "src/htl/Taxonomy/init.lua",
         ["htl.Taxonomy"] = "src/htl/Taxonomy/init.lua",
         ["htl.Taxonomy.Parser"] = "src/htl/Taxonomy/Parser.lua",
         ["htl.Taxonomy.Printer"] = "src/htl/Taxonomy/Printer.lua",
@@ -71,12 +70,10 @@ build = {
         -- cli
         ["htc"] = "src/htc/init.lua",
         ["htc.cli"] = "src/htc/cli.lua",
-        ["htc.colorize"] = "src/htc/colorize.lua",
-        ["htc.new"] = "src/htc/new.lua",
+        ["htc.colorize"] = "src/htc/Colorize.lua",
         ["htc.project"] = "src/htc/project.lua",
         ["htc.remove"] = "src/htc/remove.lua",
         ["htc.move"] = "src/htc/move.lua",
-
     }
 }
 test = {
