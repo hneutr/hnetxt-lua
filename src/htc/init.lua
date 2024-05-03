@@ -93,6 +93,7 @@ require("htc.cli")("hnetxt", {
         print = require("htl.Taxonomy.Printer"),
         --[[
             conditions grammar:
+            :: , : etc
 
             1. "x"
                 Relations.relation = "connection"

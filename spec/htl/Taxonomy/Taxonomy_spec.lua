@@ -40,10 +40,10 @@ describe("merge_condition", function()
             {{"a:b", "c"}, {"a", ":b", "c"}},
             {{"a,b", "c"}, {"a", ",b", "c"}},
             {{"a-", "b"}, {"a", "-", "b"}},
-            {{"a:+b"}, {"a:", "+", "b"}},
         }),
         ["adds next"] = List({
             {{"a:b"}, {"a:", "b"}},
+            {{"a::b"}, {"a:", ":", "b"}},
             {{"a,b"}, {"a,", "b"}},
 
             {{"a:b"}, {"a", ":", "b"}},
@@ -52,19 +52,10 @@ describe("merge_condition", function()
         ["rejects at start"] = List({
             {{"b"}, {",", "a", "b"}},
             {{"a"}, {"-", "a"}},
-            {{"a"}, {"+", "a"}},
         }),
         ["accepts at start"] = List({
             {{":a"}, {":", "a"}},
         }),
-        ["accepts :+"] = List({
-            {{"a:+b"}, {"a:", "+", "b"}},
-            {{":+a"}, {":", "+", "a"}},
-        }),
-        ["rejects + if not :+"] = List({
-            {{"a"}, {"a", "+"}},
-            {{"a", "b"}, {"a", "+", "b"}},
-        })
     }):foreach(function(test_category, cases)
         cases:foreach(function(case)
             local expected = List(case[1])
@@ -84,8 +75,13 @@ describe("parse_condition", function()
     end)
 
     it("recursive: +", function()
-        assert(M.parse_condition("abc:+xyz").is_recursive)
+        assert(M.parse_condition("abc::xyz").is_recursive)
     end)
+
+    it("recursive: -", function()
+        assert.is_false(M.parse_condition("abc:xyz").is_recursive)
+    end)
+
 
     it("exclusion: -", function()
         assert.is_false(M.parse_condition("abc").is_exclusion)

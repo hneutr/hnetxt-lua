@@ -257,10 +257,14 @@ function M.parse_condition(s)
 
     s, c.is_exclusion = s:removesuffix(M.conf.grammar.exclusion_suffix)
     
+    s, n_replaced = s:gsub(M.conf.grammar.recursive, ":")
+    
+    c.is_recursive = n_replaced > 0
+    
     c.type, c.object = utils.parsekv(s)
     
     if c.object then
-        c.object, c.is_recursive = c.object:removeprefix(M.conf.grammar.recursive_prefix)
+        -- c.object, c.is_recursive = c.object:removeprefix(M.conf.grammar.recursive_prefix)
         c.object = c.object:split(",")
     end
     
@@ -274,7 +278,7 @@ end
 
 function M.merge_conditions(conditions)
     local start_chars = List({":", ",", "-"})
-    local end_chars = List({":", ",", "+"})
+    local end_chars = List({":", ","})
     local cant_start_chars = Set({",", "-"})
     
     local startswith = function(c) return start_chars:map(function(s) return c:startswith(s) end):any() end
@@ -296,13 +300,7 @@ function M.merge_conditions(conditions)
     
     merged:transform(string.rstrip, end_chars)
     
-    merged:transform(function(m)
-        return m:match("%+") and not m:match(":%+") and m:gsub("%+", "") or m
-    end)
-    
-    return merged:filter(function(c) return not cant_start_chars:has(c:sub(1, 1)) end):filter(function(c)
-        return #c > 0
-    end)
+    return merged:filter(function(c) return not cant_start_chars:has(c:sub(1, 1)) end)
 end
 
 function M.clean_condition(c)
@@ -310,7 +308,6 @@ function M.clean_condition(c)
     c = c:gsub("%s*:%s*", ":")
     c = c:gsub("%s*,%s*", ",")
     c = c:gsub("%s*%-", "%-")
-    c = c:gsub("%s*%+", "%+")
     return c:strip()
 end
 

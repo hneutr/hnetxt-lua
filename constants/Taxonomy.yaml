@@ -29,15 +29,7 @@ relations:
         label: magenta
 grammar:
   exclusion_suffix: "-"
-  recursive_prefix: "+"
+  recursive: "::"
   or_delimiter: ","
 metadata:
   max_length: 120
-# colors:
-#   term:
-#     taxon:
-#       label: [yellow]
-#     instance:
-#       label: [blue]
-#     attribute:
-#       label: [magenta]
