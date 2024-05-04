@@ -41,3 +41,14 @@ grammar:
   or_delimiter: ","
 metadata:
   max_length: 120
+display:
+  defaults:
+    can_merge: true
+    suffix: ": "
+    merge_max: 2
+  attribute:
+    attribute:
+      suffix: "."
+  subset:
+    subset:
+      can_merge: false

@@ -86,7 +86,7 @@ require("htc.cli")("hnetxt", {
         },
         {"-p --path", default = Path.cwd(), convert=Path.from_commandline},
         {"+i", target = "include_instances", description = "include instances", switch = "on"},
-        {"+f", target = "instances_only", description = "only print instances", switch = "on"},
+        {"+I", target = "instances_only", description = "only print instances", switch = "on"},
         {"+a", target = "by_attribute", description = "by attribute", switch = "on"},
     -- {"+v", target = "include_values", description = "print values", switch = "off"},
     -- {"+V", target = "exclude_unique_values", description = "exclude unique values", switch = "off"},

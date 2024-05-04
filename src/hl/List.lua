@@ -68,4 +68,9 @@ function List:col(col)
     return l
 end
 
+function List:notnil()
+    self = self:filter(function(i) return i end)
+    return self
+end
+
 return List
