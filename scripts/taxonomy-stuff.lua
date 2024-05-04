@@ -1,11 +1,18 @@
 require("htl")
 
-local p = Path("/Users/hne/Documents/text/written/fiction/chasefeel/glossary/theochire.md")
+local p = Path("/Users/hne/Documents/text/written/fiction/chasefeel/glossary/agulectory.md")
 
 local u = DB.urls:get_file(p)
 local e = DB.Elements:where({url = u.id})
 
-DB.Relations:get({where = {subject = e.id}}):foreach(function(r) print(Dict(r)) end)
+DB.Relations:get({where = {subject = e.id}}):foreach(function(r)
+    r.object = Dict(DB.Elements:where({id = r.object}))
+    r.subject = Dict(DB.Elements:where({id = r.subject}))
+    
+    if r.type == "lexis.morphemes" then
+        print(Dict(r))
+    end
+end)
 
 os.exit()
 

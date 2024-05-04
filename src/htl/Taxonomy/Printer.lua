@@ -24,7 +24,7 @@ function LinePrinter:_init(element, type, indent, suffix)
     self.suffix = suffix or ""
     self.sublines = List()
     
-    self.conf = M.conf.relations[self.type] or {color = {term = 'white'}}
+    self.conf = M.conf.relations[self.type] or {color = {term = {label = 'white'}}}
     self.colors = self.conf.color.term
 end
 
@@ -120,16 +120,18 @@ function M:get_attribute_lines()
         ):foreach(function(object)
             lines:append(object)
 
-            local val_lines = self:get_elements(
-                vals_by_object[object.element.id]:vals(),
-                "instance",
-                M.indent(#parts + 1)
-            )
-            
-            if #val_lines == 1 then
-                object.sublines = val_lines
-            else
-                lines:extend(val_lines)
+            if self.include_instances then
+                local val_lines = self:get_elements(
+                    vals_by_object[object.element.id]:vals(),
+                    "instance",
+                    M.indent(#parts + 1)
+                )
+                
+                if #val_lines == 1 then
+                    object.sublines = val_lines
+                else
+                    lines:extend(val_lines)
+                end
             end
         end)
     end)
@@ -161,7 +163,7 @@ function M:get_elements(ids, type, indent, suffix)
 end
 
 function M:add_taxa(dict, taxa, indent)
-    taxa:extend(self:get_elements(dict and dict:keys(), "subset", indent):reverse())
+    taxa:extend(self:get_elements(dict and dict:keys(), "subset", indent))
 end
 
 function M:add_instances(set, lines, indent)
@@ -184,8 +186,8 @@ function M:get_lines()
     
     local lines = List()
     while #taxa > 0 do
-        local taxon = taxa:pop()
-        -- local taxon, type, indent = unpack()
+        local taxon = taxa:pop(1)
+
         local i = #lines + 1
         local pre_count = #taxa + #lines
         local _indent = taxon.indent .. "  "
