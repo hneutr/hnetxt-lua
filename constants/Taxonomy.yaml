@@ -36,6 +36,7 @@ relations:
       term:
         label: green
 grammar:
+  taxon_prefix: "#"
   exclusion_suffix: "-"
   recursive: "::"
   or_delimiter: ","

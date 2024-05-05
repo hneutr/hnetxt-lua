@@ -10,14 +10,6 @@ function hnetxt_test() {
     hnetxt $@
 }
 
-function hnetxt_mv() {
-    hnetxt move $@
-}
-
-function hnetxt_rm() {
-    hnetxt remove $@
-}
-
 function journal() {
     nvim $(hnetxt journal $@) -c "lua require('zen-mode').toggle()"
 }
@@ -45,5 +37,5 @@ alias project="hnetxt project"
 alias ht="hnetxt"
 alias htt="hnetxt_test"
 
-alias mv="hnetxt_mv"
-alias rm="hnetxt_rm"
+alias mv="hnetxt move"
+alias rm="hnetxt remove"

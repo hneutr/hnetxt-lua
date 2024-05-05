@@ -10,14 +10,12 @@ function M:_init(args)
 
     self.taxonomy, self.taxon_instances = M:get_taxonomy(self.elements_by_id, self.seeds)
     
-    if #self.taxa > 0 then
-        self.taxonomy, self.taxon_instances = self:filter_taxa(
-            self.elements_by_id,
-            self.taxonomy,
-            self.taxon_instances,
-            self.taxa
-        )
-    end
+    self.taxonomy, self.taxon_instances = self:filter_taxa(
+        self.elements_by_id,
+        self.taxonomy,
+        self.taxon_instances,
+        self.conditions
+    )
     
     self.rows = M:get_rows(self.elements_by_id, self.taxonomy, self.taxon_instances)
     
@@ -30,8 +28,6 @@ function M:read_args(args)
     args = Dict(args or {})
     self.conditions = M:transform_conditions(List(args.conditions))
     
-    self.taxa = List(args.taxa)
-    
     if args.path then
         self.path = Path.from_commandline(args.path)
     end
@@ -39,7 +35,6 @@ function M:read_args(args)
     self.should_persist = not List({
         self.path,
         #self.conditions > 0,
-        #self.taxa > 0,
     }):any()
 end
 
@@ -154,9 +149,19 @@ function M:get_taxonomy(elements_by_id, seeds)
     return taxonomy, taxon_instances
 end
 
-function M:filter_taxa(elements_by_id, taxonomy, taxon_instances, taxon_strings)
-    taxon_strings = Set(taxon_strings)
-
+function M:filter_taxa(elements_by_id, taxonomy, taxon_instances, conditions)
+    local taxon_strings = Set()
+    
+    conditions:foreach(function(condition)
+        if condition.relation == "subset" then
+            taxon_strings:add(condition.type)
+        end
+    end)
+    
+    if #taxon_strings:vals() == 0 then
+        return taxonomy, taxon_instances
+    end
+    
     local taxa = List()
     local nodes = taxonomy:nodes()
 
@@ -200,7 +205,9 @@ M.TagRelation = Parser.TagRelation
 
 function M:apply_conditions(seeds, conditions)
     conditions:foreach(function(condition)
-        seeds = self.apply_condition(seeds, condition)
+        if condition.relation ~= "subset" then
+            seeds = self.apply_condition(seeds, condition)
+        end
     end)
     
     return seeds
@@ -285,6 +292,12 @@ function M.parse_condition(s)
 
     s, c.is_exclusion = s:removesuffix(M.conf.grammar.exclusion_suffix)
     
+    if s:startswith(M.conf.grammar.taxon_prefix) then
+        c.relation = "subset"
+        c.type = s:removeprefix(M.conf.grammar.taxon_prefix)
+        return c
+    end
+
     s, n_replaced = s:gsub(M.conf.grammar.recursive, ":")
     
     c.is_recursive = n_replaced > 0
