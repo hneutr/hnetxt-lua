@@ -54,7 +54,6 @@ build = {
 
         ["htl.Taxonomy"] = "src/htl/Taxonomy/init.lua",
         ["htl.Taxonomy.Parser"] = "src/htl/Taxonomy/Parser.lua",
-        ["htl.Taxonomy.Printer"] = "src/htl/Taxonomy/Printer.lua",
 
         ["htl.text.divider"] = "src/htl/text/divider.lua",
         ["htl.text.header"] = "src/htl/text/header.lua",
@@ -70,10 +69,11 @@ build = {
         -- cli
         ["htc"] = "src/htc/init.lua",
         ["htc.cli"] = "src/htc/cli.lua",
-        ["htc.colorize"] = "src/htc/Colorize.lua",
+        ["htc.Colorize"] = "src/htc/Colorize.lua",
         ["htc.project"] = "src/htc/project.lua",
         ["htc.remove"] = "src/htc/remove.lua",
         ["htc.move"] = "src/htc/move.lua",
+        ["htc.Ontology"] = "src/htc/Ontology.lua",
     }
 }
 test = {

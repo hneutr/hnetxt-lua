@@ -57,7 +57,7 @@ require("htc.cli")("hnetxt", {
         end,
     },
     tax = {
-        description = "print the taxonomy",
+        description = "print the taxonomy/ontology",
         {
             "conditions",
             args = "*",
@@ -88,7 +88,7 @@ require("htc.cli")("hnetxt", {
         {"+i", target = "include_instances", description = "include instances", switch = "on"},
         {"+I", target = "instances_only", description = "only print instances", switch = "on"},
         {"+a", target = "by_attribute", description = "by attribute", switch = "on"},
-        print = require("htl.Taxonomy.Printer"),
+        print = require("htc.Ontology"),
     },
     ref = {
         description = "print a reference to the file",
@@ -96,6 +96,7 @@ require("htc.cli")("hnetxt", {
         print = function(args)
             local url = DB.urls:get_file(args.path)
             if url then
+                vim.fn.setreg("a", tostring(DB.urls:get_reference(url)), "c")
                 return require("htl.text.TerminalLink")({label = url.label, url = url.id})
             end
         end,

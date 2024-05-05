@@ -184,34 +184,49 @@ function M:update_link_urls(path, lines)
     end
 end
 
-function M:get_fuzzy_path(url)
+function M.get_fuzzy_path(url, dir)
     local path = url.path
     
     if url.resource_type == 'link' and url.label and #url.label > 0 then
         path = path:with_name(path:name() .. M.link_delimiter .. url.label)
     end
 
-    return path
+    if dir then
+        path = path:relative_to(dir)
+    end
+    return tostring(path)
 end
 
 function M:get_fuzzy_paths(dir)
-    local project = DB.projects.get_by_path(dir)
-
-    local query
-    if project then
-        query = {where = {project = project.title}}
+    local q
+    if dir then
+        q = {contains = {path = string.format("%s*", tostring(dir))}}
     end
 
-    local urls = M:get(query):filter(function(url)
+    return M:get(q):filter(function(url)
         return url.path ~= M.unanchored_path
-    end)
-    
-    return urls:transform(function(url)
-        return tostring(M:get_fuzzy_path(url):relative_to(project.path))
-    end):sorted(function(a, b)
-        return #a < #b
-    end)
+    end):transform(M.get_fuzzy_path, dir):sorted(function(a, b) return #a < #b end)
 end
+
+
+-- function M:get_fuzzy_paths(dir)
+--     local project = DB.projects.get_by_path(dir)
+
+--     local query
+--     if project then
+--         query = {where = {project = project.title}}
+--     end
+
+--     local urls = M:get(query):filter(function(url)
+--         return url.path ~= M.unanchored_path
+--     end)
+    
+--     return urls:transform(function(url)
+--         return tostring(M:get_fuzzy_path(url):relative_to(project.path))
+--     end):sorted(function(a, b)
+--         return #a < #b
+--     end)
+-- end
 
 function M:get_from_fuzzy_path(path, dir)
     local q = {path = path}

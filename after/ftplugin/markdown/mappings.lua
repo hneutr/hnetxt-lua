@@ -1,5 +1,6 @@
 local Fold = require("htn.ui.fold")
 local ui = require("htn.ui")
+local Fuzzy = require("htn.ui.fuzzy")
 
 local args = {silent = true, buffer = true}
 
@@ -23,8 +24,6 @@ local mappings = Dict(
 )
 
 if vim.b.htn_project then
-    local Fuzzy = require("htn.ui.fuzzy")
-
     -- fuzzy
     mappings.n["<leader>df"] = Fuzzy.goto
     mappings.n["<C-/>"] = Fuzzy.put

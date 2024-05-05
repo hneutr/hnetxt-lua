@@ -84,50 +84,86 @@ function M.spellfile(root)
     return tostring(spellfile)
 end
 
-function M.goto(open_command, fuzzy_path)
-    local url
-
-    if fuzzy_path then
-        local project = vim.b.htn_project or {}
-        url = DB.urls:get_from_fuzzy_path(fuzzy_path, project.path)
-    else
-        local cursor_col = vim.api.nvim_win_get_cursor(0)[2]
-        local url_id = Link:get_nearest(vim.fn.getline('.'), cursor_col).url
-
-        if url_id then
-            if Path(url_id):is_url() then
-                os.execute(string.format("open %s", url_id))
-            else
-                url = DB.urls:where({id = url_id})
-            end
-        end
+function M.goto_url(open_command, url)
+    if not url then
+        return
     end
 
-    if url then
-        if url.path ~= Path.this() then
-            url.path:open(open_command)
-        end
+    if url.path ~= Path.this() then
+        url.path:open(open_command)
+    end
 
-        if url.resource_type == 'link' then
-            for line_number, line in ipairs(BufferLines.get()) do
-                local link = URLDefinition:from_str(line)
-                if link and tonumber(link.url) == url.id then
-                    vim.api.nvim_win_set_cursor(0, {line_number, 0})
-                    vim.cmd("normal zz")
-                    return
-                end
+    if url.resource_type == 'link' then
+        for line_number, line in ipairs(BufferLines.get()) do
+            local link = URLDefinition:from_str(line)
+            if link and tonumber(link.url) == url.id then
+                vim.api.nvim_win_set_cursor(0, {line_number, 0})
+                vim.cmd("normal zz")
+                return
             end
         end
     end
 end
 
-function M.goto_map_fn(open_cmd) return function() M.goto(open_cmd) end end
+function M.goto(open_command)
+    local cursor_col = vim.api.nvim_win_get_cursor(0)[2]
+    local url_id = Link:get_nearest(vim.fn.getline('.'), cursor_col).url
 
-function M.get_reference(fuzzy_path)
+    if url_id then
+        if Path(url_id):is_url() then
+            os.execute(string.format("open %s", url_id))
+        else
+            M.goto_url(open_command, DB.urls:where({id = url_id}))
+        end
+    end
+end
+
+function M.fuzzy_goto_map_fn(open_command)
+    return function(selection)
+        local project = vim.b.htn_project or {}
+        local url = DB.urls:get_from_fuzzy_path(selection[1], project.path)
+        M.goto_url(open_command, url)
+    end
+end
+
+function M.get_fuzzy_reference(fuzzy_path)
     local project = vim.b.htn_project or {}
     local url = DB.urls:get_from_fuzzy_path(fuzzy_path, project.path)
     return tostring(DB.urls:get_reference(url))
 end
+
+function M.fuzzy_put(selection)
+    local path = selection[1]
+    vim.api.nvim_put({M.get_fuzzy_reference(path)} , 'c', 1, 0)
+end
+
+function M.fuzzy_insert(selection)
+    local path = selection[1]
+    local line = BufferLines.cursor.get()
+    local line_number, column = unpack(vim.api.nvim_win_get_cursor(0))
+
+    local insert_command = 'i'
+
+    if column == #line - 1 then
+        column = column + 1
+        insert_command = 'a'
+    elseif column == 0 then
+        insert_command = 'a'
+    end
+
+    local content = M.get_fuzzy_reference(path)
+
+    local new_line = line:sub(1, column) .. content .. line:sub(column + 1)
+    local new_column = column + #content
+
+    BufferLines.cursor.set({replacement = {new_line}})
+
+    vim.api.nvim_win_set_cursor(0, {line_number, new_column})
+    vim.api.nvim_input(insert_command)
+end
+
+
+function M.goto_map_fn(open_cmd) return function() M.goto(open_cmd) end end
 
 function M.mirror_mappings()
     if not vim.g.htn_mirror_mappings then
@@ -196,6 +232,7 @@ function M.set_time()
 
     vim.api.nvim_buf_set_lines(unpack(args))
 end
+
 
 -- function M.LinkToFile()
 --     print("this doesn't work yet")
