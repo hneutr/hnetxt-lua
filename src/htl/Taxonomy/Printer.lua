@@ -40,6 +40,13 @@ end
 --                                   Taxon                                    --
 --------------------------------------------------------------------------------
 local LinePrinter = class()
+LinePrinter.type_sort = List({
+    "subset",
+    "value",
+    "attribute",
+    "tag",
+    "instance",
+})
 
 function LinePrinter:_init(element, type)
     self.element = element
@@ -47,6 +54,7 @@ function LinePrinter:_init(element, type)
     self.indent = ""
     self.suffix = ":"
     self.sublines = List()
+    self.id = self.element.id
 
     self.conf = M.conf.relations[self.type] or {color = {term = {label = 'white'}}}
     self.colors = self.conf.color.term
@@ -68,6 +76,28 @@ function LinePrinter:get_label()
     end
     
     return Colorize(self.element.label, self.colors.label)
+end
+
+function LinePrinter.__lt(a, b)
+    local fns = List({
+        function(e) return e.type_sort:index(e.type) or #e.type_sort + 1 end,
+        function(e) return e.element.label:lower():removeprefix("the ") end,
+        function(e) return e.element.id or 0 end,
+        function(e) return tostring(e.element.url and e.element.url.path or "") end,
+    })
+
+    for fn in fns:iter() do
+        local a_v = fn(a)
+        local b_v = fn(b)
+        
+        if a_v < b_v then
+            return true
+        elseif a_v > b_v then
+            return false
+        end
+    end
+    
+    return true
 end
 
 function LinePrinter:set_indent(indent)
@@ -147,7 +177,7 @@ function M:get_included_types()
         return Set("instance")
     end
 
-    local types = Set({"subset", "attribute", "value", "object"})
+    local types = Set({"subset", "attribute", "value"})
 
     if self.include_instances then
         types:add("instance")
@@ -219,19 +249,7 @@ function M:get_attribute_lines()
     return lines
 end
 
-function M:get_element(id) return self.T.elements_by_id[id] end
-
-function M.element_sort(a, b)
-    return M.sort_label(a) < M.sort_label(b)
-end
-
-function M.sort_label(e)
-    return e.label:lower():removeprefix("the ")
-end
-
-function M:get_elements(ids, type, indent, suffix)
-    local elements = List()
-
+function M:get_elements(ids, type)
     if self.included_types:has(type) then
         if ids:is_a(Set) then
             ids = ids:vals()
@@ -240,19 +258,11 @@ function M:get_elements(ids, type, indent, suffix)
         end
 
         if ids then
-            ids:transform(function(id)
-                return self:get_element(id)
-            end):sorted(self.element_sort):foreach(function(element)
-                elements:append(LinePrinter(element, type))
-            end)
+            return ids:map(function(id) return LinePrinter(self.T.elements_by_id[id], type) end):sorted()
         end
     end
     
-    return elements
-end
-
-function M:get_instances(instances)
-    return self:get_elements(instances, "instance")
+    return List()
 end
 
 function M:get_instance_lines()
@@ -265,14 +275,12 @@ function M:get_lines()
     local taxonomy = self.T.taxonomy
     local taxa = self:get_elements(taxonomy, "subset")
     
-    local lines = taxa:clone()
+    local lines = List(taxa)
     while #taxa > 0 do
-        local taxon = taxa:pop(1)
-        local subtaxa = self:get_elements(taxonomy:get(taxon.element.id), "subset")
-        taxa:extend(subtaxa)
-
-        taxon.sublines:extend(subtaxa)
-        taxon.sublines:extend(self:get_elements(self.T.taxon_instances[taxon.element.id], "instance"))
+        local taxon = taxa:pop()
+        taxon.sublines:extend(self:get_elements(taxonomy:get(taxon.id), "subset"))
+        taxa:extend(taxon.sublines)
+        taxon.sublines:extend(self:get_elements(self.T.taxon_instances[taxon.id], "instance"))
     end
     
     return lines
