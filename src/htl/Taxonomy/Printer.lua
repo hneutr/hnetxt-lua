@@ -174,7 +174,7 @@ end
 
 function M:get_included_types()
     if self.instances_only then
-        return Set("instance")
+        return Set({"instance"})
     end
 
     local types = Set({"subset", "attribute", "value"})
