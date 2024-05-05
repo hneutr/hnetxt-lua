@@ -2,10 +2,6 @@ function hnetxt() {
     luajit $HOME/lib/hnetxt-lua/src/htc/init.lua $@
 }
 
-# function reftest() {
-#     nlua $HOME/lib/hnetxt-lua/src/htc/init.lua $@
-# }
-
 function hnetxt_test() {
     local START_DIR=$PWD
     cd $HOME/lib/hnetxt-lua

@@ -90,17 +90,6 @@ require("htc.cli")("hnetxt", {
         {"+a", target = "by_attribute", description = "by attribute", switch = "on"},
         print = require("htc.Ontology"),
     },
-    ref = {
-        description = "print a reference to the file",
-        {"path", args = "1", convert = Path.from_commandline},
-        print = function(args)
-            local url = DB.urls:get_file(args.path)
-            if url then
-                vim.fn.setreg("a", tostring(DB.urls:get_reference(url)), "c")
-                return require("htl.text.TerminalLink")({label = url.label, url = url.id})
-            end
-        end,
-    },
     test = {
         action = function(args)
         end,

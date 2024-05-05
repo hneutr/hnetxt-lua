@@ -3,6 +3,8 @@ local URLDefinition = require("htl.text.URLDefinition")
 local mirrors = require("htl.db.mirrors")
 local TaxonomyParser = require("htl.Taxonomy.Parser")
 
+local fzf = require("fzf-lua")
+
 local BufferLines = require("hn.buffer_lines")
 
 local M = {}
@@ -118,27 +120,42 @@ function M.goto(open_command)
     end
 end
 
-function M.fuzzy_goto_map_fn(open_command)
+function M.goto_map_fn(open_cmd) return function() M.goto(open_cmd) end end
+
+
+
+
+function M.bind_fuzzy_scope(fn, scope)
     return function(selection)
-        local project = vim.b.htn_project or {}
-        local url = DB.urls:get_from_fuzzy_path(selection[1], project.path)
+        fn(selection, scope)
+    end
+end
+
+function M.fuzzy_goto_map_fn(open_command)
+    return function(selection, scope)
+        local dir = M.get_dir_from_fuzzy_scope(scope)
+        local url = DB.urls:get_from_fuzzy_path(selection[1], dir)
         M.goto_url(open_command, url)
     end
 end
 
-function M.get_fuzzy_reference(fuzzy_path)
-    local project = vim.b.htn_project or {}
-    local url = DB.urls:get_from_fuzzy_path(fuzzy_path, project.path)
-    return tostring(DB.urls:get_reference(url))
+function M.get_dir_from_fuzzy_scope(scope)
+    if scope == "global" then
+        return Path.home
+    end
+
+    return vim.b.htn_project and Path(vim.b.htn_project.path) or Path.this():parent()
 end
 
-function M.fuzzy_put(selection)
+function M.fuzzy_put(selection, scope)
     local path = selection[1]
-    vim.api.nvim_put({M.get_fuzzy_reference(path)} , 'c', 1, 0)
+    vim.api.nvim_put({M.get_fuzzy_reference(path, scope)} , 'c', 1, 0)
 end
 
-function M.fuzzy_insert(selection)
+function M.fuzzy_insert(selection, scope)
     local path = selection[1]
+    local content = M.get_fuzzy_reference(path, scope)
+
     local line = BufferLines.cursor.get()
     local line_number, column = unpack(vim.api.nvim_win_get_cursor(0))
 
@@ -151,8 +168,6 @@ function M.fuzzy_insert(selection)
         insert_command = 'a'
     end
 
-    local content = M.get_fuzzy_reference(path)
-
     local new_line = line:sub(1, column) .. content .. line:sub(column + 1)
     local new_column = column + #content
 
@@ -162,8 +177,26 @@ function M.fuzzy_insert(selection)
     vim.api.nvim_input(insert_command)
 end
 
+function M.get_fuzzy_reference(path, scope)
+    local dir = M.get_dir_from_fuzzy_scope(scope)
+    local url = DB.urls:get_from_fuzzy_path(path, dir)
+    return tostring(DB.urls:get_reference(url))
+end
 
-function M.goto_map_fn(open_cmd) return function() M.goto(open_cmd) end end
+function M.map_fuzzy(operation, scope)
+    return function()
+        local dir = tostring(M.get_dir_from_fuzzy_scope(scope))
+        
+        local actions = {}
+        for key, fn in pairs(M.fuzzy_operation_actions[operation]) do
+            actions[key] = M.bind_fuzzy_scope(fn, scope)
+        end
+        
+        fzf.fzf_exec(DB.urls:get_fuzzy_paths(dir), {actions = actions})
+    end
+end
+
+
 
 function M.mirror_mappings()
     if not vim.g.htn_mirror_mappings then
@@ -275,5 +308,16 @@ end
 
 M.scratch_map_fn = function() M.scratch('n') end
 M.scratch_map_visual_cmd = [[:'<,'>lua require('htn.ui').scratch('v')<cr>]]
+
+M.fuzzy_operation_actions = {
+    goto = {
+        default = M.fuzzy_goto_map_fn("edit"),
+        ["ctrl-j"] = M.fuzzy_goto_map_fn("split"),
+        ["ctrl-l"] = M.fuzzy_goto_map_fn("vsplit"),
+        ["ctrl-t"] = M.fuzzy_goto_map_fn("tabedit"),
+    },
+    put = {default = M.fuzzy_put},
+    insert = {default = M.fuzzy_insert},
+}
 
 return M

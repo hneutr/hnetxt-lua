@@ -194,6 +194,7 @@ function M.get_fuzzy_path(url, dir)
     if dir then
         path = path:relative_to(dir)
     end
+
     return tostring(path)
 end
 
@@ -209,27 +210,9 @@ function M:get_fuzzy_paths(dir)
 end
 
 
--- function M:get_fuzzy_paths(dir)
---     local project = DB.projects.get_by_path(dir)
-
---     local query
---     if project then
---         query = {where = {project = project.title}}
---     end
-
---     local urls = M:get(query):filter(function(url)
---         return url.path ~= M.unanchored_path
---     end)
-    
---     return urls:transform(function(url)
---         return tostring(M:get_fuzzy_path(url):relative_to(project.path))
---     end):sorted(function(a, b)
---         return #a < #b
---     end)
--- end
-
 function M:get_from_fuzzy_path(path, dir)
     local q = {path = path}
+
     if path:match(M.link_delimiter) then
         q.path, q.label = unpack(path:split(M.link_delimiter, 1))
     end

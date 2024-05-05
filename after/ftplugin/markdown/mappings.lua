@@ -25,9 +25,13 @@ local mappings = Dict(
 
 if vim.b.htn_project then
     -- fuzzy
-    mappings.n["<leader>df"] = Fuzzy.goto
-    mappings.n["<C-/>"] = Fuzzy.put
-    mappings.i["<C-/>"] = Fuzzy.insert
+    mappings.n["<leader>df"] = ui.map_fuzzy("goto")
+    mappings.n["<C-/>"] = ui.map_fuzzy("put")
+    mappings.i["<C-/>"] = ui.map_fuzzy("insert")
+
+    mappings.n["<leader>dF"] = ui.map_fuzzy("goto", "global")
+    mappings.n["<C-\\>"] = ui.map_fuzzy("put", "global")
+    mappings.i["<C-\\>"] = ui.map_fuzzy("insert", "global")
 
     -- scratch
     mappings.n["<leader>s"] = ui.scratch_map_fn
