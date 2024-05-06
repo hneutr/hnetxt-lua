@@ -1,6 +1,5 @@
 local Fold = require("htn.ui.fold")
 local ui = require("htn.ui")
-local Fuzzy = require("htn.ui.fuzzy")
 
 local args = {silent = true, buffer = true}
 
