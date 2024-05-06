@@ -22,14 +22,21 @@ local M = SqliteTable("samples", {
 M.conf = Dict(Conf.samples)
 
 function M:set(args)
-    M.conf:foreach(function(frame, args)
-        local ids = Set(Taxonomy(args).rows:col('url')):vals()
+    if args.rerun then
+        M:remove({date = args.date})
+    end
 
-        M:insert({
-            date = args.date,
-            url = ids[utils.randint({max = #ids})],
-            frame = frame,
-        })
+    M.conf:foreach(function(frame, cmd_args)
+        if not M:where({date = args.date, frame = frame}) then
+            local ids = Set(Taxonomy(cmd_args).rows:col('url')):vals()
+
+            M:insert({
+                date = args.date,
+                url = ids[utils.randint({max = #ids})],
+                frame = frame,
+            })
+        end
+        
     end)
 end
 
