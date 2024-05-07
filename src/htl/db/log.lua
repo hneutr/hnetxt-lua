@@ -1,3 +1,4 @@
+-- TODO: see /todo/log-upgrades.md
 local Date = require("pl.Date")
 
 local M = SqliteTable("Log", {

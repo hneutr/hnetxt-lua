@@ -1,0 +1,6 @@
+- have a dummy "taxonomy-label" path `T`
+  - whenever you encounter a taxonomy label `L`, add a new url with `{label = L, path = T}`
+    - never delete these
+  - modify `DB.Relation.subject` and `DB.Relation.object` to point to `url.id`
+  - modify `htc.remove` to work with this
+  - modify `htc.Ontology.LinePrinter.get_label` to only make a link for elements with `url.path:exists()`

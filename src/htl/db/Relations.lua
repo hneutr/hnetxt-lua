@@ -1,3 +1,4 @@
+-- TODO: see /todo/get-rid-of-Elements-table.md
 local M = SqliteTable("Relations", {
     id = true,
     subject = {

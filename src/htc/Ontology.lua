@@ -52,14 +52,11 @@ function LinePrinter:_init(element, type)
     self.element = element
     self.type = type
     self.indent = ""
-    self.suffix = ":"
     self.sublines = List()
     self.id = self.element.id
 
     self.conf = M.conf.relations[self.type] or {color = {term = {label = 'white'}}}
     self.colors = self.conf.color.term
-    
-    self.display = Dict(M.conf.display[self.type] or {}, M.conf.display.any)
 end
 
 function LinePrinter:__tostring()
