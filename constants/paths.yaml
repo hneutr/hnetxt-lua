@@ -53,3 +53,21 @@ global_taxonomy_file:
 language_dir:
   path: language
   parent: eidola_dir
+spell_dir:
+  path: .spell
+  parent: data_dir
+spell_file:
+  path: en.utf-8.add
+  parent: spell_dir
+config_dir:
+  path: .config
+  parent: root
+nvim_dir:
+  path: nvim
+  parent: config_dir
+undo_dir:
+  path: .undodir
+  parent: nvim_dir
+luasnips_dir:
+  path: snips
+  parent: nvim_dir

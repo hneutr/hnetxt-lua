@@ -80,10 +80,8 @@ function M.update_link_urls()
     end
 end
 
-function M.spellfile(root)
-    local spellfile = root:join(".spell", "en.utf-8.add")
-    spellfile:parent():mkdir()
-    return tostring(spellfile)
+function M.spellfile(project)
+    return tostring(Conf.paths.spell_dir / string.format("%s.%s", project, Conf.paths.spell_file:name()))
 end
 
 function M.goto_url(open_command, url)

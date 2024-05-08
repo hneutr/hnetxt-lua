@@ -46,7 +46,7 @@ local current_file = Path.this()
 local project = DB.projects.get_by_path(current_file)
 
 if project then
-    vim.opt_local.spellfile:append(ui.spellfile(project.path))
+    vim.opt_local.spellfile:append(ui.spellfile(project.title))
     
     project.path = tostring(project.path)
     vim.b.htn_project = project
@@ -54,9 +54,6 @@ if project then
     ui.set_file_url(current_file)
 
     autocommands.leave:append(ui.update_link_urls)
-
-    -- commands.FileToLink = ui.FileToLink
-    -- commands.LinkToFile = ui.LinkToFile
 end
 
 autocommands.enter:append(function()

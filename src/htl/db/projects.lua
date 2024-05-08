@@ -26,7 +26,7 @@ end
 
 function M:get(q)
     return List(M:map(function(project)
-        project.path = Path(project.path)
+        project.path = Path(project.path)     
         return project
     end, q))
 end
