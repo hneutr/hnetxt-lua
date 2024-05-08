@@ -56,8 +56,8 @@ require("htc.cli")("hnetxt", {
             return p
         end,
     },
-    tax = {
-        description = "print the taxonomy/ontology",
+    on = {
+        description = "print the ontology",
         {
             "conditions",
             args = "*",
