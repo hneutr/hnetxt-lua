@@ -14,8 +14,8 @@ local commands = Dict({
 local event_to_nvim_events = Dict({
     text_change = {'TextChanged', "InsertLeave"},
     enter = {'VimEnter', 'WinEnter'},
-    leave = {'VimLeave', 'WinLeave'},
-    enter_and_leave = {'VimEnter', 'WinEnter', 'VimLeave', 'WinLeave'},
+    leave = {'VimLeavePre', 'WinLeave'},
+    enter_and_leave = {'VimEnter', 'WinEnter', 'VimLeavePre', 'WinLeave'},
 })
 
 local autocommands = DefaultDict(List)
