@@ -43,6 +43,13 @@ if vim.b.htn_project then
     mappings.i:update(ui.taxonomy_mappings("<M-t>"))
 end
 
+mappings.i["<c-q>"] = function()
+    vim.g.pos_at_end = vim.fn.col(".")
+end
+mappings.i["<c-t>"] = function()
+    vim.g.pos_at_second_to_last = vim.fn.col(".")
+end
+
 mappings:foreach(function(mode, mode_mappings)
     mode_mappings:foreach(function(rhs, lhs)
         vim.keymap.set(mode, rhs, lhs, args)

@@ -61,4 +61,14 @@ function Line:convert_lines(lines)
     end)
 end
 
+function Line.insert_at_pos(l, pos, text)
+    l = l or ""
+    text = text or ""
+    
+    local before = l:sub(1, pos - 1)
+    local after = l:sub(pos)
+    
+    return before .. text .. after, #before + #text + 1
+end
+
 return Line

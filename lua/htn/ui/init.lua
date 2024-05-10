@@ -1,4 +1,5 @@
 local Link = require("htl.text.Link")
+local Line = require("htl.text.Line")
 local URLDefinition = require("htl.text.URLDefinition")
 local mirrors = require("htl.db.mirrors")
 local TaxonomyParser = require("htl.Taxonomy.Parser")
@@ -152,27 +153,18 @@ end
 
 function M.fuzzy_insert(selection, scope)
     local path = selection[1]
-    local content = M.get_fuzzy_reference(path, scope)
+    local reference = M.get_fuzzy_reference(path, scope)
+
+    local cursor = vim.fn.getpos('.')
+    local col = cursor[3]
 
     local line = BufferLines.cursor.get()
-    local line_number, column = unpack(vim.api.nvim_win_get_cursor(0))
+    line, cursor[3] = Line.insert_at_pos(line, col, reference)
+    
+    BufferLines.cursor.set({replacement = {line}})
 
-    local insert_command = 'i'
-
-    if column == #line - 1 then
-        column = column + 1
-        insert_command = 'a'
-    elseif column == 0 then
-        insert_command = 'a'
-    end
-
-    local new_line = line:sub(1, column) .. content .. line:sub(column + 1)
-    local new_column = column + #content
-
-    BufferLines.cursor.set({replacement = {new_line}})
-
-    vim.api.nvim_win_set_cursor(0, {line_number, new_column})
-    vim.api.nvim_input(insert_command)
+    vim.fn.setpos('.', cursor)
+    vim.api.nvim_input(cursor[3] > #line and 'a' or 'i')
 end
 
 function M.get_fuzzy_reference(path, scope)
@@ -193,8 +185,6 @@ function M.map_fuzzy(operation, scope)
         fzf.fzf_exec(DB.urls:get_fuzzy_paths(dir), {actions = actions})
     end
 end
-
-
 
 function M.mirror_mappings()
     if not vim.g.htn_mirror_mappings then
@@ -313,9 +303,6 @@ M.fuzzy_operation_actions = {
         ["ctrl-j"] = M.fuzzy_goto_map_fn("split"),
         ["ctrl-l"] = M.fuzzy_goto_map_fn("vsplit"),
         ["ctrl-t"] = M.fuzzy_goto_map_fn("tabedit"),
-        -- ["ctrl-j"] = M.fuzzy_goto_map_fn("split"),
-        -- ["ctrl-l"] = M.fuzzy_goto_map_fn("vsplit"),
-        -- ["ctrl-t"] = M.fuzzy_goto_map_fn("tabedit"),
     },
     put = {default = M.fuzzy_put},
     insert = {default = M.fuzzy_insert},
