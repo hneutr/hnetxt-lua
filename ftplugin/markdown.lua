@@ -40,7 +40,7 @@ if not vim.g.setup_htn then
 
     local autocommands = DefaultDict(List)
 
-    autocommands.enter:append(ui.get_statusline)
+    autocommands.enter:append(function() vim.opt_local.statusline = ui.get_statusline() end)
     autocommands.enter:append(function() vim.b.htn_modified = false end)
     autocommands.change:append(function() vim.b.htn_modified = true end)
     autocommands.change:append(Fold.set_line_info)
