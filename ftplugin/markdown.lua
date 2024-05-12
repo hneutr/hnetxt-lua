@@ -51,14 +51,14 @@ if project then
 
     ui.set_file_url(current_file)
 
-    autocommands.leave:append(ui.update_link_urls)
 end
+
+autocommands.leave:append(ui.update_link_urls)
 
 autocommands.enter:append(function()
     vim.opt_local.statusline = ui.get_statusline()
     vim.b.htn_modified = false
 end)
-
 
 autocommands.text_change:append(function()
     vim.b.htn_modified = true
