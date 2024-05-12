@@ -191,7 +191,7 @@ function M.mirror_mappings()
         local mappings = Dict()
         mirrors.conf:foreach(function(kind, conf)
             M.suffix_to_open_cmd:foreach(function(suffix, open_cmd)
-                mappings[vim.b.htn_mirror_prefix .. conf.mapkey .. suffix] = function()
+                mappings[vim.g.htn_mirror_prefix .. conf.mapkey .. suffix] = function()
                     mirrors:get_path(Path.this(), kind):open(open_cmd)
                 end
             end)

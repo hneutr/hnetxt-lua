@@ -1,25 +1,6 @@
 local ui = require("htn.ui")
 local Fold = require('htn.ui.fold')
 
-local commands = Dict({
-    Journal = function() require("htl.journal")():open() end,
-    Aim = function() require("htl.goals")():open() end,
-    Track = DB.Log.ui.cmd,
-    SetDate = {function(args) DB.urls:set_date(Path.this(), args.args) end, {nargs = 1}},
-    PrintDate = function() print(DB.urls:where({path = Path.this()}).created) end,
-})
-
-local event_to_nvim_events = Dict({
-    text_change = {'TextChanged', "InsertLeave"},
-    enter = {'VimEnter', 'BufWinEnter'},
-    leave = {'VimLeavePre', 'BufWinLeave'},
-    enter_and_leave = {'VimEnter', 'BufWinEnter', 'VimLeavePre', 'BufWinLeave'},
-})
-
-local autocommands = DefaultDict(List)
-
-vim.b.htn_mirror_prefix = "<leader>o"
-
 vim.opt_local.autoindent = false
 vim.opt_local.cindent = false
 vim.opt_local.textwidth = 0
@@ -35,8 +16,6 @@ vim.opt_local.fillchars = {fold = " "}
 vim.opt_local.foldminlines = 0
 vim.opt_local.foldenable = true
 
-autocommands.text_change:append(Fold.set_line_info)
-
 --------------------------------------------------------------------------------
 --                               project stuff                                --
 --------------------------------------------------------------------------------
@@ -50,36 +29,49 @@ if project then
     vim.b.htn_project = project
 
     ui.set_file_url(current_file)
-
 end
 
-autocommands.leave:append(ui.update_link_urls)
+if not vim.g.setup_htn then
+    local event_to_nvim_events = Dict({
+        change = {'TextChanged', "InsertLeave"},
+        enter = {'VimEnter', 'BufWinEnter', 'WinEnter'},
+        leave = {'VimLeavePre', 'BufWinLeave'},
+    })
 
-autocommands.enter:append(function()
-    vim.opt_local.statusline = ui.get_statusline()
-    vim.b.htn_modified = false
-end)
+    local autocommands = DefaultDict(List)
 
-autocommands.text_change:append(function()
-    vim.b.htn_modified = true
-end)
+    autocommands.enter:append(ui.get_statusline)
+    autocommands.enter:append(function() vim.b.htn_modified = false end)
+    autocommands.change:append(function() vim.b.htn_modified = true end)
+    autocommands.change:append(Fold.set_line_info)
+    autocommands.leave:append(ui.update_link_urls)
+    autocommands.leave:append(ui.save_metadata)
 
-autocommands.leave:append(ui.save_metadata)
-
-commands:foreach(function(name, cmd)
-    local opts
-    if type(cmd) == "table" then
-        cmd, opts = unpack(cmd)
-    end
-    vim.api.nvim_buf_create_user_command(0, name, cmd, opts or {})
-end)
-
-autocommands:foreach(function(event_key, callbacks)
-    local group = vim.api.nvim_create_augroup("htn_" .. event_key, {clear = true})
-    callbacks:foreach(function(callback)
-        vim.api.nvim_create_autocmd(
-            event_to_nvim_events[event_key],
-            {pattern = "*.md", group = group, callback = callback}
-        )
+    autocommands:foreach(function(event_key, callbacks)
+        local group = vim.api.nvim_create_augroup("htn_" .. event_key, {clear = true})
+        callbacks:foreach(function(callback)
+            vim.api.nvim_create_autocmd(
+                event_to_nvim_events[event_key],
+                {pattern = "*.md", group = group, callback = callback}
+            )
+        end)
     end)
-end)
+
+    local commands = Dict({
+        Journal = function() require("htl.journal")():open() end,
+        Aim = function() require("htl.goals")():open() end,
+        Track = DB.Log.ui.cmd,
+        SetDate = {function(args) DB.urls:set_date(Path.this(), args.args) end, {nargs = 1}},
+        PrintDate = function() print(DB.urls:where({path = Path.this()}).created) end,
+    })
+
+    commands:foreach(function(name, cmd)
+        local opts
+        if type(cmd) == "table" then
+            cmd, opts = unpack(cmd)
+        end
+        vim.api.nvim_buf_create_user_command(0, name, cmd, opts or {})
+    end)
+end
+
+vim.g.setup_htn = true
