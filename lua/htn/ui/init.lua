@@ -24,7 +24,7 @@ function M.get_statusline()
     local pre = ""
     local post = ""
     local relative_to = vim.b.htn_project and vim.b.htn_project.path
-
+    
     if mirrors:is_mirror(path) then
         post = "%=mirror: " .. mirrors.conf[mirrors:get_kind(path)].statusline_str
 

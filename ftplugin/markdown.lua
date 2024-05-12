@@ -1,5 +1,3 @@
-local BufferLines = require("hn.buffer_lines")
-
 local ui = require("htn.ui")
 local Fold = require('htn.ui.fold')
 
@@ -13,9 +11,9 @@ local commands = Dict({
 
 local event_to_nvim_events = Dict({
     text_change = {'TextChanged', "InsertLeave"},
-    enter = {'VimEnter', 'WinEnter'},
-    leave = {'VimLeavePre', 'WinLeave'},
-    enter_and_leave = {'VimEnter', 'WinEnter', 'VimLeavePre', 'WinLeave'},
+    enter = {'VimEnter', 'BufWinEnter'},
+    leave = {'VimLeavePre', 'BufWinLeave'},
+    enter_and_leave = {'VimEnter', 'BufWinEnter', 'VimLeavePre', 'BufWinLeave'},
 })
 
 local autocommands = DefaultDict(List)
