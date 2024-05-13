@@ -17,6 +17,7 @@ local p1 = {title = "test", path = d1}
 before_each(function()
     htl.before_test()
     DB.projects:insert(p1)
+    DB.projects:insert({title = "global", path = Conf.paths.global_taxonomy_file:parent()})
 end)
 
 after_each(htl.after_test)
@@ -92,44 +93,42 @@ describe("remove_file", function()
         TaxonomyParser:record(u1)
         TaxonomyParser:record(u2)
 
-        local e_u1 = DB.Elements:insert(u1.id)
-        local e_x = DB.Elements:insert("x")
+        local x_id = DB.Relations.get_url_id("x")
         
         assert(DB.Relations:where({
-            subject = e_u1,
+            subject = u1.id,
             relation = "instance",
-            object = e_x,
+            object = x_id,
         }))
         
-        local e_u2 = DB.Elements:insert(u2.id)
-        local e_y = DB.Elements:insert("y")
+        local y_id = DB.Relations.get_url_id("y")
 
         local u2_instance_r = {
-            subject = e_u2,
+            subject = u2.id,
             relation = "instance",
-            object = e_y,
+            object = y_id,
         }
 
         assert(DB.Relations:where(u2_instance_r))
         
         assert(DB.Relations:where({
-            subject = e_u2,
+            subject = u2.id,
             relation = "connection",
-            object = e_u1,
+            object = u1.id,
             type = "test_connection",
         }))
-        
+
         M:remove_file(u1.path)
         
-        assert.is_nil(DB.Relations:where({subject = e_u1}))
+        assert.is_nil(DB.Relations:where({subject = u1.id}))
         assert(DB.Relations:where(u2_instance_r))
         
-        local e_l = DB.Elements:insert(l1)
+        local l_id = DB.Relations.get_url_id(l1)
 
         assert(DB.Relations:where({
-            subject = e_u2,
+            subject = u2.id,
             relation = "connection",
-            object = e_l,
+            object = l_id,
             type = "test_connection",
         }))
         

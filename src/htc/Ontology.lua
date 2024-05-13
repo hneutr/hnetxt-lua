@@ -48,12 +48,12 @@ LinePrinter.type_sort = List({
     "instance",
 })
 
-function LinePrinter:_init(element, type)
-    self.element = element
+function LinePrinter:_init(url, type)
+    self.url = url
     self.type = type
     self.indent = ""
     self.sublines = List()
-    self.id = self.element.id
+    self.id = self.url.id
 
     self.conf = M.conf.relations[self.type] or {color = {term = {label = 'white'}}}
     self.colors = self.conf.color.term
@@ -64,23 +64,23 @@ function LinePrinter:__tostring()
 end
 
 function LinePrinter:get_label()
-    if self.element.url then
+    if self.url.resource_type == "file" then
         return TerminalLink({
-            label = self.element.label,
-            url = self.element.url.id,
+            label = self.url.label,
+            url = self.url.id,
             colors = self.colors,
         })
     end
 
-    return Colorize(self.element.label, self.colors.label)
+    return Colorize(self.url.label, self.colors.label)
 end
 
 function LinePrinter.__lt(a, b)
     local fns = List({
         function(e) return e.type_sort:index(e.type) or #e.type_sort + 1 end,
-        function(e) return e.element.label:lower():removeprefix("the ") end,
-        function(e) return e.element.id or 0 end,
-        function(e) return tostring(e.element.url and e.element.url.path or "") end,
+        function(e) return e.url.label:lower():removeprefix("the ") end,
+        function(e) return e.url.id or 0 end,
+        function(e) return tostring(e.url.path and e.url.path or "") end,
     })
 
     for fn in fns:iter() do
@@ -237,16 +237,16 @@ function M:get_attribute_lines()
         local attribute_line = key_to_line[attribute_key]
         local vals_by_object = key_to_relations[attribute_key]
 
-        self:get_elements(vals_by_object, "value"):foreach(function(object)
+        self:get_urls(vals_by_object, "value"):foreach(function(object)
             attribute_line.sublines:append(object)
-            object.sublines:extend(self:get_elements(vals_by_object[object.element.id], "instance"))
+            object.sublines:extend(self:get_urls(vals_by_object[object.url.id], "instance"))
         end)
     end)
 
     return lines
 end
 
-function M:get_elements(ids, type)
+function M:get_urls(ids, type)
     if self.included_types:has(type) then
         if ids:is_a(Set) then
             ids = ids:vals()
@@ -255,7 +255,7 @@ function M:get_elements(ids, type)
         end
 
         if ids then
-            return ids:map(function(id) return LinePrinter(self.T.elements_by_id[id], type) end):sorted()
+            return ids:map(function(id) return LinePrinter(self.T.urls_by_id[id], type) end):sorted()
         end
     end
 
@@ -265,19 +265,19 @@ end
 function M:get_instance_lines()
     local instances = Set()
     self.T.taxon_instances:values():foreach(function(_instances) instances:add(_instances) end)
-    return self:get_elements(instances, "instance")
+    return self:get_urls(instances, "instance")
 end
 
 function M:get_lines()
     local taxonomy = self.T.taxonomy
-    local taxa = self:get_elements(taxonomy, "subset")
+    local taxa = self:get_urls(taxonomy, "subset")
 
     local lines = List(taxa)
     while #taxa > 0 do
         local taxon = taxa:pop()
-        taxon.sublines:extend(self:get_elements(taxonomy:get(taxon.id), "subset"))
+        taxon.sublines:extend(self:get_urls(taxonomy:get(taxon.id), "subset"))
         taxa:extend(taxon.sublines)
-        taxon.sublines:extend(self:get_elements(self.T.taxon_instances[taxon.id], "instance"))
+        taxon.sublines:extend(self:get_urls(self.T.taxon_instances[taxon.id], "instance"))
     end
 
     return lines

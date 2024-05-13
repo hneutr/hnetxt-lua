@@ -6,18 +6,18 @@ M.conf = Dict(Conf.Taxonomy)
 function M:_init(args)
     self:read_args(args)
 
-    self.elements_by_id, self.seeds = self:get_elements(self.path, self.conditions)
-
+    self.urls_by_id, self.seeds = self:get_urls(self.path, self.conditions)
+    
     self.taxonomy, self.taxon_instances = M:get_taxonomy(self.seeds)
 
     self.taxonomy, self.taxon_instances = self:filter_taxa(
-        self.elements_by_id,
+        self.urls_by_id,
         self.taxonomy,
         self.taxon_instances,
         self.conditions
     )
 
-    self.rows = M:get_rows(self.elements_by_id, self.taxonomy, self.taxon_instances)
+    self.rows = M:get_rows(self.urls_by_id, self.taxonomy, self.taxon_instances)
 
     if self.should_persist then
         DB.Instances:replace(self.rows)
@@ -27,7 +27,7 @@ end
 function M:read_args(args)
     args = Dict(args or {})
     self.conditions = M:transform_conditions(List(args.conditions))
-
+    
     if args.path then
         self.path = Path.from_commandline(args.path)
     end
@@ -38,12 +38,11 @@ function M:read_args(args)
     }):any()
 end
 
-function M:get_rows(elements_by_id, taxonomy, taxon_instances)
+function M:get_rows(urls_by_id, taxonomy, taxon_instances)
     local ancestors = taxonomy:ancestors()
     local rows = List()
-    taxon_instances:foreach(function(taxon_id, instance_ids)
-        local urls = instance_ids:vals():transform(function(id) return elements_by_id[id].url.id end)
-        local taxa = ancestors[taxon_id]:put(taxon_id):map(function(id) return elements_by_id[id].label end)
+    taxon_instances:foreach(function(taxon_id, urls)
+        local taxa = ancestors[taxon_id]:put(taxon_id):map(function(id) return urls_by_id[id].label end)
 
         for generation, taxon in ipairs(taxa) do
             urls:foreach(function(url)
@@ -59,29 +58,19 @@ function M:get_rows(elements_by_id, taxonomy, taxon_instances)
     return rows
 end
 
-function M:get_elements(path, conditions)
-    local urls_by_id = Dict.from_list(
-        DB.urls:get({where = {resource_type = "file"}}),
-        function(u) return u.id, u end
-    )
-
+function M:get_urls(path, conditions)
+    local urls_by_id = Dict()
     local seeds = Set()
-    local elements_by_id = Dict()
-    DB.Elements:get():foreach(function(e)
-        e.url = urls_by_id[e.url]
-
-        if e.url then
-            e.label = e.url.label
-
-            if not path or path and e.url.path and e.url.path:is_relative_to(path) then
-                seeds:add(e.id)
-            end
+    
+    DB.urls:get({where = {resource_type = {"file", "taxonomy_entry"}}}):foreach(function(u)
+        if u.path:is_relative_to(path) and u.resource_type == "file" then
+            seeds:add(u.id)
         end
-
-        elements_by_id[e.id] = e
+        
+        urls_by_id[u.id] = u
     end)
 
-    return elements_by_id, self:apply_conditions(seeds, conditions):vals()
+    return urls_by_id, self:apply_conditions(seeds, conditions):vals()
 end
 
 function M:get_taxonomy(seeds)
@@ -137,7 +126,7 @@ function M:get_taxonomy(seeds)
     return taxonomy, taxon_instances
 end
 
-function M:filter_taxa(elements_by_id, taxonomy, taxon_instances, conditions)
+function M:filter_taxa(urls_by_id, taxonomy, taxon_instances, conditions)
     local taxon_strings = Set()
 
     conditions:foreach(function(condition)
@@ -161,7 +150,7 @@ function M:filter_taxa(elements_by_id, taxonomy, taxon_instances, conditions)
     nodes:sorted(function(a, b)
         return (generations[a] or 0) < (generations[b] or 0)
     end):foreach(function(taxon)
-        if taxon_strings:has(elements_by_id[taxon].label) then
+        if taxon_strings:has(urls_by_id[taxon].label) then
             taxa:append(taxon)
             taxa:extend(descendants[taxon])
         end
@@ -348,15 +337,16 @@ function M.parse_condition_value_into_element(c)
         c = url and url.id or tostring(path)
     end
 
-    local q = {}
-    if type(c) == "number" then
-        q.url = c
-    elseif type(c) == "string" then
-        q.label = c
-    end
+    return DB.Relations.get_url_id(c)
+    -- local q = {}
+    -- if type(c) == "number" then
+    --     q.url = c
+    -- elseif type(c) == "string" then
+    --     q.label = c
+    -- end
 
-    local element = DB.Elements:where(q)
-    return element and element.id
+    -- local element = DB.Elements:where(q)
+    -- return element and element.id
 end
 
 

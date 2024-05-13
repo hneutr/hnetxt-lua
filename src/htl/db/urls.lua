@@ -199,9 +199,10 @@ function M.get_fuzzy_path(url, dir)
 end
 
 function M:get_fuzzy_paths(dir)
-    local q
+    local q = {where = {resource_type = {"file", "link"}}}
+
     if dir then
-        q = {contains = {path = string.format("%s*", tostring(dir))}}
+        q.contains = {path = string.format("%s*", tostring(dir))}
     end
 
     return M:get(q):filter(function(url)

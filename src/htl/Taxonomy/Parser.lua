@@ -110,7 +110,10 @@ end
 
 function Relation:syntax()
     local conf = M.conf.relations[self.name]
-    return {[self.name .. "TaxonomySymbol"] = {string = conf.symbol, color = conf.color.syntax}}
+    
+    if conf then
+        return {[self.name .. "TaxonomySymbol"] = {string = conf.symbol, color = conf.color.syntax}}
+    end
 end
 
 --------------------------------------------------------------------------------
@@ -166,6 +169,19 @@ local FileRelation = class(Relation)
 FileRelation.contexts = Dict({file = true})
 
 --------------------------------------------------------------------------------
+--                               LabelRelation                                --
+--------------------------------------------------------------------------------
+local LabelRelation = class(FileRelation)
+LabelRelation.name = "label"
+
+function LabelRelation:clean(l) return l:removeprefix("label:"):strip() end
+function LabelRelation:line_is_a(l) return l and l:strip():startswith("label:") or false end
+
+function LabelRelation:parse(label, subject)
+    return "", self:make(subject, nil, label)
+end
+
+--------------------------------------------------------------------------------
 --                               SubsetRelation                               --
 --------------------------------------------------------------------------------
 local SubsetRelation = class(FileRelation)
@@ -208,6 +224,7 @@ end
 --                                                                            --
 --------------------------------------------------------------------------------
 M.Relations = List({
+    LabelRelation,
     ConnectionRelation,
     SubsetRelation,
     InstancesAreAlsoRelation,
@@ -268,7 +285,7 @@ function M:parse_file_lines(url, lines)
         indent, l = l:match("(%s*)(.*)")
         indent_to_type:filterk(function(_indent) return #_indent <= #indent end)
 
-        if InstanceRelation:line_is_a(l) or TagRelation:line_is_a(l) then
+        if InstanceRelation:line_is_a(l) or TagRelation:line_is_a(l) or LabelRelation:line_is_a(l) then
             relations:extend(M:get_relations(url.id, l, "file"))
         else
             local type, object
@@ -334,10 +351,9 @@ end
 
 function M:persist()
     DB.Relations:drop()
-    DB.Elements:drop()
 
     DB.urls:get({where = {resource_type = "file"}}):sorted(function(a, b)
-        return tostring(a.path) < tostring(b.path)
+        return tostring(a) < tostring(b)
     end):foreach(function(u)
         if not pcall(function() M:record(u) end) then
             print(u.path)
@@ -351,6 +367,7 @@ M.ConnectionRelation = ConnectionRelation
 M.InstancesAreAlsoRelation = InstancesAreAlsoRelation
 M.InstanceRelation = InstanceRelation
 M.TagRelation = TagRelation
+M.LabelRelation = LabelRelation
 M.Relation = Relation
 
 return M

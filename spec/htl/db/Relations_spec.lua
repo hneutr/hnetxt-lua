@@ -12,12 +12,12 @@ local M
 
 before_each(function()
     htl.before_test()
-    f1:touch()
-    f2:touch()
     M = DB.Relations
     DB.projects:insert(p1)
     DB.urls:insert({path = f1})
     DB.urls:insert({path = f2})
+    
+    DB.projects:insert({title = "global", path = Conf.paths.global_taxonomy_file:parent()})
     
     u1 = DB.urls:where({path = f1}).id
     u2 = DB.urls:where({path = f2}).id
@@ -36,9 +36,8 @@ describe("set_url_label", function()
 
     it("right relation", function()
         M:set_url_label({
-            object = DB.Elements:insert("a"),
-            relation = "connection",
-            type = "label",
+            relation = "label",
+            type = "xyz",
             source = u1,
         })
 
@@ -50,7 +49,6 @@ describe("set_url_label", function()
             relation = "connection",
             type = "etc",
             source = u1,
-            object = DB.Elements:insert("a"),
         })
         assert.stub(DB.urls.set_label).was_not.called()
     end)

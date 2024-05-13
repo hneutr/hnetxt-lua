@@ -18,6 +18,8 @@ local M = require("htl.Taxonomy.Parser")
 before_each(function()
     htl.before_test()
     DB.projects:insert(p1)
+    DB.projects:insert({title = "global", path = Conf.paths.global_taxonomy_file:parent()})
+
     mirrors:set_conf()
 end)
 
@@ -72,6 +74,36 @@ describe("SubsetRelation", function()
             assert.are.same(
                 {"", {subject = "a", object = 1, relation = "subset"}},
                 {M:parse(M.symbol .. tostring(Link({url = 1})), "a")}
+            )
+        end)
+    end)
+end)
+
+describe("LabelRelation", function()
+    local M = M.LabelRelation
+
+    describe("line_is_a", function()
+        it("nil", function()
+            assert.is_false(M:line_is_a())
+        end)
+        
+        it("-", function()
+            assert.is_false(M:line_is_a("abc"))
+        end)
+        
+        it("+", function()
+            assert(M:line_is_a("label: abc"))
+        end)
+    end)
+
+    describe("parse", function()
+        it("works", function()
+            assert.are.same(
+                {
+                    "",
+                    {subject = "a", relation = "label", type = "xyz"},
+                },
+                {M:parse("xyz", "a")}
             )
         end)
     end)
@@ -396,24 +428,26 @@ describe("record", function()
         })
 
         DB.urls:insert({path = f1})
-        DB.Elements:insert("a")
 
         local u1 = DB.urls:where({path = f1})
         
         M:record(u1)
+        
+        local a_id = DB.Relations.get_url_id("a")
+        local b_id = DB.Relations.get_url_id("b")
 
         assert.are.same(
             {
                 {
                     id = 1,
-                    subject = 1,
+                    subject = a_id,
                     relation = "subset",
                     source = u1.id,
                 },
                 {
                     id = 2,
-                    subject = 2,
-                    object = 1,
+                    subject = b_id,
+                    object = a_id,
                     relation = "subset",
                     source = u1.id,
                 },
