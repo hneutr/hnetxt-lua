@@ -1,2 +1,0 @@
-- have a dummy "taxonomy-label" path `T`
-  - modify `htc.Ontology.LinePrinter.get_label` to only make a link for elements with `url.path:exists()`
