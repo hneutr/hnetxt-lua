@@ -18,9 +18,7 @@ local M = SqliteTable("projects", {
 function M:insert(row)
     M:__insert(Dict.from_list(
         Dict(M:schema()):keys(),
-        function(col)
-            return col, row[col] and tostring(row[col])
-        end
+        function(col) return col, row[col] and tostring(row[col]) end
     ))
 end
 

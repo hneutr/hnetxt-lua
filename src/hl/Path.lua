@@ -89,6 +89,14 @@ function Path.__eq(p1, p2)
     return Path.as_string(p1) == Path.as_string(p2)
 end
 
+function Path.__lt(p1, p2)
+    return tostring(p1) < tostring(p2)
+end
+
+function Path.__gt(p1, p2)
+    return tostring(p1) > tostring(p2)
+end
+
 function Path.is_file(p)
     return PATH.isfile(Path.as_string(p)) and true
 end
