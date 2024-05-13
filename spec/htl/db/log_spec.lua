@@ -77,3 +77,33 @@ describe("record", function()
         assert.are.same(2, #M:get())
     end)
 end)
+
+describe("get_lines", function()
+    local date = os.date("%Y%m%d")
+    local to_track_lines = List({
+        "a: x",
+        "a.b: y",
+        "c: z",
+    })
+
+    before_each(function()
+        Conf.paths.to_track_file:write(to_track_lines)
+    end)
+
+    it("nothing in the db", function()
+        assert.are.same(to_track_lines, M.get_lines(date))
+    end)
+
+    it("something in the db", function()
+        DB.Log:insert({date = date, key = "a", val = "w"})
+        
+        assert.are.same(
+            {
+                "a: w",
+                "a.b: y",
+                "c: z",
+            },
+            M.get_lines(date)
+        )
+    end)
+end)

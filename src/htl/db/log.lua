@@ -1,4 +1,3 @@
--- TODO: see /todo/log-upgrades.md
 local Date = require("pl.Date")
 
 local M = SqliteTable("Log", {
@@ -49,6 +48,18 @@ function M.parse_line(l, date)
     return row
 end
 
+function M.get_lines(date)
+    local key_to_val = Dict.from_list(
+        DB.Log:get({where = {date = date}}),
+        function(r) return r.key, string.format("%s: %s", r.key, r.val) end
+    )
+    
+    return Conf.paths.to_track_file:readlines():transform(function(l)
+        local k, v = utils.parsekv(l)
+        return key_to_val[k] or l
+    end)
+end
+
 function M.record(path)
     local date = path:stem()
     M:remove({date = date})
@@ -82,7 +93,7 @@ function M.touch(args)
     local path = Conf.paths.track_dir / string.format("%s.md", args.date)
 
     if not path:exists() then
-        path:write(Conf.paths.to_track_file:read())
+        path:write(M.get_lines(args.date))
     end
 
     return path
