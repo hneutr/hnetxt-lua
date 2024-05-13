@@ -59,18 +59,6 @@ function M:get_rows(elements_by_id, taxonomy, taxon_instances)
     return rows
 end
 
-function M:get_printable_taxon_instances()
-    local taxon_instances = DefaultDict(Set)
-    self.taxon_instances:foreach(function(taxon_id, instance_ids)
-        local taxon = self.elements_by_id[taxon_id].label
-        instance_ids:foreach(function(instance_id)
-            taxon_instances[taxon]:add(self.elements_by_id[instance_id].label)
-        end)
-    end)
-
-    return taxon_instances
-end
-
 function M:get_elements(path, conditions)
     local urls_by_id = Dict.from_list(
         DB.urls:get({where = {resource_type = "file"}}),

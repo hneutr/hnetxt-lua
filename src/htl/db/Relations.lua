@@ -29,6 +29,21 @@ function M:get(q)
     return List(M:__get(q))
 end
 
+function M.get_url_id(element)
+    if type(element) == "number" then
+        return element
+    elseif type(element) == "string" then
+        local q = {
+            path = Conf.paths.global_taxonomy_file,
+            label = element,
+            resource_type = "taxonomy_entry",
+        }
+        
+        local row = DB.urls:where(q)
+        return row and row.id or DB.urls:insert(q)
+    end
+end
+
 function M:insert(r, source)
     if not source then
         return
