@@ -1,4 +1,4 @@
-string = require("hl.string")
+require("hl.string")
 
 local Path = require("hl.Path")
 local lyaml = require("lyaml")
@@ -57,7 +57,7 @@ end
 
 function M.read_raw_frontmatter(path)
     local contents = Path(path):read()
-    local frontmatter_str, text = unpack(contents:split(M.document_frontmatter_separator, 1))
+    local frontmatter_str, _ = unpack(contents:split(M.document_frontmatter_separator, 1))
     return frontmatter_str:split("\n")
 end
 

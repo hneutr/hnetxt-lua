@@ -30,7 +30,7 @@ return {
             {"-c --created", default = os.date("%Y%m%d"), description = "project start date"},
             action = function(args)
                 args.path:mkdir()
-            
+
                 DB.projects:insert(args)
                 args.path:glob("%.md$"):foreach(function(path)
                     DB.urls:insert({path = path})

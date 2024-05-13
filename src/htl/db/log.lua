@@ -53,9 +53,9 @@ function M.get_lines(date)
         DB.Log:get({where = {date = date}}),
         function(r) return r.key, string.format("%s: %s", r.key, r.val) end
     )
-    
+
     return Conf.paths.to_track_file:readlines():transform(function(l)
-        local k, v = utils.parsekv(l)
+        local k, _ = utils.parsekv(l)
         return key_to_val[k] or l
     end)
 end
@@ -65,7 +65,7 @@ function M.record(path)
     M:remove({date = date})
 
     local rows = M:parse_lines(path:readlines(), date)
-    
+
     if #rows > 0 then
         M:insert(rows)
     end

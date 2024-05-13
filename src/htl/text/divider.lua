@@ -6,6 +6,7 @@ Divider.sizes = Conf.sizes
 function Divider:_init(size, style)
     self = Dict.update(self, {size = size, style = style}, self.config)
     self = Dict.update(self, self.config[self.style], self.sizes[self.size])
+    return self
 end
 
 function Divider:__tostring()

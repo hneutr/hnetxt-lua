@@ -19,7 +19,7 @@ end
 
 function NumberedItem:get_next(text)
     local next = getmetatable(self)(tostring(self))
-    next.text = text or "" 
+    next.text = text or ""
     next.sigil = tonumber(self.sigil) + 1
     return next
 end

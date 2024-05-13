@@ -57,12 +57,12 @@ function M.remove_links_to_dead_url(dead_url)
     local link = DB.urls:get_reference(dead_url)
     local link_s = tostring(link)
     local label = link.label
-    
+
     local dead_element = DB.Elements:where({url = dead_url.id})
-    
+
     if dead_element then
         local url_ids = DB.Relations:get({where = {object = dead_element}}):col('source')
-        
+
         if #url_ids > 0 then
             DB.urls:get({where = {id = url_ids}}):foreach(function(url)
                 local path = url.path

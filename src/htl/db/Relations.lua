@@ -41,7 +41,7 @@ function M:insert(r, source)
         type = r.type,
         source = source,
     }
-    
+
     M:set_url_label(q)
     return SqliteTable.insert(M, q)
 end

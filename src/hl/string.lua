@@ -32,9 +32,9 @@ local Set = require("pl.Set")
 -- translate
 -- zfill
 
-PLAIN_DEFAULT = true
+local PLAIN_DEFAULT = true
 
-function _default_plain(plain)
+local function _default_plain(plain)
     if plain == nil then
         plain = PLAIN_DEFAULT
     end
@@ -42,7 +42,7 @@ function _default_plain(plain)
 end
 
 function string.split(str, sep, maxsplit, plain)
-    default_sep = " "
+    local default_sep = " "
     sep = sep or default_sep
     plain = _default_plain(plain)
 
@@ -72,7 +72,7 @@ function string.split(str, sep, maxsplit, plain)
         end
         splits = filtered_splits
     end
-    
+
     return List(splits)
 end
 
@@ -141,7 +141,8 @@ function string.removeprefix(str, prefix, plain)
 end
 
 function string.removesuffix(str, suffix, plain)
-    local str, removed = str:reverse():removeprefix(suffix:reverse(), plain)
+    local removed
+    str, removed = str:reverse():removeprefix(suffix:reverse(), plain)
     return str:reverse(), removed
 end
 
@@ -150,8 +151,8 @@ function string.partition(str, sep, plain)
 
     local sepIndex = str:find(sep, 1, plain)
     if sepIndex then
-        pre = str:sub(1, sepIndex - 1)
-        post = str:sub(sepIndex + #sep)
+        local pre = str:sub(1, sepIndex - 1)
+        local post = str:sub(sepIndex + #sep)
         return {pre, sep, post}
     end
 

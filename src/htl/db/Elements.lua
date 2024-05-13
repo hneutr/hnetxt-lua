@@ -17,12 +17,12 @@ function M:insert(element)
     else
         return
     end
-    
+
     local row = M:where(r)
     if not row then
         return SqliteTable.insert(M, r)
     end
-    
+
     return row.id
 end
 

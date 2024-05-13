@@ -45,7 +45,7 @@ function M.separate_metadata(lines)
             return lines:chop(i, #lines)
         end
     end
-    
+
     return lines
 end
 
@@ -57,8 +57,8 @@ function M.is_metadata_line(l)
 
     result = result and #l > 0
     result = result and #l <= M.conf.metadata.max_length
-    result = result and l ~= divider
-    
+    result = result and l ~= M.conf.metadata.divider
+
     return result or false
 end
 
@@ -124,19 +124,20 @@ function ConnectionRelation:clean(l) return l:removesuffix(self.symbol):strip() 
 function ConnectionRelation:line_is_a(l) return l and l:match(self.symbol) and true or false end
 
 function ConnectionRelation:parse(l, subject)
-    local l, str = utils.parsekv(l, self.symbol)
-    
+    local str
+    l, str = utils.parsekv(l, self.symbol)
+
     if str:startswith("(") then
         str = str:removeprefix("("):removesuffix(")")
     end
-    
+
     local object, type
     if str:match(",") then
         type, object = utils.parsekv(str, ",")
     else
         object = str
     end
-    
+
     return l, self:make(subject, object, type)
 end
 
@@ -149,9 +150,10 @@ InstancesAreAlsoRelation.name = "instances_are_also"
 InstancesAreAlsoRelation.symbol = M.conf.relations.instances_are_also.symbol
 
 function InstancesAreAlsoRelation:parse(l, subject)
+    local object
     l, object = utils.parsekv(l, self.symbol)
     object = object:removeprefix("("):removesuffix(")")
-    
+
     return l, self:make(subject, object)
 end
 
@@ -215,21 +217,21 @@ M.Relations = List({
 
 function M:get_relations(url, line, context)
     local relations = List()
-    self.Relations:filter(function(Relation)
-        return Relation.contexts[context]
-    end):foreach(function(Relation)
-        if line and #line > 0 and Relation:line_is_a(line) then
-            line = Relation:clean(line)
+    self.Relations:filter(function(_Relation)
+        return _Relation.contexts[context]
+    end):foreach(function(_Relation)
+        if line and #line > 0 and _Relation:line_is_a(line) then
+            line = _Relation:clean(line)
             local relation
 
-            line, relation = Relation:parse(line, url)
-            
+            line, relation = _Relation:parse(line, url)
+
             if relation then
                 relations:append(relation)
             end
         end
     end)
-    
+
     return relations
 end
 
@@ -238,9 +240,11 @@ function M:parse_taxonomy_lines(lines)
 
     local relations = List()
     lines:foreach(function(subject)
-        local indent, subject = subject:match("(%s*)(.*)")
-        
+        local indent
+        indent, subject = subject:match("(%s*)(.*)")
+
         if subject:match(":") then
+            local relation_str
             subject, relation_str = utils.parsekv(subject)
 
             indent_to_parent[indent .. M.conf.indent_size] = subject
@@ -251,16 +255,17 @@ function M:parse_taxonomy_lines(lines)
             relations:extend(M:get_relations(subject, indent_to_parent[indent], "taxonomy"))
         end
     end)
-    
+
     return relations
 end
 
 function M:parse_file_lines(url, lines)
     local indent_to_type = Dict()
     local relations = List()
-    
+
     lines:foreach(function(l)
-        local indent, l = l:match("(%s*)(.*)")
+        local indent
+        indent, l = l:match("(%s*)(.*)")
         indent_to_type:filterk(function(_indent) return #_indent <= #indent end)
 
         if InstanceRelation:line_is_a(l) or TagRelation:line_is_a(l) then
@@ -280,7 +285,7 @@ function M:parse_file_lines(url, lines)
             end
         end
     end)
-    
+
     return relations
 end
 
@@ -292,7 +297,7 @@ function M.get_nested_type(type, indent, indent_to_type, add)
     if add then
         indent_to_type[indent .. M.conf.indent_size] = type
     end
-    
+
     return type
 end
 

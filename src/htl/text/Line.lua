@@ -29,7 +29,7 @@ function Line.parse_indent(l)
 end
 
 function Line.get_indent(l)
-    local indent, text = Line.parse_indent(l)
+    local indent, _ = Line.parse_indent(l)
     return indent
 end
 
@@ -42,7 +42,7 @@ function Line:set_indent_level(level)
     self.indent = string.rep(" ", self.indent_size * level)
 end
 
-function Line.str_is_a(l) return true end
+function Line.str_is_a() return true end
 
 function Line:merge(other)
     self.text = self.text:rstrip() .. " " .. other.text:lstrip()
@@ -51,7 +51,7 @@ end
 
 function Line:get_next(text)
     local next = getmetatable(self)(tostring(self))
-    next.text = text or "" 
+    next.text = text or ""
     return next
 end
 
@@ -64,10 +64,10 @@ end
 function Line.insert_at_pos(l, pos, text)
     l = l or ""
     text = text or ""
-    
+
     local before = l:sub(1, pos - 1)
     local after = l:sub(pos)
-    
+
     return before .. text .. after, #before + #text + 1
 end
 

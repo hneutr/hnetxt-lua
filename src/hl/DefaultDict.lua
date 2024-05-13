@@ -10,17 +10,17 @@ DefaultDict = function(default)
             if type(key) == 'table' then
                 key = tostring(key)
             end
-            
+
             if D[key] then
                 return D[key]
             end
-            
+
             local val = rawget(self, key)
             if val == nil then
                 rawset(self, key, default())
                 val = rawget(self, key)
             end
-            
+
             return val
         end
 

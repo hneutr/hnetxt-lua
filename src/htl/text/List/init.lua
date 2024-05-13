@@ -37,10 +37,10 @@ function TextList:parse_line(s)
 end
 
 function TextList:convert_lines(lines, toggle_line_type_name)
-    local lines = List(lines):transform(function(l) return self:parse_line(l) end)
+    lines = List(lines):transform(function(l) return self:parse_line(l) end)
     local outmost_line = lines:sorted(function(a, b) return #a.indent < #b.indent end)[1]
 
-    local toggle_info = self.line_class_to_toggle_info[toggle_line_type_name] 
+    local toggle_info = self.line_class_to_toggle_info[toggle_line_type_name]
     toggle_info = toggle_info or self.line_class_to_toggle_info.other
 
     local toggle

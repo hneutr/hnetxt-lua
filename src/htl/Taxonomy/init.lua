@@ -5,20 +5,20 @@ M.conf = Dict(Conf.Taxonomy)
 
 function M:_init(args)
     self:read_args(args)
-    
+
     self.elements_by_id, self.seeds = self:get_elements(self.path, self.conditions)
 
-    self.taxonomy, self.taxon_instances = M:get_taxonomy(self.elements_by_id, self.seeds)
-    
+    self.taxonomy, self.taxon_instances = M:get_taxonomy(self.seeds)
+
     self.taxonomy, self.taxon_instances = self:filter_taxa(
         self.elements_by_id,
         self.taxonomy,
         self.taxon_instances,
         self.conditions
     )
-    
+
     self.rows = M:get_rows(self.elements_by_id, self.taxonomy, self.taxon_instances)
-    
+
     if self.should_persist then
         DB.Instances:replace(self.rows)
     end
@@ -27,11 +27,11 @@ end
 function M:read_args(args)
     args = Dict(args or {})
     self.conditions = M:transform_conditions(List(args.conditions))
-    
+
     if args.path then
         self.path = Path.from_commandline(args.path)
     end
-    
+
     self.should_persist = not List({
         self.path,
         #self.conditions > 0,
@@ -44,7 +44,7 @@ function M:get_rows(elements_by_id, taxonomy, taxon_instances)
     taxon_instances:foreach(function(taxon_id, instance_ids)
         local urls = instance_ids:vals():transform(function(id) return elements_by_id[id].url.id end)
         local taxa = ancestors[taxon_id]:put(taxon_id):map(function(id) return elements_by_id[id].label end)
-        
+
         for generation, taxon in ipairs(taxa) do
             urls:foreach(function(url)
                 rows:append({
@@ -55,7 +55,7 @@ function M:get_rows(elements_by_id, taxonomy, taxon_instances)
             end)
         end
     end)
-    
+
     return rows
 end
 
@@ -67,7 +67,7 @@ function M:get_printable_taxon_instances()
             taxon_instances[taxon]:add(self.elements_by_id[instance_id].label)
         end)
     end)
-    
+
     return taxon_instances
 end
 
@@ -76,7 +76,7 @@ function M:get_elements(path, conditions)
         DB.urls:get({where = {resource_type = "file"}}),
         function(u) return u.id, u end
     )
-    
+
     local seeds = Set()
     local elements_by_id = Dict()
     DB.Elements:get():foreach(function(e)
@@ -92,11 +92,11 @@ function M:get_elements(path, conditions)
 
         elements_by_id[e.id] = e
     end)
-    
+
     return elements_by_id, self:apply_conditions(seeds, conditions):vals()
 end
 
-function M:get_taxonomy(elements_by_id, seeds)
+function M:get_taxonomy(seeds)
     local relations_by_subject = DefaultDict(List)
 
     DB.Relations:get({
@@ -104,11 +104,11 @@ function M:get_taxonomy(elements_by_id, seeds)
     }):foreach(function(r)
         relations_by_subject[r.subject]:append(r)
     end)
-    
+
     local taxonomy = Tree()
     local taxon_instances = DefaultDict(Set)
     local instances_are_also = List()
-    
+
     seeds = seeds:clone()
     while #seeds > 0 do
         local subject = seeds:pop()
@@ -123,11 +123,11 @@ function M:get_taxonomy(elements_by_id, seeds)
             else
                 instances_are_also:append({subject = subject, object = object})
             end
-            
+
             seeds:append(object)
         end)
     end
-    
+
     -- apply inheritance
     local generations = taxonomy:generations()
     local descendants = taxonomy:descendants()
@@ -141,27 +141,27 @@ function M:get_taxonomy(elements_by_id, seeds)
         taxon_instances[r.object]:add(instances)
         ancestors[r.object]:foreach(function(a) taxon_instances[a]:remove(instances) end)
     end)
-    
+
     Set(taxon_instances:keys()):difference(Set(taxonomy:nodes())):foreach(function(t)
         taxonomy:add_edge(nil, t)
     end)
-    
+
     return taxonomy, taxon_instances
 end
 
 function M:filter_taxa(elements_by_id, taxonomy, taxon_instances, conditions)
     local taxon_strings = Set()
-    
+
     conditions:foreach(function(condition)
         if condition.relation == "subset" then
             taxon_strings:add(condition.type)
         end
     end)
-    
+
     if #taxon_strings:vals() == 0 then
         return taxonomy, taxon_instances
     end
-    
+
     local taxa = List()
     local nodes = taxonomy:nodes()
 
@@ -169,22 +169,22 @@ function M:filter_taxa(elements_by_id, taxonomy, taxon_instances, conditions)
     local generations = taxonomy:generations()
 
     local clean_taxonomy = Tree()
-    
+
     nodes:sorted(function(a, b)
         return (generations[a] or 0) < (generations[b] or 0)
     end):foreach(function(taxon)
         if taxon_strings:has(elements_by_id[taxon].label) then
             taxa:append(taxon)
-            taxa:extend(descendants[taxon])            
+            taxa:extend(descendants[taxon])
         end
     end)
-    
+
     taxa:foreach(function(t)
         if not clean_taxonomy:get(t) then
             clean_taxonomy[t] = taxonomy:get(t)
         end
     end)
-    
+
     taxa = Set(taxa)
 
     Set(nodes):difference(taxa):foreach(function(t)
@@ -209,7 +209,7 @@ function M:apply_conditions(seeds, conditions)
             seeds = self.apply_condition(seeds, condition)
         end
     end)
-    
+
     return seeds
 end
 
@@ -224,11 +224,11 @@ function M.get_condition_rows(c)
             relation = c.relation,
         },
     }
-    
+
     if c.type and #c.type > 0 then
         q = M.add_condition_type_to_query(c, q)
     end
-    
+
     local objects = List()
     objects:append(c.object or {})
 
@@ -236,15 +236,15 @@ function M.get_condition_rows(c)
     while #objects > 0 do
         local object = objects:pop()
         q.where.object = #object > 0 and object or nil
-        
+
         local subrows = DB.Relations:get(q)
         rows:extend(subrows)
-        
+
         if c.is_recursive then
             objects:append(subrows:col('subject'))
         end
     end
-    
+
     return rows
 end
 
@@ -262,7 +262,7 @@ function M.add_condition_type_to_query(c, q)
             type = string.format("%s*", type:removesuffix("+"))
         end
     end
-    
+
     if type:match("%*") then
         q.contains = q.contains or {}
         q.contains.type = type
@@ -270,7 +270,7 @@ function M.add_condition_type_to_query(c, q)
         q.where = q.where or {}
         q.where.type = type
     end
-    
+
     return q
 end
 
@@ -291,28 +291,29 @@ function M.parse_condition(s)
     local c = Dict({relation = "connection"})
 
     s, c.is_exclusion = s:removesuffix(M.conf.grammar.exclusion_suffix)
-    
+
     if s:startswith(M.conf.grammar.taxon_prefix) then
         c.relation = "subset"
         c.type = s:removeprefix(M.conf.grammar.taxon_prefix)
         return c
     end
 
+    local n_replaced
     s, n_replaced = s:gsub(M.conf.grammar.recursive, ":")
-    
+
     c.is_recursive = n_replaced > 0
-    
+
     c.type, c.object = utils.parsekv(s)
-    
+
     if c.object then
         c.object = c.object:split(",")
     end
-    
+
     if M.TagRelation:line_is_a(c.type) then
         c.type = M.TagRelation:clean(c.type)
         c.relation = "tag"
     end
-    
+
     return c
 end
 
@@ -320,26 +321,26 @@ function M.merge_conditions(conditions)
     local start_chars = List({":", ",", "-"})
     local end_chars = List({":", ","})
     local cant_start_chars = Set({",", "-"})
-    
+
     local startswith = function(c) return start_chars:map(function(s) return c:startswith(s) end):any() end
     local endswith = function(c) return end_chars:map(function(e) return c:endswith(e) end):any() end
-    
+
     local merged = List()
     while #conditions > 0 do
         local c = conditions:pop(1)
         while startswith(c) and #merged > 0 do
             c = merged:pop() .. c
         end
-        
+
         while endswith(c) and #conditions > 0 do
             c = c .. conditions:pop(1)
         end
 
         merged:append(c)
     end
-    
+
     merged:transform(string.rstrip, end_chars)
-    
+
     return merged:filter(function(c) return not cant_start_chars:has(c:sub(1, 1)) end)
 end
 
@@ -353,7 +354,7 @@ end
 
 function M.parse_condition_value_into_element(c)
     local path = Path.from_commandline(c)
-    
+
     if path:exists() then
         local url = DB.urls:get_file(path)
         c = url and url.id or tostring(path)
@@ -365,7 +366,7 @@ function M.parse_condition_value_into_element(c)
     elseif type(c) == "string" then
         q.label = c
     end
-    
+
     local element = DB.Elements:where(q)
     return element and element.id
 end

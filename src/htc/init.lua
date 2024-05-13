@@ -12,7 +12,7 @@ require("htc.cli")("hnetxt", {
         action = function(args)
             DB.Log:persist()
             DB.Paths:persist()
-            
+
             if args.reparse_taxonomy then
                 require("htl.Taxonomy.Parser"):persist()
             end
@@ -84,7 +84,6 @@ require("htc.cli")("hnetxt", {
         print = require("htc.Ontology"),
     },
     test = {
-        action = function(args)
-        end,
+        action = function() end,
     },
 })

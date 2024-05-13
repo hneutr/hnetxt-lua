@@ -6,7 +6,7 @@ require("pl.class").Set()
 function Set._init(self, vals)
     self._vals = Dict()
 
-    List(vals):foreach(function(v) 
+    List(vals):foreach(function(v)
         self:add_val(v)
     end)
 end

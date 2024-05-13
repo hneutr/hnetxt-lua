@@ -31,7 +31,7 @@ local Dict = require("hl.Dict")
 local List = require("hl.List")
 local Set = require("pl.Set")
 
-string = require("hl.string")
+require("hl.string")
 
 class.Path()
 
@@ -176,7 +176,7 @@ function Path.contractuser(p)
 end
 
 function Path:rename(target)
-    source = tostring(self)
+    local source = tostring(self)
     target = tostring(target)
 
     if self:is_file() then
@@ -215,7 +215,7 @@ Path.__div = function(...)
 end
 
 function Path:parents()
-    local parts = self:parts(p)
+    local parts = self:parts()
     parts:pop()
 
     local parents = List()

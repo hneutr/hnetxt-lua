@@ -32,13 +32,13 @@ function M.Paths.get_object(constants)
     local for_test = M.root:is_relative_to(d.tempdir)
 
     constants = Dict(constants)
-    
+
     return setmetatable(
         {
             keys = function() return constants:keys() end,
         },
         {
-            __newindex = function(self, ...) rawset(d, ...) end,
+            __newindex = function(_, ...) rawset(d, ...) end,
             __tostring = function() return tostring(d) end,
             __index = function(self, key)
                 local conf = constants[key]
@@ -75,7 +75,7 @@ end
 
 function M.Constants.get_object(dir)
     dir = dir or M.constants_dir
-    
+
     local d = Dict({})
 
     local stem_to_path = Dict.from_list(
@@ -88,9 +88,9 @@ function M.Constants.get_object(dir)
             keys = function() return stem_to_path:keys() end,
         },
         {
-            __newindex = function(self, ...) rawset(d, ...) end,
+            __newindex = function(_, ...) rawset(d, ...) end,
             __tostring = function() return tostring(d) end,
-            __index = function(self, key)
+            __index = function(_, key)
                 if not d[key] and stem_to_path[key] then
                     d[key] = M.Constants.define(key, stem_to_path[key])
                 end

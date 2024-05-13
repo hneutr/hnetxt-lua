@@ -28,7 +28,7 @@ end
 
 function Item:parse_sigil(s)
     s = s:lstrip()
-    
+
     if s:match(string.escape(self.sigil_separator)) then
         local sigil, text = unpack(s:split(self.sigil_separator, 1))
         text = text or ""

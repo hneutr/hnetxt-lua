@@ -39,7 +39,7 @@ function TerminalLink:__tostring()
             key = "url_delimiters",
         },
     }):transform(function(part) return Colorize(part.text, self.colors[part.key]) end)
-    
+
     parts:append("")
     return parts:join("")
 end

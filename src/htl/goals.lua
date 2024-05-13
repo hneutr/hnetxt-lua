@@ -1,5 +1,3 @@
-local Config = require("htl.Config")
-
 return function()
     local goals_path = Conf.paths.goals_dir:join(os.date("%Y%m%d") .. ".md")
 

@@ -29,7 +29,6 @@ end
 
 function Parser:adjust_metadata_frontmatter(lines, levels)
     local metadata_divider = Divider.metadata_divider()
-    local frontmatter_i
 
     for i, line in ipairs(lines) do
         if metadata_divider:str_is_a(line) then

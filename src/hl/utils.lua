@@ -18,7 +18,7 @@ function M.parsekv(s, delimiter)
     s = s or ""
 
     local key, val = unpack(s:split(delimiter, 1):mapm("strip"))
-    
+
     if val and #val == 0 then
         val = nil
     end

@@ -1,4 +1,4 @@
-string = require("hl.string")
+require("hl.string")
 
 local class = require("pl.class")
 local Dict = require("hl.Dict")
@@ -72,7 +72,7 @@ function Tree:add_edge(source, target)
     local source_tree
     if source then
         source_tree = self:get(source)
-        
+
         if not source_tree then
             self[source] = Tree()
             source_tree = self[source]
@@ -80,7 +80,7 @@ function Tree:add_edge(source, target)
     else
         source_tree = self
     end
-    
+
     if target then
         source_tree[target] = self:pop(target) or Tree()
     end

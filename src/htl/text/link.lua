@@ -62,7 +62,7 @@ function Link:get_nearest(str, position)
     local dist = 1
     local link = self:from_str(str)
     while link do
-        dist = dist + #link.before 
+        dist = dist + #link.before
         distance_to_link[math.abs(dist - position)] = link
         dist = dist + #link:bare_link_string() + 1
         distance_to_link[math.abs(dist - position)] = link

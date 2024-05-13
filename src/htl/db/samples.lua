@@ -36,7 +36,7 @@ function M:set(args)
                 frame = frame,
             })
         end
-        
+
     end)
 end
 

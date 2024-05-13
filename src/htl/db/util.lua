@@ -6,7 +6,7 @@ end
 
 function M.map_row_to_col(rows, to_map, id_col, map_col)
     map_col = map_col or id_col
-    
+
     local id_to_row = Dict()
     to_map:foreach(function(r)
         id_to_row[r.id] = r

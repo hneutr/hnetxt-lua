@@ -13,26 +13,26 @@ function M.indent(indent)
     if type(indent) == "string" then
         return indent .. M.conf.indent_size
     end
-    
+
     return M.conf.indent_size:rep(indent or 0)
 end
 
 function M.get_display_parameter(parameter, t1, t2)
     local d = M.conf.display
-    
+
     local keys = List({t1, t2}):notnil()
     keys:foreach(function(key)
         if d[key] == nil then
             d[key] = Dict()
         end
-        
+
         if d[key][parameter] == nil then
             d[key][parameter] = d[parameter] or M.conf.display.defaults[parameter]
         end
-        
+
         d = d[key]
     end)
-    
+
     return d[parameter]
 end
 
@@ -71,7 +71,7 @@ function LinePrinter:get_label()
             colors = self.colors,
         })
     end
-    
+
     return Colorize(self.element.label, self.colors.label)
 end
 
@@ -86,14 +86,14 @@ function LinePrinter.__lt(a, b)
     for fn in fns:iter() do
         local a_v = fn(a)
         local b_v = fn(b)
-        
+
         if a_v < b_v then
             return true
         elseif a_v > b_v then
             return false
         end
     end
-    
+
     return true
 end
 
@@ -124,26 +124,26 @@ function LinePrinter:get_merge_count()
             self.merge_count = self.sublines[1]:get_merge_count() + 1
         end
     end
-    
+
     return self.merge_count
 end
 
 function LinePrinter:can_merge()
     local can_merge = true
-    
+
     if #self.sublines == 0 then
         return false
     end
 
     can_merge = can_merge and #self.sublines == 1
-    
+
     local subline = self.sublines[1]
     local t1 = self.type
     local t2 = subline.type
 
     can_merge = can_merge and M.get_display_parameter("can_merge", t1, t2)
     can_merge = can_merge and subline:get_merge_count() < M.get_display_parameter("merge_max", t1, t2)
-    
+
     return can_merge
 end
 
@@ -165,7 +165,7 @@ function M:_init(args)
     self.by_attribute = args.by_attribute
     self.instances_only = args.instances_only
     self.included_types = self:get_included_types()
-    
+
     self.T = Taxonomy(args)
 end
 
@@ -179,12 +179,12 @@ function M:get_included_types()
     if self.include_instances then
         types:add("instance")
     end
-    
+
     return types
 end
 
 function M:__tostring()
-    local lines = List()
+    local lines
     if self.instances_only then
         lines = self:get_instance_lines()
     elseif self.by_attribute then
@@ -230,7 +230,7 @@ function M:get_attribute_lines()
                     lines:append(line)
                 end
             end
-            
+
             parent_key = key
         end)
 
@@ -242,7 +242,7 @@ function M:get_attribute_lines()
             object.sublines:extend(self:get_elements(vals_by_object[object.element.id], "instance"))
         end)
     end)
-    
+
     return lines
 end
 
@@ -258,7 +258,7 @@ function M:get_elements(ids, type)
             return ids:map(function(id) return LinePrinter(self.T.elements_by_id[id], type) end):sorted()
         end
     end
-    
+
     return List()
 end
 
@@ -271,7 +271,7 @@ end
 function M:get_lines()
     local taxonomy = self.T.taxonomy
     local taxa = self:get_elements(taxonomy, "subset")
-    
+
     local lines = List(taxa)
     while #taxa > 0 do
         local taxon = taxa:pop()
@@ -279,7 +279,7 @@ function M:get_lines()
         taxa:extend(taxon.sublines)
         taxon.sublines:extend(self:get_elements(self.T.taxon_instances[taxon.id], "instance"))
     end
-    
+
     return lines
 end
 

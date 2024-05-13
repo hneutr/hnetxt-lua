@@ -1,5 +1,4 @@
 local Yaml = require("hl.yaml")
-local Config = require("htl.Config")
 
 local Link = require("htl.text.Link")
 
@@ -38,7 +37,7 @@ function Snippet:__tostring()
 
         str = str:gsub("{" .. key .. "}", tostring(value))
     end
-    
+
     str = str:gsub("  ", " ")
 
     return str:strip()

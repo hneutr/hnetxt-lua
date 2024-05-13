@@ -5,7 +5,7 @@ function Dict.__newindex(self, key, val)
     if type(key) == 'table' then
         key = tostring(key)
     end
-    
+
     if key ~= nil then
         rawset(self, key, val)
     end
@@ -17,7 +17,7 @@ function Dict.__index(self, key)
     if type(key) == 'table' then
         key = tostring(key)
     end
-    
+
     return Dict[key] or rawget(self, key)
 end
 
@@ -37,7 +37,7 @@ function Dict.update(d, d2, ...)
     if ... then
         d = Dict.update(d, ...)
     end
-        
+
     return d
 end
 
@@ -47,7 +47,7 @@ function Dict.delist(t)
         _t[k] = v
     end
 
-    for i, v in ipairs(t) do
+    for i, _ in ipairs(t) do
         _t[i] = nil
     end
 
@@ -60,7 +60,7 @@ function Dict.from_list(list, fn)
         local key, val = fn(item)
         d[key] = val
     end)
-    
+
     return d
 end
 
@@ -83,13 +83,13 @@ function Dict.values(d)
 end
 
 function Dict:foreachk(fun, ...)
-    for k, v in pairs(self) do
+    for k, _ in pairs(self) do
         fun(k, ...)
     end
 end
 
 function Dict:foreachv(fun, ...)
-    for k, v in pairs(self) do
+    for _, v in pairs(self) do
         fun(v, ...)
     end
 end
@@ -121,7 +121,7 @@ function Dict:transformv(fun, ...)
 end
 
 function Dict:filterk(fun, ...)
-    for k, v in pairs(self) do
+    for k, _ in pairs(self) do
         if not fun(k, ...) then
             self[k] = nil
         end
@@ -195,7 +195,7 @@ function Dict:__tostring()
     self:keys():sorted():foreach(function(k)
         lines:extend(string.format("%s = %s", k, tostring(self[k])):split("\n"))
     end)
-    
+
     lines:transform(function(l) return "  " .. l end)
 
     if #lines == 0 then

@@ -26,14 +26,14 @@ end
 
 function M:get(q)
     return List(M:map(function(project)
-        project.path = Path(project.path)     
+        project.path = Path(project.path)
         return project
     end, q))
 end
 
 function M.get_by_path(path)
     path = Path(path)
-    
+
     local projects = M:get():sorted(function(a, b)
         return #tostring(a.path) > #tostring(b.path)
     end):filter(function(p)

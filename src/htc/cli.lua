@@ -1,6 +1,6 @@
 require("hl")
 
-class.Component()
+local Component = class()
 Component.config_key = 'comp'
 Component.type = ''
 Component.keys = {
@@ -40,7 +40,7 @@ end
 ----------------------------------------------------------------------------------
 ----                                   Mutex                                    --
 ----------------------------------------------------------------------------------
-class.Mutex(Component)
+local Mutex = class(Component)
 Mutex.config_key = 'mutexes'
 Mutex.type = 'mutex'
 Mutex.keys = {}
@@ -63,7 +63,7 @@ end
 --------------------------------------------------------------------------------
 --                                  Argument                                  --
 --------------------------------------------------------------------------------
-class.Argument(Component)
+local Argument = class(Component)
 Argument.config_key = 'args'
 Argument.type = 'argument'
 Argument.keys = List.from(Component.keys, {
@@ -80,7 +80,7 @@ Argument.is_type = function() return true end
 --------------------------------------------------------------------------------
 --                                   Option                                   --
 --------------------------------------------------------------------------------
-class.Option(Component)
+local Option = class(Component)
 Option.type = 'option'
 Option.config_key = 'opts'
 Option.keys = List.from(Component.keys, {
@@ -100,7 +100,7 @@ end
 --------------------------------------------------------------------------------
 --                                    Flag                                    --
 --------------------------------------------------------------------------------
-class.Flag(Component)
+local Flag = class(Component)
 Flag.config_key = 'flags'
 Flag.type = 'flag'
 Flag.keys = List.from(Component.keys, {
@@ -158,7 +158,7 @@ end
 --------------------------------------------------------------------------------
 --                                  Command                                   --
 --------------------------------------------------------------------------------
-class.Command(Component)
+local Command = class(Component)
 Command.type = 'command'
 Command.config_key = 'commands'
 Command.keys = List.from(Component.keys, {
@@ -191,7 +191,7 @@ end
 function Command:add(parent, settings, name)
     if settings then
         local print_fn = Dict.pop(settings, "print")
-        
+
         if print_fn then
             settings.action = function(args)
                 print(print_fn(args))
@@ -215,7 +215,7 @@ function Command:add(parent, settings, name)
 end
 
 return function(script_name, commands_dict)
-    parser = require("argparse")(script_name)
+    local parser = require("argparse")(script_name)
     local commands_list = List()
     Dict(commands_dict):foreach(function(command_name, config)
         commands_list:append(Command:add(parser, config, command_name))

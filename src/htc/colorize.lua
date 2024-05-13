@@ -34,12 +34,11 @@ local function escape_keys(_, str)
     return List(str:gmatch("%w+")):transform(function(s) return color_to_code[s] end):join()
 end
 
-return function(str, color)
-    local colors
-    if type(color) == "table" then
-        colors = List(color)
+return function(str, colors)
+    if type(colors) == "table" then
+        colors = List(colors)
     else
-        colors = List({color})
+        colors = List({colors})
     end
 
     str = tostring(str)

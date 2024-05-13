@@ -18,7 +18,7 @@ function M:get_kind(path)
     local dir = path:parent()
 
     for kind in M.conf:keys():iter() do
-        if M.conf[kind].path == dir then 
+        if M.conf[kind].path == dir then
             return kind
         end
     end
@@ -43,10 +43,10 @@ function M:get_paths(path)
 
     local paths = Dict()
     M.conf:keys():foreach(function(kind)
-        local path = M:_get_path(source, kind)
+        local p = M:_get_path(source, kind)
 
-        if path and path:exists() then
-            paths[kind] = path
+        if p and p:exists() then
+            paths[kind] = p
         end
     end)
 

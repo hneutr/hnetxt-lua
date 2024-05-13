@@ -70,7 +70,7 @@ function M:move(source, target)
 
     if project then
         M:insert({path = source})
-        
+
         M:update({
             where = {path = tostring(source)},
             set = {
@@ -128,7 +128,7 @@ function M:clean()
 
     local ids_to_remove =  M:get():filter(function(u)
         local keep = true
-        
+
         keep = keep and u.path:exists()
         keep = keep and u.path ~= M.unanchored_path
         keep = keep and u.path:is_relative_to(project_to_path[u.project])
@@ -148,7 +148,7 @@ end
 function M:new_link(path)
     local row = {path = path, resource_type = 'link'}
     M:insert(row)
-    
+
     return M:get({where = row}):sort(function(a, b) return a.id > b.id end)[1]
 end
 
@@ -186,7 +186,7 @@ end
 
 function M.get_fuzzy_path(url, dir)
     local path = url.path
-    
+
     if url.resource_type == 'link' and url.label and #url.label > 0 then
         path = path:with_name(path:name() .. M.link_delimiter .. url.label)
     end
@@ -260,7 +260,7 @@ end
 
 function M:set_date(path, date)
     local url = M:get_file(path)
-    
+
     if url then
         M:update({
             where = {id = url.id},
