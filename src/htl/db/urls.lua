@@ -33,7 +33,7 @@ function M:insert(row)
     end
 
     if row.resource_type == "file" then
-        if not row.path:exists() or M:get_file(row.path) then
+        if M:get_file(row.path) then
             return
         end
     end

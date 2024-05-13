@@ -57,21 +57,21 @@ if not vim.g.setup_htn then
         end)
     end)
 
-    local commands = Dict({
-        Journal = function() require("htl.journal")():open() end,
-        Aim = function() require("htl.goals")():open() end,
-        Track = DB.Log.ui.cmd,
-        SetDate = {function(args) DB.urls:set_date(Path.this(), args.args) end, {nargs = 1}},
-        PrintDate = function() print(DB.urls:where({path = Path.this()}).created) end,
-    })
-
-    commands:foreach(function(name, cmd)
-        local opts
-        if type(cmd) == "table" then
-            cmd, opts = unpack(cmd)
-        end
-        vim.api.nvim_buf_create_user_command(0, name, cmd, opts or {})
-    end)
+    vim.g.setup_htn = true
 end
 
-vim.g.setup_htn = true
+local commands = Dict({
+    Journal = function() require("htl.journal")():open() end,
+    Aim = function() require("htl.goals")():open() end,
+    Track = DB.Log.ui.cmd,
+    SetDate = {function(args) DB.urls:set_date(Path.this(), args.args) end, {nargs = 1}},
+    PrintDate = function() print(DB.urls:where({path = Path.this()}).created) end,
+})
+
+commands:foreach(function(name, cmd)
+    local opts
+    if type(cmd) == "table" then
+        cmd, opts = unpack(cmd)
+    end
+    vim.api.nvim_buf_create_user_command(0, name, cmd, opts or {})
+end)

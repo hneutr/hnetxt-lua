@@ -62,7 +62,7 @@ end
 
 function M.set_file_url(path)
     path = path and Path(path) or Path.this()
-    if not mirrors:is_mirror(path) and path:suffix() == ".md" then
+    if path:suffix() == ".md" and path:exists() and not mirrors:is_mirror(path) then
         DB.urls:insert({path = path})
     end
 end
