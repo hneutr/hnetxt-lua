@@ -26,12 +26,13 @@ end
 
 function M:read_args(args)
     args = Dict(args or {})
-    self.conditions = M:transform_conditions(List(args.conditions))
-    
+
     if args.path then
         self.path = Path.from_commandline(args.path)
     end
 
+    self.conditions = M:transform_conditions(List(args.conditions))
+    
     self.should_persist = not List({
         self.path,
         #self.conditions > 0,
@@ -126,14 +127,42 @@ function M:get_taxonomy(seeds)
     return taxonomy, taxon_instances
 end
 
-function M:filter_taxa(urls_by_id, taxonomy, taxon_instances, conditions)
-    local taxon_strings = Set()
+function M.taxa_object_to_url_id(taxa, object, urls_by_id)
+    if type(object) == "number" then
+        return object
+    end
+    
+    for id in taxa:iter() do
+        if urls_by_id[id].label == object then
+            return id
+        end
+    end
+    
+    return
+end
 
+function M:filter_taxa(urls_by_id, taxonomy, taxon_instances, conditions)
+    local nodes = taxonomy:nodes()
+
+    local to_exclude = Set()
+    local to_include = Set()
     conditions:foreach(function(condition)
         if condition.relation == "subset" then
-            taxon_strings:add(condition.type)
+            local taxon_id = M.taxa_object_to_url_id(nodes, condition.object, urls_by_id)
+            
+            Dict.print(DB.urls:where({id = taxon_id}))
+
+            if condition.is_exclusion then
+                to_exclude:add(taxon_id)
+            else
+                to_include:add(taxon_id)
+            end
         end
     end)
+    
+    print(to_exclude)
+    print(to_include)
+    os.exit()
 
     if #taxon_strings:vals() == 0 then
         return taxonomy, taxon_instances
@@ -255,12 +284,12 @@ function M:transform_conditions(conditions)
     conditions:transform(M.clean_condition)
     conditions = M.merge_conditions(conditions)
     conditions:transform(M.parse_condition)
-    conditions:foreach(function(c)
-        if c.object then
-            c.object = c.object:transform(M.parse_condition_value_into_element)
-        end
-    end)
-
+    
+    -- -- TODO
+    -- conditions:foreach(Dict.print)
+    -- conditions:foreach(function(c) Dict.print(DB.urls:where({id = c.object})) end)
+    -- os.exit()
+    
     return conditions
 end
 
@@ -268,11 +297,16 @@ function M.parse_condition(s)
     local c = Dict({relation = "connection"})
 
     s, c.is_exclusion = s:removesuffix(M.conf.grammar.exclusion_suffix)
-
-    if s:startswith(M.conf.grammar.taxon_prefix) then
-        c.relation = "subset"
-        c.type = s:removeprefix(M.conf.grammar.taxon_prefix)
-        return c
+    
+    local is_taxon
+    s, is_taxon = s:removeprefix(M.conf.grammar.taxon_prefix)
+    
+    if is_taxon then
+        return Dict({
+            is_exclusion = c.is_exclusion,
+            relation = "subset",
+            object = M.file_to_url_id(s)
+        })
     end
 
     local n_replaced
@@ -283,7 +317,7 @@ function M.parse_condition(s)
     c.type, c.object = utils.parsekv(s)
 
     if c.object then
-        c.object = c.object:split(",")
+        c.object = c.object:split(","):transform(M.parse_condition_value_into_element)
     end
 
     if M.TagRelation:line_is_a(c.type) then
@@ -296,7 +330,7 @@ end
 
 function M.merge_conditions(conditions)
     local start_chars = List({":", ",", "-"})
-    local end_chars = List({":", ","})
+    local end_chars = List({":", ",", "#"})
     local cant_start_chars = Set({",", "-"})
 
     local startswith = function(c) return start_chars:map(function(s) return c:startswith(s) end):any() end
@@ -325,8 +359,20 @@ function M.clean_condition(c)
     c = c:gsub("  ", " ")
     c = c:gsub("%s*:%s*", ":")
     c = c:gsub("%s*,%s*", ",")
+    c = c:gsub("%s*#%s*", "#")
     c = c:gsub("%s*%-", "%-")
     return c:strip()
+end
+
+function M.file_to_url_id(c)
+    local path = Path.from_commandline(c)
+
+    if path:exists() then
+        local url = DB.urls:get_file(path)
+        c = url and url.id or c
+    end
+    
+    return c
 end
 
 function M.parse_condition_value_into_element(c)
@@ -338,15 +384,6 @@ function M.parse_condition_value_into_element(c)
     end
 
     return DB.Relations.get_url_id(c)
-    -- local q = {}
-    -- if type(c) == "number" then
-    --     q.url = c
-    -- elseif type(c) == "string" then
-    --     q.label = c
-    -- end
-
-    -- local element = DB.Elements:where(q)
-    -- return element and element.id
 end
 
 

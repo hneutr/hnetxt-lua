@@ -45,6 +45,7 @@ describe("merge_condition", function()
             {{"a:b"}, {"a:", "b"}},
             {{"a::b"}, {"a:", ":", "b"}},
             {{"a,b"}, {"a,", "b"}},
+            {{"#a"}, {"#", "a"}},
 
             {{"a:b"}, {"a", ":", "b"}},
             {{"a,b"}, {"a", ",", "b"}},
@@ -70,6 +71,16 @@ describe("merge_condition", function()
 end)
 
 describe("parse_condition", function()
+    local parse_condition_value_into_element = M.parse_condition_value_into_element
+    
+    before_each(function()
+        M.parse_condition_value_into_element = function(...) return ... end
+    end)
+    
+    after_each(function()
+        M.parse_condition_value_into_element = parse_condition_value_into_element
+    end)
+
     it("exclusion: +", function()
         assert(M.parse_condition("abc-").is_exclusion)
     end)
