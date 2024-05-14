@@ -62,11 +62,16 @@ function M.remove_links_to_dead_url(dead_url)
 
     if #url_ids > 0 then
         DB.urls:get({where = {id = url_ids}}):foreach(function(url)
-            local path = url.path
-            local content = path:read():gsub(link_s:escape(), label)
-            path:write(content)
+            List({url.path, mirrors:get_path(url.path, "metadata")}):foreach(M.remove_reference, link_s, label)
             TaxonomyParser:record(url)
         end)
+    end
+end
+
+function M.remove_reference(path, link_string, label)
+    if path:exists() then
+        local content = path:read():gsub(link_string:escape(), label)
+        path:write(content)
     end
 end
 
