@@ -118,10 +118,9 @@ end
 
 function Tree:generations()
     local ancestors = self:ancestors()
-    return Dict.from_list(
-        self:nodes(),
-        function(key) return key, #ancestors[key] + 1 end
-    )
+    local generations = DefaultDict(function() return 0 end)
+    self:nodes():foreach(function(key) generations[key] = #ancestors[key] + 1 end)
+    return generations
 end
 
 function Tree:descendants()

@@ -11,9 +11,9 @@ function M:_init(args)
     self.taxonomy, self.taxon_instances = M:get_taxonomy(self.seeds)
 
     self.taxonomy, self.taxon_instances = self:filter_taxa(
-        self.urls_by_id,
         self.taxonomy,
         self.taxon_instances,
+        self.urls_by_id,
         self.conditions
     )
 
@@ -82,7 +82,7 @@ function M:get_taxonomy(seeds)
     }):foreach(function(r)
         relations_by_subject[r.subject]:append(r)
     end)
-
+    
     local taxonomy = Tree()
     local taxon_instances = DefaultDict(Set)
     local instances_are_also = List()
@@ -141,64 +141,43 @@ function M.taxa_object_to_url_id(taxa, object, urls_by_id)
     return
 end
 
-function M:filter_taxa(urls_by_id, taxonomy, taxon_instances, conditions)
+function M:filter_taxa(taxonomy, taxon_instances, urls_by_id, conditions)
     local nodes = taxonomy:nodes()
 
-    local to_exclude = Set()
-    local to_include = Set()
+    local taxa = List()
     conditions:foreach(function(condition)
         if condition.relation == "subset" then
-            local taxon_id = M.taxa_object_to_url_id(nodes, condition.object, urls_by_id)
+            local taxon = M.taxa_object_to_url_id(nodes, condition.object, urls_by_id)
             
-            Dict.print(DB.urls:where({id = taxon_id}))
-
             if condition.is_exclusion then
-                to_exclude:add(taxon_id)
-            else
-                to_include:add(taxon_id)
+                taxonomy:pop(taxon)
+            elseif taxon then
+                taxa:append(taxon)
             end
         end
     end)
     
-    print(to_exclude)
-    print(to_include)
-    os.exit()
-
-    if #taxon_strings:vals() == 0 then
+    if #taxa == 0 then
         return taxonomy, taxon_instances
     end
 
-    local taxa = List()
-    local nodes = taxonomy:nodes()
-
-    local descendants = taxonomy:descendants()
     local generations = taxonomy:generations()
 
     local clean_taxonomy = Tree()
-
-    nodes:sorted(function(a, b)
-        return (generations[a] or 0) < (generations[b] or 0)
-    end):foreach(function(taxon)
-        if taxon_strings:has(urls_by_id[taxon].label) then
-            taxa:append(taxon)
-            taxa:extend(descendants[taxon])
-        end
-    end)
-
-    taxa:foreach(function(t)
+    taxa:sorted(function(a, b)
+        return generations[a] < generations[b]
+    end):foreach(function(t)
         if not clean_taxonomy:get(t) then
             clean_taxonomy[t] = taxonomy:get(t)
         end
     end)
+    
+    taxonomy = clean_taxonomy
 
-    taxa = Set(taxa)
+    local nodes = Set(taxonomy:nodes())
+    taxon_instances:filterk(function(t) return nodes:has(t) end)
 
-    Set(nodes):difference(taxa):foreach(function(t)
-        taxon_instances:pop(t)
-        clean_taxonomy:pop(t)
-    end)
-
-    return clean_taxonomy, taxon_instances
+    return taxonomy, taxon_instances
 end
 --------------------------------------------------------------------------------
 --                                                                            --
@@ -284,12 +263,6 @@ function M:transform_conditions(conditions)
     conditions:transform(M.clean_condition)
     conditions = M.merge_conditions(conditions)
     conditions:transform(M.parse_condition)
-    
-    -- -- TODO
-    -- conditions:foreach(Dict.print)
-    -- conditions:foreach(function(c) Dict.print(DB.urls:where({id = c.object})) end)
-    -- os.exit()
-    
     return conditions
 end
 
@@ -317,7 +290,8 @@ function M.parse_condition(s)
     c.type, c.object = utils.parsekv(s)
 
     if c.object then
-        c.object = c.object:split(","):transform(M.parse_condition_value_into_element)
+        -- c.object = c.object:split(","):transform(M.parse_condition_value_into_element)
+        c.object = c.object:split(","):transform(M.file_to_url_id)
     end
 
     if M.TagRelation:line_is_a(c.type) then
