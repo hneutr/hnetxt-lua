@@ -290,7 +290,7 @@ function M.parse_condition(s)
     c.type, c.object = utils.parsekv(s)
 
     if c.object then
-        -- c.object = c.object:split(","):transform(M.parse_condition_value_into_element)
+        -- TODO: make this work for _string_ objects WITHOUT inserting a new row into DB.urls
         c.object = c.object:split(","):transform(M.file_to_url_id)
     end
 
