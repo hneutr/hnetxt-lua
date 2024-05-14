@@ -163,6 +163,7 @@ function M:_init(args)
 
     self.include_instances = args.include_instances
     self.by_attribute = args.by_attribute
+    self.include_attribute_values = args.include_attribute_values
     self.instances_only = args.instances_only
     self.included_types = self:get_included_types()
 
@@ -174,10 +175,14 @@ function M:get_included_types()
         return Set({"instance"})
     end
 
-    local types = Set({"subset", "attribute", "value"})
+    local types = Set({"subset", "attribute"})
 
     if self.include_instances then
         types:add("instance")
+    end
+    
+    if self.include_attribute_values then
+        types:add("value")
     end
 
     return types
@@ -196,18 +201,34 @@ function M:__tostring()
     return lines:transform(tostring):join("\n")
 end
 
-function M:get_attribute_lines()
+function M:get_attribute_relations_by_key()
     local seeds = Set(self.T.seeds)
-    local key_to_relations = DefaultDict(function() return DefaultDict(Set) end)
-    self.T.conditions:filter(function(c)
+    
+    local conditions = self.T.conditions:filter(function(c)
         return c.relation and c.relation == "connection"
-    end):foreach(function(c)
-        self.T.get_condition_rows(c):foreach(function(r)
+    end)
+    
+    if #conditions == 0 then
+        conditions:append({relation = "connection"})
+    end
+    
+    local key_to_relations = DefaultDict(function() return DefaultDict(Set) end)
+    
+    local objects = Set()
+    conditions:map(self.T.get_condition_rows):foreach(function(rows)
+        rows:foreach(function(r)
             if r.object and seeds:has(r.subject) then
+                objects:add(r.object)
                 key_to_relations[r.type or M.conf.__all_relation_type][r.object]:add(r.subject)
             end
         end)
     end)
+    
+    return key_to_relations
+end
+
+function M:get_attribute_lines()
+    local key_to_relations = self:get_attribute_relations_by_key()
 
     local lines = List()
     local key_to_line = Dict()
