@@ -116,6 +116,33 @@ function Relation:syntax()
     end
 end
 
+function Relation:condition_is_a(l) return self:line_is_a(l) end
+function Relation:from_commandline(str)
+    local condition = Dict({relation = self.name})
+    str, condition.is_exclusion = str:removesuffix(M.conf.grammar.exclusion_suffix)
+    
+    str, condition.is_recursive = str:gsub(M.conf.grammar.recursive, ":")
+
+    condition.is_recursive = condition.is_recursive > 0
+
+    return self:annotate_condition(condition, str)
+end
+
+function Relation:annotate_condition(condition, str)
+    return condition
+end
+
+function Relation.val_to_url_id(val)
+    local path = Path.from_commandline(val)
+
+    if path:exists() then
+        local url = DB.urls:get_file(path)
+        val = url and url.id or val
+    end
+    
+    return val
+end
+
 --------------------------------------------------------------------------------
 --                             ConnectionRelation                             --
 --------------------------------------------------------------------------------
@@ -126,7 +153,7 @@ ConnectionRelation.symbol = M.conf.relations.connection.symbol
 function ConnectionRelation:clean(l) return l:removesuffix(self.symbol):strip() end
 function ConnectionRelation:line_is_a(l) return l and l:match(self.symbol) and true or false end
 
-function ConnectionRelation:parse(l, subject)
+function ConnectionRelation:parse(l)
     local str
     l, str = utils.parsekv(l, self.symbol)
 
@@ -134,14 +161,61 @@ function ConnectionRelation:parse(l, subject)
         str = str:removeprefix("("):removesuffix(")")
     end
 
-    local object, type
+    local key, val
     if str:match(",") then
-        type, object = utils.parsekv(str, ",")
+        key, val = utils.parsekv(str, ",")
     else
-        object = str
+        val = str
     end
 
-    return l, self:make(subject, object, type)
+    return l, self:make(key, val)
+end
+
+function ConnectionRelation:make(key, val)
+    local r = Dict({
+        relation = self.name,
+        key = key,
+    })
+
+    val = self.parse_link(val)
+    
+    if type(val) == "string" then
+        r.val = val
+    else
+        r.object = val
+    end
+    
+    return r
+end
+
+function ConnectionRelation:condition_is_a(l) return true end
+function ConnectionRelation:annotate_condition(condition, str)
+    if str:match(":") then
+        local raw_vals
+        condition.key, raw_vals = utils.parsekv(str, ":")
+
+        local objects = List()
+        local vals = List()
+        raw_vals:split(M.conf.grammar.or_delimiter):transform(self.val_to_url_id):foreach(function(v)
+            if type(v) == "number" then
+                objects:append(v)
+            else
+                vals:append(v)
+            end
+        end)
+        
+        if #objects > 0 then
+            condition.object = objects
+        end
+        
+        if #vals > 0 then
+            condition.val = vals
+        end
+    else
+        condition.key = str
+    end
+
+    return condition
 end
 
 
@@ -177,9 +251,17 @@ LabelRelation.name = "label"
 function LabelRelation:clean(l) return l:removeprefix("label:"):strip() end
 function LabelRelation:line_is_a(l) return l and l:strip():startswith("label:") or false end
 
-function LabelRelation:parse(label, subject)
-    return "", self:make(subject, nil, label)
+function LabelRelation:parse(label)
+    return "", self:make(label)
 end
+
+function LabelRelation:make(label)
+    return Dict({
+        relation = self.name,
+        val = label,
+    })
+end
+
 
 --------------------------------------------------------------------------------
 --                               SubsetRelation                               --
@@ -193,6 +275,16 @@ function SubsetRelation:line_is_a(l) return l and l:match(self.symbol) or false 
 function SubsetRelation:parse(l, subject)
     local object = l:split(self.symbol, 1):mapm("strip")[2]
     return "", self:make(subject, object)
+end
+
+function SubsetRelation:condition_is_a(l) return l:strip():startswith(M.conf.grammar.taxon_prefix) end
+
+function SubsetRelation:annotate_condition(condition, str)
+    condition.object = str:gsub(M.conf.grammar.taxon_prefix, ""):split(
+        M.conf.grammar.or_delimiter
+    ):transform(self.val_to_url_id)
+
+    return condition
 end
 
 --------------------------------------------------------------------------------
@@ -214,8 +306,20 @@ TagRelation.symbol = M.conf.relations.tag.symbol
 
 function TagRelation:clean(l) return l:strip():removeprefix(self.symbol) end
 function TagRelation:line_is_a(l) return l and l:strip():startswith(self.symbol) or false end
-function TagRelation:parse(tag, subject)
-    return "", self:make(subject, nil, tag)
+function TagRelation:parse(tag)
+    return "", self:make(tag)
+end
+
+function TagRelation:make(tag)
+    return Dict({
+        relation = self.name,
+        key = self:clean(tag),
+    })
+end
+
+function TagRelation:annotate_condition(condition, str)
+    condition.key = str:split(M.conf.grammar.or_delimiter):gsub(self.symbol, "")
+    return condition
 end
 
 --------------------------------------------------------------------------------
@@ -231,6 +335,20 @@ M.Relations = List({
     TagRelation,
     InstanceRelation,
 })
+
+function M.parse_condition(str)
+    local Relations = List({
+        TagRelation,
+        SubsetRelation,
+        ConnectionRelation,
+    })
+    
+    for _Relation in Relations:iter() do
+        if _Relation:condition_is_a(str) then
+            return _Relation:from_commandline(str)
+        end
+    end
+end
 
 function M:get_relations(url, line, context)
     local relations = List()
@@ -277,28 +395,28 @@ function M:parse_taxonomy_lines(lines)
 end
 
 function M:parse_file_lines(url, lines)
-    local indent_to_type = Dict()
+    local indent_to_key = Dict()
     local relations = List()
 
     lines:foreach(function(l)
         local indent
         indent, l = l:match("(%s*)(.*)")
-        indent_to_type:filterk(function(_indent) return #_indent <= #indent end)
+        indent_to_key:filterk(function(_indent) return #_indent <= #indent end)
 
         if InstanceRelation:line_is_a(l) or TagRelation:line_is_a(l) or LabelRelation:line_is_a(l) then
             relations:extend(M:get_relations(url.id, l, "file"))
         else
-            local type, object
+            local key, val
             if l:match(":") then
-                type, object = utils.parsekv(l)
-                type = self.get_nested_type(type, indent, indent_to_type, not object)
+                key, val = utils.parsekv(l)
+                key = self.get_nested_key(key, indent, indent_to_key, not val)
             else
-                type = indent_to_type[indent]
-                object = l:strip()
+                key = indent_to_key[indent]
+                val = l:strip()
             end
 
-            if object and type then
-                relations:append(ConnectionRelation:make(url.id, object, type))
+            if key and val then
+                relations:append(ConnectionRelation:make(key, val))
             end
         end
     end)
@@ -306,16 +424,16 @@ function M:parse_file_lines(url, lines)
     return relations
 end
 
-function M.get_nested_type(type, indent, indent_to_type, add)
-    if indent_to_type[indent] then
-        type = string.format("%s.%s", indent_to_type[indent], type)
+function M.get_nested_key(key, indent, indent_to_key, add)
+    if indent_to_key[indent] then
+        key = string.format("%s.%s", indent_to_key[indent], key)
     end
 
     if add then
-        indent_to_type[indent .. M.conf.indent_size] = type
+        indent_to_key[indent .. M.conf.indent_size] = key
     end
 
-    return type
+    return key
 end
 
 function M:parse_file(url)
@@ -353,11 +471,13 @@ function M:persist()
     DB.Relations:drop()
 
     DB.urls:get({where = {resource_type = "file"}}):sorted(function(a, b)
-        return tostring(a) < tostring(b)
+        return tostring(a.path) < tostring(b.path)
     end):foreach(function(u)
         if not pcall(function() M:record(u) end) then
             print(u.path)
             os.exit()
+        else
+            print(u.path)
         end
     end)
 end

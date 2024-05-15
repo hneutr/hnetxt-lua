@@ -127,7 +127,7 @@ function M:get_taxonomy(seeds)
     return taxonomy, taxon_instances
 end
 
-function M.taxa_object_to_url_id(taxa, object, urls_by_id)
+function M.taxa_object_to_url_id(object, taxa, urls_by_id)
     if type(object) == "number" then
         return object
     end
@@ -147,13 +147,15 @@ function M:filter_taxa(taxonomy, taxon_instances, urls_by_id, conditions)
     local taxa = List()
     conditions:foreach(function(condition)
         if condition.relation == "subset" then
-            local taxon = M.taxa_object_to_url_id(nodes, condition.object, urls_by_id)
-            
-            if condition.is_exclusion then
-                taxonomy:pop(taxon)
-            elseif taxon then
-                taxa:append(taxon)
-            end
+            condition.object:foreach(function(object)
+                local taxon = M.taxa_object_to_url_id(object, nodes, urls_by_id)
+
+                if condition.is_exclusion then
+                    taxonomy:pop(taxon)
+                elseif taxon then
+                    taxa:append(taxon)
+                end
+            end)
         end
     end)
     
@@ -204,15 +206,7 @@ function M.apply_condition(seeds, c)
 end
 
 function M.get_condition_rows(c)
-    local q = {
-        where = {
-            relation = c.relation,
-        },
-    }
-
-    if c.type and #c.type > 0 then
-        q = M.add_condition_type_to_query(c, q)
-    end
+    local q = M.get_condition_query(c)
 
     local objects = List()
     objects:append(c.object or {})
@@ -221,85 +215,66 @@ function M.get_condition_rows(c)
     while #objects > 0 do
         local object = objects:pop()
         q.where.object = #object > 0 and object or nil
-
+        
         local subrows = DB.Relations:get(q)
         rows:extend(subrows)
 
         if c.is_recursive then
-            objects:append(subrows:col('subject'))
+            local object = subrows:col('subject')
+            
+            if #object > 0 then
+                objects:append(object)
+            end
         end
     end
 
     return rows
 end
 
-function M.add_condition_type_to_query(c, q)
-    local type = c.type
-
-    if c.relation == "tag" then
-        type = string.format("%s*", type)
-    else
-        if type:startswith("+") then
-            type = string.format("*%s", type:removeprefix("+"))
+function M.get_condition_query(c)
+    local q = {
+        where = {
+            relation = c.relation,
+        }
+    }
+    
+    if c.relation == "tag" and c.key then
+        q.contains = {key = c.key:map(function(v) return string.format("%s*", k) end)}
+    elseif c.relation == "connection" and c.key and #c.key > 0 then
+        local contains = false
+        local key = c.key
+        
+        if key:startswith("+") then
+            contains = true
+            key = string.format("*%s", key:removeprefix("+"))
         end
 
         if type:endswith("+") then
-            type = string.format("%s*", type:removesuffix("+"))
+            contains = true
+            key = string.format("%s*", key:removesuffix("+"))
+        end
+        
+        if contains then
+            q.contains = {key = key}
+        else
+            q.where.key = key
         end
     end
 
-    if type:match("%*") then
-        q.contains = q.contains or {}
-        q.contains.type = type
-    else
-        q.where = q.where or {}
-        q.where.type = type
+    if c.val and #c.val > 0 then
+        q.where.val = c.val
     end
-
+    
     return q
 end
 
 function M:transform_conditions(conditions)
     conditions:transform(M.clean_condition)
     conditions = M.merge_conditions(conditions)
-    conditions:transform(M.parse_condition)
+    conditions:transform(Parser.parse_condition)
+    conditions:foreach(Dict.print)
+
     return conditions
-end
-
-function M.parse_condition(s)
-    local c = Dict({relation = "connection"})
-
-    s, c.is_exclusion = s:removesuffix(M.conf.grammar.exclusion_suffix)
-    
-    local is_taxon
-    s, is_taxon = s:removeprefix(M.conf.grammar.taxon_prefix)
-    
-    if is_taxon then
-        return Dict({
-            is_exclusion = c.is_exclusion,
-            relation = "subset",
-            object = M.file_to_url_id(s)
-        })
-    end
-
-    local n_replaced
-    s, n_replaced = s:gsub(M.conf.grammar.recursive, ":")
-
-    c.is_recursive = n_replaced > 0
-
-    c.type, c.object = utils.parsekv(s)
-
-    if c.object then
-        -- TODO: make this work for _string_ objects WITHOUT inserting a new row into DB.urls
-        c.object = c.object:split(","):transform(M.file_to_url_id)
-    end
-
-    if M.TagRelation:line_is_a(c.type) then
-        c.type = M.TagRelation:clean(c.type)
-        c.relation = "tag"
-    end
-
-    return c
 end
 
 function M.merge_conditions(conditions)
@@ -337,28 +312,5 @@ function M.clean_condition(c)
     c = c:gsub("%s*%-", "%-")
     return c:strip()
 end
-
-function M.file_to_url_id(c)
-    local path = Path.from_commandline(c)
-
-    if path:exists() then
-        local url = DB.urls:get_file(path)
-        c = url and url.id or c
-    end
-    
-    return c
-end
-
-function M.parse_condition_value_into_element(c)
-    local path = Path.from_commandline(c)
-
-    if path:exists() then
-        local url = DB.urls:get_file(path)
-        c = url and url.id or tostring(path)
-    end
-
-    return DB.Relations.get_url_id(c)
-end
-
 
 return M

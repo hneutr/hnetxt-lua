@@ -101,9 +101,9 @@ describe("LabelRelation", function()
             assert.are.same(
                 {
                     "",
-                    {subject = "a", relation = "label", type = "xyz"},
+                    {relation = "label", val = "a"},
                 },
-                {M:parse("xyz", "a")}
+                {M:parse("a")}
             )
         end)
     end)
@@ -127,23 +127,23 @@ describe("ConnectionRelation", function()
     end)
 
     describe("parse", function()
-        it("with type", function()
+        it("with key", function()
             assert.are.same(
                 {
                     "xyz",
-                    {subject = "a", object = "b", relation = "connection", type = "c"},
+                    {relation = "connection", key = "a", val = "b"},
                 },
-                {M:parse("xyz " .. M.symbol .. "(c, b)", "a")}
+                {M:parse("xyz " .. M.symbol .. "(a, b)")}
             )
         end)
         
-        it("no type", function()
+        it("without key", function()
             assert.are.same(
                 {
                     "",
-                    {subject = "a", object = "b", relation = "connection"},
+                    {relation = "connection", val = "a"},
                 },
-                {M:parse(M.symbol .. " b ", "a")}
+                {M:parse(M.symbol .. " a ")}
             )
         end)
 
@@ -151,9 +151,9 @@ describe("ConnectionRelation", function()
             assert.are.same(
                 {
                     "",
-                    {subject = "a", object = 1, relation = "connection"},
+                    {relation = "connection", object = 1},
                 },
-                {M:parse(M.symbol .. " " .. tostring(Link({text = "xyz", url = 1})), "a")}
+                {M:parse(M.symbol .. " " .. tostring(Link({text = "xyz", url = 1})))}
             )
         end)
     end)
@@ -228,6 +228,40 @@ describe("InstanceRelation", function()
 
                 },
                 {M:parse("b", "a")}
+            )
+        end)
+    end)
+end)
+
+describe("TagRelation", function()
+    local M = M.TagRelation
+    
+    describe("line_is_a", function()
+        it("nil", function()
+            assert.is_false(M:line_is_a())
+        end)
+        
+        it("-", function()
+            assert.is_false(M:line_is_a("abc"))
+        end)
+        
+        it("+", function()
+            assert(M:line_is_a(M.symbol .. "abc"))
+        end)
+    end)
+
+    describe("parse", function()
+        it("unknown relation", function()
+            assert.are.same(
+                {
+                    "",
+                    {
+                        relation = "tag",
+                        key = "a",
+                    }
+
+                },
+                {M:parse("@a")}
             )
         end)
     end)
@@ -315,41 +349,6 @@ describe("is_metadata_line", function()
     
     it("-: ''", function()
         assert.is_false(F(''))
-    end)
-end)
-
-describe("TagRelation", function()
-    local M = M.TagRelation
-    
-    describe("line_is_a", function()
-        it("nil", function()
-            assert.is_false(M:line_is_a())
-        end)
-        
-        it("-", function()
-            assert.is_false(M:line_is_a("abc"))
-        end)
-        
-        it("+", function()
-            assert(M:line_is_a(M.symbol .. "abc"))
-        end)
-    end)
-
-    describe("parse", function()
-        it("unknown relation", function()
-            assert.are.same(
-                {
-                    "",
-                    {
-                        subject = "a",
-                        relation = "tag",
-                        type = "b",
-                    }
-
-                },
-                {M:parse("b", "a")}
-            )
-        end)
     end)
 end)
 
@@ -469,7 +468,7 @@ describe("parse_file_lines", function()
     
     it("field: val", function()
         assert.are.same(
-            {{subject = 1, object = 2, relation = "connection", type = "key"}},
+            {{object = 2, relation = "connection", key = "key"}},
             M:parse_file_lines(url, List({"key: [abc](2)"}))
         )
     end)
@@ -477,8 +476,8 @@ describe("parse_file_lines", function()
     it("field: {newline} val, val", function()
         assert.are.same(
             {
-                {subject = 1, object = 2, relation = "connection", type = "key"},
-                {subject = 1, object = 3, relation = "connection", type = "key"}
+                {object = 2, relation = "connection", key = "key"},
+                {object = 3, relation = "connection", key = "key"}
             },
             M:parse_file_lines(
                 url,
@@ -494,8 +493,8 @@ describe("parse_file_lines", function()
     it("nested keys", function()
         assert.are.same(
             {
-                {subject = 1, object = 2, relation = "connection", type = "k1.k2"},
-                {subject = 1, object = 3, relation = "connection", type = "k1.k3"}
+                {object = 2, relation = "connection", key = "k1.k2"},
+                {object = 3, relation = "connection", key = "k1.k3"}
             },
             M:parse_file_lines(
                 url,
@@ -513,8 +512,8 @@ describe("parse_file_lines", function()
     it("keys overwrite", function()
         assert.are.same(
             {
-                {subject = 1, object = 2, relation = "connection", type = "k1"},
-                {subject = 1, object = 3, relation = "connection", type = "k2"}
+                {object = 2, relation = "connection", key = "k1"},
+                {object = 3, relation = "connection", key = "k2"}
             },
             M:parse_file_lines(
                 url,
@@ -530,7 +529,7 @@ describe("parse_file_lines", function()
     
     it("tag", function()
         assert.are.same(
-            {{subject = 1, type = "abc", relation = "tag"}},
+            {{key = "abc", relation = "tag"}},
             M:parse_file_lines(url, List({"@abc"}))
         )
     end)
@@ -538,10 +537,10 @@ describe("parse_file_lines", function()
     it("kitchen sink", function()
         assert.are.same(
             {
-                {subject = 1, object = "x", relation = "connection"},
+                {val = "x", relation = "connection"},
                 {subject = 1, object = "a", relation = "instance"},
-                {subject = 1, object = 2, relation = "connection", type = "t1"},
-                {subject = 1, object = 3, relation = "connection", type = "t1"}
+                {object = 2, relation = "connection", key = "t1"},
+                {object = 3, relation = "connection", key = "t1"}
             },
             M:parse_file_lines(
                 url,
@@ -553,5 +552,42 @@ describe("parse_file_lines", function()
                 })
             )
         )
+    end)
+end)
+
+describe("parse_condition", function()
+    local val_to_url_id = M.Relation.val_to_url_id
+    
+    before_each(function()
+        M.Relation.val_to_url_id = function(...) return ... end
+    end)
+    
+    after_each(function()
+        M.Relation.val_to_url_id = val_to_url_id
+    end)
+
+    it("exclusion: +", function()
+        assert(M.parse_condition("abc-").is_exclusion)
+    end)
+
+    it("recursive: +", function()
+        assert(M.parse_condition("abc::xyz").is_recursive)
+    end)
+
+    it("recursive: -", function()
+        assert.is_false(M.parse_condition("abc:xyz").is_recursive)
+    end)
+
+
+    it("exclusion: -", function()
+        assert.is_false(M.parse_condition("abc").is_exclusion)
+    end)
+    
+    it("one object", function()
+        assert.are.same({"d"}, M.parse_condition("abc:d").val)
+    end)
+
+    it("multiple object", function()
+        assert.are.same({"d", "e", "f"}, M.parse_condition("abc:d,e,f").val)
     end)
 end)

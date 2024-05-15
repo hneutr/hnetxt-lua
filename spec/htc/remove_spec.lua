@@ -115,7 +115,7 @@ describe("remove_file", function()
             subject = u2.id,
             relation = "connection",
             object = u1.id,
-            type = "test_connection",
+            key = "test_connection",
         }))
 
         M:remove_file(u1.path)
@@ -123,13 +123,11 @@ describe("remove_file", function()
         assert.is_nil(DB.Relations:where({subject = u1.id}))
         assert(DB.Relations:where(u2_instance_r))
         
-        local l_id = DB.Relations.get_url_id(l1)
-
         assert(DB.Relations:where({
             subject = u2.id,
             relation = "connection",
-            object = l_id,
-            type = "test_connection",
+            val = l1,
+            key = "test_connection",
         }))
         
         assert.are.same(

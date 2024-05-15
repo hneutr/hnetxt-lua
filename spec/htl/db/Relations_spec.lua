@@ -37,7 +37,7 @@ describe("set_url_label", function()
     it("right relation", function()
         M:set_url_label({
             relation = "label",
-            type = "xyz",
+            key = "xyz",
             source = u1,
         })
 

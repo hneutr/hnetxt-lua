@@ -15,7 +15,8 @@ local M = SqliteTable("Relations", {
         type = "text",
         required = true,
     },
-    type = "type",
+    key = "text",
+    val = "text",
     source = {
         type = "integer",
         reference = "urls.id",
@@ -52,7 +53,8 @@ function M:insert(r, source)
         subject = M.get_url_id(r.subject or source),
         object = M.get_url_id(r.object),
         relation = r.relation,
-        type = r.type,
+        key = r.key,
+        val = r.val,
         source = source,
     }
     
@@ -62,7 +64,7 @@ end
 
 function M:set_url_label(r)
     if r.relation == "label" then
-        DB.urls:set_label(r.source, r.type)
+        DB.urls:set_label(r.source, r.val)
     end
 end
 

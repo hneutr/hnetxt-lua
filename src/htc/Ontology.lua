@@ -219,8 +219,8 @@ function M:get_tag_relations_by_key()
     
     conditions:map(self.T.get_condition_rows):foreach(function(rows)
         rows:foreach(function(r)
-            if r.type and seeds:has(r.source) then
-                key_to_relations[r.type]:add(r.source)
+            if r.key and seeds:has(r.source) then
+                key_to_relations[r.key]:add(r.source)
             end
         end)
     end)
@@ -277,8 +277,19 @@ function M:get_attribute_relations_by_key()
     
     conditions:map(self.T.get_condition_rows):foreach(function(rows)
         rows:foreach(function(r)
-            if r.object and seeds:has(r.subject) then
-                key_to_relations[r.type or M.conf.__all_relation_type][r.object]:add(r.subject)
+            local thing
+            
+            if r.val then
+                thing = r.val
+                if not self.T.urls_by_id[thing] then
+                    self.T.urls_by_id[thing] = Dict({label = thing, id = thing})
+                end
+            elseif r.object then
+                thing = r.object
+            end
+            
+            if thing and seeds:has(r.subject) then
+                key_to_relations[r.key or M.conf.__all_relation_type][thing]:add(r.subject)
             end
         end)
     end)
