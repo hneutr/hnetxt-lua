@@ -160,7 +160,7 @@ end
 --------------------------------------------------------------------------------
 function M:_init(args)
     args = args or {}
-
+    
     self.include_instances = args.include_instances
     self.by_attribute = args.by_attribute
     self.by_tag = args.by_tag
@@ -191,6 +191,7 @@ end
 
 function M:__tostring()
     local lines
+
     if self.instances_only then
         lines = self:get_instance_lines(self.T.taxon_instances:values())
     elseif self.by_attribute then
