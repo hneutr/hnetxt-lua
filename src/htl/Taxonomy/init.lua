@@ -272,8 +272,6 @@ function M:transform_conditions(conditions)
     conditions:transform(M.clean_condition)
     conditions = M.merge_conditions(conditions)
     conditions:transform(Parser.parse_condition)
-    conditions:foreach(Dict.print)
-
     return conditions
 end
 
