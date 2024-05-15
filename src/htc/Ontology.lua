@@ -163,6 +163,7 @@ function M:_init(args)
 
     self.include_instances = args.include_instances
     self.by_attribute = args.by_attribute
+    self.by_tag = args.by_tag
     self.include_attribute_values = args.include_attribute_values
     self.instances_only = args.instances_only
     self.included_types = self:get_included_types()
@@ -175,7 +176,7 @@ function M:get_included_types()
         return Set({"instance"})
     end
 
-    local types = Set({"subset", "attribute"})
+    local types = Set({"subset", "attribute", "tag"})
 
     if self.include_instances then
         types:add("instance")
@@ -194,11 +195,71 @@ function M:__tostring()
         lines = self:get_instance_lines(self.T.taxon_instances:values())
     elseif self.by_attribute then
         lines = self:get_attribute_lines()
+    elseif self.by_tag then
+        lines = self:get_tag_lines()
     else
         lines = self:get_lines()
     end
 
     return lines:transform(tostring):join("\n")
+end
+
+function M:get_tag_relations_by_key()
+    local seeds = Set(self.T.seeds)
+    
+    local conditions = self.T.conditions:filter(function(c)
+        return c.relation and c.relation == "tag"
+    end)
+    
+    if #conditions == 0 then
+        conditions:append({relation = "tag"})
+    end
+    
+    local key_to_relations = DefaultDict(Set)
+    
+    conditions:map(self.T.get_condition_rows):foreach(function(rows)
+        rows:foreach(function(r)
+            if r.type and seeds:has(r.source) then
+                key_to_relations[r.type]:add(r.source)
+            end
+        end)
+    end)
+    
+    return key_to_relations
+end
+
+function M:get_tag_lines()
+    local key_to_relations = self:get_tag_relations_by_key()
+
+    local lines = List()
+    local key_to_line = Dict()
+
+    key_to_relations:keys():sorted():foreach(function(tag_key)
+        local parent_key
+        tag_key:split("."):foreach(function(key_part)
+            local key = key_part
+            if parent_key then
+                key = string.format("%s.%s", parent_key, key)
+            end
+
+            if not key_to_line[key] then
+                local line = LinePrinter({label = key_part}, "tag")
+                key_to_line[key] = line
+
+                if parent_key then
+                    key_to_line[parent_key].sublines:append(line)
+                else
+                    lines:append(line)
+                end
+            end
+
+            parent_key = key
+        end)
+
+        key_to_line[tag_key].sublines:extend(self:get_urls(key_to_relations[tag_key], "instance"))
+    end)
+
+    return lines
 end
 
 function M:get_attribute_relations_by_key()
@@ -214,11 +275,9 @@ function M:get_attribute_relations_by_key()
     
     local key_to_relations = DefaultDict(function() return DefaultDict(Set) end)
     
-    local objects = Set()
     conditions:map(self.T.get_condition_rows):foreach(function(rows)
         rows:foreach(function(r)
             if r.object and seeds:has(r.subject) then
-                objects:add(r.object)
                 key_to_relations[r.type or M.conf.__all_relation_type][r.object]:add(r.subject)
             end
         end)

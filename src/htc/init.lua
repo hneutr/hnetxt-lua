@@ -81,6 +81,7 @@ require("htc.cli")("hnetxt", {
         {"+i", target = "include_instances", description = "include instances", switch = "on"},
         {"+I", target = "instances_only", description = "only print instances", switch = "on"},
         {"+a", target = "by_attribute", description = "by attribute", switch = "on"},
+        {"+t", target = "by_tag", description = "by tag", switch = "on"},
         {"+V", target = "include_attribute_values", description = "exclude attribute values", switch = "off"},
         print = require("htc.Ontology"),
     },
