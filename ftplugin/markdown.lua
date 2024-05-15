@@ -35,7 +35,7 @@ if not vim.g.setup_htn then
     local event_to_nvim_events = Dict({
         change = {'TextChanged', "InsertLeave"},
         enter = {'VimEnter', 'BufWinEnter', 'WinEnter'},
-        leave = {'VimLeavePre', 'BufWinLeave'},
+        leave = {'VimLeavePre', 'BufLeave'},
     })
 
     local autocommands = DefaultDict(List)

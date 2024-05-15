@@ -191,7 +191,7 @@ end
 function M:__tostring()
     local lines
     if self.instances_only then
-        lines = self:get_instance_lines()
+        lines = self:get_instance_lines(self.T.taxon_instances:values())
     elseif self.by_attribute then
         lines = self:get_attribute_lines()
     else
@@ -258,10 +258,14 @@ function M:get_attribute_lines()
         local attribute_line = key_to_line[attribute_key]
         local vals_by_object = key_to_relations[attribute_key]
 
-        self:get_urls(vals_by_object, "value"):foreach(function(object)
-            attribute_line.sublines:append(object)
-            object.sublines:extend(self:get_urls(vals_by_object[object.url.id], "instance"))
-        end)
+        if self.included_types:has("value") then
+            self:get_urls(vals_by_object, "value"):foreach(function(object)
+                attribute_line.sublines:append(object)
+                object.sublines:extend(self:get_urls(vals_by_object[object.url.id], "instance"))
+            end)
+        else
+            attribute_line.sublines:extend(self:get_instance_lines(vals_by_object:values()))
+        end
     end)
 
     return lines
@@ -283,9 +287,9 @@ function M:get_urls(ids, type)
     return List()
 end
 
-function M:get_instance_lines()
+function M:get_instance_lines(d)
     local instances = Set()
-    self.T.taxon_instances:values():foreach(function(_instances) instances:add(_instances) end)
+    d:foreach(function(_instances) instances:add(_instances) end)
     return self:get_urls(instances, "instance")
 end
 
