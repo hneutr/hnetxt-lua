@@ -32,10 +32,6 @@ function M.get_indic(lnum)
     return vim.b.fold_levels[lnum]
 end
 
-function M.add_syntax_highlights()
-    Color.set_highlight({name = "Folded", val = {fg = 'blue'}})
-end
-
 function M.jump_to_header(direction)
     return function()
         local lnum = vim.api.nvim_win_get_cursor(0)[1]

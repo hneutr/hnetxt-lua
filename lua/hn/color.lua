@@ -1,58 +1,51 @@
-local List = require("hl.list")
-
-local mocha = require("catppuccin.palettes").get_palette("mocha")
-local macchiato = require("catppuccin.palettes").get_palette("macchiato")
-
 local M = {}
 
-M.C = macchiato
+M.C = require("catppuccin.palettes").get_palette("macchiato")
+M.valid_keys = Set({
+    'fg',
+    'bg',
+    'sp',
+    'bold',
+    'standout',
+    'underline',
+    'undercurl',
+    'underdouble',
+    'underdotted',
+    'underdashed',
+    'strikethrough',
+    'italic',
+    'reverse',
+    'link',
+})
 
 function M.add_to_syntax(key, args)
-    local cmd = List({
-        "syn match",
-        key,
-        "/" .. args.string .. "/",
-        "containedin=ALL"
-    }):join(" ")
+    if args.string and not args.cmd then
+        args.cmd = List({
+            "syn match",
+            key,
+            "/" .. args.string .. "/",
+            "containedin=ALL"
+        }):join(" ")
 
-    vim.cmd(cmd)
-    M.set_highlight({name = key, val = {fg = args.color}})
+    end
+    
+    if args.cmd then
+        vim.cmd(args.cmd)
+    end
+
+    local val = args.val or {fg = args.color}
+
+    M.highlight(key, Dict(val))
 end
 
-function M.set_highlight(args)
-    args = _G.default_args(args, {namespace = 0, name = '', val = {}})
-
-    local allowed_keys = {
-        'fg',
-        'bg',
-        'sp',
-        'bold',
-        'standout',
-        'underline',
-        'undercurl',
-        'underdouble',
-        'underdotted',
-        'underdashed',
-        'strikethrough',
-        'italic',
-        'reverse',
-        'link',
-    }
-    local val = {}
-
-    for _, key in ipairs(allowed_keys) do
-        val[key] = args.val[key]
-    end
-
-    for _, key in ipairs({'fg', 'bg'}) do
-        if val[key] ~= nil then
-            val[key] = M.C[val[key]]
-        end
-    end
-
-    if args.name then
-        vim.api.nvim_set_hl(args.namespace, args.name, val)
-    end
+function M.highlight(key, style)
+    style = style:filterk(function(k) return M.valid_keys:has(k) end)
+    
+    List({'fg', 'bg'}):foreach(function(k)
+        style[k] = style[k] and M.C[style[k]] or nil
+    end)
+    
+    vim.api.nvim_set_hl(0, key, style)
 end
 
 return M

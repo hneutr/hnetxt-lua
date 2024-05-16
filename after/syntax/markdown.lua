@@ -3,18 +3,27 @@ local Divider = require("htl.text.divider")
 local Header = require("htl.text.header")
 local TaxonomyParser = require("htl.Taxonomy.Parser")
 
-require("htn.text.list").add_syntax_highlights()
-require("htn.ui.fold").add_syntax_highlights()
+local function get_syntax()
+    if not vim.g.htn_syntax then
+        local elements = Dict(Conf.syntax)
+        elements.Folded = {color = 'blue'}
+        elements:update(require("htn.text.list").syntax())
 
-local elements = Dict(Conf.syntax)
+        List.from(
+            Header.headers(),
+            Divider.dividers(),
+            TaxonomyParser.Relations,
+            {Divider("large", "metadata")},
+            {}
+        ):foreach(function(e)
+            elements:update(e:syntax())
+        end)
+        
+        vim.g.htn_syntax = elements
+        return elements
+    end
 
-List.from(
-    Header.headers(),
-    Divider.dividers(),
-    TaxonomyParser.Relations,
-    {Divider("large", "metadata")}
-):foreach(function(e)
-    elements:update(e:syntax())
-end)
+    return Dict(vim.g.htn_syntax)
+end
 
-elements:foreach(Color.add_to_syntax)
+get_syntax():foreach(Color.add_to_syntax)

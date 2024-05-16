@@ -1,4 +1,3 @@
-local Color = require("hn.color")
 local BufferLines = require("hn.buffer_lines")
 local Config = require("htl.Config")
 local ListTypes = Conf.list.types
@@ -122,37 +121,42 @@ local function get_list_type_configs()
     return type_configs
 end
 
-local function add_syntax_highlights()
+local function syntax()
+    local d = Dict()
+
     get_list_type_configs():filter(function(config)
         return config.highlight
     end):foreach(function(config)
         local sigil_key = config.name .. "ListItemSigil"
         local sigil_pattern = string.format([[^\s*%s\s]], config.sigil_regex or config.sigil)
-        local sigil_cmd = List({
-            "syn",
-            "match",
-            sigil_key,
-            string.format([[/%s/]], sigil_pattern),
-            "contained"
-        }):join(" ")
-
-        vim.cmd(sigil_cmd)
-        Color.set_highlight({name = sigil_key, val = config.highlights.sigil})
-
         local text_key = config.name .. "ListItemText"
-        local text_cmd = List({
-            "syn",
-            "region",
-            text_key,
-            string.format([[start="%s\+"]], sigil_pattern),
-            [[end="$"]],
-            "containedin=ALL",
-            string.format("contains=%s", sigil_key),
-        }):join(" ")
 
-        vim.cmd(text_cmd)
-        Color.set_highlight({name = text_key, val = config.highlights.text})
+        d[sigil_key] = {
+            val = config.highlights.sigil,
+            cmd = List({
+                "syn",
+                "match",
+                sigil_key,
+                string.format([[/%s/]], sigil_pattern),
+                "contained"
+            }):join(" "),
+        }
+
+        d[text_key] = {
+            val = config.highlights.text,
+            cmd = List({
+                "syn",
+                "region",
+                text_key,
+                string.format([[start="%s\+"]], sigil_pattern),
+                [[end="$"]],
+                "containedin=ALL",
+                string.format("contains=%s", sigil_key),
+            }):join(" "),
+        }
     end)
+    
+    return d
 end
 
 local function toggle_mappings()
@@ -180,5 +184,5 @@ return {
     continue_cmd = [[<cmd>lua require('htn.text.list').continue(true)<cr>]],
     toggle = toggle,
     toggle_mappings = toggle_mappings,
-    add_syntax_highlights = add_syntax_highlights,
+    syntax = syntax,
 }
