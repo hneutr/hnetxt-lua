@@ -18,6 +18,8 @@ dependencies = {
     "argparse",
     "lua-path",
     "luasocket",
+    "fzf-lua",
+    "plenary.nvim",
 }
 build = {
     type = "builtin",
@@ -44,7 +46,6 @@ build = {
         ["htl.db.util"] = "src/htl/db/util.lua",
         ["htl.db.projects"] = "src/htl/db/projects.lua",
         ["htl.db.urls"] = "src/htl/db/urls.lua",
-        ["htl.db.mirrors"] = "src/htl/db/mirrors.lua",
         ["htl.db.samples"] = "src/htl/db/samples.lua",
         ["htl.db.Log"] = "src/htl/db/Log.lua",
         ["htl.db.Paths"] = "src/htl/db/Paths.lua",
@@ -53,6 +54,8 @@ build = {
 
         ["htl.Taxonomy"] = "src/htl/Taxonomy/init.lua",
         ["htl.Taxonomy.Parser"] = "src/htl/Taxonomy/Parser.lua",
+
+        ["htl.Mirrors"] = "src/htl/Mirrors.lua",
 
         ["htl.text.divider"] = "src/htl/text/divider.lua",
         ["htl.text.header"] = "src/htl/text/header.lua",

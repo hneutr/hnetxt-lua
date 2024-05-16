@@ -1,8 +1,9 @@
 local Link = require("htl.text.Link")
 local Line = require("htl.text.Line")
 local URLDefinition = require("htl.text.URLDefinition")
-local mirrors = require("htl.db.mirrors")
+local Mirrors = require("htl.Mirrors")
 local TaxonomyParser = require("htl.Taxonomy.Parser")
+local Fold = require('htn.ui.fold')
 
 local fzf = require("fzf-lua")
 
@@ -19,16 +20,63 @@ M.suffix_to_open_cmd = Dict({
     s = 'sp'
 })
 
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                   events                                   --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
+function M.start()
+    local path = Path.this()
+    local project = DB.projects.get_by_path(path)
+
+    if project then
+        vim.opt_local.spellfile:append(M.spellfile(project.title))
+        vim.b.htn_project_path = tostring(project.path)
+
+        M.set_file_url(path)
+    end
+end
+
+function M.change()
+    vim.b.htn_modified = true
+    Fold.set_line_info()
+end
+
+function M.enter()
+    vim.opt_local.statusline = M.get_statusline()
+end
+
+function M.leave()
+    if vim.b.htn_modified then
+        local path = Path.this()
+        M.set_file_url(path)
+
+        TaxonomyParser:record(DB.urls:get_file(path))
+        DB.urls:update_link_urls(path, List(BufferLines.get()))
+    end
+    
+    vim.b.htn_modified = false
+end
+
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                  helpers                                   --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
 function M.get_statusline()
     local path = Path.this()
     local pre = ""
     local post = ""
-    local relative_to = vim.b.htn_project and vim.b.htn_project.path
+    local relative_to = vim.b.htn_project_path
     
-    if mirrors:is_mirror(path) then
-        post = "%=mirror: " .. mirrors.conf[mirrors:get_kind(path)].statusline_str
+    if Mirrors:is_mirror(path) then
+        post = "%=mirror: " .. Conf.mirror[Mirrors:get_kind(path)].statusline_str
 
-        local source = mirrors:get_source(path)
+        local source = Mirrors:get_source(path)
 
         if source.project then
             local project = DB.projects:where({title = source.project})
@@ -38,7 +86,7 @@ function M.get_statusline()
 
         path = source.path
     elseif DB.urls:get_file(path) then
-        post = mirrors:get_strings(path)
+        post = Mirrors:get_strings(path)
 
         if #post > 0 then
             post = "%=mirrors: " .. post
@@ -62,22 +110,8 @@ end
 
 function M.set_file_url(path)
     path = path and Path(path) or Path.this()
-    if path:suffix() == ".md" and path:exists() and not mirrors:is_mirror(path) then
+    if path:suffix() == ".md" and path:exists() and not Mirrors:is_mirror(path) then
         DB.urls:insert({path = path})
-    end
-end
-
-function M.save_metadata()
-    if vim.b.htn_modified then
-        local path = Path.this()
-        M.set_file_url(path)
-        TaxonomyParser:record(DB.urls:get_file(path))
-    end
-end
-
-function M.update_link_urls()
-    if vim.b.htn_modified then
-        DB.urls:update_link_urls(Path.this(), List(BufferLines.get()))
     end
 end
 
@@ -143,7 +177,7 @@ function M.get_dir_from_fuzzy_scope(scope)
         return Path.home
     end
 
-    return vim.b.htn_project and Path(vim.b.htn_project.path) or Path.this():parent()
+    return vim.b.htn_project_path and Path(vim.b.htn_project_path) or Path.this():parent()
 end
 
 function M.fuzzy_put(selection, scope)
@@ -189,10 +223,10 @@ end
 function M.mirror_mappings()
     if not vim.g.htn_mirror_mappings then
         local mappings = Dict()
-        mirrors.conf:foreach(function(kind, conf)
+        Conf.mirror:keys():foreach(function(kind)
             M.suffix_to_open_cmd:foreach(function(suffix, open_cmd)
-                mappings[vim.g.htn_mirror_prefix .. conf.mapkey .. suffix] = function()
-                    mirrors:get_path(Path.this(), kind):open(open_cmd)
+                mappings[vim.g.htn_mirror_prefix .. Conf.mirror[kind].mapkey .. suffix] = function()
+                    Mirrors:get_path(Path.this(), kind):open(open_cmd)
                 end
             end)
         end)
@@ -221,7 +255,7 @@ function M.scratch(mode)
     local path = Path:this()
     M.set_file_url(path)
 
-    local scratch_path = mirrors:get_path(path, "scratch")
+    local scratch_path = Mirrors:get_path(path, "scratch")
 
     if scratch_path then
         if scratch_path:exists() then

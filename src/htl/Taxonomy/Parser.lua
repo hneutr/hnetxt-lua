@@ -1,5 +1,5 @@
 local Divider = require("htl.text.divider")
-local mirrors = require("htl.db.mirrors")
+local Mirrors = require("htl.Mirrors")
 local Link = require("htl.text.Link")
 
 local M = {}
@@ -23,7 +23,7 @@ end
 --------------------------------------------------------------------------------
 function M.get_metadata_lines(path)
     local lines = M.separate_metadata(path:readlines())
-    local metadata_path = mirrors:get_path(path, "metadata")
+    local metadata_path = Mirrors:get_path(path, "metadata")
 
     if metadata_path:exists() then
         lines:extend(metadata_path:readlines())

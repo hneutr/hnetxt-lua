@@ -3,7 +3,7 @@ local htl = require("htl")
 
 local Divider = require("htl.text.divider")
 local Link = require("htl.text.Link")
-local mirrors = require("htl.db.mirrors")
+local Mirrors = require("htl.Mirrors")
 
 local d1 = htl.test_dir / "dir-1"
 local p1 = {title = "test", path = d1}
@@ -19,8 +19,6 @@ before_each(function()
     htl.before_test()
     DB.projects:insert(p1)
     DB.projects:insert({title = "global", path = Conf.paths.global_taxonomy_file:parent()})
-
-    mirrors:set_conf()
 end)
 
 after_each(htl.after_test)
@@ -279,7 +277,7 @@ describe("get_metadata_lines", function()
 
         DB.urls:insert({path = f1})
         
-        mirrors:get_path(f1, "metadata"):write({"x", "y", "z"})
+        Mirrors:get_path(f1, "metadata"):write({"x", "y", "z"})
         
         assert.are.same(
             {"a:", "b", "c", "x", "y", "z"},

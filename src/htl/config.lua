@@ -57,6 +57,33 @@ function M.Paths.get_object(constants)
     )
 end
 
+M.Mirrors = {}
+
+function M.Mirrors.get_object(constants)
+    local d = Dict({})
+    constants = Dict(constants)
+
+    return setmetatable(
+        {
+            keys = function() return constants:keys() end,
+        },
+        {
+            __newindex = function(_, ...) rawset(d, ...) end,
+            __tostring = function() return tostring(d) end,
+            __index = function(self, key)
+                local conf = constants[key]
+                if not d[key] and conf then
+                    conf.path = Conf.paths.mirrors_dir / key
+                    conf.statusline_str = conf.statusline_str or key
+                    d[key] = conf
+                end
+
+                return d[key]
+            end,
+        }
+    )
+end
+
 M.Constants = {}
 
 function M.Constants.define(key, path)
@@ -68,6 +95,8 @@ function M.Constants.define(key, path)
 
     if key == 'paths' then
         val = M.Paths.get_object(val)
+    elseif key == 'mirror' then
+        val = M.Mirrors.get_object(val)
     end
 
     return val

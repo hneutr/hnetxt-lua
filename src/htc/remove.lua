@@ -1,5 +1,5 @@
 local TaxonomyParser = require("htl.Taxonomy.Parser")
-local mirrors = require("htl.db.mirrors")
+local Mirrors = require("htl.Mirrors")
 
 local M = {}
 
@@ -44,7 +44,7 @@ end
 
 function M:remove_file(path)
     if DB.urls:get_file(path) then
-        mirrors:get_paths(path):values():foreach(function(p) p:unlink() end)
+        Mirrors:get_paths(path):values():foreach(function(p) p:unlink() end)
     end
 
     DB.urls:get({where = {path = path}}):foreach(M.remove_links_to_dead_url)
@@ -62,7 +62,7 @@ function M.remove_links_to_dead_url(dead_url)
 
     if #url_ids > 0 then
         DB.urls:get({where = {id = url_ids}}):foreach(function(url)
-            List({url.path, mirrors:get_path(url.path, "metadata")}):foreach(M.remove_reference, link_s, label)
+            List({url.path, Mirrors:get_path(url.path, "metadata")}):foreach(M.remove_reference, link_s, label)
             TaxonomyParser:record(url)
         end)
     end

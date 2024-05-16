@@ -22,7 +22,7 @@ local mappings = Dict(
     require("htn.text.list").toggle_mappings()
 )
 
-if vim.b.htn_project then
+if vim.b.htn_project_path then
     -- fuzzy
     mappings.n["<leader>df"] = ui.map_fuzzy("goto")
     mappings.n["<C-/>"] = ui.map_fuzzy("put")
@@ -41,13 +41,6 @@ if vim.b.htn_project then
     
     -- taxonomy symbols
     mappings.i:update(ui.taxonomy_mappings("<M-t>"))
-end
-
-mappings.i["<c-q>"] = function()
-    vim.g.pos_at_end = vim.fn.col(".")
-end
-mappings.i["<c-t>"] = function()
-    vim.g.pos_at_second_to_last = vim.fn.col(".")
 end
 
 mappings:foreach(function(mode, mode_mappings)

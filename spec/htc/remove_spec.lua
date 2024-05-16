@@ -1,10 +1,10 @@
 local htl = require("htl")
-local mirrors = require("htl.db.mirrors")
+local Mirrors = require("htl.Mirrors")
 local TaxonomyParser = require("htl.Taxonomy.Parser")
 
 local M = require("htc.remove")
 
-local kind = mirrors.conf:keys()[1]
+local kind = Conf.mirror:keys()[1]
 
 local d1 = htl.test_dir / "dir-1"
 local d2 = d1 / "dir-2"
@@ -45,7 +45,7 @@ describe("remove_file", function()
     it("source w/ mirrors", function()
         f1:touch()
         DB.urls:insert({path = f1})
-        local m1 = mirrors:get_path(f1, kind)
+        local m1 = Mirrors:get_path(f1, kind)
 
         local q = {path = m1}
 
@@ -60,7 +60,7 @@ describe("remove_file", function()
     it("mirror", function()
         f1:touch()
         DB.urls:insert({path = f1})
-        local m1 = mirrors:get_path(f1, kind)
+        local m1 = Mirrors:get_path(f1, kind)
 
         local q = {path = m1}
 

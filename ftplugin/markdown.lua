@@ -1,5 +1,4 @@
 local ui = require("htn.ui")
-local Fold = require('htn.ui.fold')
 
 vim.opt_local.autoindent = false
 vim.opt_local.cindent = false
@@ -19,42 +18,29 @@ vim.opt_local.foldenable = true
 --------------------------------------------------------------------------------
 --                               project stuff                                --
 --------------------------------------------------------------------------------
-local current_file = Path.this()
-local project = DB.projects.get_by_path(current_file)
-
-if project then
-    vim.opt_local.spellfile:append(ui.spellfile(project.title))
-    
-    project.path = tostring(project.path)
-    vim.b.htn_project = project
-
-    ui.set_file_url(current_file)
-end
+ui.start()
 
 if not vim.g.setup_htn then
-    local event_to_nvim_events = Dict({
-        change = {'TextChanged', "InsertLeave"},
-        enter = {'VimEnter', 'BufWinEnter', 'WinEnter'},
-        leave = {'VimLeavePre', 'BufLeave'},
-    })
-
-    local autocommands = DefaultDict(List)
-
-    autocommands.enter:append(function() vim.opt_local.statusline = ui.get_statusline() end)
-    autocommands.enter:append(function() vim.b.htn_modified = false end)
-    autocommands.change:append(function() vim.b.htn_modified = true end)
-    autocommands.change:append(Fold.set_line_info)
-    autocommands.leave:append(ui.update_link_urls)
-    autocommands.leave:append(ui.save_metadata)
-
-    autocommands:foreach(function(event_key, callbacks)
-        local group = vim.api.nvim_create_augroup("htn_" .. event_key, {clear = true})
-        callbacks:foreach(function(callback)
-            vim.api.nvim_create_autocmd(
-                event_to_nvim_events[event_key],
-                {pattern = "*.md", group = group, callback = callback}
-            )
-        end)
+    local group = vim.api.nvim_create_augroup("htn_autocommands", {clear = true})
+    
+    List({
+        {
+            events = {'VimEnter', 'BufWinEnter', 'WinEnter'},
+            callback = ui.enter,
+        },
+        {
+            events = {'TextChanged', "InsertLeave"},
+            callback = ui.change,
+        },
+        {
+            events = {'VimLeavePre', 'BufLeave', 'BufWinLeave', 'BufLeave'},
+            callback = ui.leave,
+        }
+    }):foreach(function(autocommand)
+        vim.api.nvim_create_autocmd(
+            autocommand.events,
+            {pattern = "*.md", group = group, callback = autocommand.callback}
+        )
     end)
 
     vim.g.setup_htn = true

@@ -1,4 +1,4 @@
-local mirrors = require("htl.db.mirrors")
+local Mirrors = require("htl.Mirrors")
 
 return function()
     local path = Conf.paths.journals_dir / string.format("%s.md", os.date("%Y%m%d"))
@@ -6,7 +6,7 @@ return function()
     path:touch()
     DB.urls:insert({path = path})
 
-    local metadata_path = mirrors:get_path(path, "metadata")
+    local metadata_path = Mirrors:get_path(path, "metadata")
 
     local is_a_line = "is a: journal entry"
     local has_is_a_line = false

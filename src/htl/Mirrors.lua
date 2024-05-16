@@ -1,15 +1,5 @@
 local M = {}
 
-function M:set_conf()
-    M.conf = Dict(Conf.mirror)
-
-    local dir = Conf.paths.mirrors_dir
-    M.conf:foreach(function(kind, conf)
-        conf.path = dir / kind
-        conf.statusline_str = conf.statusline_str or kind
-    end)
-end
-
 function M:is_mirror(path)
     return M:get_kind(path) ~= nil
 end
@@ -17,8 +7,8 @@ end
 function M:get_kind(path)
     local dir = path:parent()
 
-    for kind in M.conf:keys():iter() do
-        if M.conf[kind].path == dir then
+    for kind in Conf.mirror:keys():iter() do
+        if Conf.mirror[kind].path == dir then
             return kind
         end
     end
@@ -28,7 +18,7 @@ end
 
 function M:_get_path(source, kind)
     if source then
-        return M.conf[kind].path / string.format("%s.md", tostring(source.id))
+        return Conf.mirror[kind].path / string.format("%s.md", tostring(source.id))
     end
 end
 
@@ -42,7 +32,7 @@ function M:get_paths(path)
     local source = M:get_source(path)
 
     local paths = Dict()
-    M.conf:keys():foreach(function(kind)
+    Conf.mirror:keys():foreach(function(kind)
         local p = M:_get_path(source, kind)
 
         if p and p:exists() then
@@ -65,12 +55,10 @@ end
 
 function M:get_strings(path)
     return M:get_paths(path):keys():filter(function(kind)
-        return not M.conf[kind].exclude_from_statusline
+        return not Conf.mirror[kind].exclude_from_statusline
     end):transform(function(kind)
-        return M.conf[kind].statusline_str
+        return Conf.mirror[kind].statusline_str
     end):sorted():join(" | ")
 end
-
-M:set_conf()
 
 return M

@@ -1,5 +1,6 @@
 local htl = require("htl")
-local M = require("htl.db.mirrors")
+local M = require("htl.Mirrors")
+local Config = require("htl.Config")
 
 local d1 = htl.test_dir / "dir-1"
 local d2 = htl.test_dir / "dir-2"
@@ -28,15 +29,14 @@ before_each(function()
     DB.urls:insert({path = f1})
     DB.urls:insert({path = f2})
 
-    Conf.mirror = test_config
-    M:set_conf()
+    Conf.mirror = Config.Mirrors.get_object(test_config)
 end)
 
 after_each(htl.after_test)
 
 describe("is_mirror", function()
     it("+", function()
-        local f = M.conf.a.path / f1:name()
+        local f = Conf.mirror.a.path / f1:name()
         assert(M:is_mirror(f))
     end)
 
@@ -55,7 +55,7 @@ describe("get_source", function()
         DB.urls:insert({path = f1})
         assert.are.same(
             DB.urls:where({path = f1}),
-            M:get_source(M.conf.a.path / "1.md")
+            M:get_source(Conf.mirror.a.path / "1.md")
         )
     end)
 end)
@@ -65,8 +65,8 @@ describe("get_path", function()
     
     before_each(function()
         DB.urls:insert({path = f1})
-        f_a = M.conf.a.path / "1.md"
-        f_b = M.conf.b.path / "1.md"
+        f_a = Conf.mirror.a.path / "1.md"
+        f_b = Conf.mirror.b.path / "1.md"
     end)
 
     it("same kind", function()
@@ -84,8 +84,8 @@ end)
 
 describe("get_kind", function()
     it("+", function()
-        assert.are.same("a", M:get_kind(M.conf.a.path / "file-1.md"))
-        assert.are.same("b", M:get_kind(M.conf.b.path / "file-1.md"))
+        assert.are.same("a", M:get_kind(Conf.mirror.a.path / "file-1.md"))
+        assert.are.same("b", M:get_kind(Conf.mirror.b.path / "file-1.md"))
     end)
 
     it("-", function()
