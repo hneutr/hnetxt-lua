@@ -19,7 +19,6 @@ dependencies = {
     "lua-path",
     "luasocket",
     "fzf-lua",
-    "plenary.nvim",
 }
 build = {
     type = "builtin",
