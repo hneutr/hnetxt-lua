@@ -1,6 +1,7 @@
 local M = {}
 
 M.C = require("catppuccin.palettes").get_palette("macchiato")
+
 M.valid_keys = Set({
     'fg',
     'bg',
@@ -33,15 +34,11 @@ function M.add_to_syntax(key, args)
         vim.cmd(args.cmd)
     end
 
-    local val = args.val or {fg = args.color}
+    local style = Dict(args.val or {fg = args.color})
 
-    M.highlight(key, Dict(val))
-end
-
-function M.highlight(key, style)
     style = style:filterk(function(k) return M.valid_keys:has(k) end)
     
-    List({'fg', 'bg'}):foreach(function(k)
+    List({'fg', 'bg', 'sp'}):foreach(function(k)
         style[k] = style[k] and M.C[style[k]] or nil
     end)
     
