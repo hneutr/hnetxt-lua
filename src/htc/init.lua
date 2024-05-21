@@ -85,6 +85,7 @@ require("htc.cli")("hnetxt", {
         {"+V", target = "include_attribute_values", description = "exclude attribute values", switch = "off"},
         print = require("htc.Ontology"),
     },
+    ety = require("htc.ety"),
     test = {
         action = function() end,
     },

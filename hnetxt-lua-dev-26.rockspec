@@ -19,6 +19,8 @@ dependencies = {
     "lua-path",
     "luasocket",
     "fzf-lua",
+    "htmlparser",
+    "luasec",
 }
 build = {
     type = "builtin",
@@ -75,6 +77,7 @@ build = {
         ["htc.remove"] = "src/htc/remove.lua",
         ["htc.move"] = "src/htc/move.lua",
         ["htc.Ontology"] = "src/htc/Ontology.lua",
+        ["htc.ety"] = "src/htc/ety.lua",
     }
 }
 test = {
