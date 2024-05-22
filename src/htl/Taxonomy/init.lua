@@ -16,7 +16,7 @@ function M:_init(args)
         self.urls_by_id,
         self.conditions
     )
-
+    
     self.rows = M:get_rows(self.urls_by_id, self.taxonomy, self.taxon_instances)
 
     if self.should_persist then
@@ -64,8 +64,10 @@ function M:get_urls(path, conditions)
     local seeds = Set()
     
     DB.urls:get({where = {resource_type = {"file", "taxonomy_entry"}}}):foreach(function(u)
-        if u.path:is_relative_to(path) and u.resource_type == "file" then
-            seeds:add(u.id)
+        if u.resource_type == "file" then
+            if not path or u.path:is_relative_to(path) then
+                seeds:add(u.id)
+            end
         end
         
         urls_by_id[u.id] = u
