@@ -132,3 +132,43 @@ describe("update", function()
         assert.are.same("a", DB.urls:where({path = f3}).label)
     end)
 end)
+
+describe("end to end project move", function()
+    it("works", function()
+        DB.projects:drop()
+        
+        local root = htl.test_dir / "root"
+        local dir_a = root / "a"
+        local dir_ab = dir_a / "b"
+        local dir_b = root / "b"
+        
+        local file_a = dir_a / "a.md"
+        local file_ab = dir_ab / "b.md"
+        local file_b = dir_b / "b.md"
+        
+        local p_a = {title = "project a", path = dir_a}
+        local p_ab = {title = "project b", path = dir_ab}
+        local p_b = {title = "project b", path = dir_b}
+
+        DB.projects:insert(p_a)
+        DB.projects:insert(p_ab)
+        
+        file_a:touch()
+        file_ab:touch()
+        
+        local u_a = DB.urls:insert({path = file_a})
+        local u_b = DB.urls:insert({path = file_ab})
+        
+        M.run({source = dir_ab, target = dir_b})
+        
+        assert.is_false(dir_ab:exists())
+        assert(dir_b:exists())
+
+        assert(DB.projects:where(p_a))
+        assert(DB.projects:where(p_b))
+        assert.is_nil(DB.projects:where(p_ab))
+        
+        assert.are.same(file_a, DB.urls:where({id = u_a}).path)
+        assert.are.same(file_b, DB.urls:where({id = u_b}).path)
+    end)
+end)
