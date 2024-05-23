@@ -343,6 +343,14 @@ function Path:iterdir(args)
     return paths
 end
 
+function Path:files(args)
+    args = args or {}
+    args.files = true
+    args.dirs = false
+    
+    return self:iterdir(args)
+end
+
 function Path:glob(pattern, args)
     return Path.iterdir(self, args):filter(function(p)
         return tostring(p):match(pattern)

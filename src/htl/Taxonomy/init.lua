@@ -251,7 +251,7 @@ function M.get_condition_query(c)
             key = string.format("*%s", key:removeprefix("+"))
         end
 
-        if type:endswith("+") then
+        if c.type and c.type:endswith("+") then
             contains = true
             key = string.format("%s*", key:removesuffix("+"))
         end
