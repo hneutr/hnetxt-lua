@@ -35,6 +35,7 @@ end
 function M:handle_dir_move(move)
     local moves = List()
     if move.target:is_dir() then
+        M:update_projects(move)
         move.target:iterdir({dirs = false}):foreach(function(target)
             moves:append({
                 source = move.source:join(target:relative_to(move.target)),
@@ -46,6 +47,16 @@ function M:handle_dir_move(move)
     end
 
     return moves
+end
+
+function M:update_projects(move)
+    DB.projects:get({contains = {path = string.format("%s*", move.source)}}):foreach(function(project)
+        local path = move.target / project.path:relative_to(move.source)
+        DB.projects:update({
+            where = {title = project.title},
+            set = {path = tostring(path)},
+        })
+    end)
 end
 
 function M:update(moves)

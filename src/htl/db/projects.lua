@@ -15,6 +15,14 @@ local M = SqliteTable("projects", {
     },
 })
 
+function M:where(q)
+    if q.path then
+        q.path = tostring(q.path)
+    end
+
+    return M:__where(q)
+end
+
 function M:insert(row)
     M:__insert(Dict.from_list(
         Dict(M:schema()):keys(),
