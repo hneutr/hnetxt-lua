@@ -8,10 +8,10 @@ local d1 = htl.test_dir / "dir-1"
 local d2 = htl.test_dir / "dir-2"
 local d3 = d1 / "dir-3"
 local d4 = d1 / "dir-4"
+local d5 = d2 / "dir-3"
 
 local f1 = d1 / "file-1.md"
 local f2 = d1 / "file-2.md"
-
 local f3 = d2 / "file-1.md"
 local f4 = d2 / "file-2.md"
 
@@ -99,6 +99,24 @@ describe("update_projects", function()
 
         assert.is_nil(DB.projects:where({path = d3}))
         assert(DB.projects:where({path = d4}))
+    end)
+    
+    it("dir with multiple projects", function()
+        DB.projects:drop()
+
+        DB.projects:insert(p1)
+        DB.projects:insert(p3)
+        
+        assert(DB.projects:where({path = d1}))
+        assert(DB.projects:where({path = d3}))
+
+        M:update_projects({source = d1, target = d2})
+
+        assert.is_nil(DB.projects:where({path = d1}))
+        assert.is_nil(DB.projects:where({path = d3}))
+
+        assert(DB.projects:where({path = d2}))
+        assert(DB.projects:where({path = d5}))
     end)
 end)
 
