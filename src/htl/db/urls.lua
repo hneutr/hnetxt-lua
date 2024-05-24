@@ -8,6 +8,7 @@ local M = SqliteTable("urls", {
         type = "text",
         reference = "projects.title",
         on_delete = "cascade",
+        required = true,
     },
     path = {
         type = "text",
@@ -32,14 +33,12 @@ function M:insert(row)
         row.resource_type = row.label and "link" or "file"
     end
 
-    if row.resource_type == "file" then
-        if M:get_file(row.path) then
-            return
-        end
+    if row.resource_type == "file" and M:get_file(row.path) then
+        return
     end
 
     local project = DB.projects.get_by_path(row.path)
-
+    
     if not project then
         return
     end
@@ -63,24 +62,6 @@ end
 
 function M:get_file(path)
     return M:where({path = path, resource_type = 'file'})
-end
-
-function M:move(source, target)
-    local project = DB.projects.get_by_path(target)
-
-    if project then
-        M:insert({path = source})
-
-        M:update({
-            where = {path = tostring(source)},
-            set = {
-                project = project.title,
-                path = tostring(target),
-            },
-        })
-    else
-        M:remove({path = tostring(source)})
-    end
 end
 
 function M:get(q)
@@ -181,6 +162,35 @@ function M:update_link_urls(path, lines)
             where = {id = absent},
             set = {path = tostring(M.unanchored_path)},
         })
+    end
+end
+
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                    etc                                     --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
+function M:move(source, target)
+    M:update({
+        where = {path = tostring(source)},
+        set = {path = tostring(target)},
+    })
+    
+    M:update_project(target)
+end
+
+function M:update_project(path)
+    local project = DB.projects.get_by_path(path)
+
+    if project then
+        M:update({
+            where = {path = tostring(path)},
+            set = {project = project.title},
+        })
+    else
+        M:remove({path = tostring(path)})
     end
 end
 

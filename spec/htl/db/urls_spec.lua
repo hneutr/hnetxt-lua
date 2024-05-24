@@ -60,6 +60,10 @@ describe("insert", function()
         local result = M:where({path = f1})
         assert.are.same(p1.title, result.project)
     end)
+    
+    it("no project", function()
+        assert.is_nil(M:insert({path = f5}))
+    end)
 
     it("sets resource type", function()
         M:insert({path = f1})
@@ -302,6 +306,32 @@ describe("get_label", function()
 
     it("language file", function()
         assert.are.same("-suffix", M:get_label({path = Conf.paths.language_dir / "_suffix.md"}))
+    end)
+end)
+
+describe("set_project", function()
+    it("works", function()
+        DB.projects:drop()
+        DB.urls:drop()
+        
+        local d1 = htl.test_dir / "d1"
+        local d2 = d1 / "d2"
+
+        local f1 = d2 / "f1.md"
+        
+        local p1 = {path = d1, title = "1"}
+        local p2 = {path = d2, title = "2"}
+        
+        DB.projects:insert(p1)
+
+        local u1 = DB.urls:insert({path = f1})
+        
+        assert.are.same("1", DB.urls:get_file(f1).project)
+        
+        DB.projects:insert(p2)
+        DB.urls:update_project(f1)
+
+        assert.are.same("2", DB.urls:get_file(f1).project)
     end)
 end)
 
