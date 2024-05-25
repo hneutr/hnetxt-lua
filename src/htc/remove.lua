@@ -17,6 +17,7 @@ function M:error(path, error)
     if path:is_relative_to(Path.cwd()) then
         path = path:relative_to(Path.cwd())
     end
+
     print(string.format("rm: %s %s", path, error))
 end
 

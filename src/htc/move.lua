@@ -25,11 +25,8 @@ function M:line_is_valid(line)
 end
 
 function M:parse_line(line)
-    local source, target = unpack(line:split(M.separator, 1))
-    return Dict({
-        source = Path(source),
-        target = Path(target),
-    })
+    local source, target = unpack(line:split(M.separator, 1):map(Path))
+    return Dict({source = source, target = target})
 end
 
 function M:handle_dir_move(move)

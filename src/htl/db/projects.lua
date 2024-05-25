@@ -28,6 +28,29 @@ function M:insert(row)
         Dict(M:schema()):keys(),
         function(col) return col, row[col] and tostring(row[col]) end
     ))
+    
+    DB.urls:get({contains = {path = string.format("%s*", tostring(row.path))}}):foreach(function(url)
+        DB.urls:update_project(url.path)
+    end)
+end
+
+function M:remove(row)
+    local projects = M:get({where = row})
+
+    projects:sorted(function(a, b)
+        return #tostring(a.path) > #tostring(b.path)
+    end):foreach(function(project)
+        local parent = M.get_by_path(project.path:parent())
+        
+        if parent then
+            DB.urls:update({
+                where = {project = project.title},
+                set = {project = parent.title},
+            })
+        end
+    end)
+    
+    M:__remove(row)
 end
 
 function M:get(q)
