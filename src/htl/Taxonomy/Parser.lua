@@ -470,7 +470,7 @@ end
 function M:persist()
     DB.Relations:drop()
 
-    DB.urls:get({where = {resource_type = "file"}}):sorted(function(a, b)
+    DB.urls:get({where = {type = "file"}}):sorted(function(a, b)
         return tostring(a.path) < tostring(b.path)
     end):foreach(function(u)
         if not pcall(function() M:record(u) end) then

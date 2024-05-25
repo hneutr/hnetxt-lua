@@ -128,7 +128,7 @@ function M.goto_url(open_command, url)
         url.path:open(open_command)
     end
 
-    if url.resource_type == 'link' then
+    if url.type == 'link' then
         for line_number, line in ipairs(BufferLines.get()) do
             local link = URLDefinition:from_str(line)
             if link and tonumber(link.url) == url.id then
@@ -300,25 +300,25 @@ end
 --         return
 --     end
 
---     local old_url_id = DB.urls:where({path = Path.this(), resource_type = "file"}).id
+--     local old_url_id = DB.urls:where({path = Path.this(), type = "file"}).id
     
 --     DB.urls:remove({id = old_url_id})
 --     DB.urls:update({
 --         where = {id = url_id},
---         set = {resource_type = "file", label = ""}
+--         set = {type = "file", label = ""}
 --     })
 -- end
 
 -- function M.FileToLink()
 --     print("this doesn't work yet")
 --     local path = Path.this()
---     local file_q = {path = path, resource_type = "file"}
+--     local file_q = {path = path, type = "file"}
 --     local url = DB.urls:where(file_q)
 
 --     DB.urls:update({
 --         where = {id = url.id},
 --         set = {
---             resource_type = "link",
+--             type = "link",
 --             label = url.path:stem():gsub("-", " "),
 --         }
 --     })

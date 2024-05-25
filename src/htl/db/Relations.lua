@@ -36,7 +36,7 @@ function M.get_url_id(element)
         local q = {
             path = Conf.paths.global_taxonomy_file,
             label = element,
-            resource_type = "taxonomy_entry",
+            type = "taxonomy_entry",
         }
         
         local row = DB.urls:where(q)

@@ -67,15 +67,15 @@ describe("insert", function()
 
     it("sets resource type", function()
         M:insert({path = f1})
-        assert.not_nil(M:where({path = f1, resource_type = "file"}))
+        assert.not_nil(M:where({path = f1, type = "file"}))
         M:insert({path = f2, label = "f2"})
-        assert.not_nil(M:where({path = f2, resource_type = "link"}))
+        assert.not_nil(M:where({path = f2, type = "link"}))
     end)
 
     it("doesn't overwrite file", function()
         M:insert({path = f1})
         
-        local q = {where = {path = f1, resource_type = "file"}}
+        local q = {where = {path = f1, type = "file"}}
         assert.are.same(1, #M:get(q))
         M:insert({path = f1})
         assert.are.same(1, #M:get(q))
@@ -105,7 +105,7 @@ describe("move", function()
 
         assert.are.same(
             {"a", "b"},
-            M:get({where = {path = f3, resource_type = "link"}}):col('label'):sorted()
+            M:get({where = {path = f3, type = "link"}}):col('label'):sorted()
         )
     end)
 
@@ -206,7 +206,7 @@ end)
 
 describe("new_link", function()
     it("picks the newest link", function()
-        M:insert({path = f1, resource_type = "link"})
+        M:insert({path = f1, type = "link"})
         local link_id = M:new_link(f1)
         
         assert.are.same(

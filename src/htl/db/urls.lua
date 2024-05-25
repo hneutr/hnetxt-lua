@@ -19,7 +19,7 @@ local M = SqliteTable("urls", {
         default = [[strftime('%Y%m%d')]],
         required = true
     },
-    resource_type = {
+    type = {
         type = "text",
         required = true,
     },
@@ -29,11 +29,11 @@ M.unanchored_path = Path("__unanchored__")
 M.link_delimiter = Conf.link.delimiter
 
 function M:insert(row)
-    if not row.resource_type then
-        row.resource_type = row.label and "link" or "file"
+    if not row.type then
+        row.type = row.label and "link" or "file"
     end
 
-    if row.resource_type == "file" and M:get_file(row.path) then
+    if row.type == "file" and M:get_file(row.path) then
         return
     end
 
@@ -47,7 +47,7 @@ function M:insert(row)
         path = tostring(row.path),
         project = project.title,
         label = row.label,
-        resource_type = row.resource_type,
+        type = row.type,
         created = row.created or os.date("%Y%m%d"),
     })
 end
@@ -61,7 +61,7 @@ function M:where(q)
 end
 
 function M:get_file(path)
-    return M:where({path = path, resource_type = 'file'})
+    return M:where({path = path, type = 'file'})
 end
 
 function M:get(q)
@@ -127,7 +127,7 @@ end
 --                                                                            --
 --------------------------------------------------------------------------------
 function M:new_link(path)
-    local row = {path = path, resource_type = 'link'}
+    local row = {path = path, type = 'link'}
     M:insert(row)
 
     return M:get({where = row}):sort(function(a, b) return a.id > b.id end)[1]
@@ -147,14 +147,14 @@ function M:update_link_urls(path, lines)
                 set = {
                     path = tostring(path),
                     label = link.label,
-                    resource_type = "link",
+                    type = "link",
                 },
             })
         end
     end
 
     local absent = Set(
-        M:get({where = {path = path, resource_type = "link"}}):col('id')
+        M:get({where = {path = path, type = "link"}}):col('id')
     ):difference(present):vals()
 
     if #absent > 0 then
@@ -197,7 +197,7 @@ end
 function M.get_fuzzy_path(url, dir)
     local path = url.path
 
-    if url.resource_type == 'link' and url.label and #url.label > 0 then
+    if url.type == 'link' and url.label and #url.label > 0 then
         path = path:with_name(path:name() .. M.link_delimiter .. url.label)
     end
 
@@ -209,7 +209,7 @@ function M.get_fuzzy_path(url, dir)
 end
 
 function M:get_fuzzy_paths(dir)
-    local q = {where = {resource_type = {"file", "link"}}}
+    local q = {where = {type = {"file", "link"}}}
 
     if dir then
         q.contains = {path = string.format("%s*", tostring(dir))}

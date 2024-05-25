@@ -64,7 +64,7 @@ function LinePrinter:__tostring()
 end
 
 function LinePrinter:get_label()
-    if self.url.resource_type == "file" then
+    if self.url.type == "file" then
         return TerminalLink({
             label = self.url.label,
             url = self.url.id,

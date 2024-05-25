@@ -63,8 +63,8 @@ function M:get_urls(path, conditions)
     local urls_by_id = Dict()
     local seeds = Set()
     
-    DB.urls:get({where = {resource_type = {"file", "taxonomy_entry"}}}):foreach(function(u)
-        if u.resource_type == "file" then
+    DB.urls:get({where = {type = {"file", "taxonomy_entry"}}}):foreach(function(u)
+        if u.type == "file" then
             if not path or u.path:is_relative_to(path) then
                 seeds:add(u.id)
             end
