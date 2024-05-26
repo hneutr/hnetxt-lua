@@ -33,10 +33,7 @@ function M:read_args(args)
 
     self.conditions = M:transform_conditions(List(args.conditions))
     
-    self.should_persist = not List({
-        self.path,
-        #self.conditions > 0,
-    }):any()
+    self.should_persist = not self.path and #self.conditions == 0
 end
 
 function M:get_rows(urls_by_id, taxonomy, taxon_instances)

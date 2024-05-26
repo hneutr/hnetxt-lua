@@ -4,5 +4,4 @@ quote:
 question:
   conditions:
     - "#question"
-  # conditions:
   #   - "@remind"

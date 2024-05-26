@@ -10,7 +10,6 @@ description = {
 }
 dependencies = {
     "luv",
-    "plenary.nvim",
     "lua >= 5.1",
     "lyaml >= 6.2",
     "inspect >= 3.1",
