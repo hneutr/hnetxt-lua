@@ -23,6 +23,13 @@ function M:where(q)
     return M:__where(q)
 end
 
+function M:get(q)
+    return List(M:map(function(project)
+        project.path = Path(project.path)
+        return project
+    end, q))
+end
+
 function M:insert(row)
     M:__insert(Dict.from_list(
         Dict(M:schema()):keys(),
@@ -34,8 +41,8 @@ function M:insert(row)
     end)
 end
 
-function M:remove(row)
-    local projects = M:get({where = row})
+function M:remove(q)
+    local projects = M:get({where = Dict(q)})
 
     projects:sorted(function(a, b)
         return #tostring(a.path) > #tostring(b.path)
@@ -43,21 +50,19 @@ function M:remove(row)
         local parent = M.get_by_path(project.path:parent())
         
         if parent then
-            DB.urls:update({
-                where = {project = project.title},
-                set = {project = parent.title},
-            })
+            if DB.urls:where({project = project.title}) then
+                DB.urls:update({
+                    where = {project = project.title},
+                    set = {project = parent.title},
+                })
+            end
         end
     end)
     
-    M:__remove(row)
-end
+    M:__remove(q)
 
-function M:get(q)
-    return List(M:map(function(project)
-        project.path = Path(project.path)
-        return project
-    end, q))
+    -- called directly to trigger side effects
+    DB.urls:remove({project = projects:col('title')})
 end
 
 function M.get_by_path(path)
@@ -71,5 +76,16 @@ function M.get_by_path(path)
 
     return #projects > 0 and projects[1] or nil
 end
+
+function M.move(move)
+    M:get({contains = {path = string.format("%s*", move.source)}}):foreach(function(project)
+        local path = move.target / project.path:relative_to(move.source)
+        M:update({
+            where = {title = project.title},
+            set = {path = tostring(path)},
+        })
+    end)
+end
+
 
 return M

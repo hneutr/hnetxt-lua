@@ -11,6 +11,7 @@ local d2 = d1 / "dir-2"
 
 local f1 = d1 / "file-1.md"
 local f2 = d1 / "file-2.md"
+local f3 = d2 / "f1.md"
 
 local p1 = {title = "test", path = d1}
 
@@ -71,73 +72,15 @@ describe("remove_file", function()
         assert.is_falsy(m1:exists())
         assert(f1:exists())
     end)
-    
-    it("cleans reference", function()
-        f1:write("is a: x")
+end)
 
-        DB.urls:insert({path = f1})
-        local u1 = DB.urls:where({path = f1})
-        local l1 = u1.label
-
-        f2:write(List({
-            "is a: y",
-            string.format("test_connection: %s", tostring(DB.urls:get_reference(u1))),
-            "",
-            "b",
-        }))
+describe("remove_dir", function()
+    it("deletes projects", function()
+        DB.projects:insert({title = "2", path = d2})
         
-        DB.urls:insert({path = f2})
-
-        local u2 = DB.urls:where({path = f2})
-        
-        TaxonomyParser:record(u1)
-        TaxonomyParser:record(u2)
-
-        local x_id = DB.Relations.get_url_id("x")
-        
-        assert(DB.Relations:where({
-            subject = u1.id,
-            relation = "instance",
-            object = x_id,
-        }))
-        
-        local y_id = DB.Relations.get_url_id("y")
-
-        local u2_instance_r = {
-            subject = u2.id,
-            relation = "instance",
-            object = y_id,
-        }
-
-        assert(DB.Relations:where(u2_instance_r))
-        
-        assert(DB.Relations:where({
-            subject = u2.id,
-            relation = "connection",
-            object = u1.id,
-            key = "test_connection",
-        }))
-
-        M:remove_file(u1.path)
-        
-        assert.is_nil(DB.Relations:where({subject = u1.id}))
-        assert(DB.Relations:where(u2_instance_r))
-        
-        assert(DB.Relations:where({
-            subject = u2.id,
-            relation = "connection",
-            val = l1,
-            key = "test_connection",
-        }))
-        
-        assert.are.same(
-            {
-                "is a: y",
-                string.format("test_connection: %s", l1),
-                "",
-                "b",
-            },
-            f2:readlines()
-        )
+        f3:touch()
+        M:remove_dir(d1, {directories = true, recursive = true})
+        assert.is_nil(DB.projects:where({path = d1}))
+        assert.is_nil(DB.projects:where({path = d2}))
     end)
 end)

@@ -1,4 +1,3 @@
-local TaxonomyParser = require("htl.Taxonomy.Parser")
 local Mirrors = require("htl.Mirrors")
 
 local M = {}
@@ -25,6 +24,12 @@ function M:remove_dir(dir, args)
     if not args.directories and not args.recursive then
         return M:error(dir, "is a directory")
     end
+    
+    local projects = DB.projects:get({contains = {path = string.format("%s*", tostring(dir))}})
+    
+    if #projects > 0 then
+        DB.projects:remove({title = projects:col('title')})
+    end
 
     local files = dir:iterdir({dirs = false})
 
@@ -48,32 +53,9 @@ function M:remove_file(path)
         Mirrors:get_paths(path):values():foreach(function(p) p:unlink() end)
     end
 
-    DB.urls:get({where = {path = path}}):foreach(M.remove_links_to_dead_url)
     DB.urls:remove({path = path})
 
     path:unlink()
-end
-
-function M.remove_links_to_dead_url(dead_url)
-    local link = DB.urls:get_reference(dead_url)
-    local link_s = tostring(link)
-    local label = link.label
-
-    local url_ids = DB.Relations:get({where = {object = dead_url.id}}):col('source')
-
-    if #url_ids > 0 then
-        DB.urls:get({where = {id = url_ids}}):foreach(function(url)
-            List({url.path, Mirrors:get_path(url.path, "metadata")}):foreach(M.remove_reference, link_s, label)
-            TaxonomyParser:record(url)
-        end)
-    end
-end
-
-function M.remove_reference(path, link_string, label)
-    if path:exists() then
-        local content = path:read():gsub(link_string:escape(), label)
-        path:write(content)
-    end
 end
 
 return M

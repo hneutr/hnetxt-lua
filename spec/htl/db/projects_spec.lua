@@ -69,3 +69,44 @@ describe("remove", function()
         assert.are.same(p1.title, DB.urls:where({path = f2}).project)
     end)
 end)
+
+describe("move", function()
+    it("dir is a project", function()
+        local d1 = htl.test_dir / "d1"
+        local d2 = d1 / "d2"
+        local d3 = d1 / "d3"
+
+        M:drop()
+        M:insert({title = "1", path = d1})
+        M:insert({title = "2", path = d2})
+        
+        assert(M:where({path = d2}))
+        M.move({source = d2, target = d3})
+
+        assert.is_nil(M:where({path = d2}))
+        assert(M:where({path = d3}))
+    end)
+    
+    it("dir with multiple projects", function()
+        local a = htl.test_dir / "a"
+        local b = htl.test_dir / "b"
+        local ac = a / "c"
+        local bc = b / "c"
+
+        M:drop()
+
+        M:insert({title = "a", path = a})
+        M:insert({title = "c", path = ac})
+        
+        assert(M:where({path = a}))
+        assert(M:where({path = ac}))
+
+        M.move({source = a, target = b})
+
+        assert.is_nil(M:where({path = a}))
+        assert.is_nil(M:where({path = ac}))
+
+        assert(M:where({path = b}))
+        assert(M:where({path = bc}))
+    end)
+end)

@@ -1,5 +1,7 @@
+local Mirrors = require("htl.Mirrors")
 local Link = require("htl.text.Link")
 local URLDefinition = require("htl.text.URLDefinition")
+local TaxonomyParser = require("htl.Taxonomy.Parser")
 
 local M = SqliteTable("urls", {
     id = true,
@@ -27,6 +29,10 @@ local M = SqliteTable("urls", {
 
 M.unanchored_path = Path("__unanchored__")
 M.link_delimiter = Conf.link.delimiter
+
+function M.should_track(path)
+    return path:suffix() == ".md" and not Mirrors:is_mirror(path) and DB.projects.get_by_path(path) ~= nil
+end
 
 function M:insert(row)
     if not row.type then
@@ -121,6 +127,29 @@ function M:clean()
     end
 end
 
+function M:remove(q)
+    M:get({where = Dict(q)}):foreach(M.remove_references_to_url)
+    M:__remove(q)
+end
+
+function M.remove_references_to_url(url_to_remove)
+    local link = M:get_reference(url_to_remove)
+    local link_string = tostring(link):escape()
+
+    local url_ids = DB.Relations:get({where = {object = url_to_remove.id}}):col('source')
+
+    if #url_ids > 0 then
+        DB.urls:get({where = {id = url_ids}}):foreach(function(url)
+            List({url.path, Mirrors:get_path(url.path, "metadata")}):foreach(function(p)
+                if p:exists() then
+                    p:write(p:read():gsub(link_string, link.label))
+                end
+            end)
+            TaxonomyParser:record(url)
+        end)
+    end
+end
+
 --------------------------------------------------------------------------------
 --                                                                            --
 --                                   links                                    --
@@ -172,13 +201,26 @@ end
 --                                                                            --
 --                                                                            --
 --------------------------------------------------------------------------------
-function M:move(source, target)
-    M:update({
-        where = {path = tostring(source)},
-        set = {path = tostring(target)},
-    })
+function M.move(move)
+    local source, target = move.source, move.target
     
-    M:update_project(target)
+    local source_exists = M:where({path = source})
+    local target_should_exist = M.should_track(target)
+    
+    if source_exists then
+        if target_should_exist then
+            M:update({
+                where = {path = tostring(source)},
+                set = {path = tostring(target)},
+            })
+
+            M:update_project(target)
+        else
+            M:remove({path = source})
+        end
+    elseif target_should_exist then
+        M:insert({path = target})
+    end
 end
 
 function M:update_project(path)

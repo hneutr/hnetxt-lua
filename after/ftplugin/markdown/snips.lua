@@ -35,8 +35,8 @@ local function divider(trigger, size, style)
 end
 
 local snippets = List({
-    parse_snippet("L", "[$1]($2)"),
-    ls.snippet("l", fmt("[{label}](:{link_id}:)", {label = i(1), link_id = f(link_id)})),
+    parse_snippet("l", "[$1]($2)"),
+    ls.snippet("L", fmt("[{label}](:{link_id}:)", {label = i(1), link_id = f(link_id)})),
     -- dividers
     divider("dl", "large"),
     divider("dm", "medium"),

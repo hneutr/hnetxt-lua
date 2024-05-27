@@ -38,18 +38,18 @@ end)
 describe("command", function()
     it("works", function()
         assert.are.same(
-            string.format("%s %s %s", M.command_str, f1, f2), M:command(f1, f2)
+            string.format("%s %s %s", M.command_str, f1, f2), M.command(f1, f2)
         )
     end)
 end)
 
 describe("line_is_valid", function()
     it("+", function()
-        assert(M:line_is_valid("a -> b"))
+        assert(M.line_is_valid("a -> b"))
     end)
 
     it("-", function()
-        assert.is_falsy(M:line_is_valid("usage: mv [-f | -i | -n] [-hv] source target"))
+        assert.is_falsy(M.line_is_valid("usage: mv [-f | -i | -n] [-hv] source target"))
     end)
 end)
 
@@ -57,7 +57,7 @@ describe("parse_line", function()
     it("+", function()
         assert.are.same(
             {source = Path("a"), target = Path("b")},
-            M:parse_line("a -> b")
+            M.parse_line("a -> b")
         )
     end)
 end)
@@ -87,49 +87,6 @@ describe("handle_dir_move", function()
                 return tostring(a.source) < tostring(b.source)
             end)
         )
-    end)
-end)
-
-describe("update_projects", function()
-    it("dir is a project", function()
-        DB.projects:insert(p3)
-        
-        assert(DB.projects:where({path = d3}))
-        M:update_projects({source = d3, target = d4})
-
-        assert.is_nil(DB.projects:where({path = d3}))
-        assert(DB.projects:where({path = d4}))
-    end)
-    
-    it("dir with multiple projects", function()
-        DB.projects:drop()
-
-        DB.projects:insert(p1)
-        DB.projects:insert(p3)
-        
-        assert(DB.projects:where({path = d1}))
-        assert(DB.projects:where({path = d3}))
-
-        M:update_projects({source = d1, target = d2})
-
-        assert.is_nil(DB.projects:where({path = d1}))
-        assert.is_nil(DB.projects:where({path = d3}))
-
-        assert(DB.projects:where({path = d2}))
-        assert(DB.projects:where({path = d5}))
-    end)
-end)
-
-describe("update", function()
-    it("works", function()
-        DB.urls:insert({path = f1, label = "a"})
-        
-        M:update(List({
-            {source = f1, target = f3}
-        }))
-
-        assert.is_nil(DB.urls:where({path = f1}))
-        assert.are.same("a", DB.urls:where({path = f3}).label)
     end)
 end)
 
