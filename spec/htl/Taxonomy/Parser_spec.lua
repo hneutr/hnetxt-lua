@@ -283,6 +283,27 @@ describe("get_metadata_lines", function()
             {"a:", "b", "c", "x", "y", "z"},
             M.get_metadata_lines(f1)
         )
+    end) 
+end)
+
+describe("read_metadata_lines", function()
+    it("strips line comments", function()
+        f1:write({
+            "a:",
+            "  ~xyz",
+            "b",
+        })
+        
+        assert.are.same({"a:", "b"}, M.read_metadata_lines(f1))
+    end)
+
+    it("strips inline comments", function()
+        f1:write({
+            "a:",
+            "b ~xyz",
+        })
+        
+        assert.are.same({"a:", "b"}, M.read_metadata_lines(f1))
     end)
 end)
 

@@ -9,6 +9,7 @@ M.conf.indent_size = "  "
 M.conf.to_skip = Set({"on page", "page"})
 M.conf.metadata = Dict(M.conf.metadata)
 M.conf.metadata.divider = tostring(Divider("large", "metadata"))
+M.conf.grammar.comment_pattern = string.format("%s.*", M.conf.grammar.comment_prefix)
 
 function M.is_taxonomy_file(path)
     return path:name() == tostring(Conf.paths.taxonomy_file) or path == Conf.paths.global_taxonomy_file
@@ -22,13 +23,28 @@ end
 --                                                                            --
 --------------------------------------------------------------------------------
 function M.get_metadata_lines(path)
-    local lines = M.separate_metadata(path:readlines())
-    local metadata_path = Mirrors:get_path(path, "metadata")
+    local lines = M.separate_metadata(M.read_metadata_lines(path))
+    lines:extend(M.read_metadata_lines(Mirrors:get_path(path, "metadata")))
+    
+    return lines
+end
 
-    if metadata_path:exists() then
-        lines:extend(metadata_path:readlines())
+function M.read_metadata_lines(path)
+    local lines = List()
+    if path and path:exists() then
+        path:readlines():foreach(function(l)
+            if l:match(M.conf.grammar.comment_prefix) then
+                l = l:gsub(M.conf.grammar.comment_pattern, "")
+                l = l:rstrip()
+                if #l:strip() > 0 then
+                    lines:append(l)
+                end
+            else
+                lines:append(l)
+            end
+        end)
     end
-
+    
     return lines
 end
 
