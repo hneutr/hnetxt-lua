@@ -1,46 +1,34 @@
-local Divider = class()
+local M = class()
 
-Divider.config = Conf.divider
-Divider.sizes = Conf.sizes
-
-function Divider:_init(size, style)
-    self = Dict.update(self, {size = size, style = style}, self.config)
-    self = Dict.update(self, self.config[self.style], self.sizes[self.size])
-    return self
+function M:_init(size, style)
+    self = Dict.update(self, {size = size, style = style}, Conf.divider)
+    self = Dict.update(self, Conf.divider[self.style], Conf.sizes[self.size])
 end
 
-function Divider:__tostring()
+function M:__tostring()
     return self.left .. self.fill:rep(self.width - 2) .. self.right
 end
 
-function Divider:regex()
+function M:regex()
     return "^" .. tostring(self) .. "$"
 end
 
-function Divider:str_is_a(str)
+function M:str_is_a(str)
     return str:match(self:regex())
 end
 
-function Divider.dividers()
-    return Dict(Divider.sizes):keys():transform(Divider)
+function M.dividers()
+    return Dict(Conf.sizes):keys():transform(M)
 end
 
-function Divider.by_size()
-    local dividers = Dict()
-    Dict(Divider.sizes):keys():foreach(function(size)
-        dividers[size] = Divider(size)
-    end)
-    return dividers
+function M.metadata_divider()
+    return M("large", "metadata")
 end
 
-function Divider.metadata_divider()
-    return Divider("large", "metadata")
-end
-
-function Divider:syntax()
+function M:syntax()
     return {
         [self.size .. self.style .. "Divider"] = {string = self:regex(), color = self.color}
     }
 end
 
-return Divider
+return M

@@ -1,6 +1,7 @@
 local Header = require("htl.text.header")
 local Divider = require("htl.text.divider")
 local Line = require("htl.text.Line")
+local metadata_divider = Divider.metadata_divider()
 
 local Parser = class()
 
@@ -28,7 +29,6 @@ function Parser:get_fold_level(str)
 end
 
 function Parser:adjust_metadata_frontmatter(lines, levels)
-    local metadata_divider = Divider.metadata_divider()
 
     for i, line in ipairs(lines) do
         if metadata_divider:str_is_a(line) then

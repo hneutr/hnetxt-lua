@@ -2,10 +2,10 @@ size: large
 style: default
 fill: ━
 default: 
-    left: ╺
-    right: ╸
+  left: ╺
+  right: ╸
 metadata:
-    left: ━
-    right: ━
-    color: blue
-    fold_level: 19
+  left: ━
+  right: ━
+  color: blue
+  fold_level: 19

@@ -1,84 +1,61 @@
-local Header = class()
+local M = class()
 
-Header.config = Conf.header
-Header.sizes = Conf.sizes
+M.parts = List({"upper", "middle", "lower"})
 
-Header.regex_info = Dict({
-    upper = {pre = "^", post = "$"},
-    middle = {pre = "^", post = "%s.*"},
-    lower = {pre = "^", post = "$"},
-})
+function M:_init(args)
+    args = args or {}
+    self.size = args.size or Conf.header.size
+    self.content = args.content or ''
 
-function Header:_init(args)
-    self = Dict.update(self, args or {}, {content = '', size = 'medium'})
-    self = Dict.update(self, {middle = self.config.middle[self.size]}, self.config, self.sizes[self.size])
+    self = Dict.update(self, Conf.header, Conf.sizes[self.size])
 
-    self.line_templates = Dict({
-        upper = self.upper .. self.fill:rep(self.width - 2) .. self.right,
-        middle = self.middle,
-        lower = self.lower .. self.fill:rep(self.width - 2) .. self.right,
+    self.upper = self.upper .. self.fill:rep(self.width - 2) .. self.right
+    self.lower = self.lower .. self.fill:rep(self.width - 2) .. self.right
+end
+
+function M:get_lines()
+    return List({
+        self.upper,
+        self.middle .. " " .. self.content,
+        self.lower,
     })
 end
 
-function Header:middle_line()
-    return self.middle .. " " .. self.content
-end
-
-function Header:get_lines()
-    return List({self.line_templates.upper, self:middle_line(), self.line_templates.lower})
-end
-
-function Header:__tostring()
+function M:__tostring()
     return self:get_lines():join("\n")
 end
 
-function Header:get_pattern(line_type)
-    local regex_info = Header.regex_info[line_type]
-
+function M:get_pattern(line_type)
     return List({
-        regex_info.pre or "",
-        self.line_templates[line_type],
-        regex_info.post or "",
+        "^",
+        self[line_type],
+        line_type == "middle" and "%s.*" or "$",
     }):join("")
 end
 
-function Header:str_is_upper(str)
+function M:str_is_upper(str)
     return str:match(self:get_pattern("upper")) or false
 end
 
-function Header:str_is_lower(str)
+function M:str_is_lower(str)
     return str:match(self:get_pattern("lower")) or false
 end
 
-function Header:str_is_middle(str)
+function M:str_is_middle(str)
     return str:match(self:get_pattern("middle")) or false
 end
 
-function Header:str_is_a(str)
+function M:str_is_a(str)
     return self:str_is_upper(str) or self:str_is_middle(str) or self:str_is_lower(str)
 end
 
-function Header:strs_are_a(l1, l2, l3)
-    return self:str_is_upper(l1) and self:str_is_middle(l2) and self:str_is_lower(l3)
+function M.headers()
+    return Dict(Conf.sizes):keys():transform(function(s) return M({size = s}) end)
 end
 
-function Header.headers()
-    return Dict(Header.sizes):keys():transform(function(s)
-        return Header({size = s})
-    end)
-end
-
-function Header.by_size()
-    local headers = Dict()
-    Dict(Header.sizes):keys():foreach(function(size)
-        headers[size] = Header({size = size})
-    end)
-    return headers
-end
-
-function Header:syntax()
+function M:syntax()
     local syntax = {}
-    self.line_templates:foreachk(function(line_type)
+    self.parts:foreach(function(line_type)
         syntax[self.size .. "Header" .. line_type] = {
             string = self:get_pattern(line_type):gsub("%%s.*", "\\s"),
             color = self.color,
@@ -87,4 +64,4 @@ function Header:syntax()
     return syntax
 end
 
-return Header
+return M
