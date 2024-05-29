@@ -198,3 +198,22 @@ describe("pop", function()
         assert.is_nil(d.a)
     end)
 end)
+
+describe("is_like", function()
+    it("-: non-table", function()
+        assert.is_false(Dict.is_like(1))
+        assert.is_false(Dict.is_like("a"))
+    end)
+    
+    it("-: list", function()
+        assert.is_false(Dict.is_like({1, 2, 3}))
+    end)
+    
+    it("+: empty table", function()
+        assert(Dict.is_like({}))
+    end)
+
+    it("+: key val", function()
+        assert(Dict.is_like({a = 1}))
+    end)
+end)

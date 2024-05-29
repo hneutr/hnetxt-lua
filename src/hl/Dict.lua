@@ -11,6 +11,13 @@ function Dict.__newindex(self, key, val)
     end
 end
 
+function Dict.is_like(v)
+    local result = true
+    result = result and type(v) == 'table'
+    result = result and #v == 0
+    return result
+end
+
 -- 1. convert tables into strings when getting
 -- 2. retrieve from Dict first.
 function Dict.__index(self, key)

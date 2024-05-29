@@ -59,17 +59,17 @@ describe("from", function()
     end)
 end)
 
-describe("is_listlike", function()
+describe("is_like", function()
     it("nil: -", function()
-        assert.falsy(List.is_listlike())
+        assert.falsy(List.is_like())
     end)
 
     it("dict: -", function()
-        assert.falsy(List.is_listlike({a = 1}))
+        assert.falsy(List.is_like({a = 1}))
     end)
 
     it("list: +", function()
-        assert(List.is_listlike({1, 2, 3}))
+        assert(List.is_like({1, 2, 3}))
     end)
 end)
 

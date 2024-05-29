@@ -41,7 +41,7 @@ return {
         remove = {
             {"title", default = Path.cwd():name(), description = "project title", args = "1"},
             action = function(args)
-                DB.projects:remove({where = {title = args.title}})
+                DB.projects:remove({title = args.title})
             end,
         },
     }

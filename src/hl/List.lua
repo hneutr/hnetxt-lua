@@ -16,20 +16,20 @@ function List.from(...)
     return List():extend(...)
 end
 
-function List.is_listlike(v)
+function List.is_like(v)
     if type(v) ~= 'table' then
         return false
     end
-
+    
     if #v > 0 then
         return true
     end
-
+    
     for _, _ in pairs(v) do
         return false
     end
-
-    return true
+    
+    return result
 end
 
 function List.as_list(v)

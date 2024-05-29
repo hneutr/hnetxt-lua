@@ -7,6 +7,32 @@ local M = {}
 M.constants_dir = Path.home / "lib/hnetxt-lua/constants"
 M.root = Path.home
 
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                    Yaml                                    --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
+function M.read(path)
+    local val = Yaml.read(path)
+    
+    for Class in List({Dict, List}):iter() do
+        if Class.is_like(val) then
+            return Class(val)
+        end
+    end
+    
+    return val
+end
+
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                   Paths                                    --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
 M.Paths = {}
 
 function M.Paths.define(key, for_test, path, parent)
@@ -57,6 +83,13 @@ function M.Paths.get_object(constants)
     )
 end
 
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                  Mirrors                                   --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
 M.Mirrors = {}
 
 function M.Mirrors.get_object(constants)
@@ -84,6 +117,13 @@ function M.Mirrors.get_object(constants)
     )
 end
 
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                 Constants                                  --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
 M.Constants = {}
 
 function M.Constants.define(key, path)
