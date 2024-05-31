@@ -6,7 +6,6 @@ local TaxonomyParser = require("htl.Taxonomy.Parser")
 local function get_syntax()
     if not vim.g.htn_syntax then
         local elements = Dict(Conf.syntax)
-        elements.Folded = {color = 'blue'}
         elements:update(require("htn.text.list").syntax())
 
         List.from(

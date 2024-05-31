@@ -1,6 +1,7 @@
 local BufferLines = require("hn.buffer_lines")
 local Color = require("hn.color")
 
+local Fold = require("htl.text.Fold")
 local Parser = require("htl.text.Parser")
 local metadata_divider = require("htl.text.divider").metadata_divider()
 
@@ -17,10 +18,9 @@ function M.get_text(lnum)
 end
 
 function M.set_line_info()
-    local parser = Parser()
     local lines = BufferLines.get()
-    vim.b.fold_levels = parser:get_fold_levels(lines)
-    vim.b.header_indexes = parser:get_header_indexes(lines)
+    vim.b.fold_levels = Fold.get_fold_levels(lines)
+    vim.b.header_indexes = Parser.get_header_indexes(lines)
 end
 
 function M.get_indic(lnum)

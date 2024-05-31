@@ -43,6 +43,10 @@ if vim.b.htn_project_path then
     mappings.i:update(ui.taxonomy_mappings("<M-t>"))
 end
 
+local TestFold = require("htl.text.Fold")
+mappings.n["zc"] = TestFold.fold_it("foldclose")
+mappings.n["zo"] = TestFold.fold_it("foldopen")
+
 mappings:foreach(function(mode, mode_mappings)
     mode_mappings:foreach(function(rhs, lhs)
         vim.keymap.set(mode, rhs, lhs, args)

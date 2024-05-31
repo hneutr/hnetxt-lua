@@ -7,6 +7,7 @@ M.valid_keys = Set({
     'bg',
     'sp',
     'bold',
+    'blend',
     'standout',
     'underline',
     'undercurl',

@@ -1,5 +1,6 @@
 local M = class()
 
+M.name = "header"
 M.parts = List({"upper", "middle", "lower"})
 
 function M:_init(args)
@@ -49,6 +50,16 @@ function M:str_is_a(str)
     return self:str_is_upper(str) or self:str_is_middle(str) or self:str_is_lower(str)
 end
 
+function M:lines_from_lower(str)
+    if self:str_is_lower(str) then
+        return
+    elseif self:str_is_middle(str) then
+        return 1
+    elseif self:str_is_upper(str) then
+        return 2
+    end
+end
+
 function M.headers()
     return Dict(Conf.sizes):keys():transform(function(s) return M({size = s}) end)
 end
@@ -58,7 +69,9 @@ function M:syntax()
     self.parts:foreach(function(line_type)
         syntax[self.size .. "Header" .. line_type] = {
             string = self:get_pattern(line_type):gsub("%%s.*", "\\s"),
-            color = self.color,
+            val = {
+                fg = self.color,
+            },
         }
     end)
     return syntax

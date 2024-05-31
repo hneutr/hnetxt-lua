@@ -77,6 +77,9 @@ build = {
         ["htc.move"] = "src/htc/move.lua",
         ["htc.Ontology"] = "src/htc/Ontology.lua",
         ["htc.ety"] = "src/htc/ety.lua",
+        
+        -- test
+        ["htl.text.Fold"] = "src/htl/text.Fold.lua",
     }
 }
 test = {

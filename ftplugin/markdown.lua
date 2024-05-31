@@ -9,9 +9,12 @@ vim.opt_local.shiftwidth = 2
 vim.opt_local.foldnestmax = 20
 vim.opt_local.foldlevel = 19
 vim.opt_local.foldmethod = 'expr'
+vim.opt_local.foldtext = ""
 vim.opt_local.foldexpr = 'hnetxt_nvim#foldexpr()'
-vim.opt_local.foldtext = "hnetxt_nvim#foldtext()"
-vim.opt_local.fillchars = {fold = " "}
+vim.opt_local.fillchars = {
+    fold = " ",
+    foldclose = "⋮",
+}
 vim.opt_local.foldminlines = 0
 vim.opt_local.foldenable = true
 

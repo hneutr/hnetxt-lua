@@ -1,4 +1,5 @@
 local M = class()
+M.name = "divider"
 
 function M:_init(size, style)
     self = Dict.update(self, {size = size, style = style}, Conf.divider)
