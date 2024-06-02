@@ -1,26 +1,12 @@
-local BufferLines = require("hn.buffer_lines")
-local Color = require("hn.color")
-
-local Fold = require("htl.text.Fold")
-local Parser = require("htl.text.Parser")
-local metadata_divider = require("htl.text.divider").metadata_divider()
-
 local M = {}
 
-function M.get_text(lnum)
-    if M.get_indic(lnum + 1) == metadata_divider.fold_level then
-        return tostring(metadata_divider)
-    else
-        local text = BufferLines.line.get({start_line = lnum})
-        local whitespace, text = text:match("^(%s*)(.*)")
-        return whitespace .. "..."
-    end
-end
-
 function M.set_line_info()
+    local BufferLines = require("hn.buffer_lines")
+    local Fold = require("htl.text.Fold")
+
     local lines = BufferLines.get()
     vim.b.fold_levels = Fold.get_fold_levels(lines)
-    vim.b.header_indexes = Parser.get_header_indexes(lines)
+    vim.b.header_indexes = Fold.get_header_indexes(lines)
 end
 
 function M.get_indic(lnum)

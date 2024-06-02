@@ -59,7 +59,7 @@ build = {
 
         ["htl.text.divider"] = "src/htl/text/divider.lua",
         ["htl.text.header"] = "src/htl/text/header.lua",
-        ["htl.text.Parser"] = "src/htl/text/Parser.lua",
+        ["htl.text.Fold"] = "src/htl/text/Fold.lua",
         ["htl.text.Line"] = "src/htl/text/Line.lua",
         ["htl.text.List"] = "src/htl/text/List/init.lua",
         ["htl.text.List.Item"] = "src/htl/text/List/Item.lua",
@@ -78,8 +78,6 @@ build = {
         ["htc.Ontology"] = "src/htc/Ontology.lua",
         ["htc.ety"] = "src/htc/ety.lua",
         
-        -- test
-        ["htl.text.Fold"] = "src/htl/text.Fold.lua",
     }
 }
 test = {
