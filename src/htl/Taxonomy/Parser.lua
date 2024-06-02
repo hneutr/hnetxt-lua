@@ -334,7 +334,7 @@ function TagRelation:make(tag)
 end
 
 function TagRelation:annotate_condition(condition, str)
-    condition.key = str:split(M.conf.grammar.or_delimiter):gsub(self.symbol, "")
+    condition.key = str:gsub(self.symbol, ""):split(M.conf.grammar.or_delimiter)
     return condition
 end
 
