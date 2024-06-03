@@ -68,6 +68,11 @@ function M.start()
 
         M.set_file_url(path)
     end
+
+    vim.cmd([[
+        normal zR
+        noautocmd silent! loadview
+    ]])
 end
 
 function M.change()
@@ -100,6 +105,8 @@ function M.leave()
     end
     
     vim.b.htn_modified = false
+    
+    vim.cmd("noautocmd silent! mkview")
 end
 
 --------------------------------------------------------------------------------
@@ -363,39 +370,8 @@ function M.fold_operation(operation)
             cursor.row = cursor.row - lines_from_lower
             M.set_cursor(cursor)
         end        
-
-        if operation == 'zm' or operation == 'zM' then
-        --     List(vim.b.header_indexes):foreach(function(i)
-        --         M.set_cursor({row = i})
-        --         vim.cmd("foldopen")
-        --         M.set_cursor({row = i - 1})
-        --         vim.cmd("foldopen")
-        --     end)
-            M.set_cursor(cursor)
-        end
     end
 end
-
--- -- Automatically remembers folds after closing and reopening
--- local remember = vim.api.nvim_create_augroup("remember", { clear = true })
--- local function remember_folding_autocmds()
--- 	vim.api.nvim_create_autocmd({ "BufWinLeave", "BufWritePost" }, {
--- 		buffer = 0,
--- 		group = remember,
--- 		command = "noautocmd silent! mkview",
--- 	})
---
--- 	vim.api.nvim_create_autocmd({ "BufWinEnter" }, {
--- 		buffer = 0,
--- 		group = remember,
--- 		callback = function()
--- 			vim.cmd([[
--- 				normal zR
--- 				noautocmd silent! loadview
--- 			]])
--- 		end,
--- 	})
--- end
 
 --------------------------------------------------------------------------------
 --                                                                            --

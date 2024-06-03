@@ -12,10 +12,10 @@ local mappings = Dict(
             zO = ui.fold_operation("zO"),
             za = ui.fold_operation("za"),
             zA = ui.fold_operation("zA"),
-            zm = ui.fold_operation("zm"),
-            zM = ui.fold_operation("zM"),
             zr = ui.fold_operation("zr"),
             zR = ui.fold_operation("zR"),
+            -- zm = ui.fold_operation("zm"),
+            -- zM = ui.fold_operation("zM"),
 
             ["<c-p>"] = ui.jump_to_header(-1),
             ["<c-n>"] = ui.jump_to_header(1),
