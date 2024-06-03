@@ -1,4 +1,3 @@
-local Fold = require("htn.ui.fold")
 local ui = require("htn.ui")
 
 local args = {silent = true, buffer = true}
@@ -6,8 +5,10 @@ local args = {silent = true, buffer = true}
 local mappings = Dict(
     {
         n = Dict({
-            ["<c-p>"] = Fold.jump_to_header(-1),
-            ["<c-n>"] = Fold.jump_to_header(1),
+            zc = ui.fold_operation("foldclose"),
+            zo = ui.fold_operation("foldopen"),
+            ["<c-p>"] = ui.jump_to_header(-1),
+            ["<c-n>"] = ui.jump_to_header(1),
             -- url opening
             ["<M-l>"] = ui.goto_map_fn("vsplit"),
             ["<M-j>"] = ui.goto_map_fn("split"),
@@ -42,10 +43,6 @@ if vim.b.htn_project_path then
     -- taxonomy symbols
     mappings.i:update(ui.taxonomy_mappings("<M-t>"))
 end
-
-local TestFold = require("htl.text.Fold")
-mappings.n["zc"] = TestFold.fold_it("foldclose")
-mappings.n["zo"] = TestFold.fold_it("foldopen")
 
 mappings:foreach(function(mode, mode_mappings)
     mode_mappings:foreach(function(rhs, lhs)

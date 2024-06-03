@@ -27,27 +27,6 @@ function M.get_fold_level(str)
     return Line.get_indent_level(str) + M.text_foldlevel
 end
 
-function M.fold_it(operation)
-    return function()
-        local lower_distance
-        local cursor = vim.fn.getpos('.')
-
-        local lines_from_lower = M.get_lower_distance()
-
-        if lines_from_lower then
-            cursor[2] = cursor[2] + lines_from_lower
-            vim.fn.setpos(".", cursor)
-        end
-
-        vim.cmd(operation)
-
-        if lines_from_lower then
-            cursor[2] = cursor[2] - lines_from_lower
-            vim.fn.setpos(".", cursor)
-        end
-    end
-end
-
 function M.get_lower_distance()
     local l = vim.fn.getline('.')
     for header in M.headers:iter() do

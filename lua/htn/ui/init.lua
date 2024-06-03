@@ -1,11 +1,11 @@
+local fzf = require("fzf-lua")
+
 local Link = require("htl.text.Link")
 local Line = require("htl.text.Line")
 local URLDefinition = require("htl.text.URLDefinition")
 local Mirrors = require("htl.Mirrors")
 local TaxonomyParser = require("htl.Taxonomy.Parser")
-local Fold = require('htn.ui.fold')
-
-local fzf = require("fzf-lua")
+local Fold = require("htl.text.Fold")
 
 local BufferLines = require("hn.buffer_lines")
 
@@ -41,7 +41,7 @@ end
 
 function M.change()
     vim.b.htn_modified = true
-    Fold.set_line_info()
+    M.set_foldlevels()
 end
 
 function M.enter()
@@ -51,10 +51,21 @@ end
 function M.leave()
     if vim.b.htn_modified then
         local path = Path.this()
+        
+        local update_link_urls = true
+
+        if Mirrors:is_mirror(path) then
+            path = Mirrors:get_source(path)
+            update_link_urls = false
+        end
+        
         M.set_file_url(path)
 
         TaxonomyParser:record(DB.urls:get_file(path))
-        DB.urls:update_link_urls(path, List(BufferLines.get()))
+        
+        if update_link_urls then
+            DB.urls:update_link_urls(path, List(BufferLines.get()))
+        end
     end
     
     vim.b.htn_modified = false
@@ -155,9 +166,6 @@ end
 
 function M.goto_map_fn(open_cmd) return function() M.goto(open_cmd) end end
 
-
-
-
 function M.bind_fuzzy_scope(fn, scope)
     return function(selection)
         fn(selection, scope)
@@ -192,10 +200,10 @@ function M.fuzzy_insert(selection, scope)
     local cursor = vim.fn.getpos('.')
     local col = cursor[3]
 
-    local line = BufferLines.cursor.get()
+    local line = vim.fn.getline('.')
     line, cursor[3] = Line.insert_at_pos(line, col, reference)
     
-    BufferLines.cursor.set({replacement = {line}})
+    vim.fn.setline('.', line)
 
     vim.fn.setpos('.', cursor)
     vim.api.nvim_input(cursor[3] > #line and 'a' or 'i')
@@ -242,28 +250,6 @@ function M.taxonomy_mappings(prefix)
         Dict(Conf.Taxonomy.relations):keys(),
         function(key) return prefix .. key:sub(1, 1), Conf.Taxonomy.relations[key].symbol end
     )
-end
-
-function M.scratch(mode)
-    local lines = List(BufferLines.selection.get({mode = mode}))
-    BufferLines.selection.cut({mode = mode})
-
-    if lines[#lines] ~= "" then
-        lines:append("")
-    end
-
-    local path = Path:this()
-    M.set_file_url(path)
-
-    local scratch_path = Mirrors:get_path(path, "scratch")
-
-    if scratch_path then
-        if scratch_path:exists() then
-            lines:append(scratch_path:read())
-        end
-
-        scratch_path:write(lines)
-    end
 end
 
 function M.quote()
@@ -327,6 +313,99 @@ end
 
 --     vim.api.nvim_put({tostring(DB.urls:get_reference(url))} , 'c', 1, 0)
 -- end
+
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                             folds and headers                              --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
+function M.jump_to_header(direction)
+    return function()
+        local lnum = vim.api.nvim_win_get_cursor(0)[1]
+        local header_indexes = List(vim.b.header_indexes)
+        header_indexes:put(1)
+        header_indexes:append(vim.fn.line('$'))
+
+        local candidates
+
+        if direction == 1 then
+            candidates = header_indexes:filter(function(hi) return hi > lnum end)
+        else
+            candidates = header_indexes:filter(function(hi) return hi < lnum end):reverse()
+        end
+
+        if #candidates > 0 then
+            vim.api.nvim_win_set_cursor(0, {candidates[1], 0})
+            vim.cmd("normal zz")
+        end
+    end
+end
+
+function M.set_foldlevels()
+    local lines = BufferLines.get()
+    vim.b.fold_levels = Fold.get_fold_levels(lines)
+    vim.b.header_indexes = Fold.get_header_indexes(lines)
+end
+
+function M.get_foldlevel(lnum)
+    if not vim.b.fold_levels then
+        M.set_foldlevels()
+    end
+
+    return vim.b.fold_levels[lnum]
+end
+
+function M.fold_operation(operation)
+    return function()
+        local lower_distance
+        local cursor = vim.fn.getpos('.')
+
+        local lines_from_lower = Fold.get_lower_distance()
+
+        if lines_from_lower then
+            cursor[2] = cursor[2] + lines_from_lower
+            vim.fn.setpos(".", cursor)
+        end
+
+        vim.cmd(operation)
+
+        if lines_from_lower then
+            cursor[2] = cursor[2] - lines_from_lower
+            vim.fn.setpos(".", cursor)
+        end
+    end
+end
+
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                  scratch                                   --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
+function M.scratch(mode)
+    local lines = List(BufferLines.selection.get({mode = mode}))
+    BufferLines.selection.set({mode = mode})
+
+    if lines[#lines] ~= "" then
+        lines:append("")
+    end
+
+    local path = Path:this()
+    M.set_file_url(path)
+
+    local scratch_path = Mirrors:get_path(path, "scratch")
+
+    if scratch_path then
+        if scratch_path:exists() then
+            lines:append(scratch_path:read())
+        end
+
+        scratch_path:write(lines)
+    end
+end
 
 M.scratch_map_fn = function() M.scratch('n') end
 M.scratch_map_visual_cmd = [[:'<,'>lua require('htn.ui').scratch('v')<cr>]]
