@@ -4,19 +4,18 @@ local M = {}
 --                              generic line ops                              --
 --------------------------------------------------------------------------------
 function M._do(args)
-    local a = Dict(args or {}, {
-        action = nil,
-        buffer = 0,
-        start_line = 0,
-        end_line = vim.fn.line('$'), 
-        strict_indexing = false,
-        replacement = {},
+    local l = List({
+        args.buffer or 0,
+        args.start_line or 0,
+        args.end_line or vim.fn.line('$'),
+        args.strict_indexing or false,
     })
 
-    if a.action == 'get' then
-        return vim.api.nvim_buf_get_lines(a.buffer, a.start_line, a.end_line, a.strict_indexing)
-    elseif a.action == 'set' then
-        return vim.api.nvim_buf_set_lines(a.buffer, a.start_line, a.end_line, a.strict_indexing, a.replacement)
+    if args.action == 'get' then
+        return List(vim.api.nvim_buf_get_lines(unpack(l)))
+    elseif args.action == 'set' then
+        l:append(args.replacement or {})
+        vim.api.nvim_buf_set_lines(unpack(l))
     end
 end
 
@@ -25,7 +24,7 @@ function M.get(args)
 end
 
 function M.set(args)
-    return M._do(Dict(args or {}, {action = 'set'}))
+    M._do(Dict(args or {}, {action = 'set'}))
 end
 
 --------------------------------------------------------------------------------
@@ -65,7 +64,7 @@ function M.selection.get(args)
 end
 
 function M.selection.set(args)
-    return M.set(M.selection._set_range(args))
+    M.set(M.selection._set_range(args))
 end
 
 return M

@@ -5,8 +5,18 @@ local args = {silent = true, buffer = true}
 local mappings = Dict(
     {
         n = Dict({
-            zc = ui.fold_operation("foldclose"),
-            zo = ui.fold_operation("foldopen"),
+            -- folds
+            zc = ui.fold_operation("zc"),
+            zC = ui.fold_operation("zC"),
+            zo = ui.fold_operation("zo"),
+            zO = ui.fold_operation("zO"),
+            za = ui.fold_operation("za"),
+            zA = ui.fold_operation("zA"),
+            zm = ui.fold_operation("zm"),
+            zM = ui.fold_operation("zM"),
+            zr = ui.fold_operation("zr"),
+            zR = ui.fold_operation("zR"),
+
             ["<c-p>"] = ui.jump_to_header(-1),
             ["<c-n>"] = ui.jump_to_header(1),
             -- url opening

@@ -23,6 +23,37 @@ M.suffix_to_open_cmd = Dict({
 --------------------------------------------------------------------------------
 --                                                                            --
 --                                                                            --
+--                                   utils                                    --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
+function M.set_cursor(args)
+    args = args or {}
+
+    vim.api.nvim_win_set_cursor(
+        args.buffer or 0,
+        {
+            args.row or 1,
+            args.col or 0,
+        }
+    )
+    
+    if args.center then
+        vim.cmd("normal zz")
+    end
+end
+
+function M.get_cursor(args)
+    args = args or {}
+    
+    local c = {}
+    c.row, c.col = unpack(vim.api.nvim_win_get_cursor(args.window or 0))
+    return c
+end
+
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
 --                                   events                                   --
 --                                                                            --
 --                                                                            --
@@ -64,7 +95,7 @@ function M.leave()
         TaxonomyParser:record(DB.urls:get_file(path))
         
         if update_link_urls then
-            DB.urls:update_link_urls(path, List(BufferLines.get()))
+            DB.urls:update_link_urls(path, BufferLines.get())
         end
     end
     
@@ -143,8 +174,7 @@ function M.goto_url(open_command, url)
         for line_number, line in ipairs(BufferLines.get()) do
             local link = URLDefinition:from_str(line)
             if link and tonumber(link.url) == url.id then
-                vim.api.nvim_win_set_cursor(0, {line_number, 0})
-                vim.cmd("normal zz")
+                M.set_cursor({row = line_number, center = true})
                 return
             end
         end
@@ -274,46 +304,6 @@ function M.set_time()
     vim.api.nvim_buf_set_lines(unpack(args))
 end
 
-
--- function M.LinkToFile()
---     print("this doesn't work yet")
---     local cursor_col = vim.api.nvim_win_get_cursor(0)[2]
---     local url_id = URLDefinition:get_nearest(vim.fn.getline('.'), cursor_col).url
-
---     if url_id then
---         url_id = tonumber(url_id)
---     else
---         return
---     end
-
---     local old_url_id = DB.urls:where({path = Path.this(), type = "file"}).id
-    
---     DB.urls:remove({id = old_url_id})
---     DB.urls:update({
---         where = {id = url_id},
---         set = {type = "file", label = ""}
---     })
--- end
-
--- function M.FileToLink()
---     print("this doesn't work yet")
---     local path = Path.this()
---     local file_q = {path = path, type = "file"}
---     local url = DB.urls:where(file_q)
-
---     DB.urls:update({
---         where = {id = url.id},
---         set = {
---             type = "link",
---             label = url.path:stem():gsub("-", " "),
---         }
---     })
-
---     DB.urls:insert({path = path})
-
---     vim.api.nvim_put({tostring(DB.urls:get_reference(url))} , 'c', 1, 0)
--- end
-
 --------------------------------------------------------------------------------
 --                                                                            --
 --                                                                            --
@@ -323,7 +313,7 @@ end
 --------------------------------------------------------------------------------
 function M.jump_to_header(direction)
     return function()
-        local lnum = vim.api.nvim_win_get_cursor(0)[1]
+        local row = M.get_cursor().row
         local header_indexes = List(vim.b.header_indexes)
         header_indexes:put(1)
         header_indexes:append(vim.fn.line('$'))
@@ -331,14 +321,13 @@ function M.jump_to_header(direction)
         local candidates
 
         if direction == 1 then
-            candidates = header_indexes:filter(function(hi) return hi > lnum end)
+            candidates = header_indexes:filter(function(hi) return hi > row end)
         else
-            candidates = header_indexes:filter(function(hi) return hi < lnum end):reverse()
+            candidates = header_indexes:filter(function(hi) return hi < row end):reverse()
         end
 
         if #candidates > 0 then
-            vim.api.nvim_win_set_cursor(0, {candidates[1], 0})
-            vim.cmd("normal zz")
+            M.set_cursor({row = candidates[1], center = true})
         end
     end
 end
@@ -349,34 +338,64 @@ function M.set_foldlevels()
     vim.b.header_indexes = Fold.get_header_indexes(lines)
 end
 
-function M.get_foldlevel(lnum)
+function M.get_foldlevel(row)
     if not vim.b.fold_levels then
         M.set_foldlevels()
     end
 
-    return vim.b.fold_levels[lnum]
+    return vim.b.fold_levels[row]
 end
 
 function M.fold_operation(operation)
     return function()
-        local lower_distance
-        local cursor = vim.fn.getpos('.')
-
+        local cursor = M.get_cursor()
         local lines_from_lower = Fold.get_lower_distance()
 
         if lines_from_lower then
-            cursor[2] = cursor[2] + lines_from_lower
-            vim.fn.setpos(".", cursor)
+            cursor.row = cursor.row + lines_from_lower
+            M.set_cursor(cursor)
         end
 
-        vim.cmd(operation)
+        vim.opt_local.foldmethod = vim.opt_local.foldmethod:get()
+		vim.cmd("normal! " .. operation)
 
         if lines_from_lower then
-            cursor[2] = cursor[2] - lines_from_lower
-            vim.fn.setpos(".", cursor)
+            cursor.row = cursor.row - lines_from_lower
+            M.set_cursor(cursor)
+        end        
+
+        if operation == 'zm' or operation == 'zM' then
+        --     List(vim.b.header_indexes):foreach(function(i)
+        --         M.set_cursor({row = i})
+        --         vim.cmd("foldopen")
+        --         M.set_cursor({row = i - 1})
+        --         vim.cmd("foldopen")
+        --     end)
+            M.set_cursor(cursor)
         end
     end
 end
+
+-- -- Automatically remembers folds after closing and reopening
+-- local remember = vim.api.nvim_create_augroup("remember", { clear = true })
+-- local function remember_folding_autocmds()
+-- 	vim.api.nvim_create_autocmd({ "BufWinLeave", "BufWritePost" }, {
+-- 		buffer = 0,
+-- 		group = remember,
+-- 		command = "noautocmd silent! mkview",
+-- 	})
+--
+-- 	vim.api.nvim_create_autocmd({ "BufWinEnter" }, {
+-- 		buffer = 0,
+-- 		group = remember,
+-- 		callback = function()
+-- 			vim.cmd([[
+-- 				normal zR
+-- 				noautocmd silent! loadview
+-- 			]])
+-- 		end,
+-- 	})
+-- end
 
 --------------------------------------------------------------------------------
 --                                                                            --
@@ -386,7 +405,7 @@ end
 --                                                                            --
 --------------------------------------------------------------------------------
 function M.scratch(mode)
-    local lines = List(BufferLines.selection.get({mode = mode}))
+    local lines = BufferLines.selection.get({mode = mode})
     BufferLines.selection.set({mode = mode})
 
     if lines[#lines] ~= "" then
