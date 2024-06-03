@@ -164,10 +164,6 @@ function M.set_file_url(path)
     end
 end
 
-function M.spellfile(project)
-    return tostring(Conf.paths.spell_dir / string.format("%s.%s", project, Conf.paths.spell_file:name()))
-end
-
 function M.goto_url(open_command, url)
     if not url then
         return
@@ -178,10 +174,10 @@ function M.goto_url(open_command, url)
     end
 
     if url.type == 'link' then
-        for line_number, line in ipairs(BufferLines.get()) do
+        for row, line in ipairs(BufferLines.get()) do
             local link = URLDefinition:from_str(line)
             if link and tonumber(link.url) == url.id then
-                M.set_cursor({row = line_number, center = true})
+                M.set_cursor({row = row, center = true})
                 return
             end
         end
@@ -189,14 +185,13 @@ function M.goto_url(open_command, url)
 end
 
 function M.goto(open_command)
-    local cursor_col = vim.api.nvim_win_get_cursor(0)[2]
-    local url_id = Link:get_nearest(vim.fn.getline('.'), cursor_col).url
+    local url = Link:get_nearest(vim.fn.getline('.'), M.get_cursor().col).url
 
-    if url_id then
-        if Path(url_id):is_url() then
-            os.execute(string.format("open %s", url_id))
+    if url then
+        if Path(url):is_url() then
+            os.execute(string.format("open %s", url))
         else
-            M.goto_url(open_command, DB.urls:where({id = url_id}))
+            M.goto_url(open_command, DB.urls:where({id = url}))
         end
     end
 end
@@ -265,51 +260,16 @@ function M.map_fuzzy(operation, scope)
     end
 end
 
-function M.mirror_mappings()
-    if not vim.g.htn_mirror_mappings then
-        local mappings = Dict()
-        Conf.mirror:keys():foreach(function(kind)
-            M.suffix_to_open_cmd:foreach(function(suffix, open_cmd)
-                mappings[vim.g.htn_mirror_prefix .. Conf.mirror[kind].mapkey .. suffix] = function()
-                    Mirrors:get_path(Path.this(), kind):open(open_cmd)
-                end
-            end)
-        end)
-
-        vim.g.htn_mirror_mappings = mappings
-    end
-
-    return Dict(vim.g.htn_mirror_mappings)
-end
-
-function M.taxonomy_mappings(prefix)
-    return Dict.from_list(
-        Dict(Conf.Taxonomy.relations):keys(),
-        function(key) return prefix .. key:sub(1, 1), Conf.Taxonomy.relations[key].symbol end
-    )
-end
-
-function M.quote()
-    vim.api.nvim_input("iquote<tab>")
-
-    local source = DB.urls:get_reference(DB.urls:where({path = Path.this():parent():join(Conf.paths.dir_file)}))
-    if source then
-        vim.api.nvim_input(tostring(source))
-        vim.api.nvim_input("<C-f>")
-    end
-end
-
-function M.set_time()
-    local line_number = vim.api.nvim_win_get_cursor(0)[1] - 1
-
-    local args = List({0, line_number, line_number + 1, false})
-    local line = vim.api.nvim_buf_get_lines(unpack(args))[1]
-    local new_line = line:gsub("TT", tostring(os.date("%H:%M")), 1)
-
-    args:append({new_line})
-
-    vim.api.nvim_buf_set_lines(unpack(args))
-end
+M.fuzzy_operation_actions = {
+    goto = {
+        default = M.fuzzy_goto_map_fn("edit"),
+        ["ctrl-j"] = M.fuzzy_goto_map_fn("split"),
+        ["ctrl-l"] = M.fuzzy_goto_map_fn("vsplit"),
+        ["ctrl-t"] = M.fuzzy_goto_map_fn("tabedit"),
+    },
+    put = {default = M.fuzzy_put},
+    insert = {default = M.fuzzy_insert},
+}
 
 --------------------------------------------------------------------------------
 --                                                                            --
@@ -405,15 +365,62 @@ end
 M.scratch_map_fn = function() M.scratch('n') end
 M.scratch_map_visual_cmd = [[:'<,'>lua require('htn.ui').scratch('v')<cr>]]
 
-M.fuzzy_operation_actions = {
-    goto = {
-        default = M.fuzzy_goto_map_fn("edit"),
-        ["ctrl-j"] = M.fuzzy_goto_map_fn("split"),
-        ["ctrl-l"] = M.fuzzy_goto_map_fn("vsplit"),
-        ["ctrl-t"] = M.fuzzy_goto_map_fn("tabedit"),
-    },
-    put = {default = M.fuzzy_put},
-    insert = {default = M.fuzzy_insert},
-}
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                    misc                                    --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
+function M.spellfile(project)
+    return tostring(Conf.paths.spell_dir / string.format("%s.%s", project, Conf.paths.spell_file:name()))
+end
+
+function M.mirror_mappings()
+    if not vim.g.htn_mirror_mappings then
+        local mappings = Dict()
+        Conf.mirror:keys():foreach(function(kind)
+            M.suffix_to_open_cmd:foreach(function(suffix, open_cmd)
+                mappings[vim.g.htn_mirror_prefix .. Conf.mirror[kind].mapkey .. suffix] = function()
+                    Mirrors:get_path(Path.this(), kind):open(open_cmd)
+                end
+            end)
+        end)
+
+        vim.g.htn_mirror_mappings = mappings
+    end
+
+    return Dict(vim.g.htn_mirror_mappings)
+end
+
+function M.taxonomy_mappings(prefix)
+    return Dict.from_list(
+        Dict(Conf.Taxonomy.relations):keys(),
+        function(key) return prefix .. key:sub(1, 1), Conf.Taxonomy.relations[key].symbol end
+    )
+end
+
+function M.quote()
+    vim.api.nvim_input("iquote<tab>")
+
+    local path = Path.this():parent() / Conf.paths.dir_file
+    local source = DB.urls:get_reference(DB.urls:where({path = path}))
+
+    if source then
+        vim.api.nvim_input(tostring(source))
+        vim.api.nvim_input("<C-f>")
+    end
+end
+
+function M.set_time()
+    local row = M.get_cursor().row
+    local args = List({0, row - 1, row, false})
+
+    local line = vim.api.nvim_buf_get_lines(unpack(args))[1]
+    local new_line = line:gsub("TT", tostring(os.date("%H:%M")), 1)
+    args:append({new_line})
+
+    vim.api.nvim_buf_set_lines(unpack(args))
+end
 
 return M
