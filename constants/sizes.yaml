@@ -1,20 +1,20 @@
 large: 
     width: 80
     color: red
-    fold_level: 0
+    fold_level: 1
     middle: ┣
 medium: 
     width: 60
     color: peach
-    fold_level: 1
+    fold_level: 2
     middle: ┠
 small:
     width: 40
     color: yellow
-    fold_level: 2
+    fold_level: 3
     middle: ┃
 tiny:
     width: 20
     color: teal
-    fold_level: 3
+    fold_level: 4
     middle: ┇

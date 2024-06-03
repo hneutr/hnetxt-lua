@@ -1,13 +1,15 @@
 local Header = require("htl.text.header")
 local Divider = require("htl.text.divider")
 local Line = require("htl.text.Line")
+local Item = require("htl.text.List.Item")
+local TextList = require("htl.text.List")
 local metadata_divider = Divider.metadata_divider()
 
 local M = {}
 M.headers = Header.headers()
 M.dividers = Divider.dividers()
 M.barriers = List.from(M.headers, M.dividers)
-M.text_foldlevel = math.max(unpack(M.barriers:col('fold_level'))) + 2
+M.text_foldlevel = math.max(unpack(M.barriers:col('fold_level'))) + 1
 
 function M.get_fold_levels(lines)
     return List(lines):map(M.get_fold_level)
@@ -20,11 +22,19 @@ function M.get_fold_level(str)
 
     for barrier in M.barriers:iter() do
         if barrier:str_is_a(str) then
-            return string.format(">%d", barrier.fold_level + 1)
+            return string.format(">%d", barrier.fold_level)
         end
     end
+    
+    local line = TextList:parse_line(str)
+    
+    local fold_level = Line.get_indent_level(str) + M.text_foldlevel
+    
+    if line:is_a(Item) then
+        return string.format(">%d", fold_level)
+    end
 
-    return Line.get_indent_level(str) + M.text_foldlevel
+    return fold_level
 end
 
 function M.get_lower_distance()
