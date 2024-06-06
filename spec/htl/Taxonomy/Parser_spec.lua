@@ -358,7 +358,7 @@ describe("is_metadata_line", function()
     end)
     
     it("-: divider", function()
-        assert.is_false(F(tostring(Divider("large", "metadata"))))
+        assert.is_false(F(tostring(Divider.metadata_divider())))
     
     end)
 

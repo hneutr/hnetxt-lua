@@ -77,7 +77,27 @@ local M = class()
 
 function M:_init(definition_name, args)
     self.definition = Dict(Conf.snippets[definition_name])
-    -- self.raw_metadata, self.text = unpack(Yaml.read_document(path, true))
+    self.lines, self.row = self:inflate_template(self.definition.template, args or {})
+end
+
+function M:inflate_template(text, args)
+    local row
+    local lines = List()
+    local regex = "%$%d+$"
+    for i, line in ipairs(text:strip():splitlines()) do
+        if line:match(regex) then
+            local k, v = utils.parsekv(line)
+            line = line:gsub(regex, args[k] ~= nil and tostring(args[k]) or "")
+            
+            if args[k] == nil then
+                row = row or i
+            end
+        end
+        
+        lines:append(line)
+    end
+    
+    return lines, row or i
 end
 
 Snippet.M = M

@@ -12,7 +12,7 @@ local function get_syntax()
             Header.headers(),
             Divider.dividers(),
             TaxonomyParser.Relations,
-            {Divider("large", "metadata")},
+            {Divider.metadata_divider()},
             {}
         ):foreach(function(e)
             elements:update(e:syntax())

@@ -401,17 +401,15 @@ function M.taxonomy_mappings(prefix)
 end
 
 function M.quote(page_number)
-    vim.g.test = page_number
+    local path = Path.this()
+    local snippet = require("htl.Snippet").M("quote", {
+        ["on page"] = page_number,
+        source = DB.urls:get_reference(DB.urls:where({path = path:parent() / Conf.paths.dir_file})),
+    })
     
-    -- vim.api.nvim_input("iquote<tab>")
-    --
-    -- local path = Path.this():parent() / Conf.paths.dir_file
-    -- local source = DB.urls:get_reference(DB.urls:where({path = path}))
-    --
-    -- if source then
-    --     vim.api.nvim_input(tostring(source))
-    --     vim.api.nvim_input("<C-f>")
-    -- end
+    BufferLines.set({replacement = snippet.lines})
+    M.set_cursor({row = snippet.row})
+    vim.api.nvim_input("A")
 end
 
 function M.set_time()

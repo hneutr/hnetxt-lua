@@ -1,8 +1,8 @@
 local M = class()
 M.name = "divider"
 
-function M:_init(size, style)
-    self = Dict.update(self, {size = size, style = style}, Conf.divider)
+function M:_init(args)
+    self = Dict.update(self, args or {}, Conf.divider)
     self = Dict.update(self, Conf.divider[self.style], Conf.sizes[self.size])
 end
 
@@ -19,11 +19,11 @@ function M:str_is_a(str)
 end
 
 function M.dividers()
-    return Dict(Conf.sizes):keys():transform(M)
+    return Dict(Conf.sizes):keys():transform(function(size) return M({size = size}) end)
 end
 
 function M.metadata_divider()
-    return M("large", "metadata")
+    return M({size = "large", style = "metadata"})
 end
 
 function M:syntax()

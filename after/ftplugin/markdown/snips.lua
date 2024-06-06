@@ -24,9 +24,11 @@ local function header(trigger, size)
 end
 
 local function divider(trigger, size, style)
+    -- print(size)
+    -- print(style)
     return parse_snippet(
         trigger,
-        tostring(Divider(size, style)) .. "\n",
+        tostring(Divider({size = size, style = style})) .. "\n",
         {trim_empty = false}
     )
 end
@@ -47,7 +49,6 @@ local snippets = List({
     header("hs", "small"),
     header("hsx", "tiny"),
 })
-
 
 Conf.snippets:keys():foreach(function(key)
     snippets:append(parse_snippet(key, Conf.snippets[key].template))
