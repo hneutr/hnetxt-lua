@@ -68,4 +68,18 @@ function Snippet:parse_line(line)
     return key, val
 end
 
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                 inflation                                  --
+--                                                                            --
+--------------------------------------------------------------------------------
+local M = class()
+
+function M:_init(definition_name, args)
+    self.definition = Dict(Conf.snippets[definition_name])
+    -- self.raw_metadata, self.text = unpack(Yaml.read_document(path, true))
+end
+
+Snippet.M = M
+
 return Snippet

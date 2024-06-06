@@ -1,4 +1,4 @@
-snippet: |
+template: |
     is a: book
       title: $1
       by: $2

@@ -1,5 +1,5 @@
 local Taxonomy = require("htl.Taxonomy")
-local Snippet = require("htl.snippet")
+local Snippet = require("htl.Snippet")
 
 local M = SqliteTable("samples", {
     id = true,

@@ -1,4 +1,4 @@
-snippet: |
+template: |
     is a: exercise
       source: $1
 

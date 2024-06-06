@@ -400,16 +400,18 @@ function M.taxonomy_mappings(prefix)
     )
 end
 
-function M.quote()
-    vim.api.nvim_input("iquote<tab>")
-
-    local path = Path.this():parent() / Conf.paths.dir_file
-    local source = DB.urls:get_reference(DB.urls:where({path = path}))
-
-    if source then
-        vim.api.nvim_input(tostring(source))
-        vim.api.nvim_input("<C-f>")
-    end
+function M.quote(page_number)
+    vim.g.test = page_number
+    
+    -- vim.api.nvim_input("iquote<tab>")
+    --
+    -- local path = Path.this():parent() / Conf.paths.dir_file
+    -- local source = DB.urls:get_reference(DB.urls:where({path = path}))
+    --
+    -- if source then
+    --     vim.api.nvim_input(tostring(source))
+    --     vim.api.nvim_input("<C-f>")
+    -- end
 end
 
 function M.set_time()

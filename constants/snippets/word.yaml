@@ -1,4 +1,4 @@
-snippet: |
+template: |
     is a: word
       source: $1
       @${2|unknown,cool|}

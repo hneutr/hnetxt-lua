@@ -1,4 +1,4 @@
-snippet: |
+template: |
     is a: quote
       source: $1
       on page: $2

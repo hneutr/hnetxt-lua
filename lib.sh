@@ -23,7 +23,7 @@ function aim() {
 }
 
 function quote() {
-    nvim $(hnetxt quote $@) +"lua require('htn.ui').quote()"
+    nvim $(hnetxt quote) +"lua require('htn.ui').quote($1)"
 }
 
 function lang() {

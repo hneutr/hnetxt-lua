@@ -40,7 +40,7 @@ build = {
         ["htl.Config"] = "src/htl/config.lua",
         ["htl.journal"] = "src/htl/journal.lua",
         ["htl.goals"] = "src/htl/goals.lua",
-        ["htl.snippet"] = "src/htl/snippet.lua",
+        ["htl.Snippet"] = "src/htl/snippet.lua",
 
         ["htl.db"] = "src/htl/db/init.lua",
         ["htl.db.util"] = "src/htl/db/util.lua",

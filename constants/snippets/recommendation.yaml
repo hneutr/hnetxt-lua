@@ -1,4 +1,4 @@
-snippet: |
+template: |
     is a: recommendation
       of: $1
       by: $2
