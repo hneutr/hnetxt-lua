@@ -1,4 +1,5 @@
 local fzf = require("fzf-lua")
+local ufo = require("ufo")
 
 local Link = require("htl.text.Link")
 local Line = require("htl.text.Line")
@@ -68,11 +69,9 @@ function M.start()
 
         M.set_file_url(path)
     end
-
-    vim.cmd([[
-        normal zR
-        noautocmd silent! loadview
-    ]])
+    
+    ufo.openAllFolds()
+    vim.cmd([[noautocmd silent! loadview]])
 end
 
 function M.change()
