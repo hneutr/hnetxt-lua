@@ -311,17 +311,4 @@ function M:get_reference(url)
     })
 end
 
-function M:set_date(path, date)
-    local url = M:get_file(path)
-
-    if url then
-        M:update({
-            where = {id = url.id},
-            set = {created = date},
-        })
-    else
-        M:insert({path = path, created = date})
-    end
-end
-
 return M

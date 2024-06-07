@@ -404,6 +404,8 @@ function Path:open(open_command)
     end
 end
 
+function Path.cmp(a, b) return tostring(a) < tostring(b) end
+
 function Path.from_commandline(path)
     return Path(path):resolve()
 end

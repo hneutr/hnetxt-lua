@@ -423,24 +423,6 @@ describe("update_link_urls", function()
     end)
 end)
 
-describe("set_date", function()
-    it("works", function()
-        M:insert({path = f1})
-        local before = M:where({id = u1}).created
-        local after = 19930120
-        M:set_date(f1, after)
-        assert.are.same(after, M:where({id = u1}).created)
-    end)
-
-    it("non-existent url", function()
-        -- M:insert({path = f1})
-        -- local before = M:where({id = u1}).created
-        local after = 19930120
-        M:set_date(f1, after)
-        assert.are.same(after, M:get_file(f1).created)
-    end)
-end)
-
 describe("get_label", function()
     it("label", function()
         assert.are.same("a", tostring(M:get_label({label = "a"})))

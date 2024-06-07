@@ -51,10 +51,82 @@ local commands = Dict({
     Journal = function() require("htl.journal")():open() end,
     Aim = function() require("htl.goals")():open() end,
     Track = DB.Log.ui.cmd,
-    SetDate = {function(args) DB.urls:set_date(Path.this(), args.args) end, {nargs = 1}},
-    PrintDate = function() print(DB.urls:where({path = Path.this()}).created) end,
 })
 
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                  testing                                   --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
+local Url_cmds = {
+    set = {
+        run = function(url, args)
+            local field, value = unpack(args)
+            DB.urls:update({
+                where = {id = url.id},
+                set = {[field] = value},
+            })
+        end,
+        complete = {"created", "label"},
+    },
+    get = {
+        run = function(url, args)
+            local field = args:pop(1)
+            print(url[field])
+        end,
+        complete = {"created", "label", "project"},
+    },
+}
+
+commands.Url = {
+    function(opts)
+        local args = List(opts.fargs)
+
+        local key = args:pop(1)
+        local cmd = Url_cmds[key]
+
+        if cmd then
+            local url = DB.urls:get_file(Path.this())
+            if url then
+                cmd.run(url, args)
+            end
+        else
+            vim.notify("Url: Unknown command: " .. key, vim.log.levels.ERROR)
+        end
+    end,
+    {
+        nargs = "+",
+        desc = "get/set a DB.Url field",
+        complete = function(lead, line)
+            local parts = line:gsub("^Url[!]*%s", "", 1):strip():split()
+
+            local list
+            if #parts == 1 then
+                list = Dict.keys(Url_cmds)
+            elseif #parts == 2 then
+                local cmd = Url_cmds[parts[1]] or {}
+                list = cmd.complete
+                lead = parts[2]
+            end
+            
+            if list then
+                return List(list):filter(function(item)
+                    return item:startswith(lead)
+                end)
+            end
+        end,
+    },
+}
+
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                end testing                                 --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
 commands:foreach(function(name, cmd)
     local opts
     if type(cmd) == "table" then
