@@ -265,7 +265,8 @@ function Path:with_name(name)
 end
 
 function Path:with_stem(stem)
-    return self:with_name(stem .. self:suffix())
+    local name = self:name():gsub(self:stem(), stem, 1)
+    return self:with_name(name)
 end
 
 function Path:with_suffix(suffix)

@@ -444,8 +444,13 @@ describe("with_stem", function()
     it("no suffix", function()
         assert.are.same(Path("/a/b/x"), Path("/a/b/c"):with_stem("x"))
     end)
+
     it("has suffix", function()
         assert.are.same(Path("/a/b/x.d"), Path("/a/b/c.d"):with_stem("x"))
+    end)
+
+    it("multiple suffixes", function()
+        assert.are.same(Path("x.b.c"), Path("a.b.c"):with_stem("x"))
     end)
 end)
 

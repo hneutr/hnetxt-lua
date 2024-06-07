@@ -23,8 +23,8 @@ vim.opt_local.foldenable = true
 --------------------------------------------------------------------------------
 ui.start()
 
-if not vim.g.setup_htn then
-    local group = vim.api.nvim_create_augroup("htn_autocommands", {clear = true})
+if not vim.g.htn_au_group then
+    vim.g.htn_au_group = vim.api.nvim_create_augroup("htn_au_group", {clear = true})
     
     List({
         {
@@ -42,11 +42,9 @@ if not vim.g.setup_htn then
     }):foreach(function(autocommand)
         vim.api.nvim_create_autocmd(
             autocommand.events,
-            {pattern = "*.md", group = group, callback = autocommand.callback}
+            {pattern = "*.md", group = vim.g.htn_au_group, callback = autocommand.callback}
         )
     end)
-
-    vim.g.setup_htn = true
 end
 
 local commands = Dict({
