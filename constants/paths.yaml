@@ -13,12 +13,9 @@ constants_dir:
 db_file:
   path: .htl-0.0.0.db
   parent: data_dir
-intentions_dir:
-  path: intentions
+aims_file:
+  path: aims.md
   parent: data_dir
-daily_intentions_file:
-  path: daily.md
-  parent: intentions_dir
 to_track_file:
   path: to-track.md
   parent: data_dir
