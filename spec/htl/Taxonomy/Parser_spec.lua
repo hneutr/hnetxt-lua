@@ -473,6 +473,42 @@ describe("record", function()
             DB.Relations:get()
         )
     end)
+    
+    it("multiple 'is a'", function()
+        f1:write({
+            "is a: x",
+            "is a: y",
+        })
+
+        DB.urls:insert({path = f1})
+
+        local u1 = DB.urls:where({path = f1})
+        
+        M:record(u1)
+        
+        local x_id = DB.Relations.get_url_id("x")
+        local y_id = DB.Relations.get_url_id("y")
+
+        assert.are.same(
+            {
+                {
+                    id = 1,
+                    subject = u1.id,
+                    object = x_id,
+                    relation = "instance",
+                    source = u1.id,
+                },
+                {
+                    id = 2,
+                    subject = u1.id,
+                    object = y_id,
+                    relation = "instance",
+                    source = u1.id,
+                },
+            },
+            DB.Relations:get()
+        )
+    end)
 end)
 
 describe("parse_file_lines", function()
