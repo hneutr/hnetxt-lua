@@ -63,7 +63,8 @@ local commands = Dict({
 local Url_cmds = {
     set = {
         run = function(url, args)
-            local field, value = unpack(args)
+            local field = args:pop(1)
+            local value = args:join(" ")
             DB.urls:update({
                 where = {id = url.id},
                 set = {[field] = value},

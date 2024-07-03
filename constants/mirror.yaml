@@ -7,7 +7,7 @@ outlines:
     mapkey: o
     statusline_str: outline
 meta: 
-    mapkey: M
-metadata:
     mapkey: m
+metadata:
+    mapkey: d
     exclude_from_statusline: true
