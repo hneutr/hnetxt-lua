@@ -64,45 +64,33 @@ return {
     signs = {
         header = {
             {
-                style = "padded_icon",
                 line_hl = "markview_h1",
-
-                icon = "󰼏 ",
+                icon = "#",
                 icon_hl = "markview_h1_icon",
             },
             {
-                style = "padded_icon",
                 line_hl = "markview_h2",
-
-                icon = "󰎨 ",
+                icon = "#",
                 icon_hl = "markview_h2_icon",
             },
             {
-                style = "padded_icon",
                 line_hl = "markview_h3",
-
-                icon = "󰼑 ",
+                icon = "#",
                 icon_hl = "markview_h3_icon",
             },
             {
-                style = "padded_icon",
                 line_hl = "markview_h4",
-
-                icon = "󰎲 ",
+                icon = "#",
                 icon_hl = "markview_h4_icon",
             },
             {
-                style = "padded_icon",
                 line_hl = "markview_h5",
-
-                icon = "󰼓 ",
+                icon = "#",
                 icon_hl = "markview_h5_icon",
             },
             {
-                style = "padded_icon",
                 line_hl = "markview_h6",
-
-                icon = "󰎴 ",
+                icon = "#",
                 icon_hl = "markview_h6_icon",
             }
         },

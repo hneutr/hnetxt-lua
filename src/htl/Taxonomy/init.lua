@@ -238,7 +238,7 @@ function M.get_condition_query(c)
     }
     
     if c.relation == "tag" and c.key then
-        q.contains = {key = c.key:map(function(v) return string.format("%s*", k) end)}
+        q.contains = {key = c.key:map(function(v) return string.format("%s*", v) end)}
     elseif c.relation == "connection" and c.key and #c.key > 0 then
         local contains = false
         local key = c.key

@@ -50,62 +50,17 @@ function M.render_header(buffer, component)
 	
 	local row = component.row_start
 	local col = component.col_start
-	local level = component.level
-	local pad_char = " "
 	
 	local extmarks = List()
 
-	if conf.style == "simple" then
-	    extmarks:append({
-            line_hl_group = conf.line_hl,
-            priority = 8,
-	    })
-	elseif conf.style == "icon" then
-	    extmarks:append({
-            line_hl_group = conf.line_hl,
-            priority = 8,
-            virt_text_pos = "overlay",
-            virt_text = {
-                {
-                    pad_char:rep(level - 1),
-                    conf.icon_hl
-                },
-                {
-                    conf.icon,
-                    conf.icon_hl
-                }
-            }
-	    })
-	elseif conf.style == "padded_icon" then
-	    extmarks:append({
-	        col = col + level + vim.fn.strchars(conf.icon) - 1,
-            virt_text_pos = "inline",
-            virt_text = {
-                {
-                    pad_char,
-                    conf.icon_hl
-                },
-            }
-	    })
-
-		local icon_width = conf.icon_width or vim.fn.strchars(conf.icon)
-		
-		extmarks:append({
-            line_hl_group = conf.line_hl,
-            priority = 8,
-            virt_text_pos = "overlay",
-            virt_text = {
-                {
-                    pad_char:rep(col + level - icon_width < 0 and 0 or col + level - icon_width),
-                    conf.icon_hl
-                },
-                {
-                    conf.icon,
-                    conf.icon_hl
-                }
-            }
-		})
-	end
+	extmarks:append({
+        virt_text_pos = "inline",
+        virt_text = {{conf.icon, conf.icon_hl}},
+        conceal = "",
+        end_row = component.row_end,
+        end_col = component.col_end,
+        line_hl_group = conf.line_hl,
+    })
 	
 	extmarks:foreach(M.add_extmark, buffer, row, col)
 end
@@ -413,7 +368,7 @@ function M.render_checkbox(buffer, component)
 		vim.api.nvim_buf_set_extmark(buffer, M.namespace, component.row_start, component.col_start, {
 			virt_text_pos = "overlay",
 			virt_text = {
-				{ conf.unchecked.marker, conf.unchecked.marker_hl }
+				{conf.unchecked.marker, conf.unchecked.marker_hl}
 			}
 		})
 	end

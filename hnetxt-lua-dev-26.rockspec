@@ -15,6 +15,7 @@ dependencies = {
     "inspect >= 3.1",
     "lua-cjson >= 2.1",
     "argparse",
+    "inspect",
     "lua-path",
     "luasocket",
     "fzf-lua",
@@ -77,7 +78,6 @@ build = {
         ["htc.move"] = "src/htc/move.lua",
         ["htc.Ontology"] = "src/htc/Ontology.lua",
         ["htc.ety"] = "src/htc/ety.lua",
-        
     }
 }
 test = {
