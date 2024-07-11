@@ -416,27 +416,26 @@ function M.quote(page_number)
     end
 end
 
-function M.set_time()
+function M.set_time_or_calculate_sum()
     local row = M.get_cursor().row
     local args = List({0, row - 1, row, false})
 
     local line = vim.api.nvim_buf_get_lines(unpack(args))[1]
-    local new_line = line:gsub("TT", tostring(os.date("%H:%M")), 1)
-    args:append({new_line})
-
-    vim.api.nvim_buf_set_lines(unpack(args))
-end
-
-function M.set_quantity()
-    local row = M.get_cursor().row
-    local args = List({0, row - 1, row, false})
-
-    local line = vim.api.nvim_buf_get_lines(unpack(args))[1]
-    local key, val = utils.parsekv(line)
+    local new_line
     
-    local fn = string.format([[return function() return %s end]], val)
-    if pcall(function() val = loadstring(fn)()() or val end) then
-        local new_line = string.format("%s: %s", key, tostring(val))
+    if line:match("TT") then
+        new_line = line:gsub("TT", tostring(os.date("%H:%M")), 1)
+    else
+        local key, val = utils.parsekv(line)
+        
+        local fn = string.format([[return function() return %s end]], val)
+
+        if pcall(function() val = loadstring(fn)()() or val end) then
+            new_line = string.format("%s: %s", key, tostring(val))
+        end
+    end
+
+    if new_line then
         args:append({new_line})
         vim.api.nvim_buf_set_lines(unpack(args))
     end
