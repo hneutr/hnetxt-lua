@@ -26,6 +26,8 @@ local mappings = Dict(
             ["<M-t>"] = ui.goto_map_fn("tabedit"),
             -- set time
             ["<C-t>"] = ui.set_time,
+            -- calculate quantity
+            ["<C-q>"] = ui.set_quantity,
         }),
         v = Dict(),
         i = Dict(),
