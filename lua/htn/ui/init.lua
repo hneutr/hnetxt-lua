@@ -152,7 +152,7 @@ function M.get_statusline_path(path, relative_to)
     if relative_to and path:is_relative_to(relative_to) then
         path = path:relative_to(relative_to)
     end
-
+    
     return Path.contractuser(tostring(path:with_suffix("")))
 end
 

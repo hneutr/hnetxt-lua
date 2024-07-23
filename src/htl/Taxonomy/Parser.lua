@@ -313,6 +313,18 @@ InstanceRelation.symbol = M.conf.relations.instance.symbol
 function InstanceRelation:clean(l) return l:removeprefix("is a:"):strip() end
 function InstanceRelation:line_is_a(l) return l and l:strip():startswith("is a:") or false end
 
+function InstanceRelation:parse(object, subject)
+    local l = ""
+    
+    if object:match(",") then
+        l, object = unpack(object:rsplit(',', 1):mapm("strip"))
+        l = string.format("is a: %s", l)
+    end
+    
+    return l, self:make(subject, object)
+end
+
+
 --------------------------------------------------------------------------------
 --                                TagRelation                                 --
 --------------------------------------------------------------------------------
@@ -368,10 +380,11 @@ end
 
 function M:get_relations(url, line, context)
     local relations = List()
+    
     self.Relations:filter(function(_Relation)
         return _Relation.contexts[context]
     end):foreach(function(_Relation)
-        if line and #line > 0 and _Relation:line_is_a(line) then
+        while line and #line > 0 and _Relation:line_is_a(line) do
             line = _Relation:clean(line)
             local relation
 

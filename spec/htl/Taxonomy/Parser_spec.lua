@@ -211,6 +211,10 @@ describe("InstanceRelation", function()
         it("+", function()
             assert(M:line_is_a("is a: abc"))
         end)
+
+        it("multiple comma separated entries", function()
+            assert(M:line_is_a("is a: a, b"))
+        end)
     end)
 
     describe("parse", function()
@@ -228,7 +232,22 @@ describe("InstanceRelation", function()
                 {M:parse("b", "a")}
             )
         end)
-    end)
+
+        it("comma separated instances", function()
+            assert.are.same(
+                {
+                    "is a: b, c",
+                    {
+                        subject = "a",
+                        object = "d",
+                        relation = "instance",
+                    }
+
+                },
+                {M:parse("b, c, d", "a")}
+            )
+        end)
+    end) 
 end)
 
 describe("TagRelation", function()
@@ -518,6 +537,16 @@ describe("parse_file_lines", function()
         assert.are.same(
             {{subject = 1, object = "a", relation = "instance"}},
             M:parse_file_lines(url, List({"is a: a "}))
+        )
+    end)
+    
+    it("is a: multiple values", function()
+        assert.are.same(
+            {
+                {subject = 1, object = "a", relation = "instance"},
+                {subject = 1, object = "b", relation = "instance"}
+            },
+            M:parse_file_lines(url, List({"is a: b, a"}))
         )
     end)
     

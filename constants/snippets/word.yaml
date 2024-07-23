@@ -1,5 +1,6 @@
 template: |
     is a: word
       source: $1
-      @${2|unknown,cool,idiolect|}
+      page: $2
+      @${3|unknown,cool,idiolect|}
 string: "{__stem__} ({source})"
