@@ -42,6 +42,7 @@ build = {
         ["htl.journal"] = "src/htl/journal.lua",
         ["htl.goals"] = "src/htl/goals.lua",
         ["htl.Snippet"] = "src/htl/snippet.lua",
+        ["htl.ety"] = "src/htl/ety.lua",
 
         ["htl.db"] = "src/htl/db/init.lua",
         ["htl.db.util"] = "src/htl/db/util.lua",

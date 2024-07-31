@@ -1,4 +1,5 @@
 local ui = require("htn.ui")
+local ety = require("htl.ety")
 
 vim.opt_local.autoindent = false
 vim.opt_local.cindent = false
@@ -89,7 +90,11 @@ commands.Url = {
         local cmd = Url_cmds[key]
 
         if cmd then
-            local url = DB.urls:get_file(Path.this())
+            local path = Path.this()
+            ui.set_file_url(path)
+
+            local url = DB.urls:get_file(path)
+
             if url then
                 cmd.run(url, args)
             end
@@ -118,6 +123,31 @@ commands.Url = {
                 end)
             end
         end,
+    },
+}
+
+commands.Ety = {
+    function(opts)
+        local args = List(opts.fargs)
+        
+        local word
+        if #args == 0 then
+            local url = DB.urls:where({path = Path.this(), type = "file"})
+            
+            if url then
+                word = url.label
+            end
+        else
+            word = args:pop(1)
+        end
+
+        if word then
+            ety.open({word = word})
+        end
+    end,
+    {
+        nargs = "?",
+        desc = "open etymonline to the word",
     },
 }
 
