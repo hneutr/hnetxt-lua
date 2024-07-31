@@ -38,3 +38,4 @@ alias htt="hnetxt_test"
 
 alias mv="hnetxt move"
 alias rm="hnetxt remove"
+alias ety="hnetxt ety"
