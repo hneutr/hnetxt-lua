@@ -146,7 +146,13 @@ end
 
 function M.get_statusline_path(path, relative_to)
     if path:name() == tostring(Conf.paths.dir_file) then
-        path = path:parent()
+        local parent = path:parent()
+
+        if relative_to and parent == Path(relative_to) then
+            relative_to = Path(relative_to):parent()
+        end
+
+        path = parent
     end
 
     if relative_to and path:is_relative_to(relative_to) then
