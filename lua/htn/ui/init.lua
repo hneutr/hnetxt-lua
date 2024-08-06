@@ -447,4 +447,9 @@ function M.set_time_or_calculate_sum()
     end
 end
 
+function M.copy_wordcount_to_clipboard()
+    local words = vim.fn.wordcount()['cursor_words']
+    vim.fn.setreg("+", words)
+end
+
 return M

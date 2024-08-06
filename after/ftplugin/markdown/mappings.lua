@@ -26,6 +26,8 @@ local mappings = Dict(
             ["<M-t>"] = ui.goto_map_fn("tabedit"),
             -- set time or calculate quantity
             ["<C-t>"] = ui.set_time_or_calculate_sum,
+            -- copy word count at cursor
+            ["gG"] = ui.copy_wordcount_to_clipboard,
         }),
         v = Dict(),
         i = Dict(),
