@@ -22,9 +22,12 @@ to_track_file:
 goals_dir:
   path: goals
   parent: data_dir
-journals_dir:
-  path: "corpus/ego/journal"
+corpus_dir:
+  path: corpus
   parent: root
+journals_dir:
+  path: "ego/journal"
+  parent: corpus
 track_dir:
   path: "track-log"
   parent: data_dir
@@ -50,6 +53,9 @@ global_taxonomy_file:
 language_dir:
   path: language
   parent: eidola_dir
+dictionary_dir:
+  path: dictionary
+  parent: root
 
 # nvim
 config_dir:
