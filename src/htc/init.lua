@@ -91,22 +91,6 @@ require("htc.cli")("hnetxt", {
         {"word", args = "1"},
         action = require("htl.ety").open,
     },
-    commit = {
-        description = "commit repos",
-        action = function()
-            local paths = List({
-                Conf.paths.data_dir,
-                Conf.paths.dictionary_dir,
-                Conf.paths.eidola_dir,
-                Conf.paths.corpus_dir,
-            })
-            
-            paths:foreach(function()
-            end)
-        end,
-    },
-
-
     etyparse = require("htc.ety"),
     test = {
         action = function() end,
