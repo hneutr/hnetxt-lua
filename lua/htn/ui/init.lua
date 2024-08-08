@@ -452,4 +452,24 @@ function M.copy_wordcount_to_clipboard()
     vim.fn.setreg("+", words)
 end
 
+function M.fix_quotes()
+    local lines = List(vim.api.nvim_buf_get_lines(0, 0, -1, false))
+    
+    for i, line in ipairs(lines) do
+        local new_line = line
+        
+        Dict({
+            ['’'] = "'",
+            ['“'] = '"',
+            ['”'] = '"',
+        }):foreach(function(old, new)
+            new_line = new_line:gsub(old, new)
+        end)
+        
+        if new_line ~= line then
+            vim.fn.setline(i, new_line)
+        end
+    end
+end
+
 return M

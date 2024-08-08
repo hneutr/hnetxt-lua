@@ -27,7 +27,7 @@ corpus_dir:
   parent: root
 journals_dir:
   path: "ego/journal"
-  parent: corpus
+  parent: corpus_dir
 track_dir:
   path: "track-log"
   parent: data_dir
