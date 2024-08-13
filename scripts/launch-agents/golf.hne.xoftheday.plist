@@ -9,7 +9,7 @@
     <key>EnvironmentVariables</key>
     <dict>
         <key>PATH</key>
-        <string>/opt/homebrew/Cellar/pyenv-virtualenv/1.2.1/shims:/Users/hne/.pyenv/shims:/opt/homebrew:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <string>/opt/homebrew/Cellar/pyenv-virtualenv/1.2.4/shims:/Users/hne/.pyenv/shims:/opt/homebrew:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
         <key>SHELL</key>
         <string>/bin/zsh</string>
         <key>HOME</key>
