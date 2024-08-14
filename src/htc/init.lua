@@ -47,6 +47,7 @@ require("htc.cli")("hnetxt", {
     quote = {
         description = "add a quote",
         {"-p --path", default = Path.cwd(), description = "media dir", convert=Path.from_commandline},
+        -- {"-s --source", default = Path.cwd()}
         print = function(args)
             local p = args.path:join("1.md")
 

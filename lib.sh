@@ -15,27 +15,24 @@ function journal() {
 }
 
 function track() {
-    nvim $(hnetxt track $@)
+    nvim $(hnetxt track)
 }
 
 function aim() {
-    nvim $(hnetxt aim $@)
+    nvim $(hnetxt aim)
 }
 
 function quote() {
     nvim $(hnetxt quote) +"lua require('htn.ui').quote($1)"
 }
 
-function lang() {
-    cd $(hnetxt language)
-}
-
-alias on="hnetxt on"
-alias project="hnetxt project"
-
 alias ht="hnetxt"
 alias htt="hnetxt_test"
 
+alias on="hnetxt on"
+alias project="hnetxt project"
 alias mv="hnetxt move"
 alias rm="hnetxt remove"
 alias ety="hnetxt ety"
+
+bindkey -s '^@' "vim @.md\n"
