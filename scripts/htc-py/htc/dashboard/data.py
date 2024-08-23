@@ -17,7 +17,7 @@ def get(
     test=False,
     date_filter=None,
 ):
-    df = htc.track.parse.get_raw(test=test)
+    df = htc.track.get_raw()
     df['Weekday'] = df['Date'].dt.weekday
 
     df = annotate_dates(df)

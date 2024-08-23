@@ -29,34 +29,6 @@ FONTPROPERTIES = {
     ),
 }
 
-def add_emoji(
-    ax,
-    emoji_name,
-    x,
-    y,
-    width=.5,
-    height=.5,
-    ha='center',
-    va='center',
-):
-    if ha == 'right':
-        x -= width
-    elif ha == 'center':
-        x -= width / 2
-
-    if va == 'top':
-        y -= height
-    elif va == 'center':
-        y -= height / 2
-
-    ax.imshow(
-        htc.config.get_emoji(emoji_name),
-        aspect='auto',
-        extent=(x, x + width, y,  y + height),
-        transform=ax.transData,
-        zorder=1,
-    )
-
 def set_axis(ax, which, ticks, lim=None, labels=None):
     if lim:
         getattr(ax, f"set_{which}lim")(lim[0], lim[-1])

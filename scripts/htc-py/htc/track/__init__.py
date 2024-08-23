@@ -1,11 +1,22 @@
 import functools
+import sqlite3
 import pandas as pd
 from datetime import datetime, timedelta, date
 
 import htc.config
 import htc.constants
-import htc.track.parse as parse
 
+def get_raw():
+    return pd.read_sql_query(
+        "SELECT * FROM Log",
+        sqlite3.connect(htc.constants.DB_PATH),
+        parse_dates={'date': "%Y%m%d"},
+    ).rename(columns={
+        'date': 'Date',
+        'key': 'Activity',
+        'val': 'Value',
+    })
+    
 def dashboard_config():
     config = htc.config.get('dashboard')
     colors = htc.config.get('colors')
