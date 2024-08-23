@@ -90,7 +90,7 @@ function M.leave()
         local update_link_urls = true
 
         if Mirrors:is_mirror(path) then
-            path = Mirrors:get_source(path)
+            path = Mirrors:get_source(path).path
             update_link_urls = false
         end
         
@@ -164,7 +164,7 @@ end
 
 function M.set_file_url(path)
     path = path or Path.this()
-    if path:exists() and DB.urls.should_track(path) then
+    if path and path:exists() and DB.urls.should_track(path) then
         DB.urls:insert({path = path})
     end
 end
