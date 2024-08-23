@@ -17,7 +17,7 @@
     </dict>
 
     <key>WorkingDirectory</key>
-    <string>/Users/hne/lib/hnetxt-lua/scripts/htc-py</string>
+    <string>/Users/hne/lib/dashboard-py</string>
 
     <key>StartCalendarInterval</key>
     <dict>
