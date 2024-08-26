@@ -72,6 +72,7 @@ function M.start()
     
     ufo.openAllFolds()
     vim.cmd([[noautocmd silent! loadview]])
+    vim.cmd([[highlight clear SpellLocal]])
 end
 
 function M.change()
