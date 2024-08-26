@@ -1,6 +1,6 @@
 template: |
     is a: book
-      title: $1
-      by: $2
-      published: $3
+    title: $1
+    by: $2
+    published: $3
 string: "{by}, {title}"

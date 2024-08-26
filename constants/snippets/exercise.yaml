@@ -1,6 +1,6 @@
 template: |
     is a: exercise
-      source: $1
+    source: $1
 
     $3
 string: |
