@@ -16,14 +16,19 @@ local M = SqliteTable("urls", {
         type = "text",
         required = true,
     },
+    type = {
+        type = "text",
+        required = true,
+    },
     created = {
         type = "date",
         default = [[strftime('%Y%m%d')]],
         required = true
     },
-    type = {
-        type = "text",
-        required = true,
+    modified = {
+        type = "date",
+        default = [[strftime('%Y%m%d')]],
+        required = false
     },
 })
 

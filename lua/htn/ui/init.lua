@@ -78,6 +78,7 @@ end
 function M.change()
     vim.b.htn_modified = true
     M.set_foldlevels()
+    M.set_modified_date()
 end
 
 function M.enter()
@@ -167,6 +168,10 @@ function M.set_file_url(path)
     path = path or Path.this()
     if path and path:exists() and DB.urls.should_track(path) then
         DB.urls:insert({path = path})
+
+        local url = DB.urls:get_file(path) or {}
+
+        vim.b.url_id = url.id
     end
 end
 
@@ -470,6 +475,25 @@ function M.fix_quotes()
         if new_line ~= line then
             vim.fn.setline(i, new_line)
         end
+    end
+end
+
+function M.set_modified_date()
+    local id = vim.b.url_id
+
+    if id then
+        local today = os.date("%Y%m%d")
+
+        local modified_date = vim.b.url_modified_date
+
+        if not modified_date or modified_date ~= today then
+            DB.urls:update({
+                where = {id = id},
+                set = {modified = today}
+            })
+        end
+        
+        vim.b.url_modified_date = today
     end
 end
 

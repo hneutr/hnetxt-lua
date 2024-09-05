@@ -72,14 +72,14 @@ local Url_cmds = {
                 set = {[field] = value},
             })
         end,
-        complete = {"created", "label"},
+        complete = {"created", "label", "modified"},
     },
     get = {
         run = function(url, args)
             local field = args:pop(1)
             print(url[field])
         end,
-        complete = {"created", "label", "project"},
+        complete = {"created", "label", "project", "modified"},
     },
 }
 
