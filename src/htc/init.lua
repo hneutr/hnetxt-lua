@@ -1,6 +1,6 @@
 require("htl")
 
-require("htc.cli")("hnetxt", {
+local parser = require("htc.cli")("hnetxt", {
     project = require("htc.project"),
     clean = {description = "clean the db", action = require("htl.db").clean},
     journal = {description = "print the journal path", print = require("htl.journal")},

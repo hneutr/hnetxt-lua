@@ -221,5 +221,8 @@ return function(script_name, commands_dict)
         commands_list:append(Command:add(parser, config, command_name))
     end)
 
-    parser:group("commands", unpack(commands_list)):parse()
+    parser:group("commands", unpack(commands_list))
+    local completion_path = Path("/Users/hne/dotfiles/zsh/site-functions") / string.format("_%s", script_name)
+    completion_path:write(parser:get_zsh_complete())
+    parser:parse()
 end
