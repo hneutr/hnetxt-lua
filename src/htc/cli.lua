@@ -222,7 +222,7 @@ return function(script_name, commands_dict)
     end)
 
     parser:group("commands", unpack(commands_list))
-    local completion_path = Path("/Users/hne/dotfiles/zsh/site-functions") / string.format("_%s", script_name)
+    local completion_path = Conf.paths.htc_completions_dir / string.format("_%s", script_name)
     completion_path:write(parser:get_zsh_complete())
     parser:parse()
 end

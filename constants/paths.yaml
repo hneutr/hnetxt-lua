@@ -57,6 +57,10 @@ dictionary_dir:
   path: dictionary
   parent: root
 
+htc_completions_dir:
+  path: dotfiles/zsh/site-functions/htc
+  parent: root
+
 # nvim
 config_dir:
   path: .config
