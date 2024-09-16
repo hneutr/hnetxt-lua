@@ -70,8 +70,9 @@ function M.start()
         M.set_file_url(path)
     end
     
-    ufo.openAllFolds()
-    vim.cmd([[noautocmd silent! loadview]])
+    -- currently not using folds and this is slow
+    -- ufo.openAllFolds()
+    -- vim.cmd([[noautocmd silent! loadview]])
     vim.cmd([[highlight clear SpellLocal]])
 end
 

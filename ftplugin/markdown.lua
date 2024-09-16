@@ -1,5 +1,4 @@
 local ui = require("htn.ui")
-local ety = require("htl.ety")
 
 vim.opt_local.autoindent = false
 vim.opt_local.cindent = false
@@ -143,6 +142,7 @@ commands.Ety = {
         end
 
         if word then
+            local ety = require("htl.ety")
             ety.open({word = word})
         end
     end,
