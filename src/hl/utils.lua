@@ -26,6 +26,10 @@ function M.parsekv(s, delimiter)
     return key, val
 end
 
+function M.formatkv(k, v, delimiter)
+    return string.format("%s%s%s", k, delimiter or ": ", v)
+end
+
 function M.time_it(label)
     label = label or "time"
     TIME = TIME or socket.gettime() * 1000
