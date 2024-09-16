@@ -339,10 +339,18 @@ function TagRelation:parse(tag)
 end
 
 function TagRelation:make(tag)
-    return Dict({
-        relation = self.name,
-        key = self:clean(tag),
-    })
+    local r = Dict({relation = self.name})
+
+    tag = self:clean(tag)
+    tag = self.parse_link(tag)
+    
+    if type(tag) == "number" then
+        r.object = tag
+    else
+        r.key = tag
+    end
+
+    return r
 end
 
 function TagRelation:annotate_condition(condition, str)

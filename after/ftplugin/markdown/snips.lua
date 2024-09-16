@@ -41,8 +41,6 @@ local snippets = List({
     divider("dm", "medium"),
     divider("ds", "small"),
     divider("dsx", "tiny"),
-    -- metadata dividers
-    divider("m", "large", "metadata"),
     -- headers
     header("hl", "large"),
     header("hm", "medium"),

@@ -281,6 +281,34 @@ describe("TagRelation", function()
                 {M:parse("@a")}
             )
         end)
+
+        describe("@link", function()
+            assert.are.same(
+                {
+                    "",
+                    {
+                        relation = "tag",
+                        object = 1,
+                    }
+
+                },
+                {M:parse("@" .. tostring(Link({text = "xyz", url = 1})))}
+            )
+        end)
+        
+        describe("@ link", function()
+            assert.are.same(
+                {
+                    "",
+                    {
+                        relation = "tag",
+                        object = 1,
+                    }
+
+                },
+                {M:parse("@ " .. tostring(Link({text = "xyz", url = 1})))}
+            )
+        end)
     end)
 end)
 
@@ -376,11 +404,6 @@ describe("is_metadata_line", function()
         assert.is_false(F(string.rep("a", 500)))
     end)
     
-    it("-: divider", function()
-        assert.is_false(F(tostring(Divider.metadata_divider())))
-    
-    end)
-
     it("-: nil", function()
         assert.is_false(F())
     end)

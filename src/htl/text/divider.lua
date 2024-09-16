@@ -22,10 +22,6 @@ function M.dividers()
     return Dict(Conf.sizes):keys():transform(function(size) return M({size = size}) end)
 end
 
-function M.metadata_divider()
-    return M({size = "large", style = "metadata"})
-end
-
 function M:syntax()
     return {
         [self.size .. self.style .. "Divider"] = {string = self:regex(), color = self.color}

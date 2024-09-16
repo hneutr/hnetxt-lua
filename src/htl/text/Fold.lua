@@ -3,7 +3,6 @@ local Divider = require("htl.text.divider")
 local Line = require("htl.text.Line")
 local Item = require("htl.text.List.Item")
 local TextList = require("htl.text.List")
-local metadata_divider = Divider.metadata_divider()
 
 local M = {}
 M.headers = Header.headers()
@@ -16,10 +15,6 @@ function M.get_fold_levels(lines)
 end
 
 function M.get_fold_level(str)
-    if str == tostring(metadata_divider) then
-        return 0
-    end
-
     for barrier in M.barriers:iter() do
         if barrier:str_is_a(str) then
             return string.format(">%d", barrier.fold_level)
