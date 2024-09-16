@@ -231,33 +231,45 @@ function M.get_condition_rows(c)
 end
 
 function M.get_condition_query(c)
+    local relation = c.relation
+    local key = c.key or ""
+
     local q = {
         where = {
-            relation = c.relation,
+            relation = relation,
         }
     }
     
-    if c.relation == "tag" and c.key then
-        q.contains = {key = c.key:map(function(v) return string.format("%s*", v) end)}
-    elseif c.relation == "connection" and c.key and #c.key > 0 then
-        local contains = false
-        local key = c.key
-        
-        if key:startswith("+") then
-            contains = true
-            key = string.format("*%s", key:removeprefix("+"))
+    local relations = List({"tag", "connection"})
+    
+    if relations:contains(relation) then
+        -- TODO: this is janky; we should probably get rid of the `connection` type entirely
+        -- but...
+        -- what this does is make it so that if there's no key, we'll look for both tags and connections
+        if key == "" then
+            q.where.relation = relations
+        elseif relation == "tag" and key then
+            q.contains = {key = key:map(function(v) return string.format("%s*", v) end)}
+        elseif relation == "connection" and #key > 0 then
+            local contains = false
+
+            if key:startswith("+") then
+                contains = true
+                key = string.format("*%s", key:removeprefix("+"))
+            end
+
+            if c.type and c.type:endswith("+") then
+                contains = true
+                key = string.format("%s*", key:removesuffix("+"))
+            end
+
+            if contains then
+                q.contains = {key = key}
+            else
+                q.where.key = key
+            end
         end
 
-        if c.type and c.type:endswith("+") then
-            contains = true
-            key = string.format("%s*", key:removesuffix("+"))
-        end
-        
-        if contains then
-            q.contains = {key = key}
-        else
-            q.where.key = key
-        end
     end
 
     if c.val and #c.val > 0 then
@@ -277,7 +289,7 @@ end
 
 function M.merge_conditions(conditions)
     local start_chars = List({":", ",", "-"})
-    local end_chars = List({":", ",", "#"})
+    local end_chars = List({":", ",", "#", "@"})
     local cant_start_chars = Set({",", "-"})
 
     local startswith = function(c) return start_chars:map(function(s) return c:startswith(s) end):any() end

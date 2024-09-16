@@ -5,6 +5,8 @@ local file_path = "/tmp/test-file.txt"
 local dir_path = "/tmp/test-dir"
 local dir_file_path = "/tmp/test-dir/test-file.txt"
 
+local M = Path
+
 before_each(function()
     Path(dir_path):rmdir(true)
     Path(file_path):unlink()
@@ -605,5 +607,19 @@ describe("is_absolute", function()
 
     it("-", function()
         assert.is_false(Path("a"):is_absolute())
+    end)
+end)
+
+describe("string_to_path", function()
+    it("hyphen to underscore", function()
+        assert.are.same(M.string_to_path("a-b"), Path("a_b"))
+    end)
+    
+    it("space to hyphen", function()
+        assert.are.same(M.string_to_path("a b"), Path("a-b"))
+    end)
+    
+    it("kitchen sink", function()
+        assert.are.same(M.string_to_path("a_b c-d"), Path("a_b-c_d"))
     end)
 end)

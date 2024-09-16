@@ -354,7 +354,26 @@ function TagRelation:make(tag)
 end
 
 function TagRelation:annotate_condition(condition, str)
-    condition.key = str:gsub(self.symbol, ""):split(M.conf.grammar.or_delimiter)
+    local raw_keys = str:gsub(self.symbol, ""):split(M.conf.grammar.or_delimiter)
+
+    condition.object = List()
+    condition.key = List()
+    raw_keys:foreach(function(key)
+        local key = self.val_to_url_id(key)
+
+        if type(key) == "number" then
+            condition.object:append(key)
+        else
+            condition.key:append(key)
+        end
+    end)
+    
+    List({"object", "key"}):foreach(function(k)
+        if #condition[k] == 0 then
+            condition[k] = nil
+        end
+    end)
+    
     return condition
 end
 

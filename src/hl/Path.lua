@@ -410,6 +410,12 @@ function Path.from_commandline(path)
     return Path(path):resolve()
 end
 
+function Path.string_to_path(s)
+    s = s:gsub("%-", "_")
+    s = s:gsub("%s", "-")
+    return Path(s)
+end
+
 function Path.this()
     return Path(vim.fn.expand('%:p'))
 end

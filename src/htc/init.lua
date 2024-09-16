@@ -93,6 +93,29 @@ local parser = require("htc.cli")("hnetxt", {
         action = require("htl.ety").open,
     },
     etyparse = require("htc.ety"),
+    define = {
+        {"word", args = "+"},
+        {"-p --part-of-speech", description = "part of speech", default = "word"},
+        action = function(args)
+            local entry = Path.string_to_path(List(args.word):join(" ") .. ".md")
+            local path = DB.projects:where({title = "dictionary"}).path / entry
+
+            if not path:exists() then
+                path:write(List({
+                    string.format("is a: %s", args.part_of_speech),
+                    "",
+                    "",
+                    "",
+                }))
+            end
+            
+            local id = DB.urls:insert({path = path})
+
+            local Parser = require("htl.Taxonomy.Parser")
+
+            Parser:record(DB.urls:where({id = id}))
+        end,
+    },
     test = {
         action = function() end,
     },

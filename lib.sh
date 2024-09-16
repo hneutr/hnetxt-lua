@@ -34,5 +34,6 @@ alias project="hnetxt project"
 alias mv="hnetxt move"
 alias rm="hnetxt remove"
 alias ety="hnetxt ety"
+alias define="hnetxt define"
 
 bindkey -s '^@' "vim @.md\n"
