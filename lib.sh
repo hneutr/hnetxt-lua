@@ -26,6 +26,10 @@ function quote() {
     nvim $(hnetxt quote) +"lua require('htn.ui').quote($1)"
 }
 
+function define() {
+    nvim $(hnetxt define $@)
+}
+
 alias ht="hnetxt"
 alias htt="hnetxt_test"
 
@@ -34,6 +38,5 @@ alias project="hnetxt project"
 alias mv="hnetxt move"
 alias rm="hnetxt remove"
 alias ety="hnetxt ety"
-alias define="hnetxt define"
 
 bindkey -s '^@' "vim @.md\n"

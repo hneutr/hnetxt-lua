@@ -259,27 +259,6 @@ local FileRelation = class(Relation)
 FileRelation.contexts = Dict({file = true})
 
 --------------------------------------------------------------------------------
---                               LabelRelation                                --
---------------------------------------------------------------------------------
-local LabelRelation = class(FileRelation)
-LabelRelation.name = "label"
-
-function LabelRelation:clean(l) return l:removeprefix("label:"):strip() end
-function LabelRelation:line_is_a(l) return l and l:strip():startswith("label:") or false end
-
-function LabelRelation:parse(label)
-    return "", self:make(label)
-end
-
-function LabelRelation:make(label)
-    return Dict({
-        relation = self.name,
-        val = label,
-    })
-end
-
-
---------------------------------------------------------------------------------
 --                               SubsetRelation                               --
 --------------------------------------------------------------------------------
 local SubsetRelation = class(FileRelation)
@@ -333,9 +312,22 @@ TagRelation.name = "tag"
 TagRelation.symbol = M.conf.relations.tag.symbol
 
 function TagRelation:clean(l) return l:strip():removeprefix(self.symbol) end
-function TagRelation:line_is_a(l) return l and l:strip():startswith(self.symbol) or false end
+function TagRelation:line_is_a(l) return l and l:match(self.symbol) and true or false end
 function TagRelation:parse(tag)
-    return "", self:make(tag)
+    local l = ""
+    
+    tag = tag:strip()
+    if not tag:startswith(self.symbol) then
+        local split = tag:rsplit(self.symbol, 1)
+        
+        if #split == 1 then
+            tag = split[1]
+        else
+            l, tag = unpack(split)
+        end
+    end
+
+    return l, self:make(tag)
 end
 
 function TagRelation:make(tag)
@@ -383,7 +375,6 @@ end
 --                                                                            --
 --------------------------------------------------------------------------------
 M.Relations = List({
-    LabelRelation,
     ConnectionRelation,
     SubsetRelation,
     InstancesAreAlsoRelation,
@@ -459,7 +450,7 @@ function M:parse_file_lines(url, lines)
         indent, l = l:match("(%s*)(.*)")
         indent_to_key:filterk(function(_indent) return #_indent <= #indent end)
 
-        if InstanceRelation:line_is_a(l) or TagRelation:line_is_a(l) or LabelRelation:line_is_a(l) then
+        if InstanceRelation:line_is_a(l) or TagRelation:line_is_a(l) then
             relations:extend(M:get_relations(url.id, l, "file"))
         else
             local key, val
@@ -543,7 +534,6 @@ M.ConnectionRelation = ConnectionRelation
 M.InstancesAreAlsoRelation = InstancesAreAlsoRelation
 M.InstanceRelation = InstanceRelation
 M.TagRelation = TagRelation
-M.LabelRelation = LabelRelation
 M.Relation = Relation
 
 return M

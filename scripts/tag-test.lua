@@ -1,6 +1,7 @@
 require("htl")
--- local Parser = require("htl.Taxonomy.Parser")
+local Parser = require("htl.Taxonomy.Parser")
 
+-- local p = Path.home / "eidola" / "media" / "Gullivers-Travels" / "antient.md"
 local p = Path.home / "eidola" / "media" / "Mirror-Dance" / "acerb.md"
 local url = DB.urls:get_file(p)
 local id_to_label = Dict.from_list(
@@ -9,6 +10,8 @@ local id_to_label = Dict.from_list(
         return u.id, u.label
     end
 )
+
+Parser:record(url)
 
 DB.Relations:get({
     where = {

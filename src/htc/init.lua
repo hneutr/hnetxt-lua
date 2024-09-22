@@ -114,6 +114,8 @@ local parser = require("htc.cli")("hnetxt", {
             local Parser = require("htl.Taxonomy.Parser")
 
             Parser:record(DB.urls:where({id = id}))
+            
+            print(path)
         end,
     },
     test = {

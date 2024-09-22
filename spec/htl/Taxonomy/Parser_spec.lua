@@ -77,36 +77,6 @@ describe("SubsetRelation", function()
     end)
 end)
 
-describe("LabelRelation", function()
-    local M = M.LabelRelation
-
-    describe("line_is_a", function()
-        it("nil", function()
-            assert.is_false(M:line_is_a())
-        end)
-        
-        it("-", function()
-            assert.is_false(M:line_is_a("abc"))
-        end)
-        
-        it("+", function()
-            assert(M:line_is_a("label: abc"))
-        end)
-    end)
-
-    describe("parse", function()
-        it("works", function()
-            assert.are.same(
-                {
-                    "",
-                    {relation = "label", val = "a"},
-                },
-                {M:parse("a")}
-            )
-        end)
-    end)
-end)
-
 describe("ConnectionRelation", function()
     local M = M.ConnectionRelation
 
