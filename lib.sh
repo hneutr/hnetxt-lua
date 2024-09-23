@@ -1,14 +1,4 @@
-function hnetxt() {
-    luajit $HOME/lib/hnetxt-lua/src/htc/init.lua $@
-}
-
-function hnetxt_test() {
-    local START_DIR=$PWD
-    cd $HOME/lib/hnetxt-lua
-    luarocks --lua-version 5.1 make > /dev/null
-    cd $START_DIR
-    hnetxt $@
-}
+for file in $HOME/lib/hnetxt-lua/bin/*(.); do source $file; done
 
 function journal() {
     nvim $(hnetxt journal) -c "lua require('zen-mode').toggle()"
@@ -31,10 +21,9 @@ function define() {
 }
 
 alias ht="hnetxt"
-alias htt="hnetxt_test"
+alias htt="thnetxt"
 
 alias on="hnetxt on"
-alias project="hnetxt project"
 alias mv="hnetxt move"
 alias rm="hnetxt remove"
 alias ety="hnetxt ety"

@@ -73,15 +73,12 @@ build = {
         ["htl.text.TerminalLink"] = "src/htl/text/TerminalLink.lua",
 
         -- cli
-        ["htc"] = "src/htc/init.lua",
-        ["htc.cli"] = "src/htc/cli.lua",
+        ["htc.hnetxt"] = "src/htc/hnetxt.lua",
         ["htc.project"] = "src/htc/project.lua",
         ["htc.remove"] = "src/htc/remove.lua",
         ["htc.move"] = "src/htc/move.lua",
         ["htc.Ontology"] = "src/htc/Ontology.lua",
         ["htc.ety"] = "src/htc/ety.lua",
-
-        ["htc.test_project"] = "src/htc/test_project.lua"
     }
 }
 test = {

@@ -1,10 +1,9 @@
-local Color = require("htl.Color")
-local TaxonomyParser = require("htl.Taxonomy.Parser")
-
-return {
+require("htl.cli")("project", {
     require_command = false,
     action = function(args)
-        if #Dict(args):keys() == 1 then
+        if #Dict(args):keys() == 0 then
+            local Color = require("htl.Color")
+
             DB.projects:get():sorted(function(a, b)
                 return a.created < b.created
             end):foreach(function(p)
@@ -12,6 +11,7 @@ return {
                     bracket = "black",
                     date = "black",
                 }
+
                 local s = List({
                     Color("[", colors.bracket),
                     Color(p.created, colors.date),
@@ -25,11 +25,12 @@ return {
     end,
     commands = {
         add = {
-            {"title", default = Path.cwd():name(), description = "project title", args = "1"},
-            {"-p --path", default = Path.cwd(), description = "project directory", convert=Path.as_path},
-            {"-c --created", default = os.date("%Y%m%d"), description = "project start date"},
+            {"title", default = Path.cwd():name(), description = "title", args = "1"},
+            {"-p --path", default = Path.cwd(), description = "directory (default=cwd)", convert=Path.as_path},
+            {"-c --created", default = os.date("%Y%m%d"), description = "start date"},
             action = function(args)
                 args.path:mkdir()
+                local TaxonomyParser = require("htl.Taxonomy.Parser")
 
                 DB.projects:insert(args)
                 args.path:glob("%.md$"):foreach(function(path)
@@ -39,10 +40,10 @@ return {
             end,
         },
         remove = {
-            {"title", default = Path.cwd():name(), description = "project title", args = "1"},
+            {"title", default = Path.cwd():name(), description = "title (default=cwd.name)", args = "1"},
             action = function(args)
                 DB.projects:remove({title = args.title})
             end,
         },
     }
-}
+})

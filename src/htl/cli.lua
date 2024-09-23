@@ -224,8 +224,8 @@ end
 --                                                                            --
 --------------------------------------------------------------------------------
 local Parser = class(Command)
-Parser.bin_dir = Conf.lib_dir / "bin"
-Parser.htc_dir = Conf.lib_dir / "src/htc"
+Parser.bin_dir = Conf.paths.lib_dir / "bin"
+Parser.htc_dir = Conf.paths.lib_dir / "src/htc"
 
 function Parser:_init(name, conf, args)
     args = args or {}
@@ -242,6 +242,7 @@ function Parser:_init(name, conf, args)
 
     self.parser = self:get_argparser(self.name, conf)
     
+    self:write(self.parser, self.name)
     self.parser:parse()
 
     return self.parser
@@ -279,8 +280,14 @@ function Parser:get_argparser(name, conf)
 end
 
 function Parser:write(parser, name)
-    self:write_bin(name, true)
-    self:write_bin(name, false)
+    local content = List({
+        self:shell_content(name),
+        "\n",
+        self:test_shell_content(name),
+    })
+
+    local path = self.bin_dir / string.format("%s_lib.sh", name)
+    path:write(content)
     
     self:write_completions(parser, name)
 end
@@ -294,39 +301,30 @@ function Parser:script_path(name)
     return self.htc_dir / string.format("%s.lua", name)
 end
 
-function Parser:bin_path(name, test)
-    if test then
-        name = "t" .. name
-    end
-
-    return  self.bin_dir / string.format("%s.sh", name)
-end
-
-function Parser:bin_content(name, test)
+function Parser:shell_content(name)
     local str = string.format("luajit %s $@", self:script_path(name))
     
     if self.nvim then
         str = string.format("nvim $(%s)", str)
     end
     
-    local lines = List()
-    
-    if test then
-        return List({
-            "local START_DIR=$PWD",
-            string.format("cd %s", Conf.paths.lib_dir),
-            "luarocks --lua-version 5.1 make > /dev/null",
-            "cd $START_DIR",
-            str,
-        }):join("\n")
-    end
-    
-    return str
+    return List({
+        string.format("function %s() {", name),
+        string.format("    %s", str),
+        "}",
+    }):join("\n")
 end
 
-function Parser:write_bin(name, test)
-    local path = self:bin_path(name, test)
-    path:write(self:bin_content(name, test))
+function Parser:test_shell_content(name)
+    return List({
+        string.format("function t%s() {", name),
+        "    local START_DIR=$PWD",
+        string.format("    cd %s", Conf.paths.lib_dir),
+        "    luarocks --lua-version 5.1 make > /dev/null",
+        "    cd $START_DIR",
+        string.format("    %s $@", name),
+        "}"
+    }):join("\n")
 end
 
 return Parser
