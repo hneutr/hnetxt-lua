@@ -45,10 +45,24 @@ end
 function M.get_header_indexes(lines)
     local header_indexes = List()
     for i, line in ipairs(lines) do
+        local add = false
         for header in M.headers:iter() do
-            if header:str_is_middle(line) then
-                header_indexes:append(i)
+            if not add and header:str_is_middle(line) then
+                add = true
             end
+        end
+        
+        add = add or line == "---"
+        add = add or line:startswith("# ")
+        add = add or line:startswith("## ")
+        add = add or line:startswith("### ")
+        add = add or line:startswith("#### ")
+        add = add or line:startswith("##### ")
+        add = add or line:startswith("###### ")
+        add = add or line:startswith("####### ")
+        
+        if add then
+            header_indexes:append(i)
         end
     end
 
