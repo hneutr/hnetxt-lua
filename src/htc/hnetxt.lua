@@ -97,6 +97,8 @@ cli({
         },
         etyparse = require("htc.ety"),
         define = {
+            write_shortcut = true,
+            edit_output = true,
             {"word", args = "+"},
             {"-p --part-of-speech", description = "part of speech", default = "word"},
             action = function(args)

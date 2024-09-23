@@ -23,10 +23,10 @@ function quote() {
     nvim $(hnetxt quote) +"lua require('htn.ui').quote($1)"
 }
 
-function define() {
-    nvim $(hnetxt define $@)
-}
-
+# function define() {
+#     nvim $(hnetxt define $@)
+# }
+#
 alias ht="hnetxt"
 alias htt="thnetxt"
 

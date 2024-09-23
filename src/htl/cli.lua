@@ -3,6 +3,9 @@ require("htl")
 local ArgParse = require("argparse")
 
 local Component = class()
+Component.bin_dir = Conf.paths.lib_dir / "bin"
+Component.htc_dir = Conf.paths.lib_dir / "src/htc"
+
 Component.keys = List({
     "description",
     "action",
@@ -11,21 +14,35 @@ Component.keys = List({
     "defmode",
 })
 
--- function Component:_init()
+function Component:add_subelements() return end
+function Component:should_write_shell_content() return false end
 
-function Component:attach(parent, conf, name)
-    name = name or self:get_name(conf)
+function Component:_init(conf, parent, name)
+    self.conf = self:format_conf(conf, name)
+    self.name = self.conf.name
+    self.parent = parent
 
-    local element = parent[self.type](parent, name)
+    self.element = self:set_element()
 
-    self:set_element_keys(element, conf)
+    self:set_element_keys()
     
-    element.name_parts = List.from(parent.name_parts or {}, {name})
-
-    return element
+    self.element.name_parts = List.from(
+        self.parent and self.parent.name_parts or {},
+        {self.name}
+    )
+    
+    self:add_subelements()
+    
+    if self:should_write_shell_content() then
+        self:write_shell_content()
+    end
 end
 
-function Component:set_element_keys(element, conf)
+function Component:write_shell_content() return end
+
+function Component:format_conf(conf, name)
+    conf.name = conf.name or name or conf[1]
+
     local print_fn = Dict.pop(conf, "print")
 
     if print_fn then
@@ -34,19 +51,28 @@ function Component:set_element_keys(element, conf)
         end
     end
 
+    return conf
+end
+
+function Component:set_element()
+    return self.parent[self.type](self.parent, self.name)
+end
+
+function Component:set_element_keys()
     self.keys:foreach(function(key)
-        local val = conf[key]
+        local val = self.conf[key]
 
         if val ~= nil then
-            element[key](element, val)
+            self.element[key](self.element, val)
         end
     end)
 end
 
-Component.add = Component.attach
-
-function Component:get_name(conf)
-    return conf[1]
+function Component.shell_fn(name, lines)
+    lines:transform(function(l) return "    " .. l end)
+    lines:put(string.format("function %s() {", name))
+    lines:append("}")
+    return lines:join("\n")
 end
 
 --------------------------------------------------------------------------------
@@ -99,11 +125,9 @@ function Flag.is_type(conf)
     return conf[1]:startswith("+")
 end
 
-function Flag:get_name(conf)
-    return "-" .. conf[1]:removeprefix("+")
-end
+function Flag:format_conf(conf)
+    conf.name = "-" .. conf[1]:removeprefix("+")
 
-function Flag:add(parent, conf)
     if conf.switch == 'on' then
         conf.default = false
         conf.action = 'store_true'
@@ -112,7 +136,7 @@ function Flag:add(parent, conf)
         conf.action = 'store_false'
     end
 
-    return self:attach(parent, conf)
+    return conf
 end
 
 --------------------------------------------------------------------------------
@@ -138,20 +162,67 @@ function Command:get_type(conf)
     end
 end
 
-function Command:add(parent, conf, name)
-    local element = self:attach(parent, conf, name)
+function Command:add_subelements()
+    for _, _conf in ipairs(self.conf) do
+        self:get_type(_conf)(_conf, self.element)
+    end
 
-    self:add_components(element, conf)
+    for name, _conf in pairs(self.conf.commands or {}) do
+        Command(_conf, self.element, name)
+    end
 end
 
-function Command:add_components(element, conf)
-    for _, _conf in ipairs(conf) do
-        self:get_type(_conf):add(element, _conf)
-    end
+function Command:should_write_shell_content()
+    return self.conf.write_shortcut == true
+end
 
-    for name, _conf in pairs(conf.commands or {}) do
-        self:add(element, _conf, name)
+function Command:write_shell_content()
+    local content = List({
+        self:shell_content(self.name),
+        "\n",
+        self:test_shell_content(self.name),
+    })
+
+    local full_name = self.element.name_parts:join("-")
+    local path = self.bin_dir / string.format("%s.sh", full_name)
+    
+    path:write(content)
+    
+    self:write_completions()
+end
+
+function Command:write_completions()
+    local path = Conf.paths.htc_completions_dir / string.format("_%s", self.name)
+    if self.name == 'define' then
+        print(self.element:get_zsh_complete())
     end
+    path:write(self.element:get_zsh_complete())
+end
+
+function Command:shell_content(name)
+    local str = self.htc_dir / string.format("%s.lua", self.element.name_parts[1])
+    
+    if #self.element.name_parts > 1 then
+        local parts = self.element.name_parts:clone()
+        parts[1] = str
+
+        str = parts:join(" ")
+    end
+    
+    str = string.format("luajit %s $@", str)
+    
+    if self.conf.edit_output then
+        str = string.format("nvim $(%s)", str)
+    end
+    
+    return self.shell_fn(name, List({str}))
+end
+
+function Command:test_shell_content(name)
+    return self.shell_fn("t" .. name, List({
+        "htc_test",
+        string.format("%s $@", name)
+    }))
 end
 
 --------------------------------------------------------------------------------
@@ -162,12 +233,13 @@ end
 --                                                                            --
 --------------------------------------------------------------------------------
 local Parser = class(Command)
-Parser.bin_dir = Conf.paths.lib_dir / "bin"
-Parser.htc_dir = Conf.paths.lib_dir / "src/htc"
+Parser.type = 'parser'
+
+function Parser:should_write_shell_content() return true end
 
 function Parser:_init(conf)
-    self.name = conf.name
-
+    Component._init(self, conf)
+    
     --[[
     aliases
     open in vim
@@ -177,66 +249,11 @@ function Parser:_init(conf)
     -- self.extra = args.extra
     -- self.alias = args.alias
 
-
-    self.parser = self:get_argparser(self.name, conf)
-    
-    self:write(self.parser, self.name)
-    self.parser:parse()
-
-    return self.parser
+    self.element:parse()
 end
 
-function Parser:get_argparser(name, conf)
-    local parser = ArgParse(name)
-
-    parser.name_parts = List({name})
-
-    self:set_element_keys(parser, conf)
-    self:add_components(parser, conf)
-
-    return parser
-end
-
-function Parser:write(parser, name)
-    local content = List({
-        self:shell_content(name),
-        "\n",
-        self:test_shell_content(name),
-    })
-
-    local path = self.bin_dir / string.format("%s_lib.sh", name)
-    path:write(content)
-    
-    self:write_completions(parser, name)
-end
-
-function Parser:write_completions(parser, name)
-    local path = Conf.paths.htc_completions_dir / string.format("_%s", name)
-    path:write(parser:get_zsh_complete())
-end
-
-function Parser:shell_content(name)
-    local script_path = self.htc_dir / string.format("%s.lua", name)
-    local str = string.format("luajit %s $@", script_path)
-    
-    if self.nvim then
-        str = string.format("nvim $(%s)", str)
-    end
-    
-    return List({
-        string.format("function %s() {", name),
-        string.format("    %s", str),
-        "}",
-    }):join("\n")
-end
-
-function Parser:test_shell_content(name)
-    return List({
-        string.format("function t%s() {", name),
-        "    htc_test",
-        string.format("    %s $@", name),
-        "}"
-    }):join("\n")
+function Parser:set_element()
+    return ArgParse(self.name)
 end
 
 return Parser
