@@ -1,5 +1,7 @@
 require("htl")
 
+local M = {}
+
 local ArgParse = require("argparse")
 
 local Component = class()
@@ -327,4 +329,246 @@ function Parser:test_shell_content(name)
     }):join("\n")
 end
 
-return Parser
+M.Parser = Parser
+
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                  testing                                   --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
+-- local MParser = class()
+--
+-- MParser.keys = List({
+--     "name",
+--     "description",
+--     "require_command",
+--     "action",
+-- })
+--
+-- function MParser:_init(conf)
+--     self.conf = Dict(conf)
+--
+--     self.name = self.conf["name"]
+--     self.element = ArgParse(self.name, self.conf.description)
+--
+--     self:set_require_command()
+--     self:set_action()
+--
+--     self.element:parse()
+-- end
+--
+-- function MParser:set_require_command()
+--     local val = self.conf.require_command
+--     if val ~= nil then
+--         self.element:require_command(val)
+--     end
+-- end
+--
+-- function MParser:set_action()
+--     if self.conf.print then
+--         self.conf.action = function(args)
+--             print(self.conf.print(args))
+--         end
+--     end
+--
+--     local val = self.conf.action
+--
+--     if val then
+--         self.element:action(val)
+--     end
+-- end
+--
+-- function MParser:add_
+--
+-- function MParser:add_commands()
+--     Dict(self.conf.commands):foreach(function(name, conf)
+--         self.element:command()
+--
+--     end)
+-- end
+--
+-- M.MParser = MParser
+
+--[[
+-- comp:
+--     description
+--     action
+--     target
+--     argname
+--     defmode
+-- args:
+--     description
+--     action
+--     target
+--     argname
+--     defmode
+--     default
+--     convert
+--     args
+--     choices
+--     hidden
+--     hidden_name
+-- flags:
+--     description
+--     action
+--     target
+--     argname
+--     defmode
+--     default
+--     convert
+--     count
+--     hidden
+--     hidden_name
+-- opts:
+--     description
+--     action
+--     target
+--     argname
+--     defmode
+--     default
+--     convert
+--     count
+--     args
+--     init
+--     hidden
+--     hidden_name
+-- commands:
+--     description
+--     action
+--     target
+--     argname
+--     defmode
+--     command_target
+--     require_command
+
+
+
+
+
+
+
+
+
+
+Parser = class({
+   _arguments = {},
+   _options = {},
+   _commands = {},
+   _mutexes = {},
+   _groups = {},
+   _require_command = true,
+   _handle_options = true
+}, {
+   args = 3,
+   name
+   description
+   epilog
+   usage
+   help
+   require_command
+   handle_options
+   action
+   command_target
+   help_vertical_space
+   usage_margin
+   usage_max_width
+   help_usage_margin
+   help_description_margin
+   help_max_width
+})
+
+local Command = class({
+   _aliases = {}
+}, {
+   args = 3,
+   multiname,
+   description
+   epilog
+   target
+   usage
+   help
+   require_command
+   handle_options
+   action
+   command_target
+   help_vertical_space
+   usage_margin
+   usage_max_width
+   help_usage_margin
+   help_description_margin
+   help_max_width
+   hidden
+}, Parser)
+
+local Argument = class({
+   _minargs = 1,
+   _maxargs = 1,
+   _mincount = 1,
+   _maxcount = 1,
+   _defmode = "unused",
+   _show_default = true
+}, {
+   args = 5,
+   name
+   description
+   option_default,
+   convert
+   args,
+   target
+   defmode
+   show_default
+   argname
+   hidden
+   option_action,
+   option_init
+})
+
+local Option = class({
+   _aliases = {},
+   _mincount = 0,
+   _overwrite = true
+}, {
+   args = 6,
+   multiname,
+   description
+   option_default,
+   convert
+   args
+   count
+   target
+   defmode
+   show_default
+   overwrite
+   argname
+   hidden
+   option_action,
+   option_init
+}, Argument)
+
+local Flag = class({
+   _aliases = {},
+   _mincount = 0,
+   _overwrite = true
+}, {
+    args = 6,
+    multiname,
+    description
+    option_default,
+    convert
+    args
+    count
+    target
+    defmode
+    show_default
+    overwrite
+    argname
+    hidden
+    option_action,
+    option_init
+}, Argument)
+
+]]
+
+return M

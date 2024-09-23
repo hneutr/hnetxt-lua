@@ -1,7 +1,8 @@
 require("htl")
 
-require("htl.cli")("hnetxt",
-    {
+local cli = require("htl.cli")
+
+local conf = {
         commands = {
             clean = {description = "clean the db", action = require("htl.db").clean},
             journal = {description = "print the journal path", print = require("htl.journal")},
@@ -119,4 +120,8 @@ require("htl.cli")("hnetxt",
             },
         }
     }
-)
+
+cli.Parser("hnetxt", conf)
+-- conf.name = "hnetxt"
+-- conf.description = "testing"
+-- cli.MParser(conf)
