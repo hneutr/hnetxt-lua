@@ -1,3 +1,10 @@
+function htc_test() {
+    local START_DIR=$PWD
+    cd $HOME/lib/hnetxt-lua
+    luarocks --lua-version 5.1 make > /dev/null
+    cd $START_DIR
+}
+
 for file in $HOME/lib/hnetxt-lua/bin/*(.); do source $file; done
 
 function journal() {

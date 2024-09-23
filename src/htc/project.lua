@@ -1,4 +1,5 @@
-require("htl.cli")("project", {
+require("htl.cli")({
+    name = "project",
     require_command = false,
     action = function(args)
         if #Dict(args):keys() == 0 then
