@@ -1,10 +1,10 @@
 local Color = require("htl.Color")
 local TaxonomyParser = require("htl.Taxonomy.Parser")
 
-return {
+require("htl.cli")("test_project", {
     require_command = false,
     action = function(args)
-        if #Dict(args):keys() == 1 then
+        if #Dict(args):keys() == 0 then
             DB.projects:get():sorted(function(a, b)
                 return a.created < b.created
             end):foreach(function(p)
@@ -45,4 +45,4 @@ return {
             end,
         },
     }
-}
+})

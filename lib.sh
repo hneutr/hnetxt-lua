@@ -11,7 +11,7 @@ function hnetxt_test() {
 }
 
 function journal() {
-    nvim $(hnetxt journal $@) -c "lua require('zen-mode').toggle()"
+    nvim $(hnetxt journal) -c "lua require('zen-mode').toggle()"
 }
 
 function track() {

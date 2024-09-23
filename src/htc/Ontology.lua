@@ -1,5 +1,5 @@
 local TerminalLink = require("htl.text.TerminalLink")
-local Colorize = require("htc.Colorize")
+local Color = require("htl.Color")
 local Taxonomy = require("htl.Taxonomy")
 
 local M = class()
@@ -72,7 +72,7 @@ function LinePrinter:get_label()
         })
     end
 
-    return Colorize(self.url.label, self.colors.label)
+    return Color(self.url.label, self.colors.label)
 end
 
 function LinePrinter.__lt(a, b)

@@ -1,3 +1,5 @@
+require("htl")
+
 local color_to_code = Dict({
     reset        = 0,
     bright       = 1,

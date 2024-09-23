@@ -43,6 +43,8 @@ build = {
         ["htl.goals"] = "src/htl/goals.lua",
         ["htl.Snippet"] = "src/htl/snippet.lua",
         ["htl.ety"] = "src/htl/ety.lua",
+        ["htl.Color"] = "src/htl/Color.lua",
+        ["htl.cli"] = "src/htl/cli.lua",
 
         ["htl.db"] = "src/htl/db/init.lua",
         ["htl.db.util"] = "src/htl/db/util.lua",
@@ -73,12 +75,13 @@ build = {
         -- cli
         ["htc"] = "src/htc/init.lua",
         ["htc.cli"] = "src/htc/cli.lua",
-        ["htc.Colorize"] = "src/htc/Colorize.lua",
         ["htc.project"] = "src/htc/project.lua",
         ["htc.remove"] = "src/htc/remove.lua",
         ["htc.move"] = "src/htc/move.lua",
         ["htc.Ontology"] = "src/htc/Ontology.lua",
         ["htc.ety"] = "src/htc/ety.lua",
+
+        ["htc.test_project"] = "src/htc/test_project.lua"
     }
 }
 test = {

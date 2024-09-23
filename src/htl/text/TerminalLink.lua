@@ -1,4 +1,4 @@
-local Colorize = require("htc.Colorize")
+local Color = require("htl.Color")
 
 local TerminalLink = class(require("htl.text.Link"))
 
@@ -38,7 +38,7 @@ function TerminalLink:__tostring()
             text = self.url_delimiters.close,
             key = "url_delimiters",
         },
-    }):transform(function(part) return Colorize(part.text, self.colors[part.key]) end)
+    }):transform(function(part) return Color(part.text, self.colors[part.key]) end)
 
     parts:append("")
     return parts:join("")
