@@ -1,27 +1,27 @@
-require("htl.cli")({
+return {
     name = "project",
+    alias = true,
     require_command = false,
-    action = function(args)
-        if #Dict(args):keys() == 0 then
+    print = function(args)
+        if #Dict(args):keys() == 1 then
             local Color = require("htl.Color")
 
-            DB.projects:get():sorted(function(a, b)
+            return DB.projects:get():sorted(function(a, b)
                 return a.created < b.created
-            end):foreach(function(p)
+            end):transform(function(p)
                 local colors = {
                     bracket = "black",
                     date = "black",
                 }
 
-                local s = List({
+                return List({
                     Color("[", colors.bracket),
                     Color(p.created, colors.date),
                     Color("]", colors.bracket),
                     " ",
                     p.title,
                 }):join("")
-                print(s)
-            end)
+            end):join("\n")
         end
     end,
     commands = {
@@ -47,4 +47,4 @@ require("htl.cli")({
             end,
         },
     }
-})
+}

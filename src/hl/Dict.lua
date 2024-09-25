@@ -105,6 +105,8 @@ function Dict:foreach(fun, ...)
     for k, v in pairs(self) do
         fun(k, v, ...)
     end
+    
+    return self
 end
 
 function Dict:transformk(fun, ...)
