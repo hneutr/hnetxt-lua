@@ -8,9 +8,6 @@ local Path = require('hl.Path')
 
 local Snippet = require("htl.Snippet")
 
-local Header = require("htl.text.header")
-local Divider = require("htl.text.divider")
-
 local link_id = function()
     return tostring(DB.urls:new_link(Path.this()).id)
 end
@@ -18,19 +15,13 @@ end
 local function header(trigger, size)
     return parse_snippet(
         trigger,
-        tostring(Header({size = size, content = "$1"})) .. "\n",
+        string.format("%s $1", Conf.sizes[size].new_middle),
         {trim_empty = false}
     )
 end
 
-local function divider(trigger, size, style)
-    -- print(size)
-    -- print(style)
-    return parse_snippet(
-        trigger,
-        tostring(Divider({size = size, style = style})) .. "\n",
-        {trim_empty = false}
-    )
+local function divider(trigger)
+    return parse_snippet(trigger, "---" .. "\n", {trim_empty = false})
 end
 
 local snippets = List({

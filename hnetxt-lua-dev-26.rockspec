@@ -61,9 +61,6 @@ build = {
 
         ["htl.Mirrors"] = "src/htl/Mirrors.lua",
 
-        ["htl.text.divider"] = "src/htl/text/divider.lua",
-        ["htl.text.header"] = "src/htl/text/header.lua",
-        ["htl.text.Fold"] = "src/htl/text/Fold.lua",
         ["htl.text.Line"] = "src/htl/text/Line.lua",
         ["htl.text.List"] = "src/htl/text/List/init.lua",
         ["htl.text.List.Item"] = "src/htl/text/List/Item.lua",

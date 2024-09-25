@@ -6,7 +6,6 @@ local Line = require("htl.text.Line")
 local URLDefinition = require("htl.text.URLDefinition")
 local Mirrors = require("htl.Mirrors")
 local TaxonomyParser = require("htl.Taxonomy.Parser")
-local Fold = require("htl.text.Fold")
 
 local BufferLines = require("hn.buffer_lines")
 
@@ -311,10 +310,26 @@ function M.jump_to_header(direction)
     end
 end
 
+function M.get_header_indexes(lines)
+    local indexes = List()
+    for i, line in ipairs(lines) do
+        if line == "---" or line:startswith("#") then
+            indexes:append(i)
+        end
+    end
+
+    return indexes
+end
+
+function M.get_foldlevels(lines)
+    -- not function right now
+    return List(lines):map(function() return 0 end)
+end
+
 function M.set_foldlevels()
     local lines = BufferLines.get()
-    vim.b.fold_levels = Fold.get_fold_levels(lines)
-    vim.b.header_indexes = Fold.get_header_indexes(lines)
+    vim.b.fold_levels = M.get_foldlevels(lines)
+    vim.b.header_indexes = M.get_header_indexes(lines)
 end
 
 function M.get_foldlevel(row)
@@ -323,26 +338,6 @@ function M.get_foldlevel(row)
     end
 
     return vim.b.fold_levels[row]
-end
-
-function M.fold_operation(operation)
-    return function()
-        local cursor = M.get_cursor()
-        local lines_from_lower = Fold.get_lower_distance()
-
-        if lines_from_lower then
-            cursor.row = cursor.row + lines_from_lower
-            M.set_cursor(cursor)
-        end
-
-        vim.opt_local.foldmethod = vim.opt_local.foldmethod:get()
-		vim.cmd("normal! " .. operation)
-
-        if lines_from_lower then
-            cursor.row = cursor.row - lines_from_lower
-            M.set_cursor(cursor)
-        end        
-    end
 end
 
 --------------------------------------------------------------------------------

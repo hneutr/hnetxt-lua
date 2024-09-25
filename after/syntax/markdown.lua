@@ -1,6 +1,4 @@
 local Color = require("hn.color")
-local Divider = require("htl.text.divider")
-local Header = require("htl.text.header")
 local TaxonomyParser = require("htl.Taxonomy.Parser")
 
 local function get_syntax()
@@ -9,8 +7,6 @@ local function get_syntax()
         elements:update(require("htn.text.list").syntax())
 
         List.from(
-            Header.headers(),
-            Divider.dividers(),
             TaxonomyParser.Relations,
             {}
         ):foreach(function(e)

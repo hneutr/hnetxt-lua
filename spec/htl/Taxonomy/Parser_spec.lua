@@ -1,7 +1,6 @@
 local stub = require("luassert.stub")
 local htl = require("htl")
 
-local Divider = require("htl.text.divider")
 local Link = require("htl.text.Link")
 local Mirrors = require("htl.Mirrors")
 

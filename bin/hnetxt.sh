@@ -1,21 +1,21 @@
 alias ht="hnetxt"
 
-alias quote="hnetxt quote"
-
-alias journal="hnetxt journal"
-
 alias rm="hnetxt remove"
+
+alias mv="hnetxt move"
 
 alias ety="hnetxt ety"
 
-alias on="hnetxt ontology"
-
-alias define="hnetxt define"
-
 alias aim="hnetxt aim"
+
+alias on="hnetxt ontology"
 
 alias project="hnetxt project"
 
+alias define="hnetxt define"
+
+alias journal="hnetxt journal"
+
 alias track="hnetxt track"
 
-alias mv="hnetxt move"
+alias quote="hnetxt quote"

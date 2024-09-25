@@ -1,4 +1,3 @@
-local Divider = require("htl.text.divider")
 local Mirrors = require("htl.Mirrors")
 local Link = require("htl.text.Link")
 
@@ -8,7 +7,6 @@ M.conf.relations = Dict(M.conf.relations)
 M.conf.indent_size = "  "
 M.conf.to_skip = Set({"on page", "page"})
 M.conf.metadata = Dict(M.conf.metadata)
-M.conf.metadata.divider = tostring(Divider("large", "metadata"))
 M.conf.grammar.comment_pattern = string.format("%s.*", M.conf.grammar.comment_prefix)
 
 function M.is_taxonomy_file(path)
@@ -73,7 +71,6 @@ function M.is_metadata_line(l)
 
     result = result and #l > 0
     result = result and #l <= M.conf.metadata.max_length
-    result = result and l ~= M.conf.metadata.divider
 
     return result or false
 end

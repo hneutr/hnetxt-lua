@@ -3,18 +3,22 @@ large:
     color: red
     fold_level: 1
     middle: ┣
+    new_middle: "#"
 medium: 
     width: 60
     color: peach
     fold_level: 2
     middle: ┠
+    new_middle: "##"
 small:
     width: 40
     color: yellow
     fold_level: 3
     middle: ┃
+    new_middle: "###"
 tiny:
     width: 20
     color: teal
     fold_level: 4
     middle: ┇
+    new_middle: "####"
