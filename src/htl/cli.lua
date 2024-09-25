@@ -48,7 +48,7 @@ function Component:set_element_keys()
 end
 
 function Component.shell_function(name, lines)
-    lines = List(lines)
+    lines = List.as_list(lines)
     lines:transform(function(l) return "    " .. l end)
     lines:put(string.format("function %s() {", name))
     lines:append("}")
