@@ -53,9 +53,7 @@ def add_ety_content(path):
         content = "\n".join([
             content.rstrip(),
             textwrap.dedent("""
-            ┏━━━━━━━━━━━━━━━━━━╸
-            ┇ etymonline
-            ┗━━━━━━━━━━━━━━━━━━╸
+            #### etymonline
             """),
             get_etymonline_content(url),
         ])

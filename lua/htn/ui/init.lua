@@ -1,5 +1,4 @@
 local fzf = require("fzf-lua")
-local ufo = require("ufo")
 
 local Link = require("htl.text.Link")
 local Line = require("htl.text.Line")
@@ -70,7 +69,6 @@ function M.start()
     end
     
     -- currently not using folds and this is slow
-    -- ufo.openAllFolds()
     -- vim.cmd([[noautocmd silent! loadview]])
     vim.cmd([[highlight clear SpellLocal]])
 end

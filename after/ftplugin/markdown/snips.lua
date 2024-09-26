@@ -28,11 +28,13 @@ local snippets = List({
     parse_snippet("l", "[$1]($2)"),
     ls.snippet("L", fmt("[{label}](:{link_id}:)", {label = i(1), link_id = f(link_id)})),
     -- dividers
-    divider("dl", "large"),
-    divider("dm", "medium"),
-    divider("ds", "small"),
-    divider("dsx", "tiny"),
+    divider("d"),
+    divider("dl"),
+    divider("dm"),
+    divider("ds"),
+    divider("dsx"),
     -- headers
+    header("h", "large"),
     header("hl", "large"),
     header("hm", "medium"),
     header("hs", "small"),
