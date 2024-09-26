@@ -280,6 +280,15 @@ M.fuzzy_operation_actions = {
     insert = {default = M.fuzzy_insert},
 }
 
+function M.goto_fuzzy_header(selection)
+    local row = selection[1]:match("%[(%d+)%]")
+    M.set_cursor({row = tonumber(row), center = true})
+end
+
+function M.fuzzy_headers()
+    fzf.fzf_exec(vim.b.fuzzy_headers, {actions = {default = M.goto_fuzzy_header}})
+end
+
 --------------------------------------------------------------------------------
 --                                                                            --
 --                                                                            --
@@ -319,6 +328,24 @@ function M.get_header_indexes(lines)
     return indexes
 end
 
+function M.get_fuzzy_headers(lines)
+    local fuzzy_lines = List()
+    for i, line in ipairs(lines) do
+        if line:startswith("#") then
+            local prefix, display = unpack(line:split(" ", 1))
+            
+            if #prefix > 1 then
+                display = string.format("%d %s", #prefix, display)
+            end
+            
+            display = string.format("%s [%d]", display, i)
+            fuzzy_lines:append(display)
+        end
+    end
+    
+    return fuzzy_lines
+end
+
 function M.get_foldlevels(lines)
     -- not function right now
     return List(lines):map(function() return 0 end)
@@ -328,6 +355,7 @@ function M.set_foldlevels()
     local lines = BufferLines.get()
     vim.b.fold_levels = M.get_foldlevels(lines)
     vim.b.header_indexes = M.get_header_indexes(lines)
+    vim.b.fuzzy_headers = M.get_fuzzy_headers(lines)
 end
 
 function M.get_foldlevel(row)

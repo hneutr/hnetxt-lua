@@ -28,6 +28,7 @@ if vim.b.htn_project_path then
     mappings.n["<leader>df"] = ui.map_fuzzy("goto")
     mappings.n["<C-/>"] = ui.map_fuzzy("put")
     mappings.i["<C-/>"] = ui.map_fuzzy("insert")
+    mappings.n["<C-.>"] = ui.fuzzy_headers
 
     mappings.n["<leader>dF"] = ui.map_fuzzy("goto", "global")
     mappings.n["<C-\\>"] = ui.map_fuzzy("put", "global")
