@@ -70,6 +70,8 @@ function M.start()
         M.set_file_url(path)
     end
     
+    M.set_headers()
+
     -- currently not using folds and this is slow
     -- vim.cmd([[noautocmd silent! loadview]])
     vim.cmd([[highlight clear SpellLocal]])
@@ -352,14 +354,8 @@ function M.get_fuzzy_headers(lines)
     return fuzzy_lines
 end
 
---------------------------------------------------------------------------------
---                                                                            --
---                                                                            --
---                                  testing                                   --
---                                                                            --
---                                                                            --
---------------------------------------------------------------------------------
 function M.set_headers(lines)
+    lines = lines or List(BufferLines.get())
     local colors = {
         ["#"] = "red",
         ["##"] = "magenta",
