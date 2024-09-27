@@ -1,5 +1,7 @@
 local fzf = require("fzf-lua")
 
+local Color = require("htl.Color")
+
 local Link = require("htl.text.Link")
 local Line = require("htl.text.Line")
 local URLDefinition = require("htl.text.URLDefinition")
@@ -280,13 +282,17 @@ M.fuzzy_operation_actions = {
     insert = {default = M.fuzzy_insert},
 }
 
-function M.goto_fuzzy_header(selection)
-    local row = selection[1]:match("%[(%d+)%]")
-    M.set_cursor({row = tonumber(row), center = true})
-end
-
 function M.fuzzy_headers()
-    fzf.fzf_exec(vim.b.fuzzy_headers, {actions = {default = M.goto_fuzzy_header}})
+    fzf.fzf_exec(
+        vim.b.headers,
+        {
+            actions = {
+                default = function(s)
+                    M.set_cursor({row = vim.b.header_lines[s[1]], center = true})
+                end
+            },
+        }
+    )
 end
 
 --------------------------------------------------------------------------------
@@ -346,16 +352,53 @@ function M.get_fuzzy_headers(lines)
     return fuzzy_lines
 end
 
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                  testing                                   --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
+function M.set_headers(lines)
+    local colors = {
+        ["#"] = "red",
+        ["##"] = "magenta",
+        ["###"] = "yellow",
+        ["####"] = "green",
+    }
+
+    local headers = List()
+    local header_lines = Dict()
+    local header_indexes = List()
+    for i, line in ipairs(lines) do
+        if line:startswith("#") then
+            local prefix, str = unpack(line:split(" ", 1))
+            
+            local whitespace = string.rep(" ", #prefix - 1)
+            str = string.format("%s%s", whitespace, str)
+            
+            headers:append(Color(str, colors[prefix]))
+            header_lines[str] = i
+            header_indexes:append(i)
+        elseif line == "---" then
+            header_indexes:append(i)
+        end
+    end
+    
+    vim.b.headers = headers
+    vim.b.header_lines = header_lines
+    vim.b.header_indexes = header_indexes
+end
+
 function M.get_foldlevels(lines)
-    -- not function right now
+    -- not functional right now
     return List(lines):map(function() return 0 end)
 end
 
 function M.set_foldlevels()
     local lines = BufferLines.get()
     vim.b.fold_levels = M.get_foldlevels(lines)
-    vim.b.header_indexes = M.get_header_indexes(lines)
-    vim.b.fuzzy_headers = M.get_fuzzy_headers(lines)
+    M.set_headers(lines)
 end
 
 function M.get_foldlevel(row)

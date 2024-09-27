@@ -2,23 +2,20 @@ large:
     width: 80
     color: red
     fold_level: 1
-    middle: ┣
-    new_middle: "#"
+    prefix: "#"
 medium: 
     width: 60
     color: peach
     fold_level: 2
-    middle: ┠
-    new_middle: "##"
+    prefix: "##"
 small:
     width: 40
     color: yellow
     fold_level: 3
     middle: ┃
-    new_middle: "###"
+    prefix: "###"
 tiny:
     width: 20
     color: teal
     fold_level: 4
-    middle: ┇
-    new_middle: "####"
+    prefix: "####"

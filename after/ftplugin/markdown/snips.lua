@@ -15,7 +15,7 @@ end
 local function header(trigger, size)
     return parse_snippet(
         trigger,
-        string.format("%s $1", Conf.sizes[size].new_middle),
+        string.format("%s $1", Conf.sizes[size].prefix),
         {trim_empty = false}
     )
 end
