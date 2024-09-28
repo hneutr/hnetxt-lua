@@ -1,6 +1,5 @@
 local Mirrors = require("htl.Mirrors")
 local Link = require("htl.text.Link")
-local URLDefinition = require("htl.text.URLDefinition")
 local TaxonomyParser = require("htl.Taxonomy.Parser")
 
 local M = SqliteTable("urls", {
@@ -152,50 +151,6 @@ function M.remove_references_to_url(url_to_remove)
             end)
             TaxonomyParser:record(url)
         end)
-    end
-end
-
---------------------------------------------------------------------------------
---                                                                            --
---                                   links                                    --
---                                                                            --
---------------------------------------------------------------------------------
-function M:new_link(path)
-    local row = {path = path, type = 'link'}
-    M:insert(row)
-
-    return M:get({where = row}):sort(function(a, b) return a.id > b.id end)[1]
-end
-
-function M:update_link_urls(path, lines)
-    local present = Set()
-
-    for line in lines:iter() do
-        local link = URLDefinition:from_str(line)
-
-        if link then
-            local id = tonumber(link.url)
-            present:add(id)
-            M:update({
-                where = {id = id},
-                set = {
-                    path = tostring(path),
-                    label = link.label,
-                    type = "link",
-                },
-            })
-        end
-    end
-
-    local absent = Set(
-        M:get({where = {path = path, type = "link"}}):col('id')
-    ):difference(present):vals()
-
-    if #absent > 0 then
-        M:update({
-            where = {id = absent},
-            set = {path = tostring(M.unanchored_path)},
-        })
     end
 end
 

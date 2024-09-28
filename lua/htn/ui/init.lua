@@ -4,7 +4,6 @@ local Color = require("htl.Color")
 
 local Link = require("htl.text.Link")
 local Line = require("htl.text.Line")
-local URLDefinition = require("htl.text.URLDefinition")
 local Mirrors = require("htl.Mirrors")
 local TaxonomyParser = require("htl.Taxonomy.Parser")
 
@@ -88,20 +87,13 @@ function M.leave()
     if vim.b.htn_modified then
         local path = Path.this()
         
-        local update_link_urls = true
-
         if Mirrors:is_mirror(path) then
             path = Mirrors:get_source(path).path
-            update_link_urls = false
         end
         
         M.set_file_url(path)
 
         TaxonomyParser:record(DB.urls:get_file(path))
-        
-        if update_link_urls then
-            DB.urls:update_link_urls(path, BufferLines.get())
-        end
     end
     
     vim.b.htn_modified = false
@@ -184,16 +176,6 @@ function M.goto_url(open_command, url)
 
     if url.path ~= Path.this() then
         url.path:open(open_command)
-    end
-
-    if url.type == 'link' then
-        for row, line in ipairs(BufferLines.get()) do
-            local link = URLDefinition:from_str(line)
-            if link and tonumber(link.url) == url.id then
-                M.set_cursor({row = row, center = true})
-                return
-            end
-        end
     end
 end
 
@@ -293,7 +275,7 @@ function M.fuzzy_headers()
         {
             actions = {
                 default = function(s)
-                    M.set_cursor({row = vim.b.header_lines[s[1]], center = true})
+                    M.set_cursor({row = vim.b.header_lines[s[1]:strip()], center = true})
                 end
             },
         }
@@ -307,7 +289,7 @@ end
 --                                                                            --
 --                                                                            --
 --------------------------------------------------------------------------------
-function M.jump_to_header(direction)
+function M.jump_to_division(direction)
     return function()
         M.set_headers()
         local row = M.get_cursor().row
@@ -329,31 +311,53 @@ function M.jump_to_header(direction)
     end
 end
 
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                  headers                                   --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
+local Header = class()
+
+function Header:_init(str, level, line)
+    self.str = str
+    self.level = level
+    self.line = line
+    self.hl = string.format("markdownH%d", self.level)
+end
+
+function Header:__tostring()
+    return string.format("%s %s", string.rep("#", self.level), self.str)
+end
+
+function Header:fuzzy_str()
+    return string.rep("  ", self.level - 1) .. fzf.utils.ansi_from_hl(self.hl, self.str)
+end
+
+function Header.str_is_a(str)
+    return str:match("#+%s.*")
+end
+
+function Header.from_str(str, line)
+    local level, str = str:match("(#+)%s(.*)")
+    return Header(str, #level, line)
+end
+
 function M.set_headers()
     if vim.b.headers then
         return
     end
     
-    lines = List(BufferLines.get())
-    local colors = {
-        ["#"] = "red",
-        ["##"] = "magenta",
-        ["###"] = "yellow",
-        ["####"] = "green",
-    }
-
     local headers = List()
     local header_lines = Dict()
     local header_indexes = List()
-    for i, line in ipairs(lines) do
-        if line:startswith("#") then
-            local prefix, str = unpack(line:split(" ", 1))
+    for i, line in ipairs(BufferLines.get()) do
+        if Header.str_is_a(line) then
+            local header = Header.from_str(line, i)
             
-            local whitespace = string.rep(" ", #prefix - 1)
-            str = string.format("%s%s", whitespace, str)
-            
-            headers:append(Color(str, colors[prefix]))
-            header_lines[str] = i
+            headers:append(header:fuzzy_str())
+            header_lines[header.str] = i
             header_indexes:append(i)
         elseif line == "---" then
             header_indexes:append(i)
@@ -494,26 +498,6 @@ end
 function M.copy_wordcount_to_clipboard()
     local words = vim.fn.wordcount()['cursor_words']
     vim.fn.setreg("+", words)
-end
-
-function M.fix_quotes()
-    local lines = List(vim.api.nvim_buf_get_lines(0, 0, -1, false))
-    
-    for i, line in ipairs(lines) do
-        local new_line = line
-        
-        Dict({
-            ['’'] = "'",
-            ['“'] = '"',
-            ['”'] = '"',
-        }):foreach(function(old, new)
-            new_line = new_line:gsub(old, new)
-        end)
-        
-        if new_line ~= line then
-            vim.fn.setline(i, new_line)
-        end
-    end
 end
 
 function M.set_modified_date()

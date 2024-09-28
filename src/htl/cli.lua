@@ -197,7 +197,9 @@ function Command:add_subcomponents()
         self:add_subcomponent(_conf)
     end
 
-    self.conf.commands:foreach(Command, self)
+    self.conf.commands:sorted(function(a, b)
+        return a.name < b.name
+    end):foreach(Command, self)
 end
 
 --------------------------------------------------------------------------------

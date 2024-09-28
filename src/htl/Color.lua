@@ -1,6 +1,8 @@
 require("htl")
 
-local color_to_code = Dict({
+local M = {}
+
+M.color_to_code = Dict({
     reset        = 0,
     bright       = 1,
     dim          = 2,
@@ -32,20 +34,39 @@ local color_to_code = Dict({
     return string.format("%s[%dm", string.char(27), v)
 end)
 
-local function escape_keys(_, str)
-    return List(str:gmatch("%w+")):transform(function(s) return color_to_code[s] end):join()
+function M.hex_to_rgb(hex)
+    hex = hex:removeprefix("#")
+    return List({
+        hex:sub(1, 2),
+        hex:sub(3, 4),
+        hex:sub(5, 6),
+    }):transform(function(x)
+        return tonumber("0x" .. x)
+    end)
+end
+
+function M.ansi_from_hex(hex)
+    return string.format("[38;2;%d;%d;%dm", unpack(M.hex_to_rgb(hex)))
+end
+
+function M.set_color(color)
+    if not M.color_to_code[color] then
+        if color:startswith("#") then
+            M.color_to_code[color] = M.ansi_from_hex(color)
+        end
+    end
+    
+    M.color_to_code[color] = M.color_to_code[color] or M.color_to_code.reset
+    
+    return M.color_to_code[color]
 end
 
 return function(str, colors)
-    if type(colors) == "table" then
-        colors = List(colors)
-    else
-        colors = List({colors})
-    end
-
     str = tostring(str)
-    colors:foreach(function(color)
-        str = "%{" .. (color or "reset") .. "}" .. str .. "%{reset}"
+
+    List.as_list(colors):foreach(function(color)
+        str = M.set_color(color) .. str .. M.set_color("reset")
     end)
-    return str:gsub("(%%{(.-)})", escape_keys)
+
+    return str
 end

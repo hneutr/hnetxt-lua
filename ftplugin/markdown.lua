@@ -32,7 +32,7 @@ if not vim.g.htn_au_group then
             callback = ui.enter,
         },
         {
-            events = {'TextChanged', "InsertLeave"},
+            events = {"BufModifiedSet"},
             callback = ui.change,
         },
         {
@@ -51,7 +51,6 @@ local commands = Dict({
     Journal = function() require("htl.journal")():open() end,
     Aim = function() require("htl.goals")():open() end,
     Track = DB.Log.ui.cmd,
-    FixQuotes = ui.fix_quotes,
 })
 
 --------------------------------------------------------------------------------

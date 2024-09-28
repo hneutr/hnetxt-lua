@@ -5,8 +5,8 @@ local args = {silent = true, buffer = true}
 local mappings = Dict(
     {
         n = Dict({
-            ["<c-p>"] = ui.jump_to_header(-1),
-            ["<c-n>"] = ui.jump_to_header(1),
+            ["<c-p>"] = ui.jump_to_division(-1),
+            ["<c-n>"] = ui.jump_to_division(1),
             -- url opening
             ["<M-l>"] = ui.goto_map_fn("vsplit"),
             ["<M-j>"] = ui.goto_map_fn("split"),
