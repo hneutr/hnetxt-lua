@@ -21,3 +21,6 @@ local function get_syntax()
 end
 
 get_syntax():foreach(Color.add_to_syntax)
+
+vim.cmd([[highlight clear SpellLocal]])
+vim.cmd([[highlight clear SpellCap]])

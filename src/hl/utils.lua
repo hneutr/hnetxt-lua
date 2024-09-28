@@ -34,8 +34,10 @@ function M.time_it(label)
     label = label or "time"
     TIME = TIME or socket.gettime() * 1000
     local now = socket.gettime() * 1000
-    print(string.format("%s: %d", label, now - TIME))
+    local str = string.format("%s: %d", label, now - TIME)
+    print(str)
     TIME = now
+    return str
 end
 
 return M

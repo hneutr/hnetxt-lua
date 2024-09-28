@@ -56,9 +56,7 @@ local commands = Dict({
 
 --------------------------------------------------------------------------------
 --                                                                            --
---                                                                            --
---                                  testing                                   --
---                                                                            --
+--                              DB.url commands                               --
 --                                                                            --
 --------------------------------------------------------------------------------
 local Url_cmds = {
@@ -152,13 +150,6 @@ commands.Ety = {
     },
 }
 
---------------------------------------------------------------------------------
---                                                                            --
---                                                                            --
---                                end testing                                 --
---                                                                            --
---                                                                            --
---------------------------------------------------------------------------------
 commands:foreach(function(name, cmd)
     local opts
     if type(cmd) == "table" then
@@ -166,5 +157,3 @@ commands:foreach(function(name, cmd)
     end
     vim.api.nvim_buf_create_user_command(0, name, cmd, opts or {})
 end)
-
--- require("htn.markview").setup()

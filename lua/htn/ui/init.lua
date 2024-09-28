@@ -70,16 +70,13 @@ function M.start()
         M.set_file_url(path)
     end
     
-    M.set_headers()
-
     -- currently not using folds and this is slow
     -- vim.cmd([[noautocmd silent! loadview]])
-    vim.cmd([[highlight clear SpellLocal]])
 end
 
 function M.change()
     vim.b.htn_modified = true
-    M.set_foldlevels()
+    M.unset_headers()
     M.set_modified_date()
 end
 
@@ -113,11 +110,7 @@ function M.leave()
 end
 
 --------------------------------------------------------------------------------
---                                                                            --
---                                                                            --
---                                  helpers                                   --
---                                                                            --
---                                                                            --
+--                                 statusline                                 --
 --------------------------------------------------------------------------------
 function M.get_statusline()
     local path = Path.this()
@@ -166,6 +159,13 @@ function M.get_statusline_path(path, relative_to)
     return Path.contractuser(tostring(path:with_suffix("")))
 end
 
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                  helpers                                   --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
 function M.set_file_url(path)
     path = path or Path.this()
     if path and path:exists() and DB.urls.should_track(path) then
@@ -197,26 +197,27 @@ function M.goto_url(open_command, url)
     end
 end
 
-function M.goto(open_command)
-    local url = Link:get_nearest(vim.fn.getline('.'), M.get_cursor().col).url
+function M.goto_map_fn(open_cmd)
+    return function()
+        local url = Link:get_nearest(vim.fn.getline('.'), M.get_cursor().col).url
 
-    if url then
-        if Path(url):is_url() then
-            os.execute(string.format("open %s", url))
-        else
-            M.goto_url(open_command, DB.urls:where({id = url}))
+        if url then
+            if Path(url):is_url() then
+                os.execute(string.format("open %s", url))
+            else
+                M.goto_url(open_cmd, DB.urls:where({id = url}))
+            end
         end
     end
 end
 
-function M.goto_map_fn(open_cmd) return function() M.goto(open_cmd) end end
-
-function M.bind_fuzzy_scope(fn, scope)
-    return function(selection)
-        fn(selection, scope)
-    end
-end
-
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                   fuzzy                                    --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
 function M.fuzzy_goto_map_fn(open_command)
     return function(selection, scope)
         local dir = M.get_dir_from_fuzzy_scope(scope)
@@ -266,7 +267,7 @@ function M.map_fuzzy(operation, scope)
         
         local actions = {}
         for key, fn in pairs(M.fuzzy_operation_actions[operation]) do
-            actions[key] = M.bind_fuzzy_scope(fn, scope)
+            actions[key] = function(selection) fn(selection, scope) end
         end
         
         fzf.fzf_exec(DB.urls:get_fuzzy_paths(dir), {actions = actions})
@@ -285,6 +286,8 @@ M.fuzzy_operation_actions = {
 }
 
 function M.fuzzy_headers()
+    M.set_headers()
+
     fzf.fzf_exec(
         vim.b.headers,
         {
@@ -306,6 +309,7 @@ end
 --------------------------------------------------------------------------------
 function M.jump_to_header(direction)
     return function()
+        M.set_headers()
         local row = M.get_cursor().row
         local header_indexes = List(vim.b.header_indexes)
         header_indexes:put(1)
@@ -320,42 +324,17 @@ function M.jump_to_header(direction)
         end
 
         if #candidates > 0 then
-            M.set_cursor({row = candidates[1], center = true})
+            M.set_cursor({row = candidates[1]})
         end
     end
 end
 
-function M.get_header_indexes(lines)
-    local indexes = List()
-    for i, line in ipairs(lines) do
-        if line == "---" or line:startswith("#") then
-            indexes:append(i)
-        end
-    end
-
-    return indexes
-end
-
-function M.get_fuzzy_headers(lines)
-    local fuzzy_lines = List()
-    for i, line in ipairs(lines) do
-        if line:startswith("#") then
-            local prefix, display = unpack(line:split(" ", 1))
-            
-            if #prefix > 1 then
-                display = string.format("%d %s", #prefix, display)
-            end
-            
-            display = string.format("%s [%d]", display, i)
-            fuzzy_lines:append(display)
-        end
+function M.set_headers()
+    if vim.b.headers then
+        return
     end
     
-    return fuzzy_lines
-end
-
-function M.set_headers(lines)
-    lines = lines or List(BufferLines.get())
+    lines = List(BufferLines.get())
     local colors = {
         ["#"] = "red",
         ["##"] = "magenta",
@@ -386,23 +365,21 @@ function M.set_headers(lines)
     vim.b.header_indexes = header_indexes
 end
 
-function M.get_foldlevels(lines)
-    -- not functional right now
-    return List(lines):map(function() return 0 end)
+function M.unset_headers()
+    vim.b.headers = nil
+    vim.b.header_lines = nil
+    vim.b.header_indexes = nil
 end
 
-function M.set_foldlevels()
-    local lines = BufferLines.get()
-    vim.b.fold_levels = M.get_foldlevels(lines)
-    M.set_headers(lines)
-end
-
-function M.get_foldlevel(row)
-    if not vim.b.fold_levels then
-        M.set_foldlevels()
-    end
-
-    return vim.b.fold_levels[row]
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                   folds                                    --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
+function M.get_foldlevel()
+    return 0
 end
 
 --------------------------------------------------------------------------------
