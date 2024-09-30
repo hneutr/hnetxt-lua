@@ -2,37 +2,7 @@ require("htl")
 
 local M = {}
 
-M.color_to_code = Dict({
-    reset        = 0,
-    bright       = 1,
-    dim          = 2,
-    underline    = 4,
-    blink        = 5,
-    reverse      = 7,
-    hidden       = 8,
-
-    -- foreground
-    black        = 30,
-    red          = 31,
-    green        = 32,
-    yellow       = 33,
-    blue         = 34,
-    magenta      = 35,
-    cyan         = 36,
-    white        = 37,
-
-    -- background
-    blackbg      = 40,
-    redbg        = 41,
-    greenbg      = 42,
-    yellowbg     = 43,
-    bluebg       = 44,
-    magentabg    = 45,
-    cyanbg       = 46,
-    whitebg      = 47,
-}):transformv(function(v)
-    return string.format("%s[%dm", string.char(27), v)
-end)
+M.color_to_code = Dict()
 
 function M.hex_to_rgb(hex)
     hex = hex:removeprefix("#")
@@ -49,24 +19,27 @@ function M.ansi_from_hex(hex)
     return string.format("[38;2;%d;%d;%dm", unpack(M.hex_to_rgb(hex)))
 end
 
-function M.set_color(color)
+function M.ansi_from_code(code)
+    return string.format("%s[%dm", string.char(27), Conf.colors.term[code])
+end
+
+function M.get_code(color)
     if not M.color_to_code[color] then
         if color:startswith("#") then
             M.color_to_code[color] = M.ansi_from_hex(color)
+        else
+            M.color_to_code[color] = M.ansi_from_code(color)
         end
     end
     
-    M.color_to_code[color] = M.color_to_code[color] or M.color_to_code.reset
-    
-    return M.color_to_code[color]
+    return M.color_to_code[color] or ""
 end
 
 return function(str, colors)
-    str = tostring(str)
-
-    List.as_list(colors):foreach(function(color)
-        str = M.set_color(color) .. str .. M.set_color("reset")
-    end)
-
-    return str
+    return string.format(
+        "%s%s%s",
+        List.as_list(colors):transform(M.get_code):join(""),
+        tostring(str),
+        M.get_code("reset")
+    )
 end

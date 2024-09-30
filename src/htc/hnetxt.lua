@@ -83,7 +83,7 @@ require("htl.cli")({
                     "    ::val       →    apply recursively",
                 }):join("\n"),
             },
-            {"-p --path", default = Path.cwd(), convert=Path.from_commandline},
+            {"-p --path", default = Path.cwd(), convert = Path.from_commandline},
             {"+i", target = "include_instances", description = "include instances", switch = "on"},
             {"+I", target = "instances_only", description = "only print instances", switch = "on"},
             {"+a", target = "by_attribute", description = "by attribute", switch = "on"},
@@ -140,6 +140,44 @@ require("htl.cli")({
                 if args.reparse_taxonomy then
                     require("htl.Taxonomy.Parser"):persist()
                 end
+            end
+        },
+        setmd = {
+            alias = true,
+            description = "make a pdf of a markdown file",
+            {"path", args = "1", convert = Path.from_commandline},
+            {
+                "-d --directory",
+                description = "output directory",
+                default = Path.home / "Desktop",
+                convert = Path.from_commandline,
+            },
+            action = function(args)
+                local out_path = args.directory / string.format("%s.pdf", args.path:stem())
+
+                local temp_path = Path.tempdir / args.path:name()
+                
+                local add_newline = false
+                local lines = List()
+                for i, line in ipairs(args.path:readlines()) do
+                    if add_newline and #line:strip() > 0 then
+                        lines:append("\n")
+                    end
+                    
+                    add_newline = line:startswith("#") or line == "---"
+                    
+                    lines:append(line)
+                end
+                
+                temp_path:write(lines)
+                
+                os.execute(string.format(
+                    "pandoc --pdf-engine=lualatex -s -o %s %s",
+                    out_path,
+                    temp_path
+                ))
+                
+                temp_path:unlink()
             end
         },
     }

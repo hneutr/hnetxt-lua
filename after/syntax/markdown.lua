@@ -6,10 +6,7 @@ local function get_syntax()
         local elements = Dict(Conf.syntax)
         elements:update(require("htn.text.list").syntax())
 
-        List.from(
-            TaxonomyParser.Relations,
-            {}
-        ):foreach(function(e)
+        TaxonomyParser.Relations:foreach(function(e)
             elements:update(e:syntax())
         end)
         

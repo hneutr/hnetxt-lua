@@ -20,6 +20,11 @@ M.valid_keys = Set({
     'link',
 })
 
+function M.get_hl_attr(group, attr)
+    attr = attr or "fg"
+    return vim.fn.synIDattr(vim.fn.synIDtrans(vim.fn.hlID(group)), attr)
+end
+
 function M.add_to_syntax(key, args)
     if args.string and not args.cmd then
         args.cmd = List({

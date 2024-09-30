@@ -1,6 +1,7 @@
 local fzf = require("fzf-lua")
 
-local Color = require("htl.Color")
+local TermColor = require("htl.Color")
+local VimColor = require("hn.Color")
 
 local Link = require("htl.text.Link")
 local Line = require("htl.text.Line")
@@ -325,6 +326,7 @@ function Header:_init(str, level, line)
     self.level = level
     self.line = line
     self.hl = string.format("markdownH%d", self.level)
+    self.color = VimColor.get_hl_attr(self.hl, "fg")
 end
 
 function Header:__tostring()
@@ -332,7 +334,7 @@ function Header:__tostring()
 end
 
 function Header:fuzzy_str()
-    return string.rep("  ", self.level - 1) .. fzf.utils.ansi_from_hl(self.hl, self.str)
+    return string.rep("  ", self.level - 1) .. TermColor(self.str, self.color)
 end
 
 function Header.str_is_a(str)
