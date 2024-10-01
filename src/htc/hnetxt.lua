@@ -153,31 +153,15 @@ require("htl.cli")({
                 convert = Path.from_commandline,
             },
             action = function(args)
-                local out_path = args.directory / string.format("%s.pdf", args.path:stem())
-
-                local temp_path = Path.tempdir / args.path:name()
+                local pdf = args.directory / string.format("%s.pdf", args.path:stem())
+                local tmp = Path.tempdir / args.path:name()
                 
-                local add_newline = false
-                local lines = List()
-                for i, line in ipairs(args.path:readlines()) do
-                    if add_newline and #line:strip() > 0 then
-                        lines:append("\n")
-                    end
-                    
-                    add_newline = line:startswith("#") or line == "---"
-                    
-                    lines:append(line)
-                end
-                
-                temp_path:write(lines)
-                
-                os.execute(string.format(
-                    "pandoc --pdf-engine=lualatex -s -o %s %s",
-                    out_path,
-                    temp_path
-                ))
-                
-                temp_path:unlink()
+                local lines = require("htl.text.Document")(args.path).lines
+                -- local d = Path.home / "Desktop" / args.path:name()
+                -- d:write(lines)
+                tmp:write(lines)
+                os.execute(string.format("pandoc --pdf-engine=lualatex -s -o %s %s", pdf, tmp))
+                tmp:unlink()
             end
         },
     }

@@ -5,6 +5,7 @@ local VimColor = require("hn.Color")
 
 local Link = require("htl.text.Link")
 local Line = require("htl.text.Line")
+local Header = require("htl.text.Header")
 local Mirrors = require("htl.Mirrors")
 local TaxonomyParser = require("htl.Taxonomy.Parser")
 
@@ -329,38 +330,6 @@ end
 --                                                                            --
 --                                                                            --
 --------------------------------------------------------------------------------
-local Header = class()
-
-function Header:_init(str, level, line)
-    self.str = str
-    self.level = level
-    self.line = line
-end
-
-function Header:__tostring()
-    return string.format("%s %s", string.rep("#", self.level), self.str)
-end
-
-function Header:color()
-    return VimColor.get_hl_attr(
-        string.format("markdownH%d", self.level),
-        "fg"
-    )
-end
-
-function Header:fuzzy_str()
-    return string.rep("  ", self.level - 1) .. TermColor(self.str, self:color())
-end
-
-function Header.str_is_a(str)
-    return str:match("^#+%s.*")
-end
-
-function Header.from_str(str, line)
-    local level, str = str:match("(#+)%s(.*)")
-    return Header(str, #level, line)
-end
-
 function M.set_headers()
     if vim.b.headers then
         return
