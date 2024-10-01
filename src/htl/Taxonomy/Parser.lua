@@ -163,26 +163,7 @@ local ConnectionRelation = class(Relation)
 ConnectionRelation.name = "connection"
 ConnectionRelation.symbol = M.conf.relations.connection.symbol
 
-function ConnectionRelation:clean(l) return l:removesuffix(self.symbol):strip() end
-function ConnectionRelation:line_is_a(l) return l and l:match(self.symbol) and true or false end
-
-function ConnectionRelation:parse(l)
-    local str
-    l, str = utils.parsekv(l, self.symbol)
-
-    if str:startswith("(") then
-        str = str:removeprefix("("):removesuffix(")")
-    end
-
-    local key, val
-    if str:match(",") then
-        key, val = utils.parsekv(str, ",")
-    else
-        val = str
-    end
-
-    return l, self:make(key, val)
-end
+function ConnectionRelation:line_is_a(l) return false end
 
 function ConnectionRelation:make(key, val)
     local r = Dict({

@@ -76,56 +76,6 @@ describe("SubsetRelation", function()
     end)
 end)
 
-describe("ConnectionRelation", function()
-    local M = M.ConnectionRelation
-
-    describe("line_is_a", function()
-        it("nil", function()
-            assert.is_false(M:line_is_a())
-        end)
-        
-        it("-", function()
-            assert.is_false(M:line_is_a("abc"))
-        end)
-        
-        it("+", function()
-            assert(M:line_is_a(M.symbol .. "abc"))
-        end)
-    end)
-
-    describe("parse", function()
-        it("with key", function()
-            assert.are.same(
-                {
-                    "xyz",
-                    {relation = "connection", key = "a", val = "b"},
-                },
-                {M:parse("xyz " .. M.symbol .. "(a, b)")}
-            )
-        end)
-        
-        it("without key", function()
-            assert.are.same(
-                {
-                    "",
-                    {relation = "connection", val = "a"},
-                },
-                {M:parse(M.symbol .. " a ")}
-            )
-        end)
-
-        it("link", function()
-            assert.are.same(
-                {
-                    "",
-                    {relation = "connection", object = 1},
-                },
-                {M:parse(M.symbol .. " " .. tostring(Link({text = "xyz", url = 1})))}
-            )
-        end)
-    end)
-end)
-
 describe("InstancesAreAlsoRelation", function()
     local M = M.InstancesAreAlsoRelation
 
@@ -613,7 +563,7 @@ describe("parse_file_lines", function()
     it("kitchen sink", function()
         assert.are.same(
             {
-                {val = "x", relation = "connection"},
+                {key = "x", relation = "tag"},
                 {subject = 1, object = "a", relation = "instance"},
                 {object = 2, relation = "connection", key = "t1"},
                 {object = 3, relation = "connection", key = "t1"}
@@ -621,7 +571,7 @@ describe("parse_file_lines", function()
             M:parse_file_lines(
                 url,
                 List({
-                    string.format("is a: a %s x", M.ConnectionRelation.symbol),
+                    string.format("is a: a %s x", M.TagRelation.symbol),
                     "t1:",
                     "  [abc](2)",
                     "  [def](3)",
