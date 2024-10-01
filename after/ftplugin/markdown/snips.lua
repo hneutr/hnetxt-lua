@@ -1,23 +1,17 @@
 local ls = require("luasnip")
 local parse_snippet = ls.parser.parse_snippet
 
-local function header(trigger, size)
-    return parse_snippet(
-        trigger,
-        string.format("%s $1", Conf.sizes[size].prefix)
-    )
-end
-
 local snippets = List({
     parse_snippet("l", "[$1]($2)"),
     -- dividers
-    parse_snippet("d", "---\n", {trim_empty = false}),
+    parse_snippet("d", "---\n$1"),
     -- headers
-    header("h", "large"),
-    header("hl", "large"),
-    header("hm", "medium"),
-    header("hs", "small"),
-    header("hsx", "tiny"),
+    parse_snippet("h", "# $1"),
+    parse_snippet("hf", "## $1"),
+    parse_snippet("hd", "### $1"),
+    parse_snippet("hs", "#### $1"),
+    parse_snippet("ha", "##### $1"),
+    parse_snippet("hg", "###### $1"),
 })
 
 Conf.snippets:keys():foreach(function(key)

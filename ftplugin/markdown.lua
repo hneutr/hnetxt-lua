@@ -1,10 +1,5 @@
 local ui = require("htn.ui")
 
-vim.opt_local.autoindent = false
-vim.opt_local.cindent = false
-vim.opt_local.textwidth = 0
-vim.opt_local.shiftwidth = 2
-
 -----------------------------------[ folds ]------------------------------------
 vim.opt_local.foldnestmax = 20
 vim.opt_local.foldlevel = 19

@@ -16,6 +16,10 @@ local mappings = Dict(
             ["<C-t>"] = ui.set_time_or_calculate_sum,
             -- copy word count at cursor
             ["gG"] = ui.copy_wordcount_to_clipboard,
+            -- headers
+            ["<C-.>"] = ui.fuzzy_headers,
+            ["<C-s>"] = ui.change_header_level(-1),
+            ["<C-d>"] = ui.change_header_level(1),
         }),
         v = Dict(),
         i = Dict(),
@@ -28,7 +32,6 @@ if vim.b.htn_project_path then
     mappings.n["<leader>df"] = ui.map_fuzzy("goto")
     mappings.n["<C-/>"] = ui.map_fuzzy("put")
     mappings.i["<C-/>"] = ui.map_fuzzy("insert")
-    mappings.n["<C-.>"] = ui.fuzzy_headers
 
     mappings.n["<leader>dF"] = ui.map_fuzzy("goto", "global")
     mappings.n["<C-\\>"] = ui.map_fuzzy("put", "global")

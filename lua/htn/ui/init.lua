@@ -52,6 +52,16 @@ function M.get_cursor(args)
     return c
 end
 
+function M.get_cursor_line()
+    local row = M.get_cursor().row
+    return vim.api.nvim_buf_get_lines(0, row - 1, row, false)[1]
+end
+
+function M.set_cursor_line(lines)
+    local row = M.get_cursor().row
+    vim.api.nvim_buf_set_lines(0, row - 1, row, false, List.as_list(lines))
+end
+
 --------------------------------------------------------------------------------
 --                                                                            --
 --                                                                            --
@@ -325,20 +335,25 @@ function Header:_init(str, level, line)
     self.str = str
     self.level = level
     self.line = line
-    self.hl = string.format("markdownH%d", self.level)
-    self.color = VimColor.get_hl_attr(self.hl, "fg")
 end
 
 function Header:__tostring()
     return string.format("%s %s", string.rep("#", self.level), self.str)
 end
 
+function Header:color()
+    return VimColor.get_hl_attr(
+        string.format("markdownH%d", self.level),
+        "fg"
+    )
+end
+
 function Header:fuzzy_str()
-    return string.rep("  ", self.level - 1) .. TermColor(self.str, self.color)
+    return string.rep("  ", self.level - 1) .. TermColor(self.str, self:color())
 end
 
 function Header.str_is_a(str)
-    return str:match("#+%s.*")
+    return str:match("^#+%s.*")
 end
 
 function Header.from_str(str, line)
@@ -375,6 +390,18 @@ function M.unset_headers()
     vim.b.headers = nil
     vim.b.header_lines = nil
     vim.b.header_indexes = nil
+end
+
+function M.change_header_level(change)
+    return function()
+        local line = M.get_cursor_line()
+        
+        if Header.str_is_a(line) then
+            local header = Header.from_str(line)
+            header.level = header.level + change
+            M.set_cursor_line(tostring(header))
+        end
+    end
 end
 
 --------------------------------------------------------------------------------
