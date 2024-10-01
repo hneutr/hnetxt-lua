@@ -1,14 +1,18 @@
 local Heading = require("htl.text.Heading")
 
 local M = class()
+M.max_public_header_level = 1
 
-function M:_init(path)
-    self.path = path
-    self.lines = self:set_lines()
+function M:_init(args)
+    self.args = args or {}
+    self.path = args.path
+    self.private = args.private
+
+    self.lines = self:set_lines(self.private)
     self.wordcount = self.lines:map(function(l) return #l:split(" ") end):reduce("+")
 end
 
-function M:set_lines()
+function M:set_lines(private)
     local add_newline = false
 
     local lines = List()
@@ -26,7 +30,29 @@ function M:set_lines()
         lines:append(line)
     end
     
+    if not private then
+        lines = M:filter_headers(lines)
+    end
+
     return M:remove_consecutive_newlines(lines)
+end
+
+function M:filter_headers(lines)
+    return lines:filter(function(line)
+        if Heading.str_is_a(line) and Heading.from_str(line).level > self.max_public_header_level then
+            return false
+        end
+
+        return true
+    end):transform(function(line)
+        if Heading.str_is_a(line) then
+            local heading = Heading.from_str(line)
+            heading.str = heading.text
+            line = tostring(heading)
+        end
+        
+        return line
+    end)
 end
 
 function M:remove_consecutive_newlines(lines)
@@ -66,10 +92,7 @@ function M:filter_lines(lines)
                 end
             elseif exclude and exclude == level then
                 exclude = nil
-            end
-            
-            heading.str = heading.text
-            line = tostring(heading)
+            end  
         end
 
         if not exclude or exclude and exclude > level then

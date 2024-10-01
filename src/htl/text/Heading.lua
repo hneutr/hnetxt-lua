@@ -48,4 +48,18 @@ function M:exclude_from_document()
     return self.text:match(Conf.text.exclude_heading_from_document) ~= nil
 end
 
+function M:toggle_exclusion()
+    if self:exclude_from_document() then
+        self.text = self.text:removeprefix("{"):removesuffix("}")
+    else
+        self.text = string.format("{%s}", self.text)
+    end
+    
+    if #self.label > 0 then
+        self.str = string.format("[%s] %s", self.label, self.text)
+    else
+        self.str = self.text
+    end
+end
+
 return M

@@ -14,12 +14,12 @@ local mappings = Dict(
             ["<M-t>"] = ui.goto_map_fn("tabedit"),
             -- set time or calculate quantity
             ["<C-t>"] = ui.set_time_or_calculate_sum,
-            -- copy word count at cursor
             ["gG"] = ui.copy_wordcount_to_clipboard,
             -- headings
             ["<C-.>"] = ui.fuzzy_headings,
             ["<C-s>"] = ui.change_heading_level(-1),
             ["<C-d>"] = ui.change_heading_level(1),
+            ["<C-i>"] = ui.toggle_heading_inclusion,
         }),
         v = Dict(),
         i = Dict(),

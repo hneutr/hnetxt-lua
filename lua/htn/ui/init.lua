@@ -6,6 +6,7 @@ local VimColor = require("hn.Color")
 local Link = require("htl.text.Link")
 local Line = require("htl.text.Line")
 local Heading = require("htl.text.Heading")
+local Document = require("htl.text.Document")
 local Mirrors = require("htl.Mirrors")
 local TaxonomyParser = require("htl.Taxonomy.Parser")
 
@@ -359,6 +360,16 @@ function M.change_heading_level(change)
     end
 end
 
+function M.toggle_heading_inclusion()
+    local line = M.get_cursor_line()
+    
+    if Heading.str_is_a(line) then
+        local heading = Heading.from_str(line)
+        heading:toggle_exclusion()
+        M.set_cursor_line(tostring(heading))
+    end
+end
+
 --------------------------------------------------------------------------------
 --                                                                            --
 --                                                                            --
@@ -480,8 +491,7 @@ function M.set_time_or_calculate_sum()
 end
 
 function M.copy_wordcount_to_clipboard()
-    local words = vim.fn.wordcount()['cursor_words']
-    vim.fn.setreg("+", words)
+    vim.fn.setreg("+", Document({path = Path.this()}).wordcount)
 end
 
 function M.set_modified_date()

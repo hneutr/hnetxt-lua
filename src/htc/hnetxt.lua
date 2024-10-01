@@ -146,6 +146,7 @@ require("htl.cli")({
             alias = true,
             description = "make a pdf of a markdown file",
             {"path", args = "1", convert = Path.from_commandline},
+            {"+p", target = "private", description = "leave private headings in", switch = "on"},
             {
                 "-d --directory",
                 description = "output directory",
@@ -156,10 +157,12 @@ require("htl.cli")({
                 local pdf = args.directory / string.format("%s.pdf", args.path:stem())
                 local tmp = Path.tempdir / args.path:name()
                 
-                local doc = require("htl.text.Document")(args.path)
-
-                -- local d = Path.home / "Desktop" / args.path:name()
-                -- d:write(lines)
+                local Document = require("htl.text.Document")
+                local doc = Document({
+                    path = args.path,
+                    private = args.private,
+                })
+                
                 tmp:write(doc.lines)
                 os.execute(string.format("pandoc --pdf-engine=lualatex -s -o %s %s", pdf, tmp))
                 tmp:unlink()
