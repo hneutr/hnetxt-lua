@@ -156,10 +156,11 @@ require("htl.cli")({
                 local pdf = args.directory / string.format("%s.pdf", args.path:stem())
                 local tmp = Path.tempdir / args.path:name()
                 
-                local lines = require("htl.text.Document")(args.path).lines
+                local doc = require("htl.text.Document")(args.path)
+
                 -- local d = Path.home / "Desktop" / args.path:name()
                 -- d:write(lines)
-                tmp:write(lines)
+                tmp:write(doc.lines)
                 os.execute(string.format("pandoc --pdf-engine=lualatex -s -o %s %s", pdf, tmp))
                 tmp:unlink()
             end

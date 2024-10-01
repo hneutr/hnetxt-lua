@@ -1,6 +1,6 @@
 require("htl")
 
-local M = require("htl.text.Header")
+local M = require("htl.text.Heading")
 
 describe("exclude_from_document", function()
     it("excludes", function()

@@ -5,7 +5,7 @@ local VimColor = require("hn.Color")
 
 local Link = require("htl.text.Link")
 local Line = require("htl.text.Line")
-local Header = require("htl.text.Header")
+local Heading = require("htl.text.Heading")
 local Mirrors = require("htl.Mirrors")
 local TaxonomyParser = require("htl.Taxonomy.Parser")
 
@@ -87,7 +87,7 @@ end
 
 function M.change()
     vim.b.htn_modified = true
-    M.unset_headers()
+    M.unset_headings()
     M.set_modified_date()
 end
 
@@ -279,42 +279,35 @@ M.fuzzy_operation_actions = {
     insert = {default = M.fuzzy_insert},
 }
 
-function M.fuzzy_headers()
-    M.set_headers()
+function M.fuzzy_headings()
+    M.set_headings()
 
     fzf.fzf_exec(
-        vim.b.headers,
+        vim.b.headings,
         {
             actions = {
                 default = function(s)
-                    M.set_cursor({row = vim.b.header_lines[s[1]:strip()], center = true})
+                    M.set_cursor({row = vim.b.heading_lines[s[1]:strip()], center = true})
                 end
             },
         }
     )
 end
 
---------------------------------------------------------------------------------
---                                                                            --
---                                                                            --
---                             folds and headers                              --
---                                                                            --
---                                                                            --
---------------------------------------------------------------------------------
 function M.jump_to_division(direction)
     return function()
-        M.set_headers()
+        M.set_headings()
         local row = M.get_cursor().row
-        local header_indexes = List(vim.b.header_indexes)
-        header_indexes:put(1)
-        header_indexes:append(vim.fn.line('$'))
+        local heading_indexes = List(vim.b.heading_indexes)
+        heading_indexes:put(1)
+        heading_indexes:append(vim.fn.line('$'))
 
         local candidates
 
         if direction == 1 then
-            candidates = header_indexes:filter(function(hi) return hi > row end)
+            candidates = heading_indexes:filter(function(hi) return hi > row end)
         else
-            candidates = header_indexes:filter(function(hi) return hi < row end):reverse()
+            candidates = heading_indexes:filter(function(hi) return hi < row end):reverse()
         end
 
         if #candidates > 0 then
@@ -323,52 +316,45 @@ function M.jump_to_division(direction)
     end
 end
 
---------------------------------------------------------------------------------
---                                                                            --
---                                                                            --
---                                  headers                                   --
---                                                                            --
---                                                                            --
---------------------------------------------------------------------------------
-function M.set_headers()
-    if vim.b.headers then
+function M.set_headings()
+    if vim.b.headings then
         return
     end
     
-    local headers = List()
-    local header_lines = Dict()
-    local header_indexes = List()
+    local headings = List()
+    local heading_lines = Dict()
+    local heading_indexes = List()
     for i, line in ipairs(BufferLines.get()) do
-        if Header.str_is_a(line) then
-            local header = Header.from_str(line, i)
+        if Heading.str_is_a(line) then
+            local heading = Heading.from_str(line, i)
             
-            headers:append(header:fuzzy_str())
-            header_lines[header.str] = i
-            header_indexes:append(i)
+            headings:append(heading:fuzzy_str())
+            heading_lines[heading.str] = i
+            heading_indexes:append(i)
         elseif line == "---" then
-            header_indexes:append(i)
+            heading_indexes:append(i)
         end
     end
     
-    vim.b.headers = headers
-    vim.b.header_lines = header_lines
-    vim.b.header_indexes = header_indexes
+    vim.b.headings = headings
+    vim.b.heading_lines = heading_lines
+    vim.b.heading_indexes = heading_indexes
 end
 
-function M.unset_headers()
-    vim.b.headers = nil
-    vim.b.header_lines = nil
-    vim.b.header_indexes = nil
+function M.unset_headings()
+    vim.b.headings = nil
+    vim.b.heading_lines = nil
+    vim.b.heading_indexes = nil
 end
 
-function M.change_header_level(change)
+function M.change_heading_level(change)
     return function()
         local line = M.get_cursor_line()
         
-        if Header.str_is_a(line) then
-            local header = Header.from_str(line)
-            header.level = header.level + change
-            M.set_cursor_line(tostring(header))
+        if Heading.str_is_a(line) then
+            local heading = Heading.from_str(line)
+            heading.level = heading.level + change
+            M.set_cursor_line(tostring(heading))
         end
     end
 end

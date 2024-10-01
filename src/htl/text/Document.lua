@@ -1,11 +1,11 @@
-local Header = require("htl.text.Header")
+local Heading = require("htl.text.Heading")
 
 local M = class()
 
 function M:_init(path)
     self.path = path
     self.lines = self:set_lines()
-    self.wordcount = self.lines:map(function(l) return #l end):reduce("+")
+    self.wordcount = self.lines:map(function(l) return #l:split(" ") end):reduce("+")
 end
 
 function M:set_lines()
@@ -17,7 +17,7 @@ function M:set_lines()
             lines:append("")
         end
         
-        add_newline = Header.str_is_a(line) or line == "---"
+        add_newline = Heading.str_is_a(line) or line == "---"
         
         if #lines > 0 and add_newline and #lines[#lines]:strip() > 0 then
             lines:append("")
@@ -56,11 +56,11 @@ function M:filter_lines(lines)
             return _lines
         end
         
-        if Header.str_is_a(line) then
-            local header = Header.from_str(line)
-            level = header.level
+        if Heading.str_is_a(line) then
+            local heading = Heading.from_str(line)
+            level = heading.level
             
-            if header:exclude_from_document() then
+            if heading:exclude_from_document() then
                 if not exclude or exclude > level then
                     exclude = level
                 end
@@ -68,8 +68,8 @@ function M:filter_lines(lines)
                 exclude = nil
             end
             
-            header.str = header.text
-            line = tostring(header)
+            heading.str = heading.text
+            line = tostring(heading)
         end
 
         if not exclude or exclude and exclude > level then

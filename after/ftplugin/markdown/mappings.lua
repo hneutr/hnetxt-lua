@@ -16,10 +16,10 @@ local mappings = Dict(
             ["<C-t>"] = ui.set_time_or_calculate_sum,
             -- copy word count at cursor
             ["gG"] = ui.copy_wordcount_to_clipboard,
-            -- headers
-            ["<C-.>"] = ui.fuzzy_headers,
-            ["<C-s>"] = ui.change_header_level(-1),
-            ["<C-d>"] = ui.change_header_level(1),
+            -- headings
+            ["<C-.>"] = ui.fuzzy_headings,
+            ["<C-s>"] = ui.change_heading_level(-1),
+            ["<C-d>"] = ui.change_heading_level(1),
         }),
         v = Dict(),
         i = Dict(),
