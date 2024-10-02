@@ -90,6 +90,7 @@ function M.change()
     vim.b.htn_modified = true
     M.unset_headings()
     M.set_modified_date()
+    -- M.delete_extmarks()
 end
 
 function M.enter()
@@ -511,6 +512,85 @@ function M.set_modified_date()
         
         vim.b.url_modified_date = today
     end
+end
+
+function M.set_virt_text()
+    local cursor = M.get_cursor()
+    local row = cursor.row - 1
+    if not vim.g.hne_extmark_ns then
+        vim.g.hne_extmark_ns = vim.api.nvim_create_namespace("hne")
+    end
+    
+    local primary_id = vim.api.nvim_buf_set_extmark(
+        0,
+        vim.g.hne_extmark_ns,
+        row,
+        0,
+        {
+            end_row = row,
+            end_col = 4,
+            virt_text_pos = "overlay",
+            virt_text = {
+                {string.rep("◇", 80), "Function"},
+            },
+            conceal = "",
+            invalidate = true,
+        }
+    )
+    
+    local upper_id = vim.api.nvim_buf_set_extmark(
+        0,
+        vim.g.hne_extmark_ns,
+        row,
+        0,
+        {
+            virt_lines = {{
+                {"", "RenderMarkdownH1Bg"},
+            }},
+            virt_lines_above = true,
+        }
+    )
+
+    local lower_id = vim.api.nvim_buf_set_extmark(
+        0,
+        vim.g.hne_extmark_ns,
+        row,
+        0,
+        {
+            virt_lines = {
+                {{"", "RenderMarkdownH1Bg"}},
+            },
+        }
+    )
+
+    local extmarks = List(vim.b.hne_extmarks or {})
+    extmarks:append({primary = primary_id, dependents = {upper_id, lower_id}})
+    vim.b.hne_extmarks = extmarks
+end
+
+function M.delete_extmarks()
+    if not vim.g.hne_extmark_ns then
+        return
+    end
+
+    local marks = List(vim.b.hne_extmarks or {}):filter(function(row)
+        local id = row.primary
+        local extmark = vim.api.nvim_buf_get_extmark_by_id(0, vim.g.hne_extmark_ns, id, {details = true})
+        
+        local details = extmark[3]
+        
+        if details.invalid == true then
+            List.from({id}, row.dependents):foreach(function(_id)
+                vim.api.nvim_buf_del_extmark(0, vim.g.hne_extmark_ns, _id)
+            end)
+            
+            return false
+        end
+        
+        return true
+    end)
+    
+    vim.b.hne_extmarks = marks
 end
 
 return M

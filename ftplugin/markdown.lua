@@ -46,6 +46,7 @@ local commands = Dict({
     Journal = function() require("htl.journal")():open() end,
     Aim = function() require("htl.goals")():open() end,
     Track = DB.Log.ui.cmd,
+    VirtText = ui.set_virt_text,
 })
 
 --------------------------------------------------------------------------------

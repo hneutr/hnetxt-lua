@@ -12,6 +12,7 @@ local snippets = List({
     parse_snippet("hs", "#### $1"),
     parse_snippet("ha", "##### $1"),
     parse_snippet("hg", "###### $1"),
+    parse_snippet("end", Conf.text.end_document),
 })
 
 Conf.snippets:keys():foreach(function(key)
