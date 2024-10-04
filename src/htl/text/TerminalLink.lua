@@ -38,10 +38,10 @@ function TerminalLink:__tostring()
             text = self.url_delimiters.close,
             key = "url_delimiters",
         },
-    }):transform(function(part) return Color(part.text, self.colors[part.key]) end)
+    }):transform(function(part) return {part.text, self.colors[part.key]} end)
 
-    parts:append("")
-    return parts:join("")
+    parts:append({""})
+    return Color(parts)
 end
 
 return TerminalLink

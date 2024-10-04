@@ -5,8 +5,6 @@ local args = {silent = true, buffer = true}
 local mappings = Dict(
     {
         n = Dict({
-            ["<c-p>"] = ui.jump_to_division(-1),
-            ["<c-n>"] = ui.jump_to_division(1),
             -- url opening
             ["<M-l>"] = ui.goto_map_fn("vsplit"),
             ["<M-j>"] = ui.goto_map_fn("split"),
@@ -15,8 +13,14 @@ local mappings = Dict(
             -- set time or calculate quantity
             ["<C-t>"] = ui.set_time_or_calculate_sum,
             ["gG"] = ui.copy_wordcount_to_clipboard,
+
+            -- sections
+            ["<c-p>"] = ui.move_to_section(-1),
+            ["<c-n>"] = ui.move_to_section(1),
             -- headings
-            ["<C-.>"] = ui.fuzzy_headings,
+            ["<C-,>"] = ui.ts.headings.fuzzy,
+            ["<C-.>"] = ui.ts.headings.nearest_fuzzy,
+
             ["<C-s>"] = ui.change_heading_level(-1),
             ["<C-d>"] = ui.change_heading_level(1),
             ["<C-i>"] = ui.toggle_heading_inclusion,

@@ -2,37 +2,58 @@ local TermColor = require("htl.Color")
 
 local M = class()
 
+M.levels = List()
+
+function M.get_level(level)
+    if not M.levels[level] then
+        local d = {
+            n = level,
+            hl_group = string.format("markdownH%d", level),
+            marker = string.rep("#", level),
+            selector = string.format("(atx_h%d_marker)", level),
+            indent = string.rep("  ", level - 1),
+        }
+        
+        d.get_color = function()
+            return require("hn.Color").get_hl_attr(d.hl_group, "fg")
+        end
+        
+        d.set_termcolor = function(s)
+            return TermColor(s, d.get_color())
+        end
+        
+        M.levels:insert(level, d)
+    end
+    
+    return M.levels[level]
+end
+
 function M:_init(str, level, line)
     self.str = str
-    self.level = level
+    self.level = self.get_level(level)
     self.line = line
-    
+
     self:parse_str(self.str)
 end
 
-function M:parse_str(str)
+function M:change_level(change)
+    self.level = M.get_level(self.level.n + change)
+end
 
+function M:parse_str(str)
     if str:match(Conf.text.heading_label) then
-        self.label, self.text = str:match(Conf.text.heading_label)
+        self.text, self.label = str:match(Conf.text.heading_label)
     else
-        self.label, self.text = "", str
+        self.text, self.label = str, ""
     end
 end
 
 function M:__tostring()
-    return string.format("%s %s", string.rep("#", self.level), self.str)
-end
-
-function M:color()
-    local VimColor = require("hn.Color")
-    return VimColor.get_hl_attr(
-        string.format("markdownH%d", self.level),
-        "fg"
-    )
+    return string.format("%s %s", self.level.marker, self.str)
 end
 
 function M:fuzzy_str()
-    return string.rep("  ", self.level - 1) .. TermColor(self.str, self:color())
+    return self.level.indent .. TermColor({self.str, self.level.get_color()})
 end
 
 function M.str_is_a(str)
@@ -56,10 +77,20 @@ function M:toggle_exclusion()
     end
     
     if #self.label > 0 then
-        self.str = string.format("[%s] %s", self.label, self.text)
+        self.str = string.format("%s [%s]", self.text, self.label)
     else
         self.str = self.text
     end
+end
+
+function M.from_marker_node(marker)
+    local content_node = marker:next_sibling()
+
+    local str = content_node and vim.treesitter.get_node_text(content_node, 0) or ""
+    local level = tonumber(marker:type():match("atx_h(%d+)_marker"))
+    local line = marker:start() + 1
+
+    return M(str, level, line)
 end
 
 return M

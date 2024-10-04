@@ -39,7 +39,7 @@ end
 
 function M:filter_headers(lines)
     return lines:filter(function(line)
-        if Heading.str_is_a(line) and Heading.from_str(line).level > self.max_public_header_level then
+        if Heading.str_is_a(line) and Heading.from_str(line).level.n > self.max_public_header_level then
             return false
         end
 
@@ -84,7 +84,7 @@ function M:filter_lines(lines)
         
         if Heading.str_is_a(line) then
             local heading = Heading.from_str(line)
-            level = heading.level
+            level = heading.level.n
             
             if heading:exclude_from_document() then
                 if not exclude or exclude > level then

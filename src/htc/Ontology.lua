@@ -72,7 +72,7 @@ function LinePrinter:get_label()
         })
     end
 
-    return Color(self.url.label, self.colors.label)
+    return Color({self.url.label, self.colors.label})
 end
 
 function LinePrinter.__lt(a, b)

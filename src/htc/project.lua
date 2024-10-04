@@ -14,13 +14,12 @@ return {
                     date = "black",
                 }
 
-                return List({
-                    Color("[", colors.bracket),
-                    Color(p.created, colors.date),
-                    Color("]", colors.bracket),
-                    " ",
-                    p.title,
-                }):join("")
+                return Color({
+                    {"[", colors.bracket},
+                    {p.created, colors.date},
+                    {"]", colors.bracket},
+                    {p.title},
+                })
             end):join("\n")
         end
     end,

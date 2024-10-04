@@ -1,16 +1,12 @@
 local fzf = require("fzf-lua")
 
 local TermColor = require("htl.Color")
-local VimColor = require("hn.Color")
-
 local Link = require("htl.text.Link")
 local Line = require("htl.text.Line")
 local Heading = require("htl.text.Heading")
 local Document = require("htl.text.Document")
 local Mirrors = require("htl.Mirrors")
 local TaxonomyParser = require("htl.Taxonomy.Parser")
-
-local BufferLines = require("hn.buffer_lines")
 
 local M = {}
 
@@ -30,28 +26,34 @@ M.suffix_to_open_cmd = Dict({
 --                                                                            --
 --                                                                            --
 --------------------------------------------------------------------------------
-function M.set_cursor(args)
-    args = args or {}
-
-    vim.api.nvim_win_set_cursor(
-        args.buffer or 0,
-        {
-            args.row or 1,
-            args.col or 0,
-        }
-    )
-    
-    if args.center then
-        vim.cmd("normal zz")
-    end
-end
-
 function M.get_cursor(args)
     args = args or {}
     
     local c = {}
     c.row, c.col = unpack(vim.api.nvim_win_get_cursor(args.window or 0))
     return c
+end
+
+function M.set_cursor(args)
+    args = Dict(
+        args,
+        {
+            buffer = 0,
+            row = 1,
+            col = 0,
+            center = true,
+        }
+    )
+    
+    local cur_pos = M.get_cursor()
+    
+    if args.row ~= cur_pos.row or args.col ~= cur_pos.col then
+        vim.api.nvim_win_set_cursor(args.buffer, {args.row, args.col})
+    end
+    
+    if args.center then
+        vim.cmd("normal zz")
+    end
 end
 
 function M.get_cursor_line()
@@ -88,9 +90,9 @@ end
 
 function M.change()
     vim.b.htn_modified = true
-    M.unset_headings()
+    vim.b.sections = nil
+    vim.b.heading_lines = nil
     M.set_modified_date()
-    -- M.delete_extmarks()
 end
 
 function M.enter()
@@ -281,72 +283,24 @@ M.fuzzy_operation_actions = {
     insert = {default = M.fuzzy_insert},
 }
 
-function M.fuzzy_headings()
-    M.set_headings()
-
-    fzf.fzf_exec(
-        vim.b.headings,
-        {
-            actions = {
-                default = function(s)
-                    M.set_cursor({row = vim.b.heading_lines[s[1]:strip()], center = true})
-                end
-            },
-        }
-    )
-end
-
-function M.jump_to_division(direction)
+function M.move_to_section(direction)
     return function()
-        M.set_headings()
-        local row = M.get_cursor().row
-        local heading_indexes = List(vim.b.heading_indexes)
-        heading_indexes:put(1)
-        heading_indexes:append(vim.fn.line('$'))
+        local sections = M.get_sections()
+        
+        local row = M.get_cursor().row - 1
 
         local candidates
 
         if direction == 1 then
-            candidates = heading_indexes:filter(function(hi) return hi > row end)
+            candidates = sections:filter(function(hi) return hi > row end)
         else
-            candidates = heading_indexes:filter(function(hi) return hi < row end):reverse()
+            candidates = sections:filter(function(hi) return hi < row end):reverse()
         end
 
         if #candidates > 0 then
-            M.set_cursor({row = candidates[1]})
+            M.set_cursor({row = candidates[1] + 1})
         end
     end
-end
-
-function M.set_headings()
-    if vim.b.headings then
-        return
-    end
-    
-    local headings = List()
-    local heading_lines = Dict()
-    local heading_indexes = List()
-    for i, line in ipairs(BufferLines.get()) do
-        if Heading.str_is_a(line) then
-            local heading = Heading.from_str(line, i)
-            
-            headings:append(heading:fuzzy_str())
-            heading_lines[heading.str] = i
-            heading_indexes:append(i)
-        elseif line == "---" then
-            heading_indexes:append(i)
-        end
-    end
-    
-    vim.b.headings = headings
-    vim.b.heading_lines = heading_lines
-    vim.b.heading_indexes = heading_indexes
-end
-
-function M.unset_headings()
-    vim.b.headings = nil
-    vim.b.heading_lines = nil
-    vim.b.heading_indexes = nil
 end
 
 function M.change_heading_level(change)
@@ -355,7 +309,7 @@ function M.change_heading_level(change)
         
         if Heading.str_is_a(line) then
             local heading = Heading.from_str(line)
-            heading.level = heading.level + change
+            heading:change_level(change)
             M.set_cursor_line(tostring(heading))
         end
     end
@@ -390,6 +344,7 @@ end
 --                                                                            --
 --------------------------------------------------------------------------------
 function M.scratch(mode)
+    local BufferLines = require("hn.buffer_lines")
     local lines = BufferLines.selection.get({mode = mode})
     BufferLines.selection.set({mode = mode})
 
@@ -514,83 +469,238 @@ function M.set_modified_date()
     end
 end
 
-function M.set_virt_text()
-    local cursor = M.get_cursor()
-    local row = cursor.row - 1
-    if not vim.g.hne_extmark_ns then
-        vim.g.hne_extmark_ns = vim.api.nvim_create_namespace("hne")
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                 treesitter                                 --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
+function M.get_sections()
+    if vim.b.sections then
+        return List(vim.b.sections)
     end
-    
-    local primary_id = vim.api.nvim_buf_set_extmark(
-        0,
-        vim.g.hne_extmark_ns,
-        row,
-        0,
-        {
-            end_row = row,
-            end_col = 4,
-            virt_text_pos = "overlay",
-            virt_text = {
-                {string.rep("◇", 80), "Function"},
-            },
-            conceal = "",
-            invalidate = true,
-        }
-    )
-    
-    local upper_id = vim.api.nvim_buf_set_extmark(
-        0,
-        vim.g.hne_extmark_ns,
-        row,
-        0,
-        {
-            virt_lines = {{
-                {"", "RenderMarkdownH1Bg"},
-            }},
-            virt_lines_above = true,
-        }
+
+    local query = vim.treesitter.query.parse(
+        "markdown",
+        [[
+            [
+                (atx_heading)
+                (thematic_break)
+            ] @hne_section
+        ]]
     )
 
-    local lower_id = vim.api.nvim_buf_set_extmark(
-        0,
-        vim.g.hne_extmark_ns,
-        row,
-        0,
-        {
-            virt_lines = {
-                {{"", "RenderMarkdownH1Bg"}},
-            },
-        }
-    )
+    local sections = List()
+    for _, node in query:iter_captures(M.ts.get_root()) do
+        sections:append(node:start())
+    end
 
-    local extmarks = List(vim.b.hne_extmarks or {})
-    extmarks:append({primary = primary_id, dependents = {upper_id, lower_id}})
-    vim.b.hne_extmarks = extmarks
+    sections:put(0)
+    sections:append(vim.fn.line('$') - 1)
+    
+    vim.b.sections = sections
+
+    return sections
 end
 
-function M.delete_extmarks()
-    if not vim.g.hne_extmark_ns then
+M.ts = {}
+
+function M.ts.get_root(language)
+    language = language or 'markdown'
+    local root
+    vim.treesitter.get_parser():for_each_tree(function(tree, language_tree)
+        if not root and language_tree:lang() == language then
+            root = tree:root()
+        end
+    end)
+
+    return root
+end
+
+M.ts.headings = {}
+M.ts.headings.level = {
+    default = 6,
+    max = 6,
+}
+M.ts.headings.queries = List()
+
+function M.ts.headings.set()
+    if vim.b.heading_lines then
         return
     end
+    
+    local query = M.ts.headings.get_query()
 
-    local marks = List(vim.b.hne_extmarks or {}):filter(function(row)
-        local id = row.primary
-        local extmark = vim.api.nvim_buf_get_extmark_by_id(0, vim.g.hne_extmark_ns, id, {details = true})
-        
-        local details = extmark[3]
-        
-        if details.invalid == true then
-            List.from({id}, row.dependents):foreach(function(_id)
-                vim.api.nvim_buf_del_extmark(0, vim.g.hne_extmark_ns, _id)
-            end)
-            
-            return false
+    local heading_lines = Dict()
+    for _, node in query:iter_captures(M.ts.get_root(), 0) do
+        local heading = Heading.from_marker_node(node)
+        heading_lines[heading.str] = heading.line
+    end
+    
+    vim.b.heading_lines = heading_lines
+end
+
+
+function M.ts.headings.get_query(level)
+    level = level or M.ts.headings.level.default
+    if not M.ts.headings.queries[level] then
+        local selectors = List()
+        for _level = 1, M.ts.headings.level.max do
+            if _level <= level then
+                selectors:append(string.format("(atx_h%d_marker)", _level))
+            end
         end
         
-        return true
-    end)
+        local query = vim.treesitter.query.parse(
+            "markdown",
+            string.format("(atx_heading [%s] @hne_heading)", selectors:join(" "))
+        )
+
+        M.ts.headings.queries:insert(level, query)
+    end
+
+    return M.ts.headings.queries[level]
+end
+
+function M.ts.headings.get_line(s, args)
+    return vim.b[args.buffer].heading_lines[s[1]:strip()]
+end
+
+function M.ts.headings.get_candidates(args)
+    args = Dict(args, {buffer = 0, start = 0, stop = -1, exclude = ""})
     
-    vim.b.hne_extmarks = marks
+    local query = M.ts.headings.get_query(args.level)
+
+    local min_whitespace
+    local candidates = List()
+    for _, node in query:iter_captures(args.node, args.buffer, args.start, args.stop) do
+        local candidate = Heading.from_marker_node(node)
+        local str = args.raw_str and candidate.str or candidate:fuzzy_str()
+
+        if args.exclude and str ~= args.exclude then
+            candidates:append(str)
+            min_whitespace = math.min(#str - #str:lstrip(), min_whitespace or 100)
+        end
+    end
+
+    return candidates:transform(function(s) return s:sub(min_whitespace + 1) end)
+end
+
+function M.ts.headings.get_level_filter_actions(args)
+    local actions = Dict()
+    for level = 1, 6 do
+        actions[string.format("alt-%d", level)] = function()
+            M.ts.headings.fuzzy(
+                {level = args.level ~= level and level or M.ts.headings.level.default},
+                args
+            )
+        end
+    end
+    
+    return actions
+end
+
+function M.ts.headings.fuzzy(...)
+    local args = Dict({exclude = ""}, ...)
+    
+    if not args.node then
+        M.ts.headings.set()
+        args.node = M.ts.get_root()
+        args.buffer = vim.fn.bufnr()
+    end
+    
+    local actions = {
+        default = function(s)
+            M.set_cursor({row = M.ts.headings.get_line(s, args)})
+        end,
+        ["ctrl-d"] = function(s)
+            local node = vim.treesitter.get_node({
+                pos = {M.ts.headings.get_line(s, args) - 1, 0},
+                bufnr = args.buffer,
+            })
+            local section = node:parent():parent()
+            M.ts.headings.fuzzy({node = section}, args)
+        end,
+        ["ctrl-a"] = function()
+            M.ts.headings.fuzzy({node = M.ts.get_root()}, args)
+        end
+    }
+    
+    if args.node:type() == 'section' then
+        actions["ctrl-s"] = function()
+            M.ts.headings.fuzzy({node = args.node:parent()}, args)
+        end
+
+        local heading_node = vim.treesitter.get_node({
+            pos = {args.node:start(), 0},
+            bufnr = args.buffer,
+        })
+        local heading = Heading.from_marker_node(heading_node)
+        
+        args.exclude = heading:fuzzy_str()
+    end
+    
+    Dict.update(actions, M.ts.headings.get_level_filter_actions(args))
+    
+    fzf.fzf_exec(
+        M.ts.headings.get_candidates(args),
+        {
+            actions = actions,
+            prompt = M.ts.headings.fuzzy_prompt(args),
+        }
+    )
+end
+
+function M.ts.headings.fuzzy_prompt(args)
+    local parts = List()
+    
+    if args.level and args.level < 6 then
+        local level = Heading.get_level(args.level)
+        parts:append(TermColor({
+            {"[", "white"},
+            {level.n, level.get_color()},
+            {"]", "white"},
+        }))
+    end
+    
+    if args.exclude and #args.exclude > 0 then
+        parts:append(args.exclude:strip())
+    end
+    
+    parts:append("> ")
+    
+    return parts:join(" ")
+end
+
+function M.ts.headings.nearest_fuzzy()
+    M.ts.headings.set()
+    
+    local args = Dict({
+        node = M.ts.get_root(),
+        buffer = vim.fn.bufnr(),
+        stop = M.get_cursor().row,
+        raw_str = true,
+    })
+    
+    local candidates = M.ts.headings.get_candidates(args)
+    
+    if #candidates == 0 then
+        return
+    end
+    
+    local str = candidates[#candidates]
+    local heading_node = vim.treesitter.get_node({
+        pos = {M.ts.headings.get_line({str}, args) - 1, 0},
+        bufnr = args.buffer,
+    })
+    local section = heading_node:parent():parent()
+    
+    args.node = section
+    args.raw_str = nil
+    args.stop = nil
+    
+    M.ts.headings.fuzzy(args)
 end
 
 return M

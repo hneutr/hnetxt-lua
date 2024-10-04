@@ -35,11 +35,17 @@ function M.get_code(color)
     return M.color_to_code[color] or ""
 end
 
-return function(str, colors)
+function M.apply(str, colors)
     return string.format(
         "%s%s%s",
         List.as_list(colors):transform(M.get_code):join(""),
         tostring(str),
         M.get_code("reset")
     )
+end
+
+return function(items)
+    return List(type(items[1]) == "string" and {items} or items):transform(function(item)
+        return M.apply(unpack(item))
+    end):join("")
 end
