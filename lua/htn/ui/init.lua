@@ -545,19 +545,15 @@ end
 function M.ts.headings.get_query(level)
     level = level or M.ts.headings.level.default
     if not M.ts.headings.queries[level] then
-        local selectors = List()
-        for _level = 1, M.ts.headings.level.max do
-            if _level <= level then
-                selectors:append(string.format("(atx_h%d_marker)", _level))
-            end
-        end
-        
-        local query = vim.treesitter.query.parse(
+        M.ts.headings.queries[level] = vim.treesitter.query.parse(
             "markdown",
-            string.format("(atx_heading [%s] @hne_heading)", selectors:join(" "))
+            string.format(
+                "(atx_heading [%s] @hne_heading)",
+                List.range(1, level):transform(function(l)
+                    return Heading.get_level(l).selector
+                end):join(" ")
+            )
         )
-
-        M.ts.headings.queries[level] = query
     end
 
     return M.ts.headings.queries[level]
@@ -568,7 +564,7 @@ function M.ts.headings.get_line(s, args)
 end
 
 function M.ts.headings.get_candidates(args)
-    args = Dict(args, {buffer = 0, start = 0, stop = -1, exclude = ""})
+    args = Dict(args, {buffer = 0, start = 0, stop = -1, exclude_node = ""})
     
     local query = M.ts.headings.get_query(args.level)
 
@@ -578,7 +574,7 @@ function M.ts.headings.get_candidates(args)
         local candidate = Heading.from_marker_node(node)
         local str = args.raw_str and candidate.str or candidate:fuzzy_str()
 
-        if args.exclude and str ~= args.exclude then
+        if args.exclude_node and str ~= args.exclude_node then
             candidates:append(str)
             min_whitespace = math.min(#str - #str:lstrip(), min_whitespace or 100)
         end
@@ -587,22 +583,47 @@ function M.ts.headings.get_candidates(args)
     return candidates:transform(function(s) return s:sub(min_whitespace + 1) end)
 end
 
-function M.ts.headings.get_level_filter_actions(args)
-    local actions = Dict()
-    for level = 1, 6 do
-        actions[string.format("alt-%d", level)] = function()
-            M.ts.headings.fuzzy(
-                {level = args.level ~= level and level or M.ts.headings.level.default},
-                args
-            )
-        end
+M.ts.headings.fuzzy = {}
+M.ts.headings.fuzzy.actions = {}
+
+M.ts.headings.fuzzy.actions.default = function(args)
+    return function(s)
+        M.set_cursor({row = M.ts.headings.get_line(s, args)})
     end
-    
-    return actions
 end
 
-function M.ts.headings.fuzzy(...)
-    local args = Dict({exclude = ""}, ...)
+function M.ts.headings.fuzzy.actions.filter_level(level, args)
+    return function()
+        local l = args.level ~= level and level or M.ts.headings.level.default
+        M.ts.headings.fuzzy.run({level = l}, args)
+    end
+end
+
+function M.ts.headings.fuzzy.actions.down(args)
+    return function(s)
+        local node = vim.treesitter.get_node({
+            pos = {M.ts.headings.get_line(s, args) - 1, 0},
+            bufnr = args.buffer,
+        })
+        local section = node:parent():parent()
+        M.ts.headings.fuzzy.run({node = section}, args)
+    end
+end
+
+function M.ts.headings.fuzzy.actions.up(args)
+    return function()
+        M.ts.headings.fuzzy.run({node = args.node:parent()}, args)
+    end
+end
+
+function M.ts.headings.fuzzy.actions.root(args)
+    return function()
+        M.ts.headings.fuzzy.run({node = M.ts.get_root()}, args)
+    end
+end
+
+function M.ts.headings.fuzzy.run(...)
+    local args = Dict({exclude_node = ""}, ...)
     
     if not args.node then
         M.ts.headings.set()
@@ -611,26 +632,13 @@ function M.ts.headings.fuzzy(...)
     end
     
     local actions = {
-        default = function(s)
-            M.set_cursor({row = M.ts.headings.get_line(s, args)})
-        end,
-        ["ctrl-d"] = function(s)
-            local node = vim.treesitter.get_node({
-                pos = {M.ts.headings.get_line(s, args) - 1, 0},
-                bufnr = args.buffer,
-            })
-            local section = node:parent():parent()
-            M.ts.headings.fuzzy({node = section}, args)
-        end,
-        ["ctrl-a"] = function()
-            M.ts.headings.fuzzy({node = M.ts.get_root()}, args)
-        end
+        default = M.ts.headings.fuzzy.actions.default(args),
+        ["ctrl-d"] = M.ts.headings.fuzzy.actions.down(args),
+        ["ctrl-a"] = M.ts.headings.fuzzy.actions.root(args),
     }
     
     if args.node:type() == 'section' then
-        actions["ctrl-s"] = function()
-            M.ts.headings.fuzzy({node = args.node:parent()}, args)
-        end
+        actions["ctrl-s"] = M.ts.headings.fuzzy.actions.up(args)
 
         local heading_node = vim.treesitter.get_node({
             pos = {args.node:start(), 0},
@@ -638,34 +646,35 @@ function M.ts.headings.fuzzy(...)
         })
         local heading = Heading.from_marker_node(heading_node)
         
-        args.exclude = heading:fuzzy_str()
+        args.exclude_node = heading:fuzzy_str()
     end
     
-    Dict.update(actions, M.ts.headings.get_level_filter_actions(args))
+    List.range(1, 6):foreach(function(l)
+        actions[string.format("alt-%d", l)] = M.ts.headings.fuzzy.actions.filter_level(l, args)
+    end)
     
     fzf.fzf_exec(
         M.ts.headings.get_candidates(args),
         {
             actions = actions,
-            prompt = M.ts.headings.fuzzy_prompt(args),
+            prompt = M.ts.headings.fuzzy.prompt(args),
         }
     )
 end
 
-function M.ts.headings.fuzzy_prompt(args)
+function M.ts.headings.fuzzy.prompt(args)
     local parts = List()
     
     if args.level and args.level < 6 then
-        local level = Heading.get_level(args.level)
         parts:append(TermColor({
             {"[", "white"},
-            {level.n, level.get_color()},
+            {args.level, Heading.get_level(args.level).get_color()},
             {"]", "white"},
         }))
     end
     
-    if args.exclude and #args.exclude > 0 then
-        parts:append(args.exclude:strip())
+    if args.exclude_node and #args.exclude_node > 0 then
+        parts:append(args.exclude_node:strip())
     end
     
     parts:append("> ")
@@ -673,7 +682,7 @@ function M.ts.headings.fuzzy_prompt(args)
     return parts:join(" ")
 end
 
-function M.ts.headings.nearest_fuzzy()
+function M.ts.headings.fuzzy.nearest()
     M.ts.headings.set()
     
     local args = Dict({
@@ -700,7 +709,7 @@ function M.ts.headings.nearest_fuzzy()
     args.raw_str = nil
     args.stop = nil
     
-    M.ts.headings.fuzzy(args)
+    M.ts.headings.fuzzy.run(args)
 end
 
 return M
