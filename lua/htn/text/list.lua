@@ -6,17 +6,7 @@ local Line = require("htl.text.Line")
 
 local M = {}
 
-local function toggle(mode, change_type)
-    BufferLines.selection.set({
-        mode = mode,
-        replacement = TextList.change(
-            List(BufferLines.selection.get({mode = mode})),
-            change_type
-        )
-    })
-end
-
-local function join()
+function M.join()
     local line = unpack(vim.api.nvim_win_get_cursor(0))
     local args = List({0, line - 1, line + 1, false})
     local lines = List(vim.api.nvim_buf_get_lines(unpack(args)))
@@ -27,7 +17,7 @@ local function join()
     end
 end
 
-local function handle_comment(line, next_line)
+function M.handle_comment(line, next_line)
     local comment_string = vim.opt_local.commentstring:get()
 
     if comment_string ~= nil and #comment_string > 0 then
@@ -42,7 +32,7 @@ local function handle_comment(line, next_line)
     return false
 end
 
-local function continue(from_command)
+function M.continue(from_command)
     local _, lnum, col = unpack(vim.fn.getcurpos())
 
     local str = vim.fn.getline('.')
@@ -87,7 +77,7 @@ local function continue(from_command)
     end
 end
 
-local function syntax()
+function M.syntax()
     local d = Dict()
 
     Item.confs:filter(function(conf)
@@ -125,30 +115,38 @@ local function syntax()
     return d
 end
 
-local function toggle_mappings()
+function M.change(mode, ...)
+    BufferLines.selection.set({
+        mode = mode,
+        replacement = TextList.change(
+            List(BufferLines.selection.get({mode = mode})),
+            ...
+        )
+    })
+end
+
+function M.mappings()
     local mappings = Dict({n = Dict(), v = Dict()})
 
-    Item.confs:filter(function(conf)
-        return conf.toggle_key
-    end):foreach(function(conf)
+    Item.confs:foreach(function(conf)
         List({'n', 'v'}):foreach(function(mode)
             mappings[mode][vim.g.list_toggle_prefix .. conf.toggle_key] = string.format(
-                [[:lua require('htn.text.list').toggle('%s', '%s')<cr>]],
+                [[:lua require('htn.text.list').change('%s', '%s')<cr>]],
                 mode,
                 conf.name
             )
         end)
     end)
+    
+    mappings.n['>>'] = string.format(M.indent_command, 'n', 1)
+    mappings.v['>'] = string.format(M.indent_command, 'v', 1)
+    mappings.n['<<'] = string.format(M.indent_command, 'n', 0)
+    mappings.v['<'] = string.format(M.indent_command, 'v', 0)
 
     return mappings
 end
 
+M.indent_command = [[:lua require('htn.text.list').change('%s', 'indent', %d)<cr>]]
+M.continue_cmd = [[<cmd>lua require('htn.text.list').continue(true)<cr>]]
 
-return {
-    join = join,
-    continue = continue,
-    continue_cmd = [[<cmd>lua require('htn.text.list').continue(true)<cr>]],
-    toggle = toggle,
-    toggle_mappings = toggle_mappings,
-    syntax = syntax,
-}
+return M

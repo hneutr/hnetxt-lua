@@ -58,15 +58,33 @@ function M.change_type(lines, outer_line, change_type)
     return Toggler.transform(lines, sigil):transform(Toggler.__tostring)
 end
 
-function M.change(lines, toggle_type)
+function M.change_indent(lines, direction)
+    return lines:transform(function(l)
+        local indent = l.indent or ""
+
+        if direction == 1 then
+            indent = indent .. "  "
+        else
+            indent = indent:sub(3)
+        end
+        
+        l.indent = indent
+        
+        return tostring(l)
+    end)
+end
+
+function M.change(lines, change_type, direction)
     lines = lines:transform(M.parse)
 
     local outer_line = lines:sorted(function(a, b) return #a.indent < #b.indent end)[1]
     
-    if toggle_type == 'quote' then
+    if change_type == 'quote' then
         return M.change_quote(lines, outer_line)
+    elseif change_type == 'indent' then
+        return M.change_indent(lines, direction)
     else
-        return M.change_type(lines, outer_line, toggle_type)
+        return M.change_type(lines, outer_line, change_type)
     end
 end
 

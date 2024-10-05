@@ -28,7 +28,7 @@ local mappings = Dict(
         v = Dict(),
         i = Dict(),
     },
-    require("htn.text.list").toggle_mappings()
+    require("htn.text.list").mappings()
 )
 
 if vim.b.htn_project_path then
