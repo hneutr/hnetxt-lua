@@ -557,8 +557,7 @@ function M.ts.headings.get_query(level)
             string.format("(atx_heading [%s] @hne_heading)", selectors:join(" "))
         )
 
-        -- TODO: probably should just do M.ts.headings.queries[level] = d
-        M.ts.headings.queries:insert(level, query)
+        M.ts.headings.queries[level] = query
     end
 
     return M.ts.headings.queries[level]

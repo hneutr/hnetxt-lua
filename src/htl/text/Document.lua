@@ -9,7 +9,9 @@ function M:_init(args)
     self.private = args.private
 
     self.lines = self:set_lines(self.private)
-    self.wordcount = self.lines:map(function(l) return #l:split(" ") end):reduce("+")
+    self.wordcount = self.lines:map(function(l)
+        return #l:split(" "):filter(function(w) return #w:strip() > 0 end)
+    end):reduce("+")
 end
 
 function M:set_lines(private)
@@ -96,7 +98,9 @@ function M:filter_lines(lines)
         end
 
         if not exclude or exclude and exclude > level then
-            _lines:append(line)
+            if not line:startswith(">") then
+                _lines:append(line)
+            end
         end
     end
 

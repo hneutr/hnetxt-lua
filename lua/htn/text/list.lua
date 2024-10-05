@@ -55,7 +55,7 @@ function M.continue(from_command)
     else
         line.text = line.text:rstrip()
         local next_line = line:get_next(next_str)
-        line_is_a_comment = handle_comment(line, next_line)
+        line_is_a_comment = M.handle_comment(line, next_line)
         new_content = {tostring(line), tostring(next_line)}
         new_line_number = new_line_number + 1
     end

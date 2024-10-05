@@ -18,12 +18,7 @@ function M.get_level(level)
             return require("hn.Color").get_hl_attr(d.hl_group, "fg")
         end
         
-        d.set_termcolor = function(s)
-            return TermColor(s, d.get_color())
-        end
-        
-        -- TODO: probably should just do M.levels[level] = d
-        M.levels:insert(level, d)
+        M.levels[level] = d
     end
     
     return M.levels[level]
