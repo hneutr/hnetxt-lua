@@ -1,50 +1,49 @@
 local Item = require("htl.text.List.Item")
 
-local NumberedItem = class(Item)
-NumberedItem.sigil_separator = ". "
+local M = class(Item)
+M.name = "number"
 
-function NumberedItem:str_is_a(s)
-    local sigil, _ = self:parse_sigil(s)
+function M.parse(str)
+    local p = Item.parse(str)
 
-    if sigil:match("^%d+$") then
-        return true
-    end
-
-    return false
+    p.sigil, p.text = p.text:match("^(%d+)%.%s(.*)")
+    p.conf = M.get_conf("name", "number")
+    
+    return p
 end
 
-function NumberedItem:get_name()
-    return "number"
+function M.str_is_a(s)
+    return M.parse(s).sigil and true or false
 end
 
-function NumberedItem:get_next(text)
-    local next = getmetatable(self)(tostring(self))
-    next.text = text or ""
+function M:__tostring()
+    return List({
+        self.quote,
+        self.indent,
+        self.sigil,
+        ". ",
+        self.text,
+    }):join()
+end
+
+function M:get_next(text)
+    local next = Item.get_next(self, text)
     next.sigil = tonumber(self.sigil) + 1
     return next
 end
 
-function NumberedItem:convert_lines(lines)
-    local indent_to_last_index = Dict()
-    return lines:map(function(l)
-        if not indent_to_last_index[l.indent] then
-            indent_to_last_index[l.indent] = 0
+function M.transform(lines)
+    local indent_to_n = Dict()
+    return lines:transform(function(l)
+        if not indent_to_n[l.indent] then
+            indent_to_n[l.indent] = 0
         end
 
-        indent_to_last_index[l.indent] = indent_to_last_index[l.indent] + 1
-
-        indent_to_last_index:filterk(function(indent)
-            return #indent <= #l.indent
-        end)
-
-        return NumberedItem(
-            NumberedItem:string_from_dict({
-                indent = l.indent,
-                sigil = indent_to_last_index[l.indent],
-                text = l.text
-            })
-        )
+        indent_to_n[l.indent] = indent_to_n[l.indent] + 1
+        indent_to_n:filterk(function(indent) return #indent <= #l.indent end)
+        l.sigil = indent_to_n[l.indent]
+        return l
     end)
 end
 
-return NumberedItem
+return M

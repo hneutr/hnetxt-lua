@@ -22,6 +22,7 @@ function M.get_level(level)
             return TermColor(s, d.get_color())
         end
         
+        -- TODO: probably should just do M.levels[level] = d
         M.levels:insert(level, d)
     end
     

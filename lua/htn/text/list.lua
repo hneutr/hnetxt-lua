@@ -4,36 +4,26 @@ local TextList = require("htl.text.List")
 local Item = require("htl.text.List.Item")
 local Line = require("htl.text.Line")
 
-local function toggle(mode, toggle_line_type_name)
+local M = {}
+
+local function toggle(mode, change_type)
     BufferLines.selection.set({
         mode = mode,
-        replacement = TextList:convert_lines(
-            BufferLines.selection.get({mode = mode}),
-            toggle_line_type_name
-        ):transform(tostring)
+        replacement = TextList.change(
+            List(BufferLines.selection.get({mode = mode})),
+            change_type
+        )
     })
 end
 
 local function join()
-    local line_number = unpack(vim.api.nvim_win_get_cursor(0))
-    line_number = line_number - 1
-    
-    local lines = vim.api.nvim_buf_get_lines(
-        0,
-        line_number,
-        line_number + 2,
-        false
-    )
+    local line = unpack(vim.api.nvim_win_get_cursor(0))
+    local args = List({0, line - 1, line + 1, false})
+    local lines = List(vim.api.nvim_buf_get_lines(unpack(args)))
 
-    if #lines == 2 then
-        local line = TextList:parse_line(lines[1]):merge(TextList:parse_line(lines[2]))
-        local lines = vim.api.nvim_buf_set_lines(
-            0,
-            line_number,
-            line_number + 2,
-            false,
-            {tostring(line)}
-        )
+    if #lines > 1 then
+        args:append({tostring(TextList.merge(lines))})
+        vim.api.nvim_buf_set_lines(unpack(args))
     end
 end
 
@@ -63,7 +53,7 @@ local function continue(from_command)
         str = str:sub(1, col - 1)
     end
 
-    local line = TextList:parse_line(str)
+    local line = TextList.parse(str)
     local new_content
     local line_is_a_comment = false
     local new_line_number = lnum
@@ -97,40 +87,18 @@ local function continue(from_command)
     end
 end
 
-
-local function get_list_type_configs()
-    local type_configs = List()
-    Dict(Conf.list.types):foreach(function(name, config)
-        type_configs:append(
-            Dict(
-                config, 
-                {name = name},
-                {
-                    highlight = true, 
-                    highlights = {
-                        sigil = {fg = "blue"},
-                        text = {},
-                    },
-                }
-            )
-        )
-    end)
-
-    return type_configs
-end
-
 local function syntax()
     local d = Dict()
 
-    get_list_type_configs():filter(function(config)
-        return config.highlight
-    end):foreach(function(config)
-        local sigil_key = config.name .. "ListItemSigil"
-        local sigil_pattern = string.format([[^\s*%s\s]], config.sigil_regex or config.sigil)
-        local text_key = config.name .. "ListItemText"
+    Item.confs:filter(function(conf)
+        return conf.highlights
+    end):foreach(function(conf)
+        local sigil_key = conf.name .. "ListItemSigil"
+        local sigil_pattern = string.format([[^\s*%s\s]], conf.sigil_regex or conf.sigil)
+        local text_key = conf.name .. "ListItemText"
 
         d[sigil_key] = {
-            val = config.highlights.sigil,
+            val = conf.highlights.sigil,
             cmd = List({
                 "syn",
                 "match",
@@ -141,7 +109,7 @@ local function syntax()
         }
 
         d[text_key] = {
-            val = config.highlights.text,
+            val = conf.highlights.text,
             cmd = List({
                 "syn",
                 "region",
@@ -160,14 +128,14 @@ end
 local function toggle_mappings()
     local mappings = Dict({n = Dict(), v = Dict()})
 
-    get_list_type_configs():filter(function(config)
-        return config.toggle_key
-    end):foreach(function(config)
+    Item.confs:filter(function(conf)
+        return conf.toggle_key
+    end):foreach(function(conf)
         List({'n', 'v'}):foreach(function(mode)
-            mappings[mode][vim.g.list_toggle_prefix .. config.toggle_key] = string.format(
+            mappings[mode][vim.g.list_toggle_prefix .. conf.toggle_key] = string.format(
                 [[:lua require('htn.text.list').toggle('%s', '%s')<cr>]],
                 mode,
-                config.name
+                conf.name
             )
         end)
     end)

@@ -1,61 +1,57 @@
-local ListConfig = Dict(Conf.list)
-
 local Line = require("htl.text.Line")
 
-local Item = class(Line)
-Item.sigil_separator = " "
-Item.type_configs = Dict(ListConfig.types)
-Item.default_type = Item.type_configs[ListConfig.default_type]
-Item.sigils = Item.type_configs:values():map(function(c) return c.sigil end):filter(function(s) return s end)
+local M = class(Line)
+M.name = "item"
+M.confs = List(Conf.list)
+M.confs_by_sigil_len = M.confs:filter(function(c)
+    return c.sigil
+end):sort(function(a, b)
+    return #a.sigil > #b.sigil
+end)
 
-function Item:_init(s)
-    self.indent, self.text = self.parse_indent(s)
-    self.sigil, self.text = self:parse_sigil(self.text)
-    self.name = self:get_name()
+function M:__tostring()
+    return List({
+        self.quote,
+        self.indent,
+        self.sigil,
+        " ",
+        self.text,
+    }):join()
 end
 
-function Item:get_name()
-    for name in self.type_configs:keys():iter() do
-        if self.type_configs[name].sigil == self.sigil then
-            return name
+function M.get_conf(key, val)
+    for conf in M.confs:iter() do
+        if conf[key] == val then
+            return conf
         end
     end
 end
 
-function Item:name_to_sigil(name)
-    return self.type_configs[name].sigil
-end
+function M.parse(str)
+    local p = Line.parse(str)
 
-function Item:parse_sigil(s)
-    s = s:lstrip()
-
-    if s:match(string.escape(self.sigil_separator)) then
-        local sigil, text = unpack(s:split(self.sigil_separator, 1))
-        text = text or ""
-        return sigil, text
+    for conf in M.confs_by_sigil_len:iter() do
+        if p.text:startswith(conf.sigil .. " ") then
+            p.sigil = conf.sigil
+            p.text = p.text:sub(#conf.sigil + 2)
+            p.conf = conf
+            return p
+        end
     end
 
-    return "", s
+    return p
 end
 
-function Item:__tostring()
-    return self:string_from_dict(self)
+function M.str_is_a(s)
+    return M.parse(s).sigil and true or false
 end
 
-function Item:string_from_dict(d)
-    return string.format("%s%s%s%s", d.indent or "", d.sigil or "", self.sigil_separator, d.text or "")
-end
-
-function Item:str_is_a(s)
-    local sigil, _ = self:parse_sigil(s)
-    return self.sigils:contains(sigil)
-end
-
-function Item:convert_lines(lines, sigil)
-    sigil = sigil or self.default_type.sigil
-    return lines:map(function(l)
-        return Item(Item:string_from_dict({indent = l.indent, sigil = sigil, text = l.text}))
+function M.transform(lines, sigil)
+    sigil = sigil or M.confs[1].sigil
+    return lines:transform(function(l)
+        l.sigil = sigil
+        return l
     end)
 end
 
-return Item
+return M

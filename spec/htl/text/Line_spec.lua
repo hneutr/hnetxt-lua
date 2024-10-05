@@ -1,56 +1,56 @@
 local htl = require("htl")
-local Line = require("htl.text.Line")
+local M = require("htl.text.Line")
 
-describe("parse_indent", function()
-    it("indent + text", function()
-        local indent, text = Line.parse_indent("  a")
-        assert.are.same({"  ", "a"}, {indent, text})
-    end)
+describe("parse", function()
     
-    it("indent + no text", function()
-        local indent, text = Line.parse_indent("  ")
-        assert.are.same({"  ", ""}, {indent, text})
-    end)
-
-    it("no indent + text", function()
-        local indent, text = Line.parse_indent("a")
-        assert.are.same({"", "a"}, {indent, text})
-    end)
-
-    it("no indent + no text", function()
-        local indent, text = Line.parse_indent("")
-        assert.are.same({"", ""}, {indent, text})
-    end)
-end)
-
-describe("indent_level", function()
-    it("indent: 0", function()
-        assert.are.same(0, Line.get_indent_level("a"))
-    end)
-    it("indent: 1", function()
-        assert.are.same(1, Line.get_indent_level("  a"))
-    end)
-
-    it("indent: 2", function()
-        assert.are.same(2, Line.get_indent_level("    a"))
+    Dict({
+        ["quote + indent + text"] = {
+            input = ">   a",
+            expected = {quote = "> ", indent = "  ", text = "a"},
+        },
+        ["short quote + indent + text"] = {
+            input = ">  a",
+            expected = {quote = ">", indent = "  ", text = "a"},
+        },
+        ["quote + indent + no text"] = {
+            input = ">   ",
+            expected = {quote = "> ", indent = "  ", text = ""},
+        },
+        ["quote + no indent + text"] = {
+            input = "> a",
+            expected = {quote = "> ", indent = "", text = "a"},
+        },
+        ["quote + no indent + no text"] = {
+            input = "> ",
+            expected = {quote = "> ", indent = "", text = ""},
+        },
+        ["no quote + indent + text"] = {
+            input = "  a",
+            expected = {quote = "", indent = "  ", text = "a"},
+        },
+        ["no quote + indent + no text"] = {
+            input = "  ",
+            expected = {quote = "", indent = "  ", text = ""},
+        },
+        ["no quote + no indent + text"] = {
+            input = "a",
+            expected = {quote = "", indent = "", text = "a"},
+        },
+        ["no quote + no indent + no text"] = {
+            input = "",
+            expected = {quote = "", indent = "", text = ""},
+        },
+    }):foreach(function(name, test)
+        it(name, function()
+            assert.are.same(test.expected, M.parse(test.input))
+        end)
     end)
 end)
 
 describe("init", function()
     it("parses", function()
-        local l = Line("  a")
-        assert.are.same("  ", l.indent)
-        assert.are.same("a", l.text)
-    end)
-end)
-
-describe("set_indent_level", function()
-    it("works", function()
-        local l = Line("  a")
-        assert.are.same(1, l:get_indent_level())
-        l:set_indent_level(2)
-        assert.are.same(2, l:get_indent_level())
-        assert.are.same("    a", tostring(l))
+        local l = M(">   a")
+        assert.are.same({"> ", "  ", "a"}, {l.quote, l.indent, l.text})
     end)
 end)
 
@@ -77,7 +77,7 @@ describe("insert_at_pos", function()
         it(test_string, function()
             assert.are.same(
                 {expected, expected_pos},
-                {Line.insert_at_pos(input, input_pos, link)}
+                {M.insert_at_pos(input, input_pos, link)}
             )
         end)
     end)

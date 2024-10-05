@@ -1,67 +1,45 @@
-local Line = class()
+local M = class()
+M.name = "line"
 
-Line.regex = "^(%s*)(.*)$"
-Line.indent_size = 2
-Line.name = 'line'
+M.regex = "^(>?)(%s*)(.*)$"
 
-function Line:_init(str)
-    self.indent, self.text = self.parse_indent(str)
+function M:_init(str)
+    Dict.update(self, self.parse(str))
+    self.conf = self.conf or {name = "line"}
 end
 
-function Line:__tostring()
-    return self:string_from_dict(self)
+function M:__tostring()
+    return List({
+        self.quote,
+        self.indent,
+        self.text,
+    }):join()
 end
 
-function Line:string_from_dict(d)
-    return string.format("%s%s", d.indent or "", d.text or "")
-end
+function M.parse(l)
+    l = type(l) == "string" and l or tostring(l)
 
-function Line.parse_indent(l)
-    if type(l) ~= "string" then
-        l = tostring(l)
+    local quote, indent, text = l:match(M.regex)
+    
+    if #quote > 0 and #indent % 2 == 1 then
+        quote = quote .. " "
+        indent = indent:sub(2)
     end
 
-    local indent, text = l:match(Line.regex)
-
-    indent = indent or ""
-    text = text or ""
-    return indent, text
+    return {quote = quote, indent = indent, text = text}
 end
 
-function Line.get_indent(l)
-    local indent, _ = Line.parse_indent(l)
-    return indent
-end
+function M.str_is_a() return true end
 
-function Line.get_indent_level(l)
-    local indent = Line.get_indent(l)
-    return #indent / Line.indent_size
-end
-
-function Line:set_indent_level(level)
-    self.indent = string.rep(" ", self.indent_size * level)
-end
-
-function Line.str_is_a() return true end
-
-function Line:merge(other)
-    self.text = self.text:rstrip() .. " " .. other.text:lstrip()
-    return self
-end
-
-function Line:get_next(text)
+function M:get_next(text)
     local next = getmetatable(self)(tostring(self))
     next.text = text or ""
     return next
 end
 
-function Line:convert_lines(lines)
-    return lines:map(function(l)
-        return Line(Line:string_from_dict({indent = l.indent, text = l.text}))
-    end)
-end
+function M.transform(lines) return lines end
 
-function Line.insert_at_pos(l, pos, text)
+function M.insert_at_pos(l, pos, text)
     l = l or ""
     text = text or ""
 
@@ -71,4 +49,4 @@ function Line.insert_at_pos(l, pos, text)
     return before .. text .. after, #before + #text + 1
 end
 
-return Line
+return M

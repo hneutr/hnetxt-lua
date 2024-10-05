@@ -1,62 +1,51 @@
 require("htl")
 
-local Item = require("htl.text.List.Item")
+local M = require("htl.text.List.Item")
 
 describe("parse_sigil", function()
-    it("base case", function()
-        local l = Item("- a")
-        assert.are.same("-", l.sigil)
-    end)
-
-    it("indented case", function()
-        local l = Item("  - a")
-        assert.are.same("-", l.sigil)
+    Dict({
+        basic = {input = "- a", expected = "-"},
+        indent = {input = "  - a", expected = "-"},
+        quote = {input = "> - a", expected = "-"},
+        ["quote and indented"] = {input = ">   - a", expected = "-"},
+    }):foreach(function(name, test)
+        it(name, function()
+            assert.are.same(test.expected, M(test.input).sigil)
+        end)
     end)
 end)
 
 describe("str_is_a", function()
-    it("+", function()
-        assert(Item:str_is_a("- a"))
-        assert(Item:str_is_a("? a"))
-        assert(Item:str_is_a("* a"))
-    end)
-    
-    it("+: indent", function()
-        assert(Item:str_is_a("  - a"))
-    end)
-
-    it("+: no text", function()
-        assert(Item:str_is_a("- "))
-    end)
-
-    it("-: bad sigil", function()
-        assert.is_false(Item:str_is_a("1. "))
+    Dict({
+        dash = {input = "- a", expected = true},
+        dot = {input = "* a", expected = true},
+        indented = {input = "  - a", expected = true},
+        ["no text"] = {input = "- ", expected = true},
+        ["bad sigil"] = {input = "1. ", expected = false},
+        quote = {input = "> - a", expected = true},
+    }):foreach(function(name, test)
+        it(name, function()
+            assert.are.same(test.expected, M.str_is_a(test.input))
+        end)
     end)
 end)
 
 describe("convert_lines", function()
     it("works", function()
-        local original = List({
-            Item("! a"),
-            Item("  ~ b"),
-            Item("    - c")
-        })
-
-        local converted = 
         assert.are.same(
-            List({
-                Item("? a"),
-                Item("  ? b"),
-                Item("    ? c")
-            }),
-            Item:convert_lines(original, "?")
+            {
+                "- a",
+                "  - b",
+                "    - c"
+            },
+            M.transform(
+                List({
+                    M("* a"),
+                    M("  ~ b"),
+                    M("    - c")
+                }),
+                "-"
+            ):transform(M.__tostring)
         )
-    end)
-end)
-
-describe("get_name", function()
-    it("works", function()
-        assert.are.same("bullet", Item("- a").name)
-        assert.are.same("important", Item("! a").name)
     end)
 end)

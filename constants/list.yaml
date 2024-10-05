@@ -1,64 +1,44 @@
-types:
-    bullet:
-        sigil: '-'
-        toggle_key: l
-        toggle_to: 'line'
-        highlight: false
-    dot:
-        sigil: '*'
-        toggle_key: o
-        sigil_regex: "\\*"
-        highlight: false
-    number:
-        toggle_key: n
-        toggle_to: 'bullet'
-        sigil_regex: "(\\d+)\\."
-        highlight: false
-    todo:
-        sigil: '◻'
-        toggle_key: t
-    done:
-        sigil: '✓'
-        toggle_key: d
-        highlights:
-            sigil: 
-                fg: green
-            text:
-                fg: surface0
-                strikethrough: true
-    reject:
-        sigil: '⨉'
-        toggle_key: x
-        highlights: 
-            sigil: 
-                fg: red
-            text:
-                fg: surface0
-                strikethrough: true
-    maybe:
-        sigil: '~'
-        toggle_key: m
-        sigil_regex: "\\~"
-        highlights:
-            sigil:
-                fg: surface2
-            text:
-                fg: surface2
-    question:
-        sigil: "?"
-        rg_regex: "\\?"
-        toggle_key: q
-        highlights:
-            sigil: 
-                fg: yellow
-            text:
-                italic: true
-    important:
-        sigil: "!"
-        toggle_key: i
-        highlights:
-            sigil:
-                fg: maroon
-            text:
-                bold: true
-default_type: bullet
+- name: bullet
+  sigil: '-'
+  toggle_key: l
+  toggle_to: line
+- name: dot
+  sigil: '*'
+  toggle_key: o
+  sigil_regex: "\\*"
+- name: number
+  toggle_key: n
+  toggle_to: bullet
+  sigil_regex: "(\\d+)\\."
+- name: todo
+  sigil: '◻'
+  toggle_key: t
+  highlights:
+    sigil: 
+      fg: blue
+- name: todo.md
+  sigil: '- [ ]'
+  toggle_key: T
+- name: done
+  sigil: '✓'
+  toggle_key: d
+  highlights:
+    sigil: 
+      fg: green
+    text:
+      fg: surface0
+      strikethrough: true
+- name: done.md
+  sigil: '- [x]'
+  toggle_key: D
+- name: maybe
+  sigil: '~'
+  toggle_key: m
+  sigil_regex: "\\~"
+  highlights:
+    sigil:
+      fg: surface2
+    text:
+      fg: surface2
+- name: quote
+  toggle_key: q

@@ -2,57 +2,72 @@ local Line = require("htl.text.Line")
 local Item = require("htl.text.List.Item")
 local NumberedItem = require("htl.text.List.NumberedItem")
 
-local TextList = class()
-TextList.LineClasses = List({
+local M = {}
+M.ItemTypes = List({
     NumberedItem,
     Item,
     Line,
 })
 
-TextList.line_class_to_toggle_info = Dict({
+M.toggle_info = {
     number = {
         on = NumberedItem,
-        off = Item,
     },
     bullet = {
-        on = Item,
         off = Line,
     },
-    line = {
-        on = Line,
-        off = Item,
-    },
-    other = {
-        on = Item,
-        off = Item,
-    }
-})
+}
 
-function TextList:parse_line(s)
-    for Class in self.LineClasses:iter() do
-        if Class:str_is_a(s) then
-            return Class(s)
+function M.parse(s)
+    for ItemType in M.ItemTypes:iter() do
+        if ItemType.str_is_a(s) then
+            return ItemType(s)
         end
     end
 end
 
-function TextList:convert_lines(lines, toggle_line_type_name)
-    lines = List(lines):transform(function(l) return self:parse_line(l) end)
-    local outmost_line = lines:sorted(function(a, b) return #a.indent < #b.indent end)[1]
-
-    local toggle_info = self.line_class_to_toggle_info[toggle_line_type_name]
-    toggle_info = toggle_info or self.line_class_to_toggle_info.other
-
-    local toggle
-    local sigil
-    if outmost_line.name == toggle_line_type_name then
-        toggle = 'off'
-    else
-        toggle = 'on'
-        sigil = Item:name_to_sigil(toggle_line_type_name)
-    end
-
-    return toggle_info[toggle]:convert_lines(lines, sigil)
+function M.merge(lines)
+    return lines:transform(M.parse):reduce(function(a, b)
+        a.text = a.text:rstrip() .. " " .. b.text:lstrip()
+        return a
+    end)
 end
 
-return TextList
+function M.change_quote(lines, outer_line)
+    local old = outer_line.quote or ""
+    local new = old:startswith(">") and "" or "> "
+    return lines:transform(function(l)
+        l.quote = new
+        return tostring(l)
+    end)
+end
+
+function M.change_type(lines, outer_line, change_type)
+    local direction, sigil
+
+    if outer_line.conf.name == change_type then
+        direction = 'off'
+    else
+        direction = 'on'
+        sigil = Item.get_conf("name", change_type).sigil
+    end
+    
+    local toggle_info = M.toggle_info[change_type] or {}
+    local Toggler = toggle_info[direction] or Item
+    
+    return Toggler.transform(lines, sigil):transform(Toggler.__tostring)
+end
+
+function M.change(lines, toggle_type)
+    lines = lines:transform(M.parse)
+
+    local outer_line = lines:sorted(function(a, b) return #a.indent < #b.indent end)[1]
+    
+    if toggle_type == 'quote' then
+        return M.change_quote(lines, outer_line)
+    else
+        return M.change_type(lines, outer_line, toggle_type)
+    end
+end
+
+return M

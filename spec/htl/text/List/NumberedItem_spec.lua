@@ -1,81 +1,60 @@
 require("htl")
 
 local Item = require("htl.text.List.Item")
-local NumberedItem = require("htl.text.List.NumberedItem")
+local M = require("htl.text.List.NumberedItem")
 
 describe("parse_sigil", function()
     it("base case", function()
-        local l = NumberedItem("1. a")
-        assert.are.same("1", l.sigil)
+        assert.are.same("1", M("1. a").sigil)
     end)
 
     it("indented case", function()
-        local l = NumberedItem("  2. a")
-        assert.are.same("2", l.sigil)
+        assert.are.same("2", M("  2. a").sigil)
     end)
 end)
 
 describe("str_is_a", function()
-    it("+: 1 digit", function()
-        assert(NumberedItem:str_is_a("1. a"))
-    end)
-
-    it("+: multiple digits", function()
-        assert(NumberedItem:str_is_a("12. a"))
-    end)
-
-    it("+: indent", function()
-        assert(NumberedItem:str_is_a("  12. a"))
-    end)
-
-    it("+: no text", function()
-        assert(NumberedItem:str_is_a("12. "))
-    end)
-
-    it("-: 0 digits", function()
-        assert.is_false(NumberedItem:str_is_a(". "))
-    end)
-
-    it("-: digit but no '.'", function()
-        assert.is_false(NumberedItem:str_is_a("1 a"))
-    end)
-
-    it("digit not immediately followed by a period", function()
-        assert.is_false(NumberedItem:str_is_a("  2 a."))
-    end)
-    it("digit not at start", function()
-        assert.is_false(NumberedItem:str_is_a("  a2. b"))
+    Dict({
+        digit = {input = "1. a", expected = true},
+        digits = {input = "12. a", expected = true},
+        indent = {input = "  12. a", expected = true},
+        ["no text"] = {input = "12. ", expected = true},
+        ["0 digits"] = {input = ". ", expected = false},
+        ["no dot"] = {input = "1 a", expected = false},
+        ["digit not immediately followed by a period"] = {input = "2 a.", expected = false},
+        ["digit not at start"] = {input = "  a2. b", expected = false},
+    }):foreach(function(name, test)
+        it(name, function()
+            assert.are.same(test.expected, M.str_is_a(test.input))
+        end)
     end)
 end)
 
 describe("convert_lines", function()
     it("works", function()
-        local original = List({
-            Item("! a"),
-            Item("  ~ b"),
-            Item("    - c"),
-            Item("    - d"),
-            Item("  ~ e"),
-            Item("    - f"),
-            Item("    - g"),
-            Item("! h"),
-            Item("! i")
-        })
-
-        local converted = 
         assert.are.same(
-            List({
-                NumberedItem("1. a"),
-                NumberedItem("  1. b"),
-                NumberedItem("    1. c"),
-                NumberedItem("    2. d"),
-                NumberedItem("  2. e"),
-                NumberedItem("    1. f"),
-                NumberedItem("    2. g"),
-                NumberedItem("2. h"),
-                NumberedItem("3. i")
-            }),
-            NumberedItem:convert_lines(original)
+            {
+                "1. a",
+                "  1. b",
+                "    1. c",
+                "    2. d",
+                "  2. e",
+                "    1. f",
+                "    2. g",
+                "2. h",
+                "3. i",
+            },
+            M.transform(List({
+                Item("* a"),
+                Item("  ~ b"),
+                Item("    - c"),
+                Item("    - d"),
+                Item("  ~ e"),
+                Item("    - f"),
+                Item("    - g"),
+                Item("- h"),
+                Item("* i")
+            })):transform(M.__tostring)
         )
     end)
 end)
