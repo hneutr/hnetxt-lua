@@ -115,14 +115,20 @@ function M.syntax()
     return d
 end
 
-function M.change(mode, ...)
+function M.change(mode, change_type, ...)
+    local lines = List(BufferLines.selection.get({mode = mode}))
+
     BufferLines.selection.set({
         mode = mode,
-        replacement = TextList.change(
-            List(BufferLines.selection.get({mode = mode})),
-            ...
-        )
+        replacement = TextList.change(lines, change_type, ...)
     })
+    
+    if mode == 'v' and change_type == 'indent' then
+        vim.api.nvim_input('gv')
+        if #lines > 1 then
+            vim.api.nvim_input(string.format("%dj", #lines - 1))
+        end
+    end
 end
 
 function M.mappings()
