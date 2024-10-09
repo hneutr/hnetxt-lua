@@ -1,3 +1,4 @@
-end_document: ">[!end]"
+end_document: "> [!end]"
+change: "> [!change]"
 exclude_heading_from_document: "{(.*)}"
 heading_label: "(.*)%s%[(.-)%]$"

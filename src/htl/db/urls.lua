@@ -255,10 +255,7 @@ function M:get_label(url)
         end
 
         label = path:stem():gsub("-", " ")
-
-        if path:is_relative_to(Conf.paths.language_dir) then
-            label = label:gsub("_", "-")
-        end
+        label = label:gsub("_", "-")
     end
 
     return label

@@ -7,31 +7,26 @@ require("htl.cli")({
         project = require("htc.project"),
         journal = {
             alias = true,
-            description = "open the journal",
             edit = require("htl.journal"),
             call_with = [[-c "lua require('zen-mode').toggle()"]],
         },
         aim = {
             alias = true,
-            description = "open daily aims",
             edit = require("htl.goals"),
         },
         track = {
             alias = true,
-            description = "open the tracking file",
             {"date", description = "date", default = os.date('%Y%m%d')},
             edit = DB.Log.ui.cli,
         },
         move = {
             alias = "mv",
-            description = "move tracked files",
             {"source", args = "1", convert = Path.from_commandline},
             {"target", args = "1", convert = Path.from_commandline},
             action = require("htc.move").run,
         },
         remove = {
             alias = "rm",
-            description = "remove tracked files",
             {"path", args = "1", convert = Path.from_commandline},
             {"+r", target = "recursive", description = "delete recursively", switch = "on"},
             {"+d", target = "directories", description = "delete directories", switch = "on"},
@@ -97,7 +92,6 @@ require("htl.cli")({
             {"word", args = "1"},
             action = require("htl.ety").open,
         },
-        -- etyparse = require("htc.ety"),
         define = {
             alias = true,
             description = "add a word to the dictionary",
@@ -142,6 +136,55 @@ require("htl.cli")({
                 end
             end
         },
+        add = {
+            alias = true,
+            {"title_words", default = List(), action="concat", args = "*"},
+            {"-D --directory", default = Path.cwd(), convert=Path.from_commandline},
+            {"-d --date", default = os.date('%Y%m%d')},
+            {"-i --instance_type"},
+            edit = function(args)
+                local name = args.title_words:join(' ')
+                local lines = List({
+                    string.format("is a: %s", args.instance_type or ""),
+                    "",
+                    name,
+                })
+
+                List({
+                    {", ", " "},
+                    {"%s%s", "%s"},
+                    {"-", "_"},
+                    {"'"},
+                    {'"'},
+                    {"%s", "-"},
+                    {[[ — ]], "---"},
+                }):foreach(function(change)
+                    local match, replacement = unpack(change)
+                    name = name:gsub(match, replacement or "")
+                end)
+                
+                local path = args.directory / string.format("%s.md", name)
+                path:write(lines)
+                
+                if args.date then
+                    DB.urls:insert({path = path})
+                    
+                    local url = DB.urls:get_file(path)
+                    if url then
+                        DB.urls:update({
+                            where = {id = url.id},
+                            set = {created = args.date},
+                        })
+                    end
+                end
+                
+                return string.format(
+                    [[%s %s]],
+                    path,
+                    args.instance_type and "+" or [[+"lua vim.api.nvim_input('ggA')"]]
+                )
+            end,
+        },
         setmd = {
             alias = true,
             description = "make a pdf of a markdown file",
@@ -168,5 +211,6 @@ require("htl.cli")({
                 tmp:unlink()
             end
         },
+        -- etyparse = require("htc.ety"),
     }
 })
