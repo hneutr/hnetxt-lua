@@ -70,8 +70,6 @@ describe("insert", function()
     it("sets resource type", function()
         M:insert({path = f1})
         assert.not_nil(M:where({path = f1, type = "file"}))
-        M:insert({path = f2, label = "f2"})
-        assert.not_nil(M:where({path = f2, type = "link"}))
     end)
 
     it("doesn't overwrite file", function()
@@ -92,22 +90,19 @@ end)
 describe("move", function()
     it("works", function()
         local a = {path = f1, label = "a"}
-        local b = {path = f1, label = "b"}
-        local c = {path = f2, label = "c"}
+        local b = {path = f2, label = "b"}
 
         M:insert(a)
         M:insert(b)
-        M:insert(c)
 
         M.move({source = f1, target = f3})
 
         assert.is_nil(M:where(a))
-        assert.is_nil(M:where(b))
-        assert.is_not.Nil(M:where(c))
+        assert.is_not.Nil(M:where(b))
 
         assert.are.same(
-            {"a", "b"},
-            M:get({where = {path = f3, type = "link"}}):col('label'):sorted()
+            {"a"},
+            M:get({where = {path = f3}}):col('label'):sorted()
         )
     end)
 
@@ -398,32 +393,6 @@ describe("set_project", function()
     end)
 end)
 
-describe("set_label", function()
-    local l1 = M:get_label({path = f1})
-
-    it("str", function()
-        local q = {path = f1}
-        f1:touch()
-
-        M:insert(q)
-        local u = M:where(q)
-        assert.are.same(l1, u.label)
-
-        M:set_label(u.id, "a")
-
-        assert.are.same("a", M:where(q).label)
-    end)
-
-    it("nil", function()
-        f1:touch()
-        local id = M:insert({path = f1, label = "a"})
-        assert.are.same("a", M:where({id = id}).label)
-
-        M:set_label(id)
-        assert.are.same(l1, M:where({id = id}).label)
-    end)
-end)
-
 describe("clean", function()
     it("deleted file", function()
         local r = {path = f1}
@@ -435,19 +404,6 @@ describe("clean", function()
 
         M:clean()
 
-        assert.is_nil(M:where(r))
-    end)
-
-    it("unanchored file", function()
-        local r = {id = M:insert({path = f1})}
-
-        M:update({
-            where = r,
-            set = {path = tostring(M.unanchored_path)},
-        })
-
-        assert(M:where(r))
-        M:clean()
         assert.is_nil(M:where(r))
     end)
 

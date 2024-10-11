@@ -1,4 +1,3 @@
-delimiter: ":"
 colors:
   label: [cyan, underline]
   label_delimiters: black

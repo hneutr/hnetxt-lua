@@ -63,8 +63,11 @@ function M:insert(r, source)
 end
 
 function M:set_url_label(r)
-    if r.relation == "label" then
-        DB.urls:set_label(r.source, r.val)
+    if r.key == "label" then
+        DB.urls:update({
+            where = {id = r.source},
+            set = {label = r.val},
+        })
     end
 end
 

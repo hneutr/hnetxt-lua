@@ -1,4 +1,3 @@
-local stub = require("luassert.stub")
 local htl = require("htl")
 
 local d1 = htl.test_dir / "dir-1"
@@ -26,31 +25,15 @@ end)
 after_each(htl.after_test)
 
 describe("set_url_label", function()
-    before_each(function()
-        stub(DB.urls, "set_label")
-    end)
-
-    after_each(function()
-        DB.urls.set_label:revert()
-    end)
-
     it("right relation", function()
         M:set_url_label({
-            relation = "label",
-            key = "xyz",
+            relation = "connection",
+            key = "label",
+            val = "xyz",
             source = u1,
         })
 
-        assert.stub(DB.urls.set_label).was.called()
-    end)
-    
-    it("wrong relation", function()
-        M:set_url_label({
-            relation = "connection",
-            type = "etc",
-            source = u1,
-        })
-        assert.stub(DB.urls.set_label).was_not.called()
+        assert.are.same("xyz", DB.urls:where({id = u1}).label)
     end)
 end)
 

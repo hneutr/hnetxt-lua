@@ -31,17 +31,12 @@ local M = SqliteTable("urls", {
     },
 })
 
-M.unanchored_path = Path("__unanchored__")
-M.link_delimiter = Conf.link.delimiter
-
 function M.should_track(path)
     return path:suffix() == ".md" and not Mirrors:is_mirror(path) and DB.projects.get_by_path(path) ~= nil
 end
 
 function M:insert(row)
-    if not row.type then
-        row.type = row.label and "link" or "file"
-    end
+    row.type = row.type or "file"
 
     if row.type == "file" and M:get_file(row.path) then
         return
@@ -105,7 +100,6 @@ end
 
 function M.__fmt(u)
     u.path = Path(u.path)
-
     u.label = M:get_label(u)
 
     return Dict(u)
@@ -121,7 +115,6 @@ function M:clean()
         local keep = true
 
         keep = keep and u.path:exists()
-        keep = keep and u.path ~= M.unanchored_path
         keep = keep and u.path:is_relative_to(project_to_path[u.project])
         return not keep
     end):col('id')
@@ -199,10 +192,6 @@ end
 function M.get_fuzzy_path(url, dir)
     local path = url.path
 
-    if url.type == 'link' and url.label and #url.label > 0 then
-        path = path:with_name(path:name() .. M.link_delimiter .. url.label)
-    end
-
     if dir then
         path = path:relative_to(dir)
     end
@@ -211,37 +200,26 @@ function M.get_fuzzy_path(url, dir)
 end
 
 function M:get_fuzzy_paths(dir)
-    local q = {where = {type = {"file", "link"}}}
+    local q = {where = {type = "file"}}
 
     if dir then
         q.contains = {path = string.format("%s*", tostring(dir))}
     end
 
-    return M:get(q):filter(function(url)
-        return url.path ~= M.unanchored_path
-    end):transform(M.get_fuzzy_path, dir):sorted(function(a, b) return #a < #b end)
+    return M:get(q):transform(M.get_fuzzy_path, dir):sorted(function(a, b)
+        return #a < #b
+    end)
 end
 
 
 function M:get_from_fuzzy_path(path, dir)
     local q = {path = path}
 
-    if path:match(M.link_delimiter) then
-        q.path, q.label = unpack(path:split(M.link_delimiter, 1))
-    end
-
     if dir then
         q.path = Path(dir):join(q.path)
     end
 
     return M:where(q)
-end
-
-function M:set_label(id, label)
-    M:update({
-        where = {id = id},
-        set = {label = label or ""},
-    })
 end
 
 function M:get_label(url)
