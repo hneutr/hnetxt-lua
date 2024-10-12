@@ -1,4 +1,3 @@
-local BufferLines = require("hn.buffer_lines")
 local ui = require("htn.ui")
 
 local TextList = require("htl.text.List")
@@ -30,16 +29,21 @@ function M.continue_comment(line, next_line)
     end
 end
 
-function M.continue(from_command)
+function M.add_line()
+    local line = TextList.parse(ui.get_cursor_line())
+
+    ui.set_cursor_line({line, line:get_next()})
+    ui.set_cursor({row = ui.get_cursor().row + 1, center = false})
+    vim.api.nvim_input("<esc>A")
+end
+
+function M.continue()
     local cur = ui.get_cursor()
     
     local str = ui.get_cursor_line()
-    local next_str = ""
-
-    if not from_command then
-        str:sub(cur.col + 1):strip()
-        str = str:sub(1, cur.col)
-    end
+    local next_str = str:sub(cur.col + 1):strip()
+    local next_str_len = #next_str
+    str = str:sub(1, cur.col)
 
     local line = TextList.parse(str)
 
@@ -49,21 +53,36 @@ function M.continue(from_command)
     - list item: remove the list sigil (keep the quote)
     - quote: remove the quote
     ]]
-    if #line.text == 0 and #next_str == 0 and #tostring(line) > 0 and not from_command then
+    if #line.text == 0 and #next_str == 0 and #tostring(line) > 0 then
         if line:is_a(Item) then
-            ui.set_cursor_line({line.quote .. line.indent})
+            str = line.quote .. line.indent
+        elseif #line.quote > 0 then
+            str = line.indent
         else
-            ui.set_cursor_line({line.indent})
+            str = ""
         end
+
+        next_str = nil
     else
         line.text = line.text:rstrip()
-        local next_line = line:get_next(next_str)
-        M.continue_comment(line, next_line)
-        ui.set_cursor_line({line, next_line})
-        ui.set_cursor({row = cur.row + 1, center = false})
+        str = tostring(line)
+        next_str = tostring(line:get_next(next_str))
     end
 
-    vim.api.nvim_input("<esc>A")
+    ui.set_cursor_line({str, next_str})
+
+    local command = "A"
+    if next_str then
+        ui.set_cursor({
+            row = cur.row + 1,
+            col = #next_str - next_str_len,
+            center = false,
+        })
+
+        command = "a"
+    end
+
+    vim.api.nvim_input("<esc>" .. command)
 end
 
 function M.syntax()
@@ -105,11 +124,13 @@ function M.syntax()
 end
 
 function M.change(mode, change_type, ...)
-    local lines = List(BufferLines.selection.get({mode = mode}))
-
-    BufferLines.selection.set({
+    ui.set_selection({
         mode = mode,
-        replacement = TextList.change(lines, change_type, ...)
+        lines = TextList.change(
+            ui.get_selection({mode = mode}),
+            change_type,
+            ...
+        )
     })
     
     if mode == 'v' and change_type == 'indent' then
@@ -142,6 +163,5 @@ function M.mappings()
 end
 
 M.indent_command = [[:lua require('htn.text.list').change('%s', 'indent', %d)<cr>]]
-M.continue_cmd = [[<cmd>lua require('htn.text.list').continue(true)<cr>]]
 
 return M

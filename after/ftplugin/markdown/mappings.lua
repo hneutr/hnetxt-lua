@@ -1,10 +1,15 @@
 local ui = require("htn.ui")
+local TextList = require("htn.text.list")
 
 local args = {silent = true, buffer = true}
 
 local mappings = Dict(
     {
         n = Dict({
+            -- remove list characters when joining lines
+            J = TextList.join,
+            -- add a line below the current one
+            o = TextList.add_line,
             -- url opening
             ["<M-l>"] = ui.goto_map_fn("vsplit"),
             ["<M-j>"] = ui.goto_map_fn("split"),
@@ -25,8 +30,11 @@ local mappings = Dict(
             ["<C-d>"] = ui.change_heading_level(1),
             ["<C-i>"] = ui.toggle_heading_inclusion,
         }),
+        i = Dict({
+            -- continue lists
+            ["<cr>"] = TextList.continue,
+        }),
         v = Dict(),
-        i = Dict(),
     },
     require("htn.text.list").mappings()
 )
@@ -42,7 +50,7 @@ if vim.b.htn_project_path then
     mappings.i["<C-\\>"] = ui.map_fuzzy("insert", "global")
 
     -- scratch
-    mappings.n["<leader>s"] = ui.scratch_map_fn
+    mappings.n["<leader>s"] = ui.scratch
     mappings.v["<leader>s"] = ui.scratch_map_visual_cmd
 
     -- mirrors

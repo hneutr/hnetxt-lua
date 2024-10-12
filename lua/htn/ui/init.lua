@@ -62,9 +62,33 @@ function M.get_cursor_line()
     return vim.api.nvim_buf_get_lines(0, row - 1, row, false)[1]
 end
 
-function M.set_cursor_line(lines, args)
+function M.set_cursor_line(lines)
     local row = M.get_cursor().row
     vim.api.nvim_buf_set_lines(0, row - 1, row, false, List.as_list(lines):transform(tostring))
+end
+
+function M.get_selection(args)
+    return List(vim.api.nvim_buf_get_lines(unpack(M._get_selection_args(args))))
+end
+
+function M.set_selection(args)
+    vim.api.nvim_buf_set_lines(unpack(M._get_selection_args(args)))
+end
+
+function M._get_selection_args(args)
+    args = Dict(args or {}, {buffer = 0, strict_indexing = false})
+    local start, stop
+
+    if args.mode == 'v' then
+        vim.api.nvim_input('<esc>')
+        start = math.max(0, vim.api.nvim_buf_get_mark(args.buffer, '<')[1] - 1)
+        stop = vim.api.nvim_buf_get_mark(args.buffer, '>')[1]
+    else
+        stop = M.get_cursor().row
+        start = stop - 1
+    end
+
+    return {args.buffer, start, stop, args.strict_indexing, args.lines}
 end
 
 --------------------------------------------------------------------------------
@@ -311,7 +335,7 @@ function M.change_heading_level(change)
         if Heading.str_is_a(line) then
             local heading = Heading.from_str(line)
             heading:change_level(change)
-            M.set_cursor_line(heading)
+            M.set_cursor_line({heading})
         end
     end
 end
@@ -322,7 +346,7 @@ function M.toggle_heading_inclusion()
     if Heading.str_is_a(line) then
         local heading = Heading.from_str(line)
         heading:toggle_exclusion()
-        M.set_cursor_line(heading)
+        M.set_cursor_line({heading})
     end
 end
 
@@ -345,9 +369,8 @@ end
 --                                                                            --
 --------------------------------------------------------------------------------
 function M.scratch(mode)
-    local BufferLines = require("hn.buffer_lines")
-    local lines = BufferLines.selection.get({mode = mode})
-    BufferLines.selection.set({mode = mode})
+    local lines = M.get_selection({mode = mode})
+    M.set_selection({mode = mode, lines = {}})
 
     if lines[#lines] ~= "" then
         lines:append("")
@@ -367,7 +390,6 @@ function M.scratch(mode)
     end
 end
 
-M.scratch_map_fn = function() M.scratch('n') end
 M.scratch_map_visual_cmd = [[:'<,'>lua require('htn.ui').scratch('v')<cr>]]
 
 --------------------------------------------------------------------------------
