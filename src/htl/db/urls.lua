@@ -1,6 +1,6 @@
 local Mirrors = require("htl.Mirrors")
 local Link = require("htl.text.Link")
-local TaxonomyParser = require("htl.Taxonomy.Parser")
+local Metadata = require("htl.Metadata")
 
 local M = SqliteTable("urls", {
     id = true,
@@ -142,7 +142,7 @@ function M.remove_references_to_url(url_to_remove)
                     p:write(p:read():gsub(link_string, link.label))
                 end
             end)
-            TaxonomyParser:record(url)
+            Metadata:record(url)
         end)
     end
 end

@@ -112,9 +112,9 @@ require("htl.cli")({
 
                 local id = DB.urls:insert({path = path})
 
-                local Parser = require("htl.Taxonomy.Parser")
+                local Metadata = require("htl.Metadata")
 
-                Parser:record(DB.urls:where({id = id}))
+                Metadata:record(DB.urls:where({id = id}))
 
                 return path
             end,
@@ -132,7 +132,7 @@ require("htl.cli")({
                 require("htl.Taxonomy")()
 
                 if args.reparse_taxonomy then
-                    require("htl.Taxonomy.Parser"):persist()
+                    require("htl.Metadataarser"):persist()
                 end
             end
         },

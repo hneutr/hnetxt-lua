@@ -30,12 +30,16 @@ function M.continue_comment(line, next_line)
     end
 end
 
-function M.continue()
+function M.continue(from_command)
     local cur = ui.get_cursor()
     
     local str = ui.get_cursor_line()
-    local next_str = str:sub(cur.col + 1):strip()
-    str = str:sub(1, cur.col)
+    local next_str = ""
+
+    if not from_command then
+        str:sub(cur.col + 1):strip()
+        str = str:sub(1, cur.col)
+    end
 
     local line = TextList.parse(str)
 
@@ -45,7 +49,7 @@ function M.continue()
     - list item: remove the list sigil (keep the quote)
     - quote: remove the quote
     ]]
-    if #line.text == 0 and #next_str == 0 and #tostring(line) > 0 then
+    if #line.text == 0 and #next_str == 0 and #tostring(line) > 0 and not from_command then
         if line:is_a(Item) then
             ui.set_cursor_line({line.quote .. line.indent})
         else

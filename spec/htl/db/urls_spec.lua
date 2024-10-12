@@ -1,7 +1,7 @@
 local htl = require("htl")
 local Mirrors = require("htl.Mirrors")
 local Date = require("pl.Date")
-local TaxonomyParser = require("htl.Taxonomy.Parser")
+local Metadata = require("htl.Metadata")
 
 local Link = require("htl.text.Link")
 
@@ -221,8 +221,8 @@ describe("remove", function()
 
         local u2 = DB.urls:where({path = f2})
 
-        TaxonomyParser:record(u1)
-        TaxonomyParser:record(u2)
+        Metadata:record(u1)
+        Metadata:record(u2)
 
         assert(DB.Relations:where({
             subject = u1.id,
@@ -288,8 +288,8 @@ describe("remove_references_to_url", function()
 
         local u2 = DB.urls:where({path = f2})
 
-        TaxonomyParser:record(u1)
-        TaxonomyParser:record(u2)
+        Metadata:record(u1)
+        Metadata:record(u2)
 
         assert(DB.Relations:where({
             subject = u1.id,

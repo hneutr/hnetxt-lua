@@ -6,7 +6,7 @@ local Line = require("htl.text.Line")
 local Heading = require("htl.text.Heading")
 local Document = require("htl.text.Document")
 local Mirrors = require("htl.Mirrors")
-local TaxonomyParser = require("htl.Taxonomy.Parser")
+local Metadata = require("htl.Metadata")
 
 local M = {}
 
@@ -110,7 +110,7 @@ function M.leave()
         
         M.set_file_url(path)
 
-        TaxonomyParser:record(DB.urls:get_file(path))
+        Metadata:record(DB.urls:get_file(path))
     end
     
     vim.b.htn_modified = false

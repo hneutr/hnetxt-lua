@@ -1,6 +1,5 @@
 local htl = require("htl")
 local Mirrors = require("htl.Mirrors")
-local TaxonomyParser = require("htl.Taxonomy.Parser")
 
 local M = require("htc.remove")
 

@@ -57,7 +57,8 @@ build = {
         ["htl.db.Instances"] = "src/htl/db/Instances.lua",
 
         ["htl.Taxonomy"] = "src/htl/Taxonomy/init.lua",
-        ["htl.Taxonomy.Parser"] = "src/htl/Taxonomy/Parser.lua",
+
+        ["htl.Metadata"] = "src/htl/Metadata.lua",
 
         ["htl.Mirrors"] = "src/htl/Mirrors.lua",
 
@@ -67,7 +68,6 @@ build = {
         ["htl.text.List.NumberedItem"] = "src/htl/text/List/NumberedItem.lua",
         ["htl.text.Link"] = "src/htl/text/Link.lua",
         ["htl.text.TerminalLink"] = "src/htl/text/TerminalLink.lua",
-
         ["htl.text.Heading"] = "src/htl/text/Heading.lua",
         ["htl.text.Document"] = "src/htl/text/Document.lua",
 

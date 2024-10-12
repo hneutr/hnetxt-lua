@@ -1,4 +1,4 @@
-local Parser = require("htl.Taxonomy.Parser")
+local Metadata = require("htl.Metadata")
 
 local M = class()
 M.conf = Dict(Conf.Taxonomy)
@@ -187,7 +187,7 @@ end
 --                                                                            --
 --                                                                            --
 --------------------------------------------------------------------------------
-M.TagRelation = Parser.TagRelation
+M.TagRelation = Metadata.TagRelation
 
 function M:apply_conditions(seeds, conditions)
     conditions:foreach(function(condition)
@@ -282,7 +282,7 @@ end
 function M:transform_conditions(conditions)
     conditions:transform(M.clean_condition)
     conditions = M.merge_conditions(conditions)
-    conditions:transform(Parser.parse_condition)
+    conditions:transform(Metadata.parse_condition)
     
     return conditions
 end

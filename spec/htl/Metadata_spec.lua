@@ -12,7 +12,7 @@ local f3 = d1 / "file-3.md"
 
 local instances_are_also_symbol = Conf.Taxonomy.relations.instances_are_also.symbol
 
-local M = require("htl.Taxonomy.Parser")
+local M = require("htl.Metadata")
 
 before_each(function()
     htl.before_test()

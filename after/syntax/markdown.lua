@@ -1,12 +1,12 @@
 local Color = require("hn.color")
-local TaxonomyParser = require("htl.Taxonomy.Parser")
+local Metadata = require("htl.Metadata")
 
 local function get_syntax()
     if not vim.g.htn_syntax then
         local elements = Dict(Conf.syntax)
         elements:update(require("htn.text.list").syntax())
 
-        TaxonomyParser.Relations:foreach(function(e)
+        Metadata.Relations:foreach(function(e)
             elements:update(e:syntax())
         end)
         
