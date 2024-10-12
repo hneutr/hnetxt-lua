@@ -42,6 +42,7 @@ function M.set_cursor(args)
             row = 1,
             col = 0,
             center = true,
+            insert = false,
         }
     )
     
@@ -61,9 +62,9 @@ function M.get_cursor_line()
     return vim.api.nvim_buf_get_lines(0, row - 1, row, false)[1]
 end
 
-function M.set_cursor_line(lines)
+function M.set_cursor_line(lines, args)
     local row = M.get_cursor().row
-    vim.api.nvim_buf_set_lines(0, row - 1, row, false, List.as_list(lines))
+    vim.api.nvim_buf_set_lines(0, row - 1, row, false, List.as_list(lines):transform(tostring))
 end
 
 --------------------------------------------------------------------------------
@@ -310,7 +311,7 @@ function M.change_heading_level(change)
         if Heading.str_is_a(line) then
             local heading = Heading.from_str(line)
             heading:change_level(change)
-            M.set_cursor_line(tostring(heading))
+            M.set_cursor_line(heading)
         end
     end
 end
@@ -321,7 +322,7 @@ function M.toggle_heading_inclusion()
     if Heading.str_is_a(line) then
         local heading = Heading.from_str(line)
         heading:toggle_exclusion()
-        M.set_cursor_line(tostring(heading))
+        M.set_cursor_line(heading)
     end
 end
 

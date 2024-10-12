@@ -1,4 +1,5 @@
 local BufferLines = require("hn.buffer_lines")
+local ui = require("htn.ui")
 
 local TextList = require("htl.text.List")
 local Item = require("htl.text.List.Item")
@@ -17,64 +18,48 @@ function M.join()
     end
 end
 
-function M.handle_comment(line, next_line)
+function M.continue_comment(line, next_line)
     local comment_string = vim.opt_local.commentstring:get()
 
-    if comment_string ~= nil and #comment_string > 0 then
+    if comment_string and #comment_string > 0 then
         comment_string = comment_string:gsub("%%s", "")
 
         if line.text:startswith(comment_string) then 
             next_line.text = comment_string .. next_line.text 
-            return true
         end
     end
-
-    return false
 end
 
-function M.continue(from_command)
-    local _, lnum, col = unpack(vim.fn.getcurpos())
-
-    local str = vim.fn.getline('.')
-    local next_str = ""
-
-    if not from_command then
-        next_str = str:sub(col):strip()
-        str = str:sub(1, col - 1)
-    end
+function M.continue()
+    local cur = ui.get_cursor()
+    
+    local str = ui.get_cursor_line()
+    local next_str = str:sub(cur.col + 1):strip()
+    str = str:sub(1, cur.col)
 
     local line = TextList.parse(str)
-    local new_content
-    local line_is_a_comment = false
-    local new_line_number = lnum
 
-    -- if the current line is a list item and is empty, remove the list item
-    -- (double enter → remove list sigil)
-    if #line.text == 0 and #next_str == 0 and #tostring(line) > 0 and line:is_a(Item) and not from_command then
-        new_content = {line.indent}
+    --[[
+    double enter → remove list sigil/quote:
+    if the current line is an empty:
+    - list item: remove the list sigil (keep the quote)
+    - quote: remove the quote
+    ]]
+    if #line.text == 0 and #next_str == 0 and #tostring(line) > 0 then
+        if line:is_a(Item) then
+            ui.set_cursor_line({line.quote .. line.indent})
+        else
+            ui.set_cursor_line({line.indent})
+        end
     else
         line.text = line.text:rstrip()
         local next_line = line:get_next(next_str)
-        line_is_a_comment = M.handle_comment(line, next_line)
-        new_content = {tostring(line), tostring(next_line)}
-        new_line_number = new_line_number + 1
+        M.continue_comment(line, next_line)
+        ui.set_cursor_line({line, next_line})
+        ui.set_cursor({row = cur.row + 1, center = false})
     end
 
-    vim.api.nvim_buf_set_lines(
-        0,
-        lnum - 1,
-        lnum,
-        false,
-        new_content
-    )
-
-    vim.api.nvim_win_set_cursor(0, {new_line_number, 0})
-    
-    if line:is_a(Item) or line_is_a_comment then
-        vim.api.nvim_input("<esc>A")
-    else
-        vim.api.nvim_input("<esc>I")
-    end
+    vim.api.nvim_input("<esc>A")
 end
 
 function M.syntax()
