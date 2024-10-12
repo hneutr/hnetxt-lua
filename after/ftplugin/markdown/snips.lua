@@ -7,11 +7,11 @@ local snippets = List({
     parse_snippet("d", "---\n$1"),
     -- headers
     parse_snippet("h", "# $1"),
-    parse_snippet("hf", "## $1"),
-    parse_snippet("hd", "### $1"),
-    parse_snippet("hs", "#### $1"),
-    parse_snippet("ha", "##### $1"),
-    parse_snippet("hg", "###### $1"),
+    parse_snippet("hd", "## $1"),
+    parse_snippet("hs", "### $1"),
+    parse_snippet("ha", "#### $1"),
+    parse_snippet("he", "##### $1"),
+    parse_snippet("hw", "###### $1"),
     parse_snippet("end", Conf.text.end_document),
     parse_snippet("change", Conf.text.change),
 })
