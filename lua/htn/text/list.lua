@@ -17,18 +17,6 @@ function M.join()
     end
 end
 
-function M.continue_comment(line, next_line)
-    local comment_string = vim.opt_local.commentstring:get()
-
-    if comment_string and #comment_string > 0 then
-        comment_string = comment_string:gsub("%%s", "")
-
-        if line.text:startswith(comment_string) then 
-            next_line.text = comment_string .. next_line.text 
-        end
-    end
-end
-
 function M.add_line()
     local line = TextList.parse(ui.get_cursor_line())
 
