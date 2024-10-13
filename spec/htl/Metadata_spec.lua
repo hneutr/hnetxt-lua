@@ -76,6 +76,51 @@ describe("SubsetRelation", function()
     end)
 end)
 
+describe("ConnectionRelation", function()
+    local M = M.ConnectionRelation
+
+    describe("make", function()
+        it("key = str, val = str", function()
+            assert.are.same(
+                {
+                    relation = "connection",
+                    key = "key",
+                    val = "val",
+                },
+                M:make("key", "val")
+            )
+        end)
+
+        it("key = str, val = link", function()
+            assert.are.same(
+                {
+                    relation = "connection",
+                    key = "key",
+                    object = 1,
+                },
+                M:make("key", "[a](1)")
+            )
+        end)
+
+        it("key = link, val = str", function()
+            assert.are.same(
+                {
+                    relation = "connection",
+                    key = "val-as-key",
+                    object = 1,
+                },
+                M:make("[a](1)", "val-as-key")
+            )
+        end)
+
+        it("key = link, val = link", function()
+            assert.is_nil(
+                M:make("[a](1)", "[b](2)")
+            )
+        end)
+    end)
+end)
+
 describe("InstancesAreAlsoRelation", function()
     local M = M.InstancesAreAlsoRelation
 
@@ -341,7 +386,7 @@ describe("parse_taxonomy_lines", function()
                     relation = "subset",
                 }
             },
-            M:parse_taxonomy_lines(List({"a:"}))
+            M.parse_taxonomy_lines(List({"a:"}))
         )
     end)
 
@@ -358,7 +403,7 @@ describe("parse_taxonomy_lines", function()
                     relation = "subset",
                 },
             },
-            M:parse_taxonomy_lines(List({
+            M.parse_taxonomy_lines(List({
                 string.format("a: %s(b)", instances_are_also_symbol)}
             )):sorted(function(a, b)
                 return a.relation < b.relation
@@ -388,7 +433,7 @@ describe("parse_taxonomy_lines", function()
                     relation = "subset",
                 },
             },
-            M:parse_taxonomy_lines(List({
+            M.parse_taxonomy_lines(List({
                 "a:",
                 "  b:",
                 "c:",
@@ -410,7 +455,7 @@ describe("record", function()
 
         local u1 = DB.urls:where({path = f1})
         
-        M:record(u1)
+        M.record(u1)
         
         local a_id = DB.Relations.get_url_id("a")
         local b_id = DB.Relations.get_url_id("b")
@@ -445,7 +490,7 @@ describe("record", function()
 
         local u1 = DB.urls:where({path = f1})
         
-        M:record(u1)
+        M.record(u1)
         
         local x_id = DB.Relations.get_url_id("x")
         local y_id = DB.Relations.get_url_id("y")
@@ -478,7 +523,7 @@ describe("parse_file_lines", function()
     it("is a", function()
         assert.are.same(
             {{subject = 1, object = "a", relation = "instance"}},
-            M:parse_file_lines(url, List({"is a: a "}))
+            M.parse_file_lines(url, List({"is a: a "}))
         )
     end)
     
@@ -488,14 +533,14 @@ describe("parse_file_lines", function()
                 {subject = 1, object = "a", relation = "instance"},
                 {subject = 1, object = "b", relation = "instance"}
             },
-            M:parse_file_lines(url, List({"is a: b, a"}))
+            M.parse_file_lines(url, List({"is a: b, a"}))
         )
     end)
     
     it("field: val", function()
         assert.are.same(
             {{object = 2, relation = "connection", key = "key"}},
-            M:parse_file_lines(url, List({"key: [abc](2)"}))
+            M.parse_file_lines(url, List({"key: [abc](2)"}))
         )
     end)
     
@@ -505,7 +550,7 @@ describe("parse_file_lines", function()
                 {object = 2, relation = "connection", key = "key"},
                 {object = 3, relation = "connection", key = "key"}
             },
-            M:parse_file_lines(
+            M.parse_file_lines(
                 url,
                 List({
                     "key:",
@@ -522,7 +567,7 @@ describe("parse_file_lines", function()
                 {object = 2, relation = "connection", key = "k1.k2"},
                 {object = 3, relation = "connection", key = "k1.k3"}
             },
-            M:parse_file_lines(
+            M.parse_file_lines(
                 url,
                 List({
                     "k1:",
@@ -541,7 +586,7 @@ describe("parse_file_lines", function()
                 {object = 2, relation = "connection", key = "k1"},
                 {object = 3, relation = "connection", key = "k2"}
             },
-            M:parse_file_lines(
+            M.parse_file_lines(
                 url,
                 List({
                     "k1:",
@@ -556,7 +601,14 @@ describe("parse_file_lines", function()
     it("tag", function()
         assert.are.same(
             {{key = "abc", relation = "tag"}},
-            M:parse_file_lines(url, List({"@abc"}))
+            M.parse_file_lines(url, List({"@abc"}))
+        )
+    end)
+
+    it("link: str", function()
+        assert.are.same(
+            {{key = "x", object = 1, relation = "connection"}},
+            M.parse_file_lines(url, List({"[a](1): x"}))
         )
     end)
     
@@ -568,7 +620,7 @@ describe("parse_file_lines", function()
                 {object = 2, relation = "connection", key = "t1"},
                 {object = 3, relation = "connection", key = "t1"}
             },
-            M:parse_file_lines(
+            M.parse_file_lines(
                 url,
                 List({
                     string.format("is a: a %s x", M.TagRelation.symbol),

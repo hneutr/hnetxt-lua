@@ -160,24 +160,28 @@ end
 --                             ConnectionRelation                             --
 --------------------------------------------------------------------------------
 local ConnectionRelation = class(Relation)
+ConnectionRelation.contexts = Dict()
 ConnectionRelation.name = "connection"
-ConnectionRelation.symbol = M.conf.relations.connection.symbol
-
-function ConnectionRelation:line_is_a(l) return false end
 
 function ConnectionRelation:make(key, val)
-    local r = Dict({
-        relation = self.name,
-        key = key,
-    })
+    local r = Dict({relation = self.name})
 
+    key = self.parse_link(key)
     val = self.parse_link(val)
-    
-    if type(val) == "string" then
-        r.val = val
-    else
-        r.object = val
+
+    local key_field = type(key) == "number" and "object" or "key"
+    local val_field = type(val) == "number" and "object" or "val"
+
+    if key_field == "object" and val_field == "val" then
+        val_field = "key"
     end
+
+    if key_field == val_field then
+        return
+    end
+
+    r[key_field] = key
+    r[val_field] = val
     
     return r
 end
@@ -374,10 +378,10 @@ function M.parse_condition(str)
     end
 end
 
-function M:get_relations(url, line, context)
+function M.get_relations(url, line, context)
     local relations = List()
     
-    self.Relations:filter(function(_Relation)
+    M.Relations:filter(function(_Relation)
         return _Relation.contexts[context]
     end):foreach(function(_Relation)
         while line and #line > 0 and _Relation:line_is_a(line) do
@@ -395,7 +399,7 @@ function M:get_relations(url, line, context)
     return relations
 end
 
-function M:parse_taxonomy_lines(lines)
+function M.parse_taxonomy_lines(lines)
     local indent_to_parent = Dict()
 
     local relations = List()
@@ -409,17 +413,17 @@ function M:parse_taxonomy_lines(lines)
 
             indent_to_parent[indent .. M.conf.indent_size] = subject
 
-            relations:extend(M:get_relations(subject, relation_str, "taxonomy"))
+            relations:extend(M.get_relations(subject, relation_str, "taxonomy"))
             relations:append(SubsetRelation:make(subject, indent_to_parent[indent]))
         else
-            relations:extend(M:get_relations(subject, indent_to_parent[indent], "taxonomy"))
+            relations:extend(M.get_relations(subject, indent_to_parent[indent], "taxonomy"))
         end
     end)
 
     return relations
 end
 
-function M:parse_file_lines(url, lines)
+function M.parse_file_lines(url, lines)
     local indent_to_key = Dict()
     local relations = List()
 
@@ -429,12 +433,13 @@ function M:parse_file_lines(url, lines)
         indent_to_key:filterk(function(_indent) return #_indent <= #indent end)
 
         if InstanceRelation:line_is_a(l) or TagRelation:line_is_a(l) then
-            relations:extend(M:get_relations(url.id, l, "file"))
+            relations:extend(M.get_relations(url.id, l, "file"))
         else
             local key, val
+
             if l:match(":") then
                 key, val = utils.parsekv(l)
-                key = self.get_nested_key(key, indent, indent_to_key, not val)
+                key = M.get_nested_key(key, indent, indent_to_key, not val)
             else
                 key = indent_to_key[indent]
                 val = l:strip()
@@ -461,26 +466,26 @@ function M.get_nested_key(key, indent, indent_to_key, add)
     return key
 end
 
-function M:parse_file(url)
+function M.parse_file(url)
     local lines = M.get_metadata_lines(url.path)
 
     if #lines > 0 and lines[1]:strip() == "is a: taxonomy" then
-        return self:parse_taxonomy_lines(lines:slice(2))
+        return M.parse_taxonomy_lines(lines:slice(2))
     else
-        return self:parse_file_lines(url, lines)
+        return M.parse_file_lines(url, lines)
     end
 end
 
-function M:record(url)
+function M.record(url)
     if not url then
         return
     end
 
     local relations
     if M.is_taxonomy_file(url.path) then
-        relations = self:parse_taxonomy_lines(url.path:readlines())
+        relations = M.parse_taxonomy_lines(url.path:readlines())
     else
-        relations = self:parse_file(url)
+        relations = M.parse_file(url)
     end
 
     if #DB.Relations:get() > 0 then
@@ -492,13 +497,13 @@ function M:record(url)
     end)
 end
 
-function M:persist()
+function M.persist()
     DB.Relations:drop()
 
     DB.urls:get({where = {type = "file"}}):sorted(function(a, b)
         return tostring(a.path) < tostring(b.path)
     end):foreach(function(u)
-        if not pcall(function() M:record(u) end) then
+        if not pcall(function() M.record(u) end) then
             print(u.path)
             os.exit()
         else

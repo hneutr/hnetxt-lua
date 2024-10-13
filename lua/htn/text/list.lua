@@ -124,14 +124,13 @@ function M.syntax()
 end
 
 function M.change(mode, change_type, ...)
-    ui.set_selection({
-        mode = mode,
-        lines = TextList.change(
-            ui.get_selection({mode = mode}),
-            change_type,
-            ...
-        )
-    })
+    local lines = TextList.change(
+        ui.get_selection({mode = mode}),
+        change_type,
+        ...
+    )
+
+    ui.set_selection({mode = mode, lines = lines})
     
     if mode == 'v' and change_type == 'indent' then
         vim.api.nvim_input('gv')

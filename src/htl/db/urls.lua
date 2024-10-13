@@ -51,7 +51,7 @@ function M:insert(row)
     return SqliteTable.insert(M, {
         path = tostring(row.path),
         project = project.title,
-        label = row.label,
+        label = row.label or M:path_to_label(row.path),
         type = row.type,
         created = row.created or os.date("%Y%m%d"),
     })
@@ -100,8 +100,6 @@ end
 
 function M.__fmt(u)
     u.path = Path(u.path)
-    u.label = M:get_label(u)
-
     return Dict(u)
 end
 
@@ -142,7 +140,7 @@ function M.remove_references_to_url(url_to_remove)
                     p:write(p:read():gsub(link_string, link.label))
                 end
             end)
-            Metadata:record(url)
+            Metadata.record(url)
         end)
     end
 end
@@ -157,14 +155,20 @@ end
 function M.move(move)
     local source, target = move.source, move.target
     
-    local source_exists = M:where({path = source})
+    local source_url = M:where({path = source})
     local target_should_exist = M.should_track(target)
     
-    if source_exists then
+    if source_url then
         if target_should_exist then
+            local to_set = {path = tostring(target)}
+
+            if source_url.label == M:path_to_label(source_url.path) then
+                to_set.label = M:path_to_label(target)
+            end
+
             M:update({
                 where = {path = tostring(source)},
-                set = {path = tostring(target)},
+                set = to_set,
             })
 
             M:update_project(target)
@@ -189,7 +193,29 @@ function M:update_project(path)
     end
 end
 
-function M.get_fuzzy_path(url, dir)
+function M:path_to_label(path)
+    if path:name() == tostring(Conf.paths.dir_file) then
+        path = path:parent()
+    end
+
+    local label = path:stem()
+    label = label:gsub("-", " ")
+    label = label:gsub("_", "-")
+    return label
+end
+
+function M:get_reference(url)
+    return Link({label = url.label, url = url.id})
+end
+
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                   fuzzy                                    --
+--                                                                            --
+--------------------------------------------------------------------------------
+M.fuzzy = {}
+
+function M.fuzzy.get_path(url, dir)
     local path = url.path
 
     if dir then
@@ -199,51 +225,26 @@ function M.get_fuzzy_path(url, dir)
     return tostring(path)
 end
 
-function M:get_fuzzy_paths(dir)
+function M.fuzzy.get_paths(dir)
     local q = {where = {type = "file"}}
 
     if dir then
         q.contains = {path = string.format("%s*", tostring(dir))}
     end
 
-    return M:get(q):transform(M.get_fuzzy_path, dir):sorted(function(a, b)
+    return M:get(q):transform(M.fuzzy.get_path, dir):sorted(function(a, b)
         return #a < #b
     end)
 end
 
-
-function M:get_from_fuzzy_path(path, dir)
+function M.fuzzy.from_path(path, dir)
     local q = {path = path}
 
     if dir then
-        q.path = Path(dir):join(q.path)
+        q.path = Path(dir) / q.path
     end
 
     return M:where(q)
-end
-
-function M:get_label(url)
-    local label = url.label
-
-    if not label or #label == 0 then
-        local path = url.path
-
-        if path:name() == tostring(Conf.paths.dir_file) then
-            path = path:parent()
-        end
-
-        label = path:stem():gsub("-", " ")
-        label = label:gsub("_", "-")
-    end
-
-    return label
-end
-
-function M:get_reference(url)
-    return Link({
-        label = url.label or M:get_label(url),
-        url = url.id,
-    })
 end
 
 return M

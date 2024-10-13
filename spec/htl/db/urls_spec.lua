@@ -1,6 +1,5 @@
 local htl = require("htl")
 local Mirrors = require("htl.Mirrors")
-local Date = require("pl.Date")
 local Metadata = require("htl.Metadata")
 
 local Link = require("htl.text.Link")
@@ -44,6 +43,11 @@ describe("where", function()
     it("works with path", function()
         M:insert({path = f1})
         assert.not_nil(M:where({path = f1}))
+    end)
+
+    it("has label", function()
+        M:insert({path = f1})
+        assert.not_nil(M:where({path = f1}).label)
     end)
 end)
 
@@ -163,6 +167,38 @@ describe("move", function()
         assert.is_nil(M:where({path = f_b1}))
         assert.is_not.Nil(M:where({path = f_a1}))
     end)
+
+    it("updates path based label", function()
+        local dir = htl.test_dir / "a"
+        local f1 = dir / "1.md"
+        local f2 = dir / "2.md"
+
+        DB.projects:drop()
+        DB.projects:insert({title = "a", path = dir})
+
+        M:insert({path = f1})
+        assert.are.same("1", M:where({path = f1}).label)
+
+        M.move({source = f1, target = f2})
+        assert.is_nil(M:where({path = f1}))
+        assert.are.same("2", M:where({path = f2}).label)
+    end)
+
+    it("doesn't update custom label", function()
+        local dir = htl.test_dir / "a"
+        local f1 = dir / "1.md"
+        local f2 = dir / "2.md"
+
+        DB.projects:drop()
+        DB.projects:insert({title = "a", path = dir})
+
+        M:insert({path = f1, label = "custom"})
+        assert.are.same("custom", M:where({path = f1}).label)
+
+        M.move({source = f1, target = f2})
+        assert.is_nil(M:where({path = f1}))
+        assert.are.same("custom", M:where({path = f2}).label)
+    end)
 end)
 
 describe("should_track", function()
@@ -221,8 +257,8 @@ describe("remove", function()
 
         local u2 = DB.urls:where({path = f2})
 
-        Metadata:record(u1)
-        Metadata:record(u2)
+        Metadata.record(u1)
+        Metadata.record(u2)
 
         assert(DB.Relations:where({
             subject = u1.id,
@@ -288,8 +324,8 @@ describe("remove_references_to_url", function()
 
         local u2 = DB.urls:where({path = f2})
 
-        Metadata:record(u1)
-        Metadata:record(u2)
+        Metadata.record(u1)
+        Metadata.record(u2)
 
         assert(DB.Relations:where({
             subject = u1.id,
@@ -349,21 +385,15 @@ describe("get", function()
     end)
 end)
 
-describe("get_label", function()
-    it("label", function()
-        assert.are.same("a", tostring(M:get_label({label = "a"})))
-    end)
-
-    it("no label, non-dir file", function()
-        assert.are.same("c", M:get_label({path = Path("a/b/c.md")}))
-    end)
-
-    it("no label, dir file", function()
-        assert.are.same("b", M:get_label({path = Path("a/b/@.md")}))
-    end)
-
-    it("language file", function()
-        assert.are.same("-suffix", M:get_label({path = Conf.paths.language_dir / "_suffix.md"}))
+describe("path_to_label", function()
+    Dict({
+        ["no label, non-dir file"] = {input = Path("a/b/c.md"), expected = "c"},
+        ["no label, dir file"] = {input = Path("a/b/@.md"), expected = "b"},
+        ["underscore → hyphen"] = {input = Path("_a.md"), expected = "-a"},
+    }):foreach(function(name, test)
+        it(name, function()
+            assert.are.same(test.expected, M:path_to_label(test.input))
+        end)
     end)
 end)
 

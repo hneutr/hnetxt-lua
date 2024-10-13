@@ -12,7 +12,6 @@ relations:
       term:
         label: blue
   connection:
-    symbol: ∴
     color:
       syntax: white
       term:

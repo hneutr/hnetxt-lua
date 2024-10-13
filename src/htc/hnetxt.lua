@@ -95,26 +95,28 @@ require("htl.cli")({
         define = {
             alias = true,
             description = "add a word to the dictionary",
-            {"word", description = "word to add", args = "+"},
+            {"word", description = "word to add", args = 1},
             {"-p --part-of-speech", description = "part of speech", default = "word"},
             edit = function(args)
-                local entry = Path.string_to_path(List(args.word):join(" ") .. ".md")
+                local entry = Path.string_to_path(args.word .. ".md")
                 local path = DB.projects:where({title = "dictionary"}).path / entry
 
                 if not path:exists() then
-                    path:write(List({
-                        string.format("is a: %s", args.part_of_speech),
-                        "",
-                        "",
-                        "",
-                    }))
+                    local lines = List({string.format("is a: %s", args.part_of_speech)})
+
+                    if args.word:match("/") then
+                        lines:append(string.format("language: %s", path:parent():name()))
+                    end
+
+                    lines:extend({"", "", ""})
+                    path:write(lines)
                 end
 
                 local id = DB.urls:insert({path = path})
 
                 local Metadata = require("htl.Metadata")
 
-                Metadata:record(DB.urls:where({id = id}))
+                Metadata.record(DB.urls:where({id = id}))
 
                 return path
             end,
@@ -132,7 +134,7 @@ require("htl.cli")({
                 require("htl.Taxonomy")()
 
                 if args.reparse_taxonomy then
-                    require("htl.Metadataarser"):persist()
+                    require("htl.Metadata").persist()
                 end
             end
         },
@@ -156,13 +158,14 @@ require("htl.cli")({
                     {"-", "_"},
                     {"'"},
                     {'"'},
+                    {"%."},
                     {"%s", "-"},
                     {[[ — ]], "---"},
                 }):foreach(function(change)
                     local match, replacement = unpack(change)
                     name = name:gsub(match, replacement or "")
                 end)
-                
+
                 local path = args.directory / string.format("%s.md", name)
                 path:write(lines)
                 

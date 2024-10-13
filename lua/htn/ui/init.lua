@@ -134,7 +134,7 @@ function M.leave()
         
         M.set_file_url(path)
 
-        Metadata:record(DB.urls:get_file(path))
+        Metadata.record(DB.urls:get_file(path))
     end
     
     vim.b.htn_modified = false
@@ -244,7 +244,7 @@ end
 function M.fuzzy_goto_map_fn(open_command)
     return function(selection, scope)
         local dir = M.get_dir_from_fuzzy_scope(scope)
-        local url = DB.urls:get_from_fuzzy_path(selection[1], dir)
+        local url = DB.urls.fuzzy.from_path(selection[1], dir)
         M.goto_url(open_command, url)
     end
 end
@@ -280,7 +280,7 @@ end
 
 function M.get_fuzzy_reference(path, scope)
     local dir = M.get_dir_from_fuzzy_scope(scope)
-    local url = DB.urls:get_from_fuzzy_path(path, dir)
+    local url = DB.urls.fuzzy.from_path(path, dir)
     return tostring(DB.urls:get_reference(url))
 end
 
@@ -289,15 +289,15 @@ function M.map_fuzzy(operation, scope)
         local dir = tostring(M.get_dir_from_fuzzy_scope(scope))
         
         local actions = {}
-        for key, fn in pairs(M.fuzzy_operation_actions[operation]) do
+        for key, fn in pairs(M.fuzzy_actions[operation]) do
             actions[key] = function(selection) fn(selection, scope) end
         end
         
-        fzf.fzf_exec(DB.urls:get_fuzzy_paths(dir), {actions = actions})
+        fzf.fzf_exec(DB.urls.fuzzy.get_paths(dir), {actions = actions})
     end
 end
 
-M.fuzzy_operation_actions = {
+M.fuzzy_actions = {
     goto = {
         default = M.fuzzy_goto_map_fn("edit"),
         ["ctrl-j"] = M.fuzzy_goto_map_fn("split"),
@@ -431,7 +431,7 @@ function M.quote(page_number)
     vim.api.nvim_input("iquote<tab>")
 
     local path = Path.this():parent() / Conf.paths.dir_file
-    local source = DB.urls:get_reference(DB.urls:where({path = path}))
+    local source = DB.urls:get_reference(DB.urls:get_file(path))
 
     if source then
         vim.api.nvim_input(tostring(source))

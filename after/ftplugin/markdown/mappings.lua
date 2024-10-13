@@ -26,8 +26,8 @@ local mappings = Dict(
             ["<C-,>"] = ui.ts.headings.fuzzy.run,
             ["<C-.>"] = ui.ts.headings.fuzzy.nearest,
 
-            ["<C-s>"] = ui.change_heading_level(-1),
-            ["<C-d>"] = ui.change_heading_level(1),
+            ["<C-s>"] = ui.change_heading_level(1),
+            ["<C-d>"] = ui.change_heading_level(-1),
             ["<C-i>"] = ui.toggle_heading_inclusion,
         }),
         i = Dict({
