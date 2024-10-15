@@ -67,7 +67,7 @@ function M.continue()
             center = false,
         })
 
-        command = "a"
+        command = "i"
     end
 
     vim.api.nvim_input("<esc>" .. command)

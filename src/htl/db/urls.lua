@@ -162,7 +162,7 @@ function M.move(move)
         if target_should_exist then
             local to_set = {path = tostring(target)}
 
-            if source_url.label == M:path_to_label(source_url.path) then
+            if M.has_default_label(source_url) then
                 to_set.label = M:path_to_label(target)
             end
 
@@ -202,6 +202,10 @@ function M:path_to_label(path)
     label = label:gsub("-", " ")
     label = label:gsub("_", "-")
     return label
+end
+
+function M.has_default_label(url)
+    return url.label == M:path_to_label(url.path)
 end
 
 function M:get_reference(url)

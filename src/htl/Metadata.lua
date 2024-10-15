@@ -495,6 +495,44 @@ function M.record(url)
     relations:foreach(function(r)
         DB.Relations:insert(r, url.id)
     end)
+
+    M.set_quote_label(url)
+end
+
+function M.set_quote_label(url)
+    local quote_url = DB.urls:where({
+        label = "quote",
+        type = "taxonomy_entry",
+    })
+
+    if not quote_url then
+        return
+    end
+
+    local is_quote =  DB.Relations:where({
+        subject = url.id,
+        object = quote_url.id,
+        relation = "instance",
+    })
+
+    if is_quote and DB.urls.has_default_label(url) and tonumber(url.label) then
+        local source_relation = DB.Relations:where({
+            subject = url.id,
+            relation = "connection",
+            key = "source",
+        })
+
+        if source_relation then
+            local source = DB.urls:where({id = source_relation.object})
+
+            if source then
+                DB.urls:update({
+                    where = {id = url.id},
+                    set = {label = string.format("%s quote %s", source.label, url.label)}
+                })
+            end
+        end
+    end
 end
 
 function M.persist()
