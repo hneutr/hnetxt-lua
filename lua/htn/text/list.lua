@@ -1,8 +1,7 @@
-local ui = require("htn.ui")
-
 local TextList = require("htl.text.List")
 local Item = require("htl.text.List.Item")
-local Line = require("htl.text.Line")
+
+local ui = require("htn.ui")
 
 local M = {}
 
@@ -55,22 +54,13 @@ function M.continue()
         line.text = line.text:rstrip()
         str = tostring(line)
         next_str = tostring(line:get_next(next_str))
+        cur.row = cur.row + 1
+        cur.col = #next_str - next_str_len
     end
 
     ui.set_cursor_line({str, next_str})
-
-    local command = "A"
-    if next_str then
-        ui.set_cursor({
-            row = cur.row + 1,
-            col = #next_str - next_str_len,
-            center = false,
-        })
-
-        command = "i"
-    end
-
-    vim.api.nvim_input("<esc>" .. command)
+    ui.set_cursor({row = cur.row, col = cur.col, center = false})
+    vim.api.nvim_input("<esc>a")
 end
 
 function M.syntax()
