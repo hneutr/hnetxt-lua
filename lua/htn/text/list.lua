@@ -26,7 +26,7 @@ end
 
 function M.continue()
     local cur = ui.get_cursor()
-    
+
     local str = ui.get_cursor_line()
     local next_str = str:sub(cur.col + 1):strip()
     local next_str_len = #next_str
@@ -58,9 +58,12 @@ function M.continue()
         cur.col = #next_str - next_str_len
     end
 
+
     ui.set_cursor_line({str, next_str})
     ui.set_cursor({row = cur.row, col = cur.col, center = false})
-    vim.api.nvim_input("<esc>a")
+
+    local command = next_str and #next_str == next_str_len and "i" or "a"
+    vim.api.nvim_input("<esc>" .. command)
 end
 
 function M.syntax()
@@ -97,7 +100,7 @@ function M.syntax()
             }):join(" "),
         }
     end)
-    
+
     return d
 end
 
@@ -109,7 +112,7 @@ function M.change(mode, change_type, ...)
     )
 
     ui.set_selection({mode = mode, lines = lines})
-    
+
     if mode == 'v' and change_type == 'indent' then
         vim.api.nvim_input('gv')
         if #lines > 1 then
@@ -130,7 +133,7 @@ function M.mappings()
             )
         end)
     end)
-    
+
     mappings.n['>>'] = string.format(M.indent_command, 'n', 1)
     mappings.v['>'] = string.format(M.indent_command, 'v', 1)
     mappings.n['<<'] = string.format(M.indent_command, 'n', 0)
