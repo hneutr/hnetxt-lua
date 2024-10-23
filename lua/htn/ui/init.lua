@@ -116,7 +116,6 @@ end
 function M.change()
     vim.b.htn_modified = true
     vim.b.sections = nil
-    vim.b.heading_lines = nil
     M.set_modified_date()
 end
 
@@ -542,31 +541,11 @@ function M.ts.get_root(language)
 end
 
 M.ts.headings = {}
-M.ts.headings.level = {
-    default = 6,
-    max = 6,
-}
+M.ts.headings.max_level = 6
 M.ts.headings.queries = List()
 
-function M.ts.headings.set()
-    if vim.b.heading_lines then
-        return
-    end
-
-    local query = M.ts.headings.get_query()
-
-    local heading_lines = Dict()
-    for _, node in query:iter_captures(M.ts.get_root(), 0) do
-        local heading = Heading.from_marker_node(node)
-        heading_lines[heading.str] = heading.line
-    end
-
-    vim.b.heading_lines = heading_lines
-end
-
-
 function M.ts.headings.get_query(level)
-    level = level or M.ts.headings.level.default
+    level = level or M.ts.headings.max_level
     if not M.ts.headings.queries[level] then
         M.ts.headings.queries[level] = vim.treesitter.query.parse(
             "markdown",
@@ -582,170 +561,37 @@ function M.ts.headings.get_query(level)
     return M.ts.headings.queries[level]
 end
 
-function M.ts.headings.get_line(s, args)
-    return vim.b[args.buffer].heading_lines[s[1]:strip()]
-end
-
-function M.ts.headings.get_candidates(args)
-    args = Dict(args, {buffer = 0, start = 0, stop = -1, exclude_node = ""})
+function M.ts.headings.get_elements(args)
+    args = Dict(args or {}, {node = M.ts.get_root(), buffer = 0, start = 0, stop = -1})
 
     local query = M.ts.headings.get_query(args.level)
 
-    local min_whitespace
-    local candidates = List()
-    for _, node in query:iter_captures(args.node, args.buffer, args.start, args.stop) do
-        local candidate = Heading.from_marker_node(node)
-        local str = args.raw_str and candidate.str or candidate:fuzzy_str()
+    local level_to_parent = List({0, 0, 0, 0, 0, 0})
 
-        if args.exclude_node and str ~= args.exclude_node then
-            candidates:append(str)
-            min_whitespace = math.min(#str - #str:lstrip(), min_whitespace or 100)
+    local elements = List()
+    for _, node in query:iter_captures(args.node, args.buffer, args.start, args.stop) do
+        local element = Heading.from_marker_node(node)
+        elements:append(element)
+
+        element.index = #elements
+        element.n_children = 0
+
+        local level = element.level.n
+
+        element.parents = Set(level_to_parent:slice(1, level)):vals()
+
+        element.parents:foreach(function(parent_i)
+            if parent_i > 0 then
+                elements[parent_i].n_children = elements[parent_i].n_children + 1
+            end
+        end)
+
+        for j = level + 1, M.ts.headings.max_level do
+            level_to_parent[j] = element.index
         end
     end
 
-    return candidates:transform(function(s) return s:sub(min_whitespace + 1) end)
-end
-
-function M.ts.headings.get_raw(args)
-    args = Dict(args, {buffer = 0, start = 0, stop = -1})
-
-    local query = M.ts.headings.get_query(args.level)
-
-    local candidates = List()
-    for _, node in query:iter_captures(args.node, args.buffer, args.start, args.stop) do
-        candidates:append(Heading.from_marker_node(node))
-    end
-
-    return candidates
-end
-
-M.ts.headings.fuzzy = {}
-M.ts.headings.fuzzy.actions = {}
-
-M.ts.headings.fuzzy.actions.default = function(args)
-    return function(s)
-        M.set_cursor({row = M.ts.headings.get_line(s, args)})
-    end
-end
-
-function M.ts.headings.fuzzy.actions.filter_level(level, args)
-    return function()
-        local l = args.level ~= level and level or M.ts.headings.level.default
-        M.ts.headings.fuzzy.run({level = l}, args)
-    end
-end
-
-function M.ts.headings.fuzzy.actions.down(args)
-    return function(s)
-        local node = vim.treesitter.get_node({
-            pos = {M.ts.headings.get_line(s, args) - 1, 0},
-            bufnr = args.buffer,
-        })
-        local section = node:parent():parent()
-        M.ts.headings.fuzzy.run({node = section}, args)
-    end
-end
-
-function M.ts.headings.fuzzy.actions.up(args)
-    return function()
-        M.ts.headings.fuzzy.run({node = args.node:parent()}, args)
-    end
-end
-
-function M.ts.headings.fuzzy.actions.root(args)
-    return function()
-        M.ts.headings.fuzzy.run({node = M.ts.get_root()}, args)
-    end
-end
-
-function M.ts.headings.fuzzy.run(...)
-    local args = Dict({exclude_node = ""}, ...)
-
-    if not args.node then
-        M.ts.headings.set()
-        args.node = M.ts.get_root()
-        args.buffer = vim.fn.bufnr()
-    end
-
-    local actions = {
-        default = M.ts.headings.fuzzy.actions.default(args),
-        ["ctrl-d"] = M.ts.headings.fuzzy.actions.down(args),
-        ["ctrl-a"] = M.ts.headings.fuzzy.actions.root(args),
-    }
-
-    if args.node:type() == 'section' then
-        actions["ctrl-s"] = M.ts.headings.fuzzy.actions.up(args)
-
-        local heading_node = vim.treesitter.get_node({
-            pos = {args.node:start(), 0},
-            bufnr = args.buffer,
-        })
-        local heading = Heading.from_marker_node(heading_node)
-
-        args.exclude_node = heading:fuzzy_str()
-    end
-
-    List.range(1, 6):foreach(function(l)
-        actions[string.format("alt-%d", l)] = M.ts.headings.fuzzy.actions.filter_level(l, args)
-    end)
-
-    fzf.fzf_exec(
-        M.ts.headings.get_candidates(args),
-        {
-            actions = actions,
-            prompt = M.ts.headings.fuzzy.prompt(args),
-        }
-    )
-end
-
-function M.ts.headings.fuzzy.prompt(args)
-    local parts = List()
-
-    if args.level and args.level < 6 then
-        parts:append(TermColor({
-            {"[", "white"},
-            {args.level, Heading.get_level(args.level).get_color()},
-            {"]", "white"},
-        }))
-    end
-
-    if args.exclude_node and #args.exclude_node > 0 then
-        parts:append(args.exclude_node:strip())
-    end
-
-    parts:append("> ")
-
-    return parts:join(" ")
-end
-
-function M.ts.headings.fuzzy.nearest()
-    M.ts.headings.set()
-
-    local args = Dict({
-        node = M.ts.get_root(),
-        buffer = vim.fn.bufnr(),
-        stop = M.get_cursor().row,
-        raw_str = true,
-    })
-
-    local candidates = M.ts.headings.get_candidates(args)
-
-    if #candidates == 0 then
-        return
-    end
-
-    local str = candidates[#candidates]
-    local heading_node = vim.treesitter.get_node({
-        pos = {M.ts.headings.get_line({str}, args) - 1, 0},
-        bufnr = args.buffer,
-    })
-    local section = heading_node:parent():parent()
-
-    args.node = section
-    args.raw_str = nil
-    args.stop = nil
-
-    M.ts.headings.fuzzy.run(args)
+    return elements
 end
 
 return M

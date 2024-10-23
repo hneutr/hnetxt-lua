@@ -23,9 +23,8 @@ local mappings = Dict(
             -- sections
             ["<c-p>"] = ui.move_to_section(-1),
             ["<c-n>"] = ui.move_to_section(1),
+
             -- headings
-            -- ["<C-,>"] = ui.ts.headings.fuzzy.run,
-            -- ["<C-.>"] = ui.ts.headings.fuzzy.nearest,
             ["<C-,>"] = HeadingPopup.open,
             ["<C-.>"] = function() HeadingPopup.open(true) end,
 
