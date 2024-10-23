@@ -9,18 +9,19 @@ function M.get_level(level)
         local d = {
             n = level,
             hl_group = string.format("markdownH%d", level),
+            bg_hl_group = string.format("RenderMarkdownH%dBg", level),
             marker = string.rep("#", level),
             selector = string.format("(atx_h%d_marker)", level),
             indent = string.rep("  ", level - 1),
         }
-        
+
         d.get_color = function()
             return require("hn.Color").get_hl_attr(d.hl_group, "fg")
         end
-        
+
         M.levels[level] = d
     end
-    
+
     return M.levels[level]
 end
 
@@ -71,7 +72,7 @@ function M:toggle_exclusion()
     else
         self.text = string.format("{%s}", self.text)
     end
-    
+
     if #self.label > 0 then
         self.str = string.format("%s [%s]", self.text, self.label)
     else

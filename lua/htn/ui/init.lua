@@ -28,7 +28,7 @@ M.suffix_to_open_cmd = Dict({
 --------------------------------------------------------------------------------
 function M.get_cursor(args)
     args = args or {}
-    
+
     local c = {}
     c.row, c.col = unpack(vim.api.nvim_win_get_cursor(args.window or 0))
     return c
@@ -45,13 +45,13 @@ function M.set_cursor(args)
             insert = false,
         }
     )
-    
+
     local cur_pos = M.get_cursor()
-    
+
     if args.row ~= cur_pos.row or args.col ~= cur_pos.col then
         vim.api.nvim_win_set_cursor(args.buffer, {args.row, args.col})
     end
-    
+
     if args.center then
         vim.cmd("normal zz")
     end
@@ -108,7 +108,7 @@ function M.start()
 
         M.set_file_url(path)
     end
-    
+
     -- currently not using folds and this is slow
     -- vim.cmd([[noautocmd silent! loadview]])
 end
@@ -127,18 +127,18 @@ end
 function M.leave()
     if vim.b.htn_modified then
         local path = Path.this()
-        
+
         if Mirrors:is_mirror(path) then
             path = Mirrors:get_source(path).path
         end
-        
+
         M.set_file_url(path)
 
         Metadata.record(DB.urls:get_file(path))
     end
-    
+
     vim.b.htn_modified = false
-    
+
     vim.cmd("noautocmd silent! mkview")
 end
 
@@ -150,7 +150,7 @@ function M.get_statusline()
     local pre = ""
     local post = ""
     local relative_to = vim.b.htn_project_path
-    
+
     if Mirrors:is_mirror(path) then
         post = "%=mirror: " .. Conf.mirror[Mirrors:get_kind(path)].statusline_str
 
@@ -188,7 +188,7 @@ function M.get_statusline_path(path, relative_to)
     if relative_to and path:is_relative_to(relative_to) then
         path = path:relative_to(relative_to)
     end
-    
+
     return Path.contractuser(tostring(path:with_suffix("")))
 end
 
@@ -271,7 +271,7 @@ function M.fuzzy_insert(selection, scope)
 
     local line = vim.fn.getline('.')
     line, cursor[3] = Line.insert_at_pos(line, col, reference)
-    
+
     vim.fn.setline('.', line)
 
     vim.fn.setpos('.', cursor)
@@ -287,12 +287,12 @@ end
 function M.map_fuzzy(operation, scope)
     return function()
         local dir = tostring(M.get_dir_from_fuzzy_scope(scope))
-        
+
         local actions = {}
         for key, fn in pairs(M.fuzzy_actions[operation]) do
             actions[key] = function(selection) fn(selection, scope) end
         end
-        
+
         fzf.fzf_exec(DB.urls.fuzzy.get_paths(dir), {actions = actions})
     end
 end
@@ -311,7 +311,7 @@ M.fuzzy_actions = {
 function M.move_to_section(direction)
     return function()
         local sections = M.get_sections()
-        
+
         local row = M.get_cursor().row - 1
 
         local candidates
@@ -331,7 +331,7 @@ end
 function M.change_heading_level(change)
     return function()
         local line = M.get_cursor_line()
-        
+
         if Heading.str_is_a(line) then
             local heading = Heading.from_str(line)
             heading:change_level(change)
@@ -342,7 +342,7 @@ end
 
 function M.toggle_heading_inclusion()
     local line = M.get_cursor_line()
-    
+
     if Heading.str_is_a(line) then
         local heading = Heading.from_str(line)
         heading:toggle_exclusion()
@@ -436,7 +436,7 @@ function M.quote(page_number)
     if source then
         vim.api.nvim_input(tostring(source))
         vim.api.nvim_input("<C-f>")
-        
+
         if page_number then
             vim.api.nvim_input(tostring(page_number))
             vim.api.nvim_input("<C-f>")
@@ -450,12 +450,12 @@ function M.set_time_or_calculate_sum()
 
     local line = vim.api.nvim_buf_get_lines(unpack(args))[1]
     local new_line
-    
+
     if line:match("TT") then
         new_line = line:gsub("TT", tostring(os.date("%H:%M")), 1)
     else
         local key, val = utils.parsekv(line)
-        
+
         local fn = string.format([[return function() return %s end]], val)
 
         if pcall(function() val = loadstring(fn)()() or val end) then
@@ -487,7 +487,7 @@ function M.set_modified_date()
                 set = {modified = today}
             })
         end
-        
+
         vim.b.url_modified_date = today
     end
 end
@@ -521,7 +521,7 @@ function M.get_sections()
 
     sections:put(0)
     sections:append(vim.fn.line('$') - 1)
-    
+
     vim.b.sections = sections
 
     return sections
@@ -552,7 +552,7 @@ function M.ts.headings.set()
     if vim.b.heading_lines then
         return
     end
-    
+
     local query = M.ts.headings.get_query()
 
     local heading_lines = Dict()
@@ -560,7 +560,7 @@ function M.ts.headings.set()
         local heading = Heading.from_marker_node(node)
         heading_lines[heading.str] = heading.line
     end
-    
+
     vim.b.heading_lines = heading_lines
 end
 
@@ -588,7 +588,7 @@ end
 
 function M.ts.headings.get_candidates(args)
     args = Dict(args, {buffer = 0, start = 0, stop = -1, exclude_node = ""})
-    
+
     local query = M.ts.headings.get_query(args.level)
 
     local min_whitespace
@@ -604,6 +604,19 @@ function M.ts.headings.get_candidates(args)
     end
 
     return candidates:transform(function(s) return s:sub(min_whitespace + 1) end)
+end
+
+function M.ts.headings.get_raw(args)
+    args = Dict(args, {buffer = 0, start = 0, stop = -1})
+
+    local query = M.ts.headings.get_query(args.level)
+
+    local candidates = List()
+    for _, node in query:iter_captures(args.node, args.buffer, args.start, args.stop) do
+        candidates:append(Heading.from_marker_node(node))
+    end
+
+    return candidates
 end
 
 M.ts.headings.fuzzy = {}
@@ -647,19 +660,19 @@ end
 
 function M.ts.headings.fuzzy.run(...)
     local args = Dict({exclude_node = ""}, ...)
-    
+
     if not args.node then
         M.ts.headings.set()
         args.node = M.ts.get_root()
         args.buffer = vim.fn.bufnr()
     end
-    
+
     local actions = {
         default = M.ts.headings.fuzzy.actions.default(args),
         ["ctrl-d"] = M.ts.headings.fuzzy.actions.down(args),
         ["ctrl-a"] = M.ts.headings.fuzzy.actions.root(args),
     }
-    
+
     if args.node:type() == 'section' then
         actions["ctrl-s"] = M.ts.headings.fuzzy.actions.up(args)
 
@@ -668,14 +681,14 @@ function M.ts.headings.fuzzy.run(...)
             bufnr = args.buffer,
         })
         local heading = Heading.from_marker_node(heading_node)
-        
+
         args.exclude_node = heading:fuzzy_str()
     end
-    
+
     List.range(1, 6):foreach(function(l)
         actions[string.format("alt-%d", l)] = M.ts.headings.fuzzy.actions.filter_level(l, args)
     end)
-    
+
     fzf.fzf_exec(
         M.ts.headings.get_candidates(args),
         {
@@ -687,7 +700,7 @@ end
 
 function M.ts.headings.fuzzy.prompt(args)
     local parts = List()
-    
+
     if args.level and args.level < 6 then
         parts:append(TermColor({
             {"[", "white"},
@@ -695,43 +708,43 @@ function M.ts.headings.fuzzy.prompt(args)
             {"]", "white"},
         }))
     end
-    
+
     if args.exclude_node and #args.exclude_node > 0 then
         parts:append(args.exclude_node:strip())
     end
-    
+
     parts:append("> ")
-    
+
     return parts:join(" ")
 end
 
 function M.ts.headings.fuzzy.nearest()
     M.ts.headings.set()
-    
+
     local args = Dict({
         node = M.ts.get_root(),
         buffer = vim.fn.bufnr(),
         stop = M.get_cursor().row,
         raw_str = true,
     })
-    
+
     local candidates = M.ts.headings.get_candidates(args)
-    
+
     if #candidates == 0 then
         return
     end
-    
+
     local str = candidates[#candidates]
     local heading_node = vim.treesitter.get_node({
         pos = {M.ts.headings.get_line({str}, args) - 1, 0},
         bufnr = args.buffer,
     })
     local section = heading_node:parent():parent()
-    
+
     args.node = section
     args.raw_str = nil
     args.stop = nil
-    
+
     M.ts.headings.fuzzy.run(args)
 end
 

@@ -1,4 +1,5 @@
 local ui = require("htn.ui")
+local HeadingPopup = require("htn.ui.popup")
 local TextList = require("htn.text.list")
 
 local args = {silent = true, buffer = true}
@@ -23,8 +24,10 @@ local mappings = Dict(
             ["<c-p>"] = ui.move_to_section(-1),
             ["<c-n>"] = ui.move_to_section(1),
             -- headings
-            ["<C-,>"] = ui.ts.headings.fuzzy.run,
-            ["<C-.>"] = ui.ts.headings.fuzzy.nearest,
+            -- ["<C-,>"] = ui.ts.headings.fuzzy.run,
+            -- ["<C-.>"] = ui.ts.headings.fuzzy.nearest,
+            ["<C-,>"] = HeadingPopup.open,
+            ["<C-.>"] = function() HeadingPopup.open(true) end,
 
             ["<C-s>"] = ui.change_heading_level(1),
             ["<C-d>"] = ui.change_heading_level(-1),
@@ -55,7 +58,7 @@ if vim.b.htn_project_path then
 
     -- mirrors
     mappings.n:update(ui.mirror_mappings())
-    
+
     -- taxonomy symbols
     mappings.i:update(ui.taxonomy_mappings("<M-t>"))
 end
