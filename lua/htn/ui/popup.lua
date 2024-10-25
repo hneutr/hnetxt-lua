@@ -3,13 +3,6 @@ local Heading = require("htl.text.Heading")
 
 local M = {}
 
-M.ui_elements = List({
-    "container",
-    "prompt",
-    "choices",
-    "input",
-})
-
 M.opts = {
     keymap = {
         ["<C-c>"] = "close",
@@ -46,30 +39,46 @@ M.opts = {
 function M.open(nearest)
     local state = M.get_state(nearest)
 
-    M.ui_elements:foreach(function(key)
-        M[key].attach(state)
-    end)
+    M.container.attach(state)
+    M.prompt.attach(state)
+    M.choices.attach(state)
+    M.input.attach(state)
 
     vim.cmd.startinsert()
 end
 
-function M.update(state)
-    List.foreach({"prompt", "choices", "input"}, function(key)
-        M[key].update(state)
-    end)
+function M.get_state(nearest)
+    return {
+        source = {
+            buffer = vim.api.nvim_get_current_buf(),
+            window = vim.fn.win_getid(),
+        },
+        level = M.opts.max_level,
+        cursor = 1,
+        parent = 0,
+        ui = Dict(),
+        nearest = nearest and ui.get_cursor().row,
+        elements = ui.ts.headings.get_elements(),
+    }
 end
 
 function M.get_actions(state)
     local actions = Dict()
 
     actions.close = function()
-        M.ui_elements:clone():reverse():foreach(function(key)
-            vim.api.nvim_win_close(state.ui[key].window, true)
-            vim.api.nvim_buf_delete(state.ui[key].buffer, {force = true})
+        state.ui:foreachv(function(element)
+            vim.api.nvim_win_close(element.window, true)
+            vim.api.nvim_buf_delete(element.buffer, {force = true})
         end)
 
         vim.fn.win_gotoid(state.source.window)
         vim.api.nvim_input("<esc>")
+    end
+
+    actions.update = function()
+        M.prompt.update(state)
+        M.choices.update(state)
+        M.input.update(state)
     end
 
     actions.cursor_down = function() M.choices.set_cursor(state, 1) end
@@ -86,45 +95,30 @@ function M.get_actions(state)
     actions.enter_selection = function()
         state.parent = state.subelements[state.cursor].index
         state.cursor = 1
-        M.update(state)
+        actions.update()
     end
 
     actions.enter_parent = function()
         if state.parent and state.parent ~= 0 then
             local parents = state.elements[state.parent].parents
             state.parent = parents[#parents]
-            M.update(state)
+            actions.update()
         end
     end
 
     actions.enter_root = function()
         state.parent = 0
-        M.update(state)
+        actions.update()
     end
 
     for level = 1, M.opts.max_level do
         actions[string.format("filter_h%d", level)] = function()
             state.level = state.level ~= level and level or M.opts.max_level
-            M.update(state)
+            actions.update()
         end
     end
 
     return actions
-end
-
-function M.get_state(nearest)
-    return {
-        source = {
-            buffer = vim.api.nvim_get_current_buf(),
-            window = vim.fn.win_getid(),
-        },
-        level = M.opts.max_level,
-        cursor = 1,
-        parent = 0,
-        ui = Dict(),
-        nearest = nearest and ui.get_cursor().row,
-        elements = ui.ts.headings.get_elements(),
-    }
 end
 
 --------------------------------------------------------------------------------
@@ -203,8 +197,6 @@ function M.prompt.attach(state)
             style = "minimal",
         }
     )
-
-    M.prompt.update(state)
 end
 
 function M.prompt.get_line(state)
@@ -236,7 +228,7 @@ function M.prompt.set_line(state)
 
 	vim.api.nvim_buf_clear_namespace(u.buffer, u.namespace, 0, -1)
 
-    if state.level then
+    if state.level < M.opts.max_level then
         vim.api.nvim_buf_add_highlight(
             u.buffer,
             u.namespace,
@@ -288,8 +280,6 @@ function M.choices.attach(state)
             noautocmd = true,
         }
     )
-
-    M.choices.update(state)
 end
 
 function M.choices.filter(state)
@@ -300,7 +290,7 @@ function M.choices.filter(state)
     end
 
     state.parent = state.parent or 0
-    state.pattern = ui.get_cursor_line():lower()
+    state.pattern = ui.get_cursor_line()
 
     state.subelements = state.elements:filter(function(e)
         local result = true
@@ -308,8 +298,9 @@ function M.choices.filter(state)
         result = result and e.level.n <= state.level
 
         if #state.pattern > 0 then
-            result = result and e.text:lower():match(state.pattern)
+            result = result and MiniFuzzy.match(state.pattern, e.text).score > 0
         end
+
         return result
     end)
 end
@@ -372,8 +363,6 @@ function M.choices.update(state)
 
     M.choices.set_lines(state)
     M.choices.set_cursor(state)
-
-    M.prompt.set_title(state)
 end
 
 --------------------------------------------------------------------------------
@@ -416,7 +405,7 @@ function M.input.attach(state)
 	vim.api.nvim_create_autocmd(
         "TextChangedI",
         {
-            callback = function() M.update(state) end,
+            callback = actions.update,
             buffer = state.ui.input.buffer,
         }
     )
@@ -429,6 +418,8 @@ function M.input.attach(state)
             once = true,
         }
     )
+
+    actions.update()
 end
 
 function M.input.get_col(state)
