@@ -561,15 +561,13 @@ function M.ts.headings.get_query(level)
     return M.ts.headings.queries[level]
 end
 
-function M.ts.headings.get_elements(args)
-    args = Dict(args or {}, {node = M.ts.get_root(), buffer = 0, start = 0, stop = -1})
-
-    local query = M.ts.headings.get_query(args.level)
+function M.ts.headings.get_elements()
+    local query = M.ts.headings.get_query()
 
     local level_to_parent = List({0, 0, 0, 0, 0, 0})
 
     local elements = List()
-    for _, node in query:iter_captures(args.node, args.buffer, args.start, args.stop) do
+    for _, node in query:iter_captures(M.ts.get_root(), 0, 0, -1) do
         local element = Heading.from_marker_node(node)
         elements:append(element)
 
@@ -578,7 +576,7 @@ function M.ts.headings.get_elements(args)
 
         local level = element.level.n
 
-        element.parents = Set(level_to_parent:slice(1, level)):vals()
+        element.parents = level_to_parent:slice(1, level):unique()
 
         element.parents:foreach(function(parent_i)
             if parent_i > 0 then

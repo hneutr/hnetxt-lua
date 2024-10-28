@@ -36,8 +36,11 @@ M.opts = {
     },
 }
 
+M.data = Dict()
+
 function M.open(nearest)
     local state = M.get_state(nearest)
+    state.elements = M.get_elements(state)
 
     M.container.attach(state)
     M.prompt.attach(state)
@@ -45,6 +48,24 @@ function M.open(nearest)
     M.input.attach(state)
 
     vim.cmd.startinsert()
+end
+
+function M.get_elements(state)
+    local key = tostring(state.source.buffer)
+    local data = M.data[key] or {}
+
+    data.elements = data.elements or ui.ts.headings.get_elements()
+    data.watch_autocmd = data.watch_autocmd or vim.api.nvim_create_autocmd(
+        "BufModifiedSet",
+        {
+            buffer = state.source.buffer,
+            callback = function() M.data[key].elements = nil end,
+        }
+    )
+
+    M.data[key] = data
+
+    return data.elements
 end
 
 function M.get_state(nearest)
@@ -58,7 +79,6 @@ function M.get_state(nearest)
         parent = 0,
         ui = Dict(),
         nearest = nearest and ui.get_cursor().row,
-        elements = ui.ts.headings.get_elements(),
     }
 end
 

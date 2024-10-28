@@ -5,7 +5,7 @@
     <key>Label</key>
     <string>golf.hne.dailycommit.plist</string>
     <key>Program</key>
-    <string>/Users/hne/lib/hnetxt-lua/scripts/jobs/daily-commit.sh</string>
+    <string>/Users/hne/lib/jobs/daily-commit.sh</string>
     <key>EnvironmentVariables</key>
     <dict>
         <key>SHELL</key>

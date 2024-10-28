@@ -5,7 +5,7 @@
     <key>Label</key>
     <string>golf.hne.xoftheday.plist</string>
     <key>Program</key>
-    <string>/Users/hne/lib/hnetxt-lua/scripts/jobs/set-x-of-the-day.sh</string>
+    <string>/Users/hne/lib/jobs/set-x-of-the-day.sh</string>
     <key>EnvironmentVariables</key>
     <dict>
         <key>PATH</key>

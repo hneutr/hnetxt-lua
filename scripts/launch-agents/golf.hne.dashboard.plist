@@ -5,7 +5,7 @@
     <key>Label</key>
     <string>golf.hne.dashboard.plist</string>
     <key>Program</key>
-        <string>/Users/hne/lib/hnetxt-lua/scripts/jobs/plot-dashboard.sh</string>
+        <string>/Users/hne/lib/jobs/plot-dashboard.sh</string>
     <key>EnvironmentVariables</key>
     <dict>
         <key>SHELL</key>
