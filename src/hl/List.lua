@@ -20,15 +20,15 @@ function List.is_like(v)
     if type(v) ~= 'table' then
         return false
     end
-    
+
     if #v > 0 then
         return true
     end
-    
+
     for _, _ in pairs(v) do
         return false
     end
-    
+
     return result
 end
 
@@ -65,6 +65,17 @@ function List:col(col)
     for i, item in ipairs(self) do
         l:insert(i, item[col])
     end
+    return l
+end
+
+function List:unique()
+    local l = List()
+    for i, item in ipairs(self) do
+        if not l:contains(item) then
+            l:append(item)
+        end
+    end
+
     return l
 end
 

@@ -71,9 +71,6 @@ nvim_dir:
 undo_dir:
   path: .undodir
   parent: nvim_dir
-luasnips_dir:
-  path: snips
-  parent: nvim_dir
 spell_dir:
   path: .spell
   parent: data_dir

@@ -14,13 +14,13 @@ describe("append", function()
 
         assert.are.same({"a", "b"}, l)
     end)
-    
+
     it("nil", function()
         local l = List()
         l:append(1)
         l:append(nil)
         l:append(2)
-        
+
         assert.are.same({1, 2}, l)
     end)
 end)
@@ -108,5 +108,22 @@ describe("any", function()
 
     it("-", function()
         assert.falsy(List({false, nil}):any())
+    end)
+end)
+
+describe("unique", function()
+    it("works", function()
+        assert.are.same(
+            {1, 2, 3},
+            List({1, 2, 1, 2, 3, 3}):unique()
+        )
+    end)
+
+    it("returns a copy", function()
+        local input = List({1, 2, 3})
+        local other = input:unique()
+        other:append(4)
+        assert.are.same(4, #other)
+        assert.are.same(3, #input)
     end)
 end)
