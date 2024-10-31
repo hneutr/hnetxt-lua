@@ -1,19 +1,5 @@
 local Tree = require("hl.Tree")
 
-describe("set", function()
-    it("single key", function()
-        assert.are.same({a = {}}, Tree():set({'a'}))
-    end)
-
-    it("multiple keys", function()
-        local t = Tree()
-        t:set({'a', 'b'})
-        t:set({'a', 'b', 'c'})
-        t:set({'a', 'd'})
-        assert.are.same({a = {b = {c = {}}, d = {}}}, t)
-    end)
-end)
-
 describe("pop", function()
     it("non-existing", function()
         local t = Tree({a = {}})

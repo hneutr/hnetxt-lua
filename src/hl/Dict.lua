@@ -2,29 +2,17 @@ require("pl.class").Dict()
 
 -- convert tables into strings when setting
 function Dict.__newindex(self, key, val)
-    if type(key) == 'table' then
-        key = tostring(key)
-    end
+    key = type(key) == 'table' and tostring(key) or key
 
     if key ~= nil then
         rawset(self, key, val)
     end
 end
 
-function Dict.is_like(v)
-    local result = true
-    result = result and type(v) == 'table'
-    result = result and #v == 0
-    return result
-end
-
 -- 1. convert tables into strings when getting
 -- 2. retrieve from Dict first.
 function Dict.__index(self, key)
-    if type(key) == 'table' then
-        key = tostring(key)
-    end
-
+    key = type(key) == 'table' and tostring(key) or key
     return Dict[key] or rawget(self, key)
 end
 
@@ -46,6 +34,10 @@ function Dict.update(d, d2, ...)
     end
 
     return d
+end
+
+function Dict.is_like(v)
+    return type(v) == 'table' and #v == 0
 end
 
 function Dict.delist(t)
@@ -93,19 +85,21 @@ function Dict:foreachk(fun, ...)
     for k, _ in pairs(self) do
         fun(k, ...)
     end
+    return self
 end
 
 function Dict:foreachv(fun, ...)
     for _, v in pairs(self) do
         fun(v, ...)
     end
+    return self
 end
 
 function Dict:foreach(fun, ...)
     for k, v in pairs(self) do
         fun(k, v, ...)
     end
-    
+
     return self
 end
 
@@ -165,27 +159,6 @@ function Dict.get(dict, key, ...)
     end
 
     return value
-end
-
-function Dict.set(dict, keys, val)
-    if val == nil then
-        val = Dict()
-    end
-    keys = List(keys):reverse()
-
-    local d = dict
-    while #keys > 1 do
-        local key = keys:pop()
-
-        if not d[key] then
-            d[key] = Dict()
-        end
-
-        d = d[key]
-    end
-
-    d[keys:pop()] = val
-    return dict
 end
 
 function Dict:has(key, ...)

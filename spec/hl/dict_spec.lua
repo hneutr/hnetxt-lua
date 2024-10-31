@@ -1,24 +1,24 @@
-local Dict = require("hl.Dict")
 local List = require("hl.List")
+local M = require("hl.Dict")
 
 describe("__newindex/__index", function()
     it("nil", function()
-        local d = Dict({a = 1})
+        local d = M({a = 1})
         d[nil] = 1
-        
+
         assert.are.same({a = 1}, d)
     end)
 
     it("string", function()
-        local d = Dict()
+        local d = M()
         d.a = 1
-        
+
         assert.are.same({a = 1}, d)
     end)
-    
+
     it("list", function()
         local l = List({1, 2})
-        local d = Dict()
+        local d = M()
         d[l] = 3
         assert.are.same(3, d[l])
     end)
@@ -28,38 +28,38 @@ describe("delist", function()
     it("works", function()
         assert.are.same(
             {a = 1, ["1"] = 2},
-            Dict.delist({a = 1, ["1"] = 2, "b"})
+            M.delist({a = 1, ["1"] = 2, "b"})
         )
     end)
 end)
 
 describe("update", function()
     it("number", function()
-        assert.are.same(1, Dict.update(nil, 1))
+        assert.are.same(1, M.update(nil, 1))
     end)
 
     it("table and table, ignores list", function()
-        assert.are.same({a = 1, b = 2}, Dict.update({a = 1}, {b = 2, "c"}))
+        assert.are.same({a = 1, b = 2}, M.update({a = 1}, {b = 2, "c"}))
     end)
 
     it("table and table", function()
         assert.are.same(
             {a = true, b = true},
-            Dict.update({a = true}, {a = false, b = true})
+            M.update({a = true}, {a = false, b = true})
         )
     end)
 
     it("simple table", function()
         assert.are.same(
             {a = 1, b = 2, c = -2},
-            Dict.update({a = 1, b = 2}, {a = 0, b = -1, c = -2})
+            M.update({a = 1, b = 2}, {a = 0, b = -1, c = -2})
         )
     end)
 
     it("nested table", function()
         assert.are.same(
             {a = 1, b = 2, c = -2, nested = {z = 100, x = 11}},
-            Dict.update(
+            M.update(
                 {a = 1, b = 2, nested = {z = 100}},
                 {a = 0, b = -1, c = -2, nested = {z = 10, x = 11}}
             )
@@ -69,7 +69,7 @@ describe("update", function()
     it("double nested table", function()
         assert.are.same(
             {a = 1, b = { b1 = {c = 100}, b2 = {c = 20}, b3 = {c = 22}}},
-            Dict.update(
+            M.update(
                 {a = 1, b = { b1 = {c = 100}, b2 = {c = 20}}},
                 {a = 0, b = { b1 = {c = 10}, b2 = {c = 21}, b3 = {c = 22}}}
             )
@@ -79,7 +79,7 @@ end)
 
 describe("foreachk", function()
     it("works", function()
-        local d = Dict({a = 1, b = 2})
+        local d = M({a = 1, b = 2})
         local l = List()
 
         d:foreachk(function(k) l:append(k) end)
@@ -90,7 +90,7 @@ end)
 
 describe("foreachv", function()
     it("works", function()
-        local d = Dict({a = 1, b = 2})
+        local d = M({a = 1, b = 2})
         local l = List()
 
         d:foreachv(function(v) l:append(v) end)
@@ -101,8 +101,8 @@ end)
 
 describe("foreachv", function()
     it("works", function()
-        local d = Dict({a = 1, b = 2})
-        local d2 = Dict({x = 3, y = 4})
+        local d = M({a = 1, b = 2})
+        local d2 = M({x = 3, y = 4})
 
         d:foreach(function(k, v) d2[k] = v end)
 
@@ -112,7 +112,7 @@ end)
 
 describe("transformk", function()
     it("works", function()
-        local d = Dict({["1"] = "a", ["2"] = "b"})
+        local d = M({["1"] = "a", ["2"] = "b"})
 
         d:transformk(function(k) return tostring(tonumber(k) * -1) end)
 
@@ -122,7 +122,7 @@ end)
 
 describe("transformv", function()
     it("works", function()
-        local d = Dict({a = 1, b = 2})
+        local d = M({a = 1, b = 2})
 
         d:transformv(function(v) return v * -1 end)
 
@@ -132,7 +132,7 @@ end)
 
 describe("filterv", function()
     it("works", function()
-        local d = Dict({a = 1, b = 2, c = 3})
+        local d = M({a = 1, b = 2, c = 3})
 
         d:filterv(function(v) return v ~= 2 end)
 
@@ -140,41 +140,11 @@ describe("filterv", function()
     end)
 end)
 
-describe("set", function()
-    it("one key, no keys existing", function()
-        assert.are.same(
-            {a = 1},
-            Dict():set({"a"}, 1)
-        )
-    end)
-
-    it("multiple keys, no keys existing", function()
-        assert.are.same(
-            {a = {b = 1}},
-            Dict():set({"a", "b"}, 1)
-        )
-    end)
-    
-    it("one key, keys existing", function()
-        assert.are.same(
-            {a = 1, b = 2},
-            Dict({b = 2}):set({"a"}, 1)
-        )
-    end)
-
-    it("multiple keys, keys existing", function()
-        assert.are.same(
-            {a = {b = 1}, c = 2},
-            Dict({c = 2}):set({"a", "b"}, 1)
-        )
-    end)
-end)
-
 describe("from_list", function()
     it("works", function()
         assert.are.same(
-            Dict({a = "a val", b = "b val", c = "c val"}),
-            Dict.from_list(
+            M({a = "a val", b = "b val", c = "c val"}),
+            M.from_list(
                 List({"a", "b", "c"}),
                 function(key)
                     return key, key .. " val"
@@ -186,13 +156,13 @@ end)
 
 describe("pop", function()
     it("existing", function()
-        local d = Dict({a = 1})
+        local d = M({a = 1})
         assert.are.same(1, d.a)
         assert.are.same(1, d:pop("a"))
         assert.is_nil(d.a)
     end)
     it("non-existing", function()
-        local d = Dict()
+        local d = M()
         assert.is_nil(d.a)
         assert.is_nil(d:pop("a"))
         assert.is_nil(d.a)
@@ -201,19 +171,19 @@ end)
 
 describe("is_like", function()
     it("-: non-table", function()
-        assert.is_false(Dict.is_like(1))
-        assert.is_false(Dict.is_like("a"))
+        assert.is_false(M.is_like(1))
+        assert.is_false(M.is_like("a"))
     end)
-    
+
     it("-: list", function()
-        assert.is_false(Dict.is_like({1, 2, 3}))
+        assert.is_false(M.is_like({1, 2, 3}))
     end)
-    
+
     it("+: empty table", function()
-        assert(Dict.is_like({}))
+        assert(M.is_like({}))
     end)
 
     it("+: key val", function()
-        assert(Dict.is_like({a = 1}))
+        assert(M.is_like({a = 1}))
     end)
 end)

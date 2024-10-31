@@ -27,14 +27,15 @@ local mappings = Dict(
             -- headings
             ["<C-,>"] = HeadingPopup.open,
             ["<C-.>"] = function() HeadingPopup.open(true) end,
-
-            ["<C-s>"] = ui.change_heading_level(1),
-            ["<C-d>"] = ui.change_heading_level(-1),
             ["<C-i>"] = ui.toggle_heading_inclusion,
+
         }),
         i = Dict({
             -- continue lists
             ["<cr>"] = TextList.continue,
+
+            -- symbols
+            ["<M-i>"] = require("htn.ui.symbols_popup"),
         }),
         v = Dict(),
     },

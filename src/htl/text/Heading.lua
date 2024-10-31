@@ -15,10 +15,6 @@ function M.get_level(level)
             indent = string.rep("  ", level - 1),
         }
 
-        d.get_color = function()
-            return require("hn.Color").get_hl_attr(d.hl_group, "fg")
-        end
-
         M.levels[level] = d
     end
 
@@ -33,10 +29,6 @@ function M:_init(str, level, line)
     self:parse_str(self.str)
 end
 
-function M:change_level(change)
-    self.level = M.get_level(self.level.n + change)
-end
-
 function M:parse_str(str)
     if str:match(Conf.text.heading_label) then
         self.text, self.label = str:match(Conf.text.heading_label)
@@ -47,10 +39,6 @@ end
 
 function M:__tostring()
     return string.format("%s %s", self.level.marker, self.str)
-end
-
-function M:fuzzy_str()
-    return self.level.indent .. TermColor({self.str, self.level.get_color()})
 end
 
 function M.str_is_a(str)

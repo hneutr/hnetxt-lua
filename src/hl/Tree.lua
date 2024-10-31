@@ -13,19 +13,6 @@ function Tree:_init(...)
     self:clean()
 end
 
-function Tree:set(keys)
-    local tree = self
-    List(keys):foreach(function(key)
-        if not tree[key] then
-            tree[key] = Tree()
-        end
-
-        tree = tree[key]
-    end)
-
-    return self
-end
-
 function Tree:get(key)
     local trees = List({self})
 

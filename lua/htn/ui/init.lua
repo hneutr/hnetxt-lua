@@ -327,18 +327,6 @@ function M.move_to_section(direction)
     end
 end
 
-function M.change_heading_level(change)
-    return function()
-        local line = M.get_cursor_line()
-
-        if Heading.str_is_a(line) then
-            local heading = Heading.from_str(line)
-            heading:change_level(change)
-            M.set_cursor_line({heading})
-        end
-    end
-end
-
 function M.toggle_heading_inclusion()
     local line = M.get_cursor_line()
 
