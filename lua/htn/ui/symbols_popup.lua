@@ -2,7 +2,6 @@ local ui = require("htn.ui")
 local symbols = require("htn.ui.symbols")
 
 local M = {}
-M.__index = M
 
 M.opts = {
     keymap = {
@@ -26,14 +25,6 @@ M.opts = {
         border = {"╭", "─", "╮", "│", "┤", "─", "├", "│"},
     },
 }
-
--- function M.get_symbols()
---     local raw = require("htn.ui.symbols")
---     local d = Dict()
---
---     for key, val in
---
--- end
 
 --------------------------------------------------------------------------------
 --                                                                            --
@@ -167,8 +158,6 @@ function UIElement:close()
     return self.window and self.window:close()
 end
 
-function UIElement:init() return end
-
 function UIElement:clear_highlights()
 	vim.api.nvim_buf_clear_namespace(self.buffer, self.namespace, 0, -1)
 end
@@ -183,6 +172,8 @@ function UIElement:add_highlight(group, line, start_col, end_col)
         end_col
     )
 end
+
+function UIElement:init() return end
 
 function UIElement:update() return end
 
@@ -237,8 +228,6 @@ function Prompt:init()
         height = 1,
         row = -2,
         col = -1,
-        -- title = self:title(),
-        -- title_pos = "center",
         border = M.opts.window.border,
         noautocmd = true,
         style = "minimal",
