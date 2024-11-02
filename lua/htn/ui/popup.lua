@@ -29,7 +29,6 @@ M.opts = {
         ["<C-6>"] = "filter_h6",
     },
     prompt = "> ",
-    max_level = 6,
     window = {
         width = 80,
         border = {"╭", "─", "╮", "│", "┤", "─", "├", "│"},
@@ -54,7 +53,7 @@ function M.get_elements(state)
     local key = tostring(state.source.buffer)
     local data = M.data[key] or {}
 
-    data.elements = data.elements or ui.ts.headings.get_elements()
+    data.elements = data.elements or ui.headings.get()
     data.watch_autocmd = data.watch_autocmd or vim.api.nvim_create_autocmd(
         "BufModifiedSet",
         {
@@ -74,7 +73,7 @@ function M.get_state(nearest)
             buffer = vim.api.nvim_get_current_buf(),
             window = vim.fn.win_getid(),
         },
-        level = M.opts.max_level,
+        level = #Heading.levels,
         cursor = 1,
         parent = 0,
         ui = Dict(),
@@ -131,9 +130,9 @@ function M.get_actions(state)
         actions.update()
     end
 
-    for level = 1, M.opts.max_level do
+    for level = 1, #Heading.levels do
         actions[string.format("filter_h%d", level)] = function()
-            state.level = state.level ~= level and level or M.opts.max_level
+            state.level = state.level ~= level and level or #Heading.levels
             actions.update()
         end
     end
@@ -222,7 +221,7 @@ end
 function M.prompt.get_line(state)
     local line = M.opts.prompt
 
-    if state.level < M.opts.max_level then
+    if state.level < #Heading.levels then
         line = string.format("[%d] %s", state.level, line)
     end
 
@@ -248,11 +247,11 @@ function M.prompt.set_line(state)
 
 	vim.api.nvim_buf_clear_namespace(u.buffer, u.namespace, 0, -1)
 
-    if state.level < M.opts.max_level then
+    if state.level < #Heading.levels then
         vim.api.nvim_buf_add_highlight(
             u.buffer,
             u.namespace,
-            Heading.get_level(state.level).hl_group,
+            Heading.levels[state.level].hl_group,
             0,
             1,
             2
@@ -457,4 +456,7 @@ function M.input.update(state)
     end
 end
 
-return M
+return {
+    open_all = M.open,
+    open_nearest = function() M.open(true) end,
+}

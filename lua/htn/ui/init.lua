@@ -307,36 +307,6 @@ M.fuzzy_actions = {
     insert = {default = M.fuzzy_insert},
 }
 
-function M.move_to_section(direction)
-    return function()
-        local sections = M.get_sections()
-
-        local row = M.get_cursor().row - 1
-
-        local candidates
-
-        if direction == 1 then
-            candidates = sections:filter(function(hi) return hi > row end)
-        else
-            candidates = sections:filter(function(hi) return hi < row end):reverse()
-        end
-
-        if #candidates > 0 then
-            M.set_cursor({row = candidates[1] + 1})
-        end
-    end
-end
-
-function M.toggle_heading_inclusion()
-    local line = M.get_cursor_line()
-
-    if Heading.str_is_a(line) then
-        local heading = Heading.from_str(line)
-        heading:toggle_exclusion()
-        M.set_cursor_line({heading})
-    end
-end
-
 --------------------------------------------------------------------------------
 --                                                                            --
 --                                                                            --
@@ -407,13 +377,6 @@ function M.mirror_mappings()
     return Dict(vim.g.htn_mirror_mappings)
 end
 
-function M.taxonomy_mappings(prefix)
-    return Dict.from_list(
-        Dict(Conf.Taxonomy.relations):keys(),
-        function(key) return prefix .. key:sub(1, 1), Conf.Taxonomy.relations[key].symbol end
-    )
-end
-
 function M.quote(page_number)
     vim.api.nvim_input("iquote<tab>")
 
@@ -456,7 +419,7 @@ function M.set_time_or_calculate_sum()
     end
 end
 
-function M.copy_wordcount_to_clipboard()
+function M.copy_wordcount()
     vim.fn.setreg("+", Document({path = Path.this()}).wordcount)
 end
 
@@ -486,7 +449,31 @@ end
 --                                                                            --
 --                                                                            --
 --------------------------------------------------------------------------------
-function M.get_sections()
+M.ts = {}
+
+function M.ts.get_root(language)
+    language = language or 'markdown'
+
+    local root
+    vim.treesitter.get_parser():for_each_tree(function(tree, language_tree)
+        if not root and language_tree:lang() == language then
+            root = tree:root()
+        end
+    end)
+
+    return root
+end
+
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                  sections                                  --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
+M.sections = {}
+
+function M.sections.get()
     if vim.b.sections then
         return List(vim.b.sections)
     end
@@ -501,61 +488,69 @@ function M.get_sections()
         ]]
     )
 
-    local sections = List()
+    local sections = List({1})
     for _, node in query:iter_captures(M.ts.get_root()) do
-        sections:append(node:start())
+        sections:append(node:start() + 1)
     end
 
-    sections:put(0)
-    sections:append(vim.fn.line('$') - 1)
+    sections:append(vim.fn.line('$'))
 
     vim.b.sections = sections
 
     return sections
 end
 
-M.ts = {}
+function M.sections.goto(direction)
+    local sections = M.sections.get()
 
-function M.ts.get_root(language)
-    language = language or 'markdown'
-    local root
-    vim.treesitter.get_parser():for_each_tree(function(tree, language_tree)
-        if not root and language_tree:lang() == language then
-            root = tree:root()
-        end
-    end)
+    local row = M.get_cursor().row
 
-    return root
-end
-
-M.ts.headings = {}
-M.ts.headings.max_level = 6
-M.ts.headings.queries = List()
-
-function M.ts.headings.get_query(level)
-    level = level or M.ts.headings.max_level
-    if not M.ts.headings.queries[level] then
-        M.ts.headings.queries[level] = vim.treesitter.query.parse(
-            "markdown",
-            string.format(
-                "(atx_heading [%s] @hne_heading)",
-                List.range(1, level):transform(function(l)
-                    return Heading.get_level(l).selector
-                end):join(" ")
-            )
-        )
+    if direction == 1 then
+        sections = sections:filter(function(hi) return hi > row end)
+    else
+        sections = sections:filter(function(hi) return hi < row end):reverse()
     end
 
-    return M.ts.headings.queries[level]
+    if #sections > 0 then
+        M.set_cursor({row = sections[1]})
+    end
 end
 
-function M.ts.headings.get_elements()
-    local query = M.ts.headings.get_query()
+function M.sections.next() M.sections.goto(1) end
+function M.sections.prev() M.sections.goto(-1) end
 
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                  headings                                  --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
+M.headings = {
+    queries = List(),
+}
+
+function M.headings.query(level)
+    level = level or #Heading.levels
+
+    M.headings.queries[level] = M.headings.queries[level] or vim.treesitter.query.parse(
+        "markdown",
+        string.format(
+            "(atx_heading [%s] @hne_heading)",
+            List.range(1, level):transform(function(l)
+                return Heading.levels[l].selector
+            end):join(" ")
+        )
+    )
+
+    return M.headings.queries[level]
+end
+
+function M.headings.get()
     local level_to_parent = List({0, 0, 0, 0, 0, 0})
 
     local elements = List()
-    for _, node in query:iter_captures(M.ts.get_root(), 0, 0, -1) do
+    for _, node in M.headings.query():iter_captures(M.ts.get_root(), 0, 0, -1) do
         local element = Heading.from_marker_node(node)
         elements:append(element)
 
@@ -572,12 +567,23 @@ function M.ts.headings.get_elements()
             end
         end)
 
-        for j = level + 1, M.ts.headings.max_level do
+        for j = level + 1, #Heading.levels do
             level_to_parent[j] = element.index
         end
     end
 
     return elements
 end
+
+function M.headings.toggle_inclusion()
+    local line = M.get_cursor_line()
+
+    if Heading.str_is_a(line) then
+        local heading = Heading.from_str(line)
+        heading:toggle_exclusion()
+        M.set_cursor_line({heading})
+    end
+end
+
 
 return M

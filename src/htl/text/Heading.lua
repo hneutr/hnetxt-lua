@@ -2,28 +2,20 @@ local TermColor = require("htl.Color")
 
 local M = class()
 
-M.levels = List()
-
-function M.get_level(level)
-    if not M.levels[level] then
-        local d = {
-            n = level,
-            hl_group = string.format("markdownH%d", level),
-            bg_hl_group = string.format("RenderMarkdownH%dBg", level),
-            marker = string.rep("#", level),
-            selector = string.format("(atx_h%d_marker)", level),
-            indent = string.rep("  ", level - 1),
-        }
-
-        M.levels[level] = d
-    end
-
-    return M.levels[level]
-end
+M.levels = List.range(1, 6):map(function(level)
+    return {
+        n = level,
+        hl_group = string.format("markdownH%d", level),
+        bg_hl_group = string.format("RenderMarkdownH%dBg", level),
+        marker = string.rep("#", level),
+        selector = string.format("(atx_h%d_marker)", level),
+        indent = string.rep("  ", level - 1),
+    }
+end)
 
 function M:_init(str, level, line)
     self.str = str
-    self.level = self.get_level(level)
+    self.level = self.levels[level]
     self.line = line
 
     self:parse_str(self.str)
