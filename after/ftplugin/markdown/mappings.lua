@@ -1,5 +1,5 @@
 local ui = require("htn.ui")
-local HeadingPopup = require("htn.ui.popup")
+local HeadingPopup = require("htn.popup.headings")
 local TextList = require("htn.text.list")
 
 local mappings = Dict(
@@ -35,7 +35,7 @@ local mappings = Dict(
             ["<cr>"] = TextList.continue,
 
             -- symbols
-            ["<M-i>"] = require("htn.ui.symbols_popup"),
+            ["<M-i>"] = require("htn.popup.symbols"),
         }),
         v = Dict(),
     },
