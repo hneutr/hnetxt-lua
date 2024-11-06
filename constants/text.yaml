@@ -1,4 +1,35 @@
 end_document: ">[!end]"
 change: "> [!change]"
-exclude_heading_from_document: "{(.*)}"
-heading_label: "(.*)%s%[(.-)%]$"
+heading:
+  patterns:
+    meta: "(.*)%s%[%]%[(.-)%]$"
+    exclude: "{(.*)}"
+  meta:
+    exclude:
+      char: "-"
+      symbol: ⋮
+      exclude: true
+    write:
+      char: w
+      symbol: ◯
+      todo: true
+    change:
+      char: c
+      symbol: ⧕
+      # △
+      todo: true
+    finish:
+      char: f
+      symbol: ◩
+      todo: true
+    move:
+      char: m
+      symbol: ↕
+      # ↕⇅↯
+      todo: true
+    outline:
+      char: o
+      symbol: ∴
+      # ⌇◇
+      todo: true
+      exclude: true

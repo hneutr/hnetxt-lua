@@ -526,64 +526,37 @@ function M.sections.prev() M.sections.goto(-1) end
 --                                                                            --
 --                                                                            --
 --------------------------------------------------------------------------------
-M.headings = {
-    queries = List(),
-}
-
-function M.headings.query(level)
-    level = level or #Heading.levels
-
-    M.headings.queries[level] = M.headings.queries[level] or vim.treesitter.query.parse(
-        "markdown",
-        string.format(
-            "(atx_heading [%s] @hne_heading)",
-            List.range(1, level):transform(function(l)
-                return Heading.levels[l].selector
-            end):join(" ")
-        )
-    )
-
-    return M.headings.queries[level]
-end
-
-function M.headings.get()
-    local level_to_parent = List({0, 0, 0, 0, 0, 0})
-
-    local elements = List()
-    for _, node in M.headings.query():iter_captures(M.ts.get_root(), 0, 0, -1) do
-        local element = Heading.from_marker_node(node)
-        elements:append(element)
-
-        element.index = #elements
-        element.n_children = 0
-
-        local level = element.level.n
-
-        element.parents = level_to_parent:slice(1, level):unique()
-
-        element.parents:foreach(function(parent_i)
-            if parent_i > 0 then
-                elements[parent_i].n_children = elements[parent_i].n_children + 1
-            end
-        end)
-
-        for j = level + 1, #Heading.levels do
-            level_to_parent[j] = element.index
-        end
-    end
-
-    return elements
-end
+M.headings = {}
 
 function M.headings.toggle_inclusion()
     local line = M.get_cursor_line()
 
     if Heading.str_is_a(line) then
         local heading = Heading.from_str(line)
-        heading:toggle_exclusion()
-        M.set_cursor_line({heading})
+
+        local meta = heading.meta
+
+        local keys
+        if #meta > 0 then
+            if meta:contains("-") then
+                meta:pop(meta:index("-"))
+            else
+                meta:append("-")
+            end
+
+            if #meta > 0 then
+                keys = "$ci[" .. meta:join() .. "<esc>"
+            else
+                keys = "$daW"
+            end
+        else
+            keys = (#line:rstrip() < #line and "A" or "A ") .. "[][-]<esc>"
+        end
+
+        keys = "mX" .. keys .. "`X"
+        keys = vim.api.nvim_replace_termcodes(keys, true, true, true)
+        vim.api.nvim_feedkeys(keys, "n", false)
     end
 end
-
 
 return M

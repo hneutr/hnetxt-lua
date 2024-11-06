@@ -3,6 +3,7 @@ local parse_snippet = ls.parser.parse_snippet
 
 local snippets = List({
     parse_snippet("l", "[$1]($2)"),
+    parse_snippet("r", "[][$1]"),
     -- dividers
     parse_snippet("d", "---\n$1"),
     -- headers

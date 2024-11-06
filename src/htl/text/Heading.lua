@@ -1,6 +1,7 @@
-local TermColor = require("htl.Color")
-
 local M = class()
+
+M.conf = Dict(Conf.text.heading)
+M.conf.meta = Dict(M.conf.meta)
 
 M.levels = List.range(1, 6):map(function(level)
     return {
@@ -18,15 +19,12 @@ function M:_init(str, level, line)
     self.level = self.levels[level]
     self.line = line
 
-    self:parse_str(self.str)
+    self.text, self.meta = self.parse(self.str)
 end
 
-function M:parse_str(str)
-    if str:match(Conf.text.heading_label) then
-        self.text, self.label = str:match(Conf.text.heading_label)
-    else
-        self.text, self.label = str, ""
-    end
+function M.parse(str)
+    local text, meta = str:match(M.conf.patterns.meta)
+    return text or str, List(meta or {}):map(M.get_meta_conf)
 end
 
 function M:__tostring()
@@ -43,31 +41,23 @@ function M.from_str(str, line)
 end
 
 function M:exclude_from_document()
-    return self.text:match(Conf.text.exclude_heading_from_document) ~= nil
+    local exclude = false
+    exclude = exclude or self.text:match(M.conf.patterns.exclude) ~= nil
+
+    self.meta:foreach(function(conf) exclude = exclude or conf.exclude end)
+
+    return exclude
 end
 
-function M:toggle_exclusion()
-    if self:exclude_from_document() then
-        self.text = self.text:removeprefix("{"):removesuffix("}")
-    else
-        self.text = string.format("{%s}", self.text)
+function M.get_meta_conf(char)
+    for key, conf in pairs(M.conf.meta) do
+        if char == conf.char then
+            conf.key = key
+            return conf
+        end
     end
 
-    if #self.label > 0 then
-        self.str = string.format("%s [%s]", self.text, self.label)
-    else
-        self.str = self.text
-    end
-end
-
-function M.from_marker_node(marker)
-    local content_node = marker:next_sibling()
-
-    local str = content_node and vim.treesitter.get_node_text(content_node, 0) or ""
-    local level = tonumber(marker:type():match("atx_h(%d+)_marker"))
-    local line = marker:start() + 1
-
-    return M(str, level, line)
+    return {}
 end
 
 return M

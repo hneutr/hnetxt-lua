@@ -22,9 +22,14 @@ local mappings = Dict(
             ["<c-n>"] = ui.sections.next,
 
             -- headings
-            ["<C-,>"] = HeadingPopup.open_all,
-            ["<C-.>"] = HeadingPopup.open_nearest,
             ["<C-i>"] = ui.headings.toggle_inclusion,
+            ["<C-,>"] = HeadingPopup(),
+            ["<C-.>"] = HeadingPopup({nearest = true}),
+            ["<C-1>"] = HeadingPopup({level = 1}),
+            ["<C-2>"] = HeadingPopup({level = 2}),
+            ["<C-3>"] = HeadingPopup({level = 3}),
+            ["<C-4>"] = HeadingPopup({level = 4}),
+            ["<C-5>"] = HeadingPopup({level = 5}),
 
             -- misc
             ["<C-t>"] = ui.set_time_or_calculate_sum,

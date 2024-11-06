@@ -371,6 +371,9 @@ return function ()
                 {"◦", "open mini"},
                 {"◯", "open low"},
                 {"◉", "inset"},
+                {"◐", "almost done"},
+                {"◖", "left half"},
+                {"◌", "dotted"},
                 --[[
                     ◌ ◍ ◎ ◐ ◑ ◒ ◓ ◔ ◕ ◖ ◗
                     ◘ ◙ ◚ ◛

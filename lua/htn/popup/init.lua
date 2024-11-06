@@ -1,3 +1,5 @@
+local ui = require("htn.ui")
+
 local Popup = {}
 Popup.__index = Popup
 Popup.name = "popup"
@@ -13,6 +15,8 @@ Popup.default_keymap = {
 
     ["<C-f>"] = "cursor_page_down",
     ["<C-b>"] = "cursor_page_up",
+
+    ["<C-z>"] = "center_cursor",
 }
 
 --------------------------------------------------------------------------------
@@ -60,11 +64,11 @@ end
 --                                                                            --
 --                                                                            --
 --------------------------------------------------------------------------------
-local UIElement = {}
-UIElement.__index = UIElement
-UIElement.name = "element"
+local Component = {}
+Component.__index = Component
+Component.name = "component"
 
-function UIElement:new(ui)
+function Component:new(ui)
     local instance = setmetatable({}, self)
 
     instance.ui = ui
@@ -81,15 +85,15 @@ function UIElement:new(ui)
     return instance
 end
 
-function UIElement:close()
+function Component:close()
     return self.window and self.window:close()
 end
 
-function UIElement:clear_highlights()
+function Component:reset()
 	vim.api.nvim_buf_clear_namespace(self.buffer, self.namespace, 0, -1)
 end
 
-function UIElement:add_highlight(group, line, start_col, end_col)
+function Component:add_highlight(group, line, start_col, end_col)
     vim.api.nvim_buf_add_highlight(
         self.buffer,
         self.namespace,
@@ -100,18 +104,28 @@ function UIElement:add_highlight(group, line, start_col, end_col)
     )
 end
 
-function UIElement:init() return end
+function Component:add_extmark(line, col, opts)
+    vim.api.nvim_buf_set_extmark(
+        self.buffer,
+        self.namespace,
+        line,
+        col,
+        opts
+    )
+end
 
-function UIElement:update() return end
+function Component:init() return end
+
+function Component:update() return end
 
 --------------------------------------------------------------------------------
 --                                                                            --
 --                                                                            --
---                                    box                                     --
+--                                    Box                                     --
 --                                                                            --
 --                                                                            --
 --------------------------------------------------------------------------------
-local Box = setmetatable({}, UIElement)
+local Box = setmetatable({}, Component)
 Box.__index = Box
 Box.name = 'box'
 
@@ -139,11 +153,11 @@ end
 --------------------------------------------------------------------------------
 --                                                                            --
 --                                                                            --
---                                   prompt                                   --
+--                                   Prompt                                   --
 --                                                                            --
 --                                                                            --
 --------------------------------------------------------------------------------
-local Prompt = setmetatable({}, UIElement)
+local Prompt = setmetatable({}, Component)
 Prompt.name = "prompt"
 Prompt.__index = Prompt
 
@@ -165,26 +179,70 @@ function Prompt:title() return "" end
 
 function Prompt:get_line() return "> " end
 
-function Prompt:highlight_line() return end
+function Prompt:highlight() return end
 
 function Prompt:update()
     self.window:update({title = self:title(), title_pos = "center"})
 
-    self:clear_highlights()
+    self:reset()
 
 	vim.api.nvim_buf_set_lines(self.buffer, 0, 1, true, {self:get_line()})
 
-    self:highlight_line()
+    self:highlight()
 end
 
 --------------------------------------------------------------------------------
 --                                                                            --
 --                                                                            --
---                                  choices                                   --
+--                                    Item                                    --
 --                                                                            --
 --                                                                            --
 --------------------------------------------------------------------------------
-local Choices = setmetatable({}, UIElement)
+local Item = {}
+Item.__index = Item
+
+function Item:new(ui, args)
+    local instance = setmetatable({}, self)
+
+    instance.ui = ui
+
+    instance:init(args)
+
+    return instance
+end
+
+function Item:init(str)
+    self.string = str
+end
+
+function Item:choice_string() return self.string end
+function Item:fuzzy_string() return self.string end
+
+function Item:tostring()
+    local str = self:choice_string()
+    return str .. string.rep(" ", self.ui.width - #vim.str_utf_pos(str))
+end
+
+function Item:fuzzy_match(pattern)
+    return MiniFuzzy.match(pattern, self:fuzzy_string()).score > 0
+end
+
+function Item:cursor_highlight_group() return "TelescopeSelection" end
+
+function Item:highlight_cursor(line)
+    self.ui.components.cursor:add_highlight(self:cursor_highlight_group(), line, 0, -1)
+end
+
+function Item:highlight(line) return end
+
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                  Choices                                   --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
+local Choices = setmetatable({}, Component)
 Choices.__index = Choices
 Choices.name = "choices"
 
@@ -205,35 +263,53 @@ function Choices:init()
     }
 end
 
-function Choices:get_elements() return end
+function Choices:get_items() return List() end
 
-function Choices:format_element(element) return tostring(element) end
+function Choices:format_item(item) return tostring(item) end
 
-function Choices:highlight_element(element, line) return end
+function Choices:highlight_item(item, line) return end
 
-function Choices:set_lines()
-	vim.api.nvim_buf_set_lines(
-        self.buffer,
-        0,
-        -1,
-        true,
-        self.elements:map(function(e) return self:format_element(e) end)
-    )
+function Choices:fuzzy_filter(items)
+    local pattern = ui.get_cursor_line() or ""
+
+    if #pattern > 0 then
+        items = items:filter(function(item) return item:fuzzy_match(pattern) end)
+    end
+
+    return items
 end
 
--- function Choices:update()
---     self.elements = self:get_elements()
---     self:clear_highlights()
--- end
+function Choices:visible_range()
+    local start = self.ui.components.cursor.offset + 1
+    local stop = start + self.height
+    return start, stop
+end
+
+function Choices:update()
+    self.items = self:get_items()
+    self:draw()
+end
+
+function Choices:draw()
+    self:reset()
+
+    local to_draw = self.items:slice(self:visible_range())
+
+	vim.api.nvim_buf_set_lines(self.buffer, 0, -1, true, to_draw:mapm("tostring"))
+
+    for i, item in ipairs(to_draw) do
+        item:highlight(i - 1)
+    end
+end
 
 --------------------------------------------------------------------------------
 --                                                                            --
 --                                                                            --
---                                   cursor                                   --
+--                                   Cursor                                   --
 --                                                                            --
 --                                                                            --
 --------------------------------------------------------------------------------
-local Cursor = setmetatable({}, UIElement)
+local Cursor = setmetatable({}, Component)
 Cursor.__index = Cursor
 Cursor.name = "cursor"
 
@@ -243,41 +319,73 @@ function Cursor:init()
     self.buffer = self.ui.components.choices.buffer
 end
 
-function Cursor:update(delta)
-    local elements = self.ui.components.choices.elements
-    self.index = self.index + (delta or 0)
-    self.index = math.min(self.index, #elements)
-    self.index = math.max(self.index, 1)
+function Cursor:get()
+    return self.ui.components.choices.items[self.index]
+end
 
-    -- self:set_offset()
+function Cursor:update()
+    self:bound_index()
+    self.offset = 0
+    self:draw()
+end
 
-    self:clear_highlights()
+function Cursor:draw()
+    self:reset()
 
-    if #elements > 0 then
-        self:add_highlight(self:get_hl_group(), self.index - 1 + self.offset, 0, -1)
+    if #self.ui.components.choices.items > 0 then
+        self:add_highlight(self:get():cursor_highlight_group(), self.index - 1 - self.offset, 0, -1)
     end
 end
 
--- function Cursor:set_offset()
--- end
---
--- function Cursor:center()
--- end
+function Cursor:move(delta, center)
+    self:bound_index(delta)
 
-function Cursor:get_hl_group() return "TelescopeSelection" end
+    local start_index, stop_index = self.ui.components.choices:visible_range()
 
-function Cursor:get()
-    return self.ui.components.choices.elements[self.index]
+    if self.index < start_index then
+        self.offset = self.index - 1
+    elseif stop_index < self.index then
+        self.offset = self.index - self.ui.components.choices.height
+    end
+
+    if center then
+        self.offset = self.index - self.ui.pagesize - 1
+    end
+
+    self:bound_offset()
+
+    self.ui.components.choices:draw()
+    self:draw()
 end
 
+function Cursor:bound_index(delta)
+    self.index = utils.n_between(self.index + (delta or 0), {min = 1, max = #self.ui.components.choices.items})
+end
+
+function Cursor:bound_offset()
+    local n_items = #self.ui.components.choices.items
+    local height = self.ui.components.choices.height
+    local max_offset = math.max(n_items - height, 0)
+
+    self.offset = utils.n_between(self.offset, {min = 0, max = max_offset})
+end
+
+-- function Cursor:center()
+--
+--     self:bound_offset()
+--
+--     self.ui.components.choices:draw()
+--     self:draw()
+-- end
+
 --------------------------------------------------------------------------------
 --                                                                            --
 --                                                                            --
---                                   input                                    --
+--                                   Input                                    --
 --                                                                            --
 --                                                                            --
 --------------------------------------------------------------------------------
-local Input = setmetatable({}, UIElement)
+local Input = setmetatable({}, Component)
 Input.__index = Input
 Input.name = 'input'
 
@@ -361,11 +469,13 @@ function Popup:clear_input()
     self:update()
 end
 
-function Popup:cursor_down() self.components.cursor:update(1) end
-function Popup:cursor_up() self.components.cursor:update(-1) end
+function Popup:cursor_down() self.components.cursor:move(1) end
+function Popup:cursor_up() self.components.cursor:move(-1) end
 
-function Popup:cursor_page_down() self.components.cursor:update(self.pagesize) end
-function Popup:cursor_page_up() self.components.cursor:update(-self.pagesize) end
+function Popup:cursor_page_down() self.components.cursor:move(self.pagesize, true) end
+function Popup:cursor_page_up() self.components.cursor:move(-self.pagesize, true) end
+
+function Popup:center_cursor() self.components.cursor:move(0, true) end
 
 function Popup:get_action(key)
     self.actions = self.actions or {}
@@ -400,6 +510,7 @@ end
 return {
     Popup = Popup,
     Box = Box,
+    Item = Item,
     Choices = Choices,
     Cursor = Cursor,
     Prompt = Prompt,

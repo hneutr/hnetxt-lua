@@ -26,16 +26,44 @@ describe("parsekv", function()
     it("nil", function()
         assert.are.same({""}, {fn()})
     end)
-    
+
     it("no val", function()
         assert.are.same({"key"}, {fn("key: ")})
     end)
-    
+
     it("key and val", function()
         assert.are.same({"key", "val"}, {fn("key: val ")})
     end)
-    
+
     it("alternate delimiter", function()
         assert.are.same({"key", "val"}, {fn("key@ val ", "@")})
+    end)
+end)
+
+describe("between", function()
+    local fn = M.n_between
+
+    it("min <= x <= max", function()
+        assert.are.same(1, fn(1, {min = 0, max = 2}))
+    end)
+
+    it("x == min, exclusive", function()
+        assert.are.same(1, fn(0, {min = 0, max = 2, exclusive = true}))
+    end)
+
+    it("x == max, exclusive", function()
+        assert.are.same(1, fn(2, {min = 0, max = 2, exclusive = true}))
+    end)
+
+    it("x < min", function()
+        assert.are.same(1, fn(0, {min = 1, max = 2}))
+    end)
+
+    it("max < x", function()
+        assert.are.same(1, fn(2, {min = 0, max = 1}))
+    end)
+
+    it("max < min", function()
+        assert.are.same(2, fn(3, {min = 2, max = 0}))
     end)
 end)

@@ -1,7 +1,7 @@
 local socket = require("socket")
 
 require("hl.string")
-local Dict = require("hl.Dict")
+require("hl.Dict")
 
 local M = {}
 
@@ -38,6 +38,27 @@ function M.time_it(label)
     print(str)
     TIME = now
     return str
+end
+
+function M.n_between(n, args)
+    args = args or {}
+    local exclusive = args.exclusive
+
+    local min = args.min
+    local max = args.max
+
+    if exclusive then
+        min = min + 1
+        max = max - 1
+    end
+
+    if max < min then
+        min, max = max, min
+    end
+
+    n = math.min(n, max)
+    n = math.max(n, min)
+    return n
 end
 
 return M

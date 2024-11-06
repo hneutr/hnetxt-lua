@@ -35,6 +35,20 @@ describe("filter_lines", function()
         )
     end)
 
+    it("stops excluding after same level header", function()
+        assert.are.same(
+            List({
+                "# ",
+                "b line",
+            }),
+            M:filter_lines(List({
+                "# a [][-]",
+                "# ",
+                "b line",
+            }))
+        )
+    end)
+
     it("ends document", function()
         assert.are.same(
             {
