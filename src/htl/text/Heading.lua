@@ -42,10 +42,7 @@ end
 
 function M:exclude_from_document()
     local exclude = false
-    exclude = exclude or self.text:match(M.conf.patterns.exclude) ~= nil
-
     self.meta:foreach(function(conf) exclude = exclude or conf.exclude end)
-
     return exclude
 end
 

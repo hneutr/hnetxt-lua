@@ -4,11 +4,7 @@ local M = require("htl.text.Heading")
 
 describe("exclude_from_document", function()
     it("excludes", function()
-        assert(M("{x}", 1):exclude_from_document())
-    end)
-    
-    it("excludes [][-]", function()
-        assert(M("abc [][-]", 1):exclude_from_document())
+        assert(M("abc [][o]", 1):exclude_from_document())
     end)
 
     it("includes", function()

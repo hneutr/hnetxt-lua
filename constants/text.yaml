@@ -3,12 +3,7 @@ change: "> [!change]"
 heading:
   patterns:
     meta: "(.*)%s%[%]%[(.-)%]$"
-    exclude: "{(.*)}"
   meta:
-    exclude:
-      char: "-"
-      symbol: ⋮
-      exclude: true
     write:
       char: w
       symbol: ◯
@@ -30,6 +25,4 @@ heading:
     outline:
       char: o
       symbol: ∴
-      # ⌇◇
-      todo: true
       exclude: true

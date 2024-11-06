@@ -16,14 +16,19 @@ Popup.keymap = {
     ["<C-h>"] = "enter_parent",
     ["<C-r>"] = "enter_root",
 
-    ["<C-t>"] = "filter_todo",
-
     ["<C-1>"] = "filter_h1",
     ["<C-2>"] = "filter_h2",
     ["<C-3>"] = "filter_h3",
     ["<C-4>"] = "filter_h4",
     ["<C-5>"] = "filter_h5",
     ["<C-6>"] = "filter_h6",
+
+    ["<C-t>"] = "filter_todo",
+    ["<C-w>"] = "filter_write",
+    ["<C-a>"] = "filter_change",
+    ["<C-e>"] = "filter_finish",
+    ["<C-m>"] = "filter_move",
+    ["<C-o>"] = "filter_outline",
 }
 
 Popup.data = Dict()
@@ -120,8 +125,14 @@ function Item:filter()
 
     if self.ui.todo then
         local is_todo = false
-        self.meta:foreach(function(meta) is_todo = is_todo and meta.todo end)
+        self.meta:foreach(function(meta) is_todo = is_todo or meta.todo end)
         result = result and is_todo
+    end
+
+    if self.ui.meta_type then
+        local is_type = false
+        self.meta:foreach(function(meta) is_type = is_type or meta.key == self.ui.meta_type end)
+        result = result and is_type
     end
 
     return result
@@ -147,6 +158,10 @@ function Prompt:get_line()
 
     if self.ui.todo then
         parts:append("todo")
+    end
+
+    if self.ui.meta_type then
+        parts:append(Heading.conf.meta[self.ui.meta_type].symbol)
     end
 
     if self.ui.level < #Heading.levels then
@@ -191,9 +206,9 @@ function Choices:get_items()
 
     self.ui.parent = self.ui.parent or 0
 
-    local items = self.ui.items:filter(function(item)
-        return item.parents:contains(self.ui.parent) and item.level <= self.ui.level
-    end)
+    local items = self.ui.items:filter(function(item) return item:filter() end)
+    --     return item.parents:contains(self.ui.parent) and item.level <= self.ui.level
+    -- end)
 
     items = self:fuzzy_filter(items)
 
@@ -220,6 +235,14 @@ function Popup:init(args)
     for level = 1, #Heading.levels do
         self.actions[string.format("filter_h%d", level)] = function()
             self.level = self.level ~= level and level or #Heading.levels
+            self:update()
+        end
+    end
+
+    for key, conf in pairs(Heading.conf.meta) do
+        self.actions[string.format("filter_%s", key)] = function()
+            self.todo = false
+            self.meta_type = self.meta_type ~= key and key or nil
             self:update()
         end
     end
@@ -303,6 +326,7 @@ end
 function Popup:filter_todo()
     self.todo = self.todo or false
     self.todo = not self.todo
+    self.meta_type = nil
     self:update()
 end
 

@@ -12,7 +12,7 @@ describe("filter_lines", function()
                 "line",
             }):transform(tostring),
             M:filter_lines(List({
-                Heading("{a}", 1),
+                Heading("a [][o]", 1),
                 Heading("b", 1),
                 "line",
             }):transform(tostring))
@@ -26,7 +26,7 @@ describe("filter_lines", function()
                 "line",
             }):transform(tostring),
             M:filter_lines(List({
-                Heading("{a}", 1),
+                Heading("a [][o]", 1),
                 "line",
                 Heading("b", 2),
                 Heading("c", 1),
@@ -42,7 +42,7 @@ describe("filter_lines", function()
                 "b line",
             }),
             M:filter_lines(List({
-                "# a [][-]",
+                "# a [][o]",
                 "# ",
                 "b line",
             }))

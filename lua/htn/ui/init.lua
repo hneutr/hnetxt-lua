@@ -1,9 +1,7 @@
 local fzf = require("fzf-lua")
 
-local TermColor = require("htl.Color")
 local Link = require("htl.text.Link")
 local Line = require("htl.text.Line")
-local Heading = require("htl.text.Heading")
 local Document = require("htl.text.Document")
 local Mirrors = require("htl.Mirrors")
 local Metadata = require("htl.Metadata")
@@ -518,45 +516,5 @@ end
 
 function M.sections.next() M.sections.goto(1) end
 function M.sections.prev() M.sections.goto(-1) end
-
---------------------------------------------------------------------------------
---                                                                            --
---                                                                            --
---                                  headings                                  --
---                                                                            --
---                                                                            --
---------------------------------------------------------------------------------
-M.headings = {}
-
-function M.headings.toggle_inclusion()
-    local line = M.get_cursor_line()
-
-    if Heading.str_is_a(line) then
-        local heading = Heading.from_str(line)
-
-        local meta = heading.meta
-
-        local keys
-        if #meta > 0 then
-            if meta:contains("-") then
-                meta:pop(meta:index("-"))
-            else
-                meta:append("-")
-            end
-
-            if #meta > 0 then
-                keys = "$ci[" .. meta:join() .. "<esc>"
-            else
-                keys = "$daW"
-            end
-        else
-            keys = (#line:rstrip() < #line and "A" or "A ") .. "[][-]<esc>"
-        end
-
-        keys = "mX" .. keys .. "`X"
-        keys = vim.api.nvim_replace_termcodes(keys, true, true, true)
-        vim.api.nvim_feedkeys(keys, "n", false)
-    end
-end
 
 return M

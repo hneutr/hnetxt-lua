@@ -403,7 +403,7 @@ function Input:init()
 end
 
 function Input:update()
-    local prompt_len = #self.ui.components.prompt:get_line()
+    local prompt_len = #vim.str_utf_pos(self.ui.components.prompt:get_line())
     self.window:update({width = self.ui.width - prompt_len, col = prompt_len})
 end
 
