@@ -1,24 +1,23 @@
 local ui = require("htn.ui")
 
-local Popup = {}
-Popup.__index = Popup
-Popup.name = "popup"
-Popup.width = 80
-Popup.height = 41
+local Popup = Class({
+    name = "popup",
+    width = 80,
+    height = 41,
+    default_keymap = {
+        ["<C-c>"] = "close",
 
-Popup.default_keymap = {
-    ["<C-c>"] = "close",
+        ["<C-n>"] = "cursor_down",
+        ["<C-p>"] = "cursor_up",
+        ["<Down>"] = "cursor_down",
+        ["<Up>"] = "cursor_up",
 
-    ["<C-n>"] = "cursor_down",
-    ["<C-p>"] = "cursor_up",
-    ["<Down>"] = "cursor_down",
-    ["<Up>"] = "cursor_up",
+        ["<C-f>"] = "cursor_page_down",
+        ["<C-b>"] = "cursor_page_up",
 
-    ["<C-f>"] = "cursor_page_down",
-    ["<C-b>"] = "cursor_page_up",
-
-    ["<C-z>"] = "center_cursor",
-}
+        ["<C-z>"] = "center_cursor",
+    }
+})
 
 --------------------------------------------------------------------------------
 --                                                                            --
@@ -27,8 +26,7 @@ Popup.default_keymap = {
 --                                                                            --
 --                                                                            --
 --------------------------------------------------------------------------------
-local Window = {}
-Window.__index = Window
+local Window = Class()
 
 function Window:new(buffer, conf)
     local instance = setmetatable({}, self)
@@ -65,14 +63,12 @@ end
 --                                                                            --
 --                                                                            --
 --------------------------------------------------------------------------------
-local Component = {}
-Component.__index = Component
-Component.name = "component"
+local Component = Class({name = "component"})
 
 function Component:new(ui)
-    local instance = setmetatable({}, self)
+    local instance = setmetatable({ui = ui}, self)
 
-    instance.ui = ui
+    ui[instance.name] = instance
 
     instance.namespace = vim.api.nvim_create_namespace(("htn.popup.%s.%s"):format(ui.name, instance.name))
 
@@ -92,6 +88,11 @@ end
 
 function Component:reset()
 	vim.api.nvim_buf_clear_namespace(self.buffer, self.namespace, 0, -1)
+end
+
+function Component:set_lines(lines)
+    self:reset()
+	vim.api.nvim_buf_set_lines(self.buffer, 0, -1, true, lines)
 end
 
 function Component:add_highlight(group, line, start_col, end_col)
@@ -119,6 +120,8 @@ function Component:init() return end
 
 function Component:update() return end
 
+function Component:highlight() return end
+
 --------------------------------------------------------------------------------
 --                                                                            --
 --                                                                            --
@@ -126,14 +129,12 @@ function Component:update() return end
 --                                                                            --
 --                                                                            --
 --------------------------------------------------------------------------------
-local Prompt = setmetatable({}, Component)
-Prompt.name = "prompt"
-Prompt.__index = Prompt
+local Prompt = Class({name = "prompt"}, Component)
 
 function Prompt:init()
     self.window_conf = {
         relative = "win",
-        win = self.ui.components.choices.window.id,
+        win = self.ui.choices.window.id,
         width = self.ui.dimensions.width,
         height = 1,
         row = -3,
@@ -144,19 +145,12 @@ function Prompt:init()
     }
 end
 
-function Prompt:title() return "" end
-
-function Prompt:get_line() return "> " end
-
-function Prompt:highlight() return end
+function Prompt:get() return "> " end
 
 function Prompt:update()
-    self.window:update({title = self:title(), title_pos = "center"})
+    self.window:update({title = (" %s "):format(self.ui:title() or self.ui.name), title_pos = "center"})
 
-    self:reset()
-
-	vim.api.nvim_buf_set_lines(self.buffer, 0, 1, true, {self:get_line()})
-
+    self:set_lines({self:get()})
     self:highlight()
 end
 
@@ -171,9 +165,7 @@ local Item = {}
 Item.__index = Item
 
 function Item:new(ui, args)
-    local instance = setmetatable({}, self)
-
-    instance.ui = ui
+    local instance = setmetatable({ui = ui}, self)
 
     instance:init(args)
 
@@ -192,14 +184,16 @@ function Item:tostring()
     return str .. string.rep(" ", self.ui.dimensions.width - #vim.str_utf_pos(str))
 end
 
-function Item:fuzzy_match(pattern)
-    return MiniFuzzy.match(pattern, self:fuzzy_string()).score > 0
+function Item:filter() return self:fuzzy_match() end
+
+function Item:fuzzy_match()
+    return not self.ui.pattern or MiniFuzzy.match(self.ui.pattern, self:fuzzy_string()).score > 0
 end
 
 function Item:cursor_highlight_group() return "TelescopeSelection" end
 
 function Item:highlight_cursor(line)
-    self.ui.components.cursor:add_highlight(self:cursor_highlight_group(), line, 0, -1)
+    self.ui.cursor:add_highlight(self:cursor_highlight_group(), line, 0, -1)
 end
 
 function Item:highlight(line) return end
@@ -211,9 +205,7 @@ function Item:highlight(line) return end
 --                                                                            --
 --                                                                            --
 --------------------------------------------------------------------------------
-local Choices = setmetatable({}, Component)
-Choices.__index = Choices
-Choices.name = "choices"
+local Choices = Class({name = "choices"}, Component)
 
 function Choices:init()
     self.window_conf = {
@@ -230,22 +222,8 @@ end
 
 function Choices:get_items() return List() end
 
-function Choices:format_item(item) return tostring(item) end
-
-function Choices:highlight_item(item, line) return end
-
-function Choices:fuzzy_filter(items)
-    local pattern = ui.get_cursor_line() or ""
-
-    if #pattern > 0 then
-        items = items:filter(function(item) return item:fuzzy_match(pattern) end)
-    end
-
-    return items
-end
-
 function Choices:visible_range()
-    local start = self.ui.components.cursor.offset + 1
+    local start = self.ui.cursor.offset + 1
     local stop = start + self.ui.dimensions.height - 1
     return start, stop
 end
@@ -256,11 +234,9 @@ function Choices:update()
 end
 
 function Choices:draw()
-    self:reset()
-
     local to_draw = self.items:slice(self:visible_range())
 
-	vim.api.nvim_buf_set_lines(self.buffer, 0, -1, true, to_draw:mapm("tostring"))
+    self:set_lines(to_draw:mapm("tostring"))
 
     for i, item in ipairs(to_draw) do
         item:highlight(i - 1)
@@ -274,18 +250,16 @@ end
 --                                                                            --
 --                                                                            --
 --------------------------------------------------------------------------------
-local Cursor = setmetatable({}, Component)
-Cursor.__index = Cursor
-Cursor.name = "cursor"
+local Cursor = Class({name = "cursor"}, Component)
 
 function Cursor:init()
     self.index = 1
     self.offset = 0
-    self.buffer = self.ui.components.choices.buffer
+    self.buffer = self.ui.choices.buffer
 end
 
 function Cursor:get()
-    return self.ui.components.choices.items[self.index]
+    return self.ui.choices.items[self.index]
 end
 
 function Cursor:update()
@@ -297,15 +271,20 @@ end
 function Cursor:draw()
     self:reset()
 
-    if #self.ui.components.choices.items > 0 then
-        self:add_highlight(self:get():cursor_highlight_group(), self.index - 1 - self.offset, 0, -1)
+    if #self.ui.choices.items > 0 then
+        self:add_highlight(
+            self:get():cursor_highlight_group(),
+            self.index - 1 - self.offset,
+            0,
+            -1
+        )
     end
 end
 
 function Cursor:move(delta, center)
     self:bound_index(delta)
 
-    local start_index, stop_index = self.ui.components.choices:visible_range()
+    local start_index, stop_index = self.ui.choices:visible_range()
 
     if self.index < start_index then
         self.offset = self.index - 1
@@ -319,20 +298,17 @@ function Cursor:move(delta, center)
 
     self:bound_offset()
 
-    self.ui.components.choices:draw()
+    self.ui.choices:draw()
     self:draw()
 end
 
 function Cursor:bound_index(delta)
-    self.index = utils.n_between(self.index + (delta or 0), {min = 1, max = #self.ui.components.choices.items})
+    self.index = utils.n_between(self.index + (delta or 0), {min = 1, max = #self.ui.choices.items})
 end
 
 function Cursor:bound_offset()
-    local n_items = #self.ui.components.choices.items
-    local height = self.ui.dimensions.height
-    local max_offset = math.max(n_items - height, 0)
-
-    self.offset = utils.n_between(self.offset, {min = 0, max = max_offset})
+    local max = math.max(#self.ui.choices.items - self.ui.dimensions.height, 0)
+    self.offset = utils.n_between(self.offset, {min = 0, max = max})
 end
 
 --------------------------------------------------------------------------------
@@ -342,14 +318,12 @@ end
 --                                                                            --
 --                                                                            --
 --------------------------------------------------------------------------------
-local Input = setmetatable({}, Component)
-Input.__index = Input
-Input.name = 'input'
+local Input = Class({name = 'input'}, Component)
 
 function Input:init()
     self.window_conf = {
         relative = "win",
-        win = self.ui.components.prompt.window.id,
+        win = self.ui.prompt.window.id,
         width = self.ui.dimensions.width,
         height = 1,
         row = 0,
@@ -360,7 +334,7 @@ function Input:init()
 end
 
 function Input:update()
-    local prompt_len = #vim.str_utf_pos(self.ui.components.prompt:get_line())
+    local prompt_len = #vim.str_utf_pos(self.ui.prompt:get())
     self.window:update({width = self.ui.dimensions.width - prompt_len, col = prompt_len})
 end
 
@@ -383,17 +357,12 @@ function Popup:new(args)
     instance:set_dimensions()
     instance:init(args or {})
 
-    instance.ComponentClasses = List({
+    instance.components = List({
         instance.Choices or Choices,
         instance.Cursor or Cursor,
         instance.Prompt or Prompt,
         instance.Input or Input,
-    })
-
-    instance.components = Dict()
-    instance.ComponentClasses:foreach(function(ComponentClass)
-        instance.components[ComponentClass.name] = ComponentClass:new(instance)
-    end)
+    }):mapm("new", instance)
 
     instance:set_keymap()
 
@@ -405,10 +374,6 @@ function Popup:new(args)
 end
 
 function Popup:set_dimensions()
-    if self.dimensions then
-        return
-    end
-
     self.dimensions = {
         height = self.height,
         width = self.width,
@@ -421,8 +386,11 @@ end
 
 function Popup:init(args) return end
 
+function Popup:title() return self.name end
+
 function Popup:close()
-    self.components:values():mapm('close')
+    self.components:mapm("close")
+
     vim.fn.win_gotoid(self.source.window)
 
     if self.source.mode ~= 'i' then
@@ -431,23 +399,18 @@ function Popup:close()
 end
 
 function Popup:update()
-    self.ComponentClasses:foreach(function(ComponentClass)
-        self.components[ComponentClass.name]:update()
-    end)
+    self.pattern = ui.get_cursor_line()
+    self.pattern = #self.pattern > 0 and self.pattern or nil
+    self.components:mapm("update")
 end
 
-function Popup:clear_input()
-	vim.api.nvim_buf_set_lines(self.components.input.buffer, 0, 1, true, {""})
-    self:update()
-end
+function Popup:cursor_down() self.cursor:move(1) end
+function Popup:cursor_up() self.cursor:move(-1) end
 
-function Popup:cursor_down() self.components.cursor:move(1) end
-function Popup:cursor_up() self.components.cursor:move(-1) end
+function Popup:cursor_page_down() self.cursor:move(self.dimensions.half_page, true) end
+function Popup:cursor_page_up() self.cursor:move(-self.dimensions.half_page, true) end
 
-function Popup:cursor_page_down() self.components.cursor:move(self.dimensions.half_page, true) end
-function Popup:cursor_page_up() self.components.cursor:move(-self.dimensions.half_page, true) end
-
-function Popup:center_cursor() self.components.cursor:move(0, true) end
+function Popup:center_cursor() self.cursor:move(0, true) end
 
 function Popup:get_action(key)
     self.actions = self.actions or {}
@@ -465,7 +428,7 @@ function Popup:set_keymap()
         "TextChangedI",
         {
             callback = self:get_action("update"),
-            buffer = self.components.input.buffer,
+            buffer = self.input.buffer,
         }
     )
 
@@ -473,7 +436,7 @@ function Popup:set_keymap()
         "InsertLeave",
         {
             callback = self:get_action("close"),
-            buffer = self.components.input.buffer,
+            buffer = self.input.buffer,
             once = true,
         }
     )

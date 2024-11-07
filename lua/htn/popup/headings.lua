@@ -3,41 +3,39 @@ local popup = require("htn.popup")
 
 local Heading = require("htl.text.Heading")
 
-local Popup = setmetatable({}, popup.Popup)
-Popup.__index = Popup
-Popup.name = "headings"
-Popup.keymap = {
-    ["<C-,>"] = "close",
-    ["<C-.>"] = "close",
+local Popup = Class({
+    name = "headings",
+    data = {},
+    keymap = {
+        ["<C-,>"] = "close",
+        ["<C-.>"] = "close",
 
-    ["<CR>"] = "goto_selection",
+        ["<CR>"] = "goto_selection",
 
-    ["<C-l>"] = "enter_selection",
-    ["<C-h>"] = "enter_parent",
-    ["<C-r>"] = "enter_root",
+        ["<C-l>"] = "enter_selection",
+        ["<C-h>"] = "enter_parent",
+        ["<C-r>"] = "enter_root",
 
-    ["<C-1>"] = "filter_h1",
-    ["<C-2>"] = "filter_h2",
-    ["<C-3>"] = "filter_h3",
-    ["<C-4>"] = "filter_h4",
-    ["<C-5>"] = "filter_h5",
-    ["<C-6>"] = "filter_h6",
+        ["<C-1>"] = "filter_h1",
+        ["<C-2>"] = "filter_h2",
+        ["<C-3>"] = "filter_h3",
+        ["<C-4>"] = "filter_h4",
+        ["<C-5>"] = "filter_h5",
+        ["<C-6>"] = "filter_h6",
 
-    ["<C-t>"] = "filter_todo",
-    ["<C-w>"] = "filter_write",
-    ["<C-a>"] = "filter_change",
-    ["<C-e>"] = "filter_finish",
-    ["<C-m>"] = "filter_move",
-    ["<C-o>"] = "filter_outline",
-}
-
-Popup.data = Dict()
+        ["<C-t>"] = "filter_todo",
+        ["<C-w>"] = "filter_write",
+        ["<C-a>"] = "filter_change",
+        ["<C-e>"] = "filter_finish",
+        ["<C-m>"] = "filter_move",
+        ["<C-o>"] = "filter_outline",
+    },
+}, popup.Popup)
 
 --------------------------------------------------------------------------------
 --                                    Item                                    --
 --------------------------------------------------------------------------------
-local Item = setmetatable({}, popup.Item)
-Item.__index = Item
+local Item = Class({}, popup.Item)
 
 function Item:init(marker_node)
     local content_node = marker_node:next_sibling()
@@ -84,12 +82,12 @@ end
 function Item:cursor_highlight_group() return self._level.bg_hl_group end
 
 function Item:highlight(line)
-    self.ui.components.choices:add_highlight(self._level.hl_group, line, 0, -1)
+    self.ui.choices:add_highlight(self._level.hl_group, line, 0, -1)
 
     local text = self.meta:col('symbol'):join(" ")
 
     if #text > 0 then
-        self.ui.components.choices:add_extmark(
+        self.ui.choices:add_extmark(
             line,
             0,
             {
@@ -135,25 +133,17 @@ function Item:filter()
         result = result and is_type
     end
 
-    return result
+    return result and self:fuzzy_match()
 end
 
 --------------------------------------------------------------------------------
 --                                   Prompt                                   --
 --------------------------------------------------------------------------------
-local Prompt = setmetatable({}, popup.Prompt)
-Prompt.__index = Prompt
+local Prompt = Class({}, popup.Prompt)
 
 Popup.Prompt = Prompt
 
-function Prompt:title()
-    return string.format(
-        " %s ",
-        self.ui.parent and self.ui.parent ~= 0 and self.ui.items[self.ui.parent].string or "headings"
-    )
-end
-
-function Prompt:get_line()
+function Prompt:get()
     local parts = List()
 
     if self.ui.todo then
@@ -190,8 +180,7 @@ end
 --------------------------------------------------------------------------------
 --                                   Choices                                  --
 --------------------------------------------------------------------------------
-local Choices = setmetatable({}, popup.Choices)
-Choices.__index = Choices
+local Choices = Class({}, popup.Choices)
 
 Popup.Choices = Choices
 
@@ -207,10 +196,6 @@ function Choices:get_items()
     self.ui.parent = self.ui.parent or 0
 
     local items = self.ui.items:filter(function(item) return item:filter() end)
-    --     return item.parents:contains(self.ui.parent) and item.level <= self.ui.level
-    -- end)
-
-    items = self:fuzzy_filter(items)
 
     if #items > 0 then
         local pad_level_start = math.min(unpack(items:col("level")))
@@ -276,6 +261,10 @@ function Popup:watch()
     )
 end
 
+function Popup:title()
+    return self.parent ~= 0 and self.items[self.parent].string
+end
+
 function Popup:set_items()
     local items = self:get_data("items")
 
@@ -301,17 +290,17 @@ end
 
 function Popup:goto_selection()
     self:close()
-    ui.set_cursor({row = self.components.cursor:get().line})
+    ui.set_cursor({row = self.cursor:get().line})
 end
 
 function Popup:enter_selection()
-    self.parent = self.components.cursor:get().index
-    self.components.cursor.index = 1
+    self.parent = self.cursor:get().index
+    self.cursor.index = 1
     self:update()
 end
 
 function Popup:enter_parent()
-    if self.parent and self.parent ~= 0 then
+    if self.parent ~= 0 then
         local parents = self.items[self.parent].parents
         self.parent = parents[#parents]
         self:update()

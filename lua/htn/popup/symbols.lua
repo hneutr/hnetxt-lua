@@ -1,21 +1,20 @@
 local popup = require("htn.popup")
 local symbols = require("htn.ui.symbols")
 
-local Popup = setmetatable({}, popup.Popup)
-Popup.__index = Popup
-Popup.name = "symbols"
-Popup.keymap = {
-    ["<CR>"] = "select",
-    ["<C-l>"] = "select",
-    ["<C-h>"] = "enter_parent",
-    ["<C-r>"] = "enter_root",
-}
+local Popup = Class({
+    name = "symbols",
+    keymap = {
+        ["<CR>"] = "select",
+        ["<C-l>"] = "select",
+        ["<C-h>"] = "enter_parent",
+        ["<C-r>"] = "enter_root",
+    },
+}, popup.Popup)
 
 --------------------------------------------------------------------------------
 --                                   Symbol                                   --
 --------------------------------------------------------------------------------
-local Symbol = setmetatable({}, popup.Item)
-Symbol.__index = Symbol
+local Symbol = Class({}, popup.Item)
 
 function Symbol:init(args)
     self.string, self.desc = unpack(args)
@@ -37,7 +36,7 @@ function Symbol:highlight(line)
     if self.desc then
         local start_col = #self.string + 1
         local stop_col = start_col + #self.desc
-        self.ui.components.choices:add_highlight("Comment", line, start_col, stop_col)
+        self.ui.choices:add_highlight("Comment", line, start_col, stop_col)
     end
 end
 
@@ -49,34 +48,18 @@ end
 --------------------------------------------------------------------------------
 --                                 SymbolGroup                                --
 --------------------------------------------------------------------------------
-local SymbolGroup = setmetatable({}, popup.Item)
-SymbolGroup.__index = SymbolGroup
+local SymbolGroup = Class({}, popup.Item)
 
 function SymbolGroup:select()
-    self.ui.components.cursor.index = 1
+    self.ui.cursor.index = 1
     self.ui.path:append(self.string)
     self.ui:clear_input()
 end
 
 --------------------------------------------------------------------------------
---                                   Prompt                                   --
---------------------------------------------------------------------------------
-local Prompt = setmetatable({}, popup.Prompt)
-Prompt.__index = Prompt
-
-function Prompt:title()
-    if #self.ui.path == 0 then
-        return ""
-    end
-
-    return " " .. self.ui.path:join(".") .. " "
-end
-
---------------------------------------------------------------------------------
 --                                   Choices                                  --
 --------------------------------------------------------------------------------
-local Choices = setmetatable({}, popup.Choices)
-Choices.__index = Choices
+local Choices = Class({}, popup.Choices)
 
 function Choices:get_items()
     local items = symbols()
@@ -95,23 +78,28 @@ function Choices:get_items()
 
     items:transform(function(item) return ItemClass:new(self.ui, item) end)
 
-    items = self:fuzzy_filter(items)
-
-    return items
+    return items:filter(function(item) return item:filter() end)
 end
 
 --------------------------------------------------------------------------------
 --                                    Popup                                   --
 --------------------------------------------------------------------------------
 Popup.Choices = Choices
-Popup.Prompt = Prompt
 
 function Popup:init()
     self.path = List()
 end
 
+function Popup:title() return #self.path > 0 and self.path:join(".") end
+
 function Popup:select()
-    self.components.cursor:get():select()
+    self.cursor:get():select()
+end
+
+function Popup:clear_input()
+    self.input:set_lines({""})
+    self.pattern = nil
+    self:update()
 end
 
 function Popup:enter_parent()

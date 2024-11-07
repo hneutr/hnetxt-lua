@@ -16,13 +16,13 @@ M.root = Path.home
 --------------------------------------------------------------------------------
 function M.read(path)
     local val = Yaml.read(path)
-    
-    for Class in List({Dict, List}):iter() do
-        if Class.is_like(val) then
-            return Class(val)
+
+    for DataType in List({Dict, List}):iter() do
+        if DataType.is_like(val) then
+            return DataType(val)
         end
     end
-    
+
     return val
 end
 
