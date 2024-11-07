@@ -4,6 +4,7 @@ local Popup = {}
 Popup.__index = Popup
 Popup.name = "popup"
 Popup.width = 80
+Popup.height = 41
 
 Popup.default_keymap = {
     ["<C-c>"] = "close",
@@ -121,38 +122,6 @@ function Component:update() return end
 --------------------------------------------------------------------------------
 --                                                                            --
 --                                                                            --
---                                    Box                                     --
---                                                                            --
---                                                                            --
---------------------------------------------------------------------------------
-local Box = setmetatable({}, Component)
-Box.__index = Box
-Box.name = 'box'
-
-function Box:init()
-    local n_rows = vim.go.lines
-    local height = math.floor(n_rows / 2)
-
-    local row = math.floor((n_rows - height) / 2)
-
-    local n_cols = vim.go.columns
-    local col = math.floor((n_cols - self.ui.width) / 2 - 1)
-
-    self.window_conf = {
-        relative = "editor",
-        width = self.ui.width,
-        height = height,
-        row = row,
-        col = col,
-        border = "rounded",
-        style = "minimal",
-        noautocmd = true,
-    }
-end
-
---------------------------------------------------------------------------------
---                                                                            --
---                                                                            --
 --                                   Prompt                                   --
 --                                                                            --
 --                                                                            --
@@ -164,10 +133,10 @@ Prompt.__index = Prompt
 function Prompt:init()
     self.window_conf = {
         relative = "win",
-        win = self.ui.components.box.window.id,
-        width = self.ui.width,
+        win = self.ui.components.choices.window.id,
+        width = self.ui.dimensions.width,
         height = 1,
-        row = -2,
+        row = -3,
         col = -1,
         border = {"╭", "─", "╮", "│", "┤", "─", "├", "│"},
         noautocmd = true,
@@ -220,7 +189,7 @@ function Item:fuzzy_string() return self.string end
 
 function Item:tostring()
     local str = self:choice_string()
-    return str .. string.rep(" ", self.ui.width - #vim.str_utf_pos(str))
+    return str .. string.rep(" ", self.ui.dimensions.width - #vim.str_utf_pos(str))
 end
 
 function Item:fuzzy_match(pattern)
@@ -247,19 +216,15 @@ Choices.__index = Choices
 Choices.name = "choices"
 
 function Choices:init()
-    self.height = self.ui.components.box.window_conf.height - 1
-
-    self.ui.pagesize = math.floor(self.height / 2)
-
     self.window_conf = {
-        relative = "win",
-        win = self.ui.components.box.window.id,
-        width = self.ui.width,
-        height = self.height,
-        row = 1,
-        col = 0,
+        relative = "editor",
+        width = self.ui.dimensions.width,
+        height = self.ui.dimensions.height,
+        row = self.ui.dimensions.row,
+        col = self.ui.dimensions.col,
         style = "minimal",
         noautocmd = true,
+        border = {"╭", "─", "╮", "│", "╯", "─", "╰", "│"},
     }
 end
 
@@ -281,7 +246,7 @@ end
 
 function Choices:visible_range()
     local start = self.ui.components.cursor.offset + 1
-    local stop = start + self.height
+    local stop = start + self.ui.dimensions.height - 1
     return start, stop
 end
 
@@ -345,11 +310,11 @@ function Cursor:move(delta, center)
     if self.index < start_index then
         self.offset = self.index - 1
     elseif stop_index < self.index then
-        self.offset = self.index - self.ui.components.choices.height
+        self.offset = self.index - self.ui.dimensions.height
     end
 
     if center then
-        self.offset = self.index - self.ui.pagesize - 1
+        self.offset = self.index - self.ui.dimensions.half_page - 1
     end
 
     self:bound_offset()
@@ -364,19 +329,11 @@ end
 
 function Cursor:bound_offset()
     local n_items = #self.ui.components.choices.items
-    local height = self.ui.components.choices.height
+    local height = self.ui.dimensions.height
     local max_offset = math.max(n_items - height, 0)
 
     self.offset = utils.n_between(self.offset, {min = 0, max = max_offset})
 end
-
--- function Cursor:center()
---
---     self:bound_offset()
---
---     self.ui.components.choices:draw()
---     self:draw()
--- end
 
 --------------------------------------------------------------------------------
 --                                                                            --
@@ -393,7 +350,7 @@ function Input:init()
     self.window_conf = {
         relative = "win",
         win = self.ui.components.prompt.window.id,
-        width = self.ui.width,
+        width = self.ui.dimensions.width,
         height = 1,
         row = 0,
         col = 0,
@@ -404,7 +361,7 @@ end
 
 function Input:update()
     local prompt_len = #vim.str_utf_pos(self.ui.components.prompt:get_line())
-    self.window:update({width = self.ui.width - prompt_len, col = prompt_len})
+    self.window:update({width = self.ui.dimensions.width - prompt_len, col = prompt_len})
 end
 
 --------------------------------------------------------------------------------
@@ -423,10 +380,10 @@ function Popup:new(args)
         mode = vim.api.nvim_get_mode().mode,
     }
 
+    instance:set_dimensions()
     instance:init(args or {})
 
     instance.ComponentClasses = List({
-        instance.Box or Box,
         instance.Choices or Choices,
         instance.Cursor or Cursor,
         instance.Prompt or Prompt,
@@ -445,6 +402,21 @@ function Popup:new(args)
     vim.cmd.startinsert()
 
     return instance
+end
+
+function Popup:set_dimensions()
+    if self.dimensions then
+        return
+    end
+
+    self.dimensions = {
+        height = self.height,
+        width = self.width,
+    }
+
+    self.dimensions.row = math.floor((vim.go.lines - self.height) / 2)
+    self.dimensions.col = math.floor((vim.go.columns - self.width) / 2 - 1)
+    self.dimensions.half_page = math.floor(self.dimensions.height / 2)
 end
 
 function Popup:init(args) return end
@@ -472,8 +444,8 @@ end
 function Popup:cursor_down() self.components.cursor:move(1) end
 function Popup:cursor_up() self.components.cursor:move(-1) end
 
-function Popup:cursor_page_down() self.components.cursor:move(self.pagesize, true) end
-function Popup:cursor_page_up() self.components.cursor:move(-self.pagesize, true) end
+function Popup:cursor_page_down() self.components.cursor:move(self.dimensions.half_page, true) end
+function Popup:cursor_page_up() self.components.cursor:move(-self.dimensions.half_page, true) end
 
 function Popup:center_cursor() self.components.cursor:move(0, true) end
 
@@ -509,7 +481,6 @@ end
 
 return {
     Popup = Popup,
-    Box = Box,
     Item = Item,
     Choices = Choices,
     Cursor = Cursor,
