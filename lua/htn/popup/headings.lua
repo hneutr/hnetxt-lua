@@ -195,7 +195,7 @@ function Choices:get_items()
 
     self.ui.parent = self.ui.parent or 0
 
-    local items = self.ui.items:filter(function(item) return item:filter() end)
+    local items = self.ui.items:filterm("filter")
 
     if #items > 0 then
         local pad_level_start = math.min(unpack(items:col("level")))

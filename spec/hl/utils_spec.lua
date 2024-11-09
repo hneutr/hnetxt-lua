@@ -41,7 +41,7 @@ describe("parsekv", function()
 end)
 
 describe("between", function()
-    local fn = M.n_between
+    local fn = math.between
 
     it("min <= x <= max", function()
         assert.are.same(1, fn(1, {min = 0, max = 2}))
@@ -64,6 +64,10 @@ describe("between", function()
     end)
 
     it("max < min", function()
+        assert.are.same(2, fn(3, {min = 2, max = 0}))
+    end)
+
+    it("min > max", function()
         assert.are.same(2, fn(3, {min = 2, max = 0}))
     end)
 end)

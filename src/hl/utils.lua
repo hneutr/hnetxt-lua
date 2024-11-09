@@ -40,7 +40,7 @@ function M.time_it(label)
     return str
 end
 
-function M.n_between(n, args)
+function math.between(n, args)
     args = args or {}
     local exclusive = args.exclusive
 
@@ -52,9 +52,8 @@ function M.n_between(n, args)
         max = max - 1
     end
 
-    if max < min then
-        min, max = max, min
-    end
+    max = max > min and max or min
+    min = min < max and min or max
 
     n = math.min(n, max)
     n = math.max(n, min)

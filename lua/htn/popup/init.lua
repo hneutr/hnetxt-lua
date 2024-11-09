@@ -96,30 +96,15 @@ function Component:set_lines(lines)
 end
 
 function Component:add_highlight(group, line, start_col, end_col)
-    vim.api.nvim_buf_add_highlight(
-        self.buffer,
-        self.namespace,
-        group,
-        line,
-        start_col,
-        end_col
-    )
+    vim.api.nvim_buf_add_highlight(self.buffer, self.namespace, group, line, start_col, end_col)
 end
 
 function Component:add_extmark(line, col, opts)
-    vim.api.nvim_buf_set_extmark(
-        self.buffer,
-        self.namespace,
-        line,
-        col,
-        opts
-    )
+    vim.api.nvim_buf_set_extmark(self.buffer, self.namespace, line, col, opts)
 end
 
 function Component:init() return end
-
 function Component:update() return end
-
 function Component:highlight() return end
 
 --------------------------------------------------------------------------------
@@ -303,12 +288,11 @@ function Cursor:move(delta, center)
 end
 
 function Cursor:bound_index(delta)
-    self.index = utils.n_between(self.index + (delta or 0), {min = 1, max = #self.ui.choices.items})
+    self.index = math.between(self.index + (delta or 0), {min = 1, max = #self.ui.choices.items})
 end
 
 function Cursor:bound_offset()
-    local max = math.max(#self.ui.choices.items - self.ui.dimensions.height, 0)
-    self.offset = utils.n_between(self.offset, {min = 0, max = max})
+    self.offset = math.between(self.offset, {min = 0, max = #self.ui.choices.items - self.ui.dimensions.height})
 end
 
 --------------------------------------------------------------------------------

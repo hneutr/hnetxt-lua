@@ -66,19 +66,14 @@ function Choices:get_items()
 
     self.ui.path:foreach(function(part) items = items[part] end)
 
-    local ItemClass = SymbolGroup
+    local ItemClass = Symbol
 
-    if #items > 0 then
-        ItemClass = Symbol
-        items = List(items)
-    else
+    if #items == 0 then
         ItemClass = SymbolGroup
         items = Dict.keys(items):sorted()
     end
 
-    items:transform(function(item) return ItemClass:new(self.ui, item) end)
-
-    return items:filter(function(item) return item:filter() end)
+    return List(items):map(function(item) return ItemClass:new(self.ui, item) end):filterm("filter")
 end
 
 --------------------------------------------------------------------------------

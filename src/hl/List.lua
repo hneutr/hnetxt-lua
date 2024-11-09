@@ -1,20 +1,15 @@
 require("pl.class").List(require("pl.List"))
 
-function List:extend(l, ...)
-    if l then
-        self = self._base.extend(self, l)
+function List.extend(list, ...)
+    for _, l in ipairs({...}) do
+        if l then
+            list = list._base.extend(list, l)
+        end
     end
-
-    if ... then
-        self = self:extend(...)
-    end
-
-    return self
+    return list
 end
 
-function List.from(...)
-    return List():extend(...)
-end
+function List.from(...) return List():extend(...) end
 
 function List.is_like(v)
     if type(v) ~= 'table' then
@@ -29,7 +24,7 @@ function List.is_like(v)
         return false
     end
 
-    return result
+    return false
 end
 
 function List.as_list(v)
@@ -40,8 +35,8 @@ function List.as_list(v)
     return List(v)
 end
 
-function List:all()
-    for item in self:iter() do
+function List.all(list)
+    for item in list:iter() do
         if not item then
             return false
         end
@@ -50,8 +45,8 @@ function List:all()
     return true
 end
 
-function List:any()
-    for item in self:iter() do
+function List.any(list)
+    for item in list:iter() do
         if item then
             return item
         end
@@ -60,17 +55,22 @@ function List:any()
     return false
 end
 
-function List:col(col)
+function List.notnil(list)
+    list = list:filter(function(i) return i ~= nil end)
+    return list
+end
+
+function List.col(list, col)
     local l = List()
-    for i, item in ipairs(self) do
+    for i, item in ipairs(list) do
         l:insert(i, item[col])
     end
     return l
 end
 
-function List:unique()
+function List.unique(list)
     local l = List()
-    for i, item in ipairs(self) do
+    for i, item in ipairs(list) do
         if not l:contains(item) then
             l:append(item)
         end
@@ -79,9 +79,9 @@ function List:unique()
     return l
 end
 
-function List:notnil()
-    self = self:filter(function(i) return i end)
-    return self
+function List.filterm(list, method, ...)
+    local vargs = ...
+    return list:filter(function(item) return item[method](item, vargs) end)
 end
 
 return List
