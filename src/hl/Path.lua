@@ -1,7 +1,6 @@
 --[[
 unimplemented implement:
 - pathlib (python):
-    - glob
     - rglob
     - absolute: PATH.abspath
     - link_to
@@ -29,25 +28,18 @@ local PATH = require("path")
 
 local Dict = require("hl.Dict")
 local List = require("hl.List")
-local Set = require("pl.Set")
 
 require("hl.string")
 
 class.Path()
 
-Path.sep = "/"
+local M = Path
 
-function Path.as_string(p)
+M.sep = "/"
+
+function M.as_string(p)
     if p ~= nil and type(p) ~= 'string' then
         p = tostring(p)
-    end
-
-    return p
-end
-
-function Path.as_path(p)
-    if p ~= nil and Path.is_a(p) ~= Path then
-        p = Path(p)
     end
 
     return p
@@ -58,8 +50,8 @@ List({
     "endswith",
     "split",
 }):foreach(function(fn)
-    Path[fn] = function(p, ...)
-        return string[fn](Path.as_string(p), ...)
+    M[fn] = function(p, ...)
+        return string[fn](M.as_string(p), ...)
     end
 end)
 
@@ -67,114 +59,77 @@ List({
     "removesuffix",
     "removeprefix",
 }):foreach(function(fn)
-    Path[fn] = function(p, ...)
-        return Path(string[fn](p.p, ...))
+    M[fn] = function(p, ...)
+        return M(string[fn](p.p, ...))
     end
 end)
 
 
-function Path:_init(path)
-    self.p = Path.expanduser(Path.as_string(path))
+function M:_init(path)
+    self.p = M.expanduser(M.as_string(path))
 end
 
-function Path:__concat(p)
-    return self:join(p)
-end
+function M:__concat(p) return self:join(p) end
 
-function Path:__tostring()
-    return self.p
-end
+function M:__tostring() return self.p end
 
-function Path.__eq(p1, p2)
-    return Path.as_string(p1) == Path.as_string(p2)
-end
+function M.__eq(p1, p2) return tostring(p1) == tostring(p2) end
+function M.__lt(p1, p2) return tostring(p1) < tostring(p2) end
+function M.__gt(p1, p2) return tostring(p1) > tostring(p2) end
 
-function Path.__lt(p1, p2)
-    return tostring(p1) < tostring(p2)
-end
+function M.is_file(p) return PATH.isfile(M.as_string(p)) and true end
 
-function Path.__gt(p1, p2)
-    return tostring(p1) > tostring(p2)
-end
+function M.is_dir(p) return PATH.isdir(M.as_string(p)) and true end
 
-function Path.is_file(p)
-    return PATH.isfile(Path.as_string(p)) and true
-end
+function M.is_url(p) return M.as_string(p):startswith("http") and true end
 
-function Path.is_dir(p)
-    return PATH.isdir(Path.as_string(p)) and true
-end
+function M.exists(p) return PATH.exists(M.as_string(p)) and true end
 
-function Path.is_url(p)
-    return Path.as_string(p):startswith("http") and true
-end
+function M.is_empty(p) return PATH.isempty(M.as_string(p)) and true end
 
-function Path.exists(p)
-    return PATH.exists(Path.as_string(p)) and true
-end
+function M.mkdir(p) PATH.mkdir(M.as_string(p)) end
 
-function Path.is_empty(p)
-    return PATH.isempty(Path.as_string(p)) and true
-end
+function M.unlink(p) PATH.remove(M.as_string(p)) end
 
-function Path.mkdir(p)
-    PATH.mkdir(Path.as_string(p))
-end
-
-function Path.unlink(p)
-    PATH.remove(Path.as_string(p))
-end
-
-function Path:parts()
-    local parts = List(self.p:split(self.sep)):filter(function(part)
+function M:parts()
+    local parts = List(self.p:split(M.sep)):filter(function(part)
         return #part > 0
     end)
 
-    if self.p:startswith(self.sep) then
-        parts:put(self.sep)
+    if self.p:startswith(M.sep) then
+        parts:put(M.sep)
     end
 
     return parts
 end
 
-function Path:read()
+function M:read()
     local fh = io.open(tostring(self), "r")
     local content = fh:read("*a")
     fh:close()
     return content
 end
 
-function Path:readlines()
-    return List(self:read():splitlines())
-end
+function M:readlines() return List(self:read():splitlines()) end
 
-function Path:write(content)
+function M:write(content)
     if not self:parent():exists() then
         self:parent():mkdir()
     end
 
-    content = List.as_list(content)
-    content:transform(tostring)
-
     local fh = io.open(tostring(self), "w")
-    fh:write(content:join("\n"))
+    fh:write(List.as_list(content):map(tostring):join("\n"))
     fh:close()
 end
 
-function Path:touch()
-    if not self:exists() then
-        self:write("")
-    end
-end
+function M:touch() return not self:exists() and self:write("") end
 
-function Path.expanduser(p)
-    return string.gsub(tostring(p), "~", tostring(Path.home))
-end
+function M.expanduser(p) return tostring(p):gsub("~", tostring(M.home)) end
 
-function Path.contractuser(p)
-    local s = string.gsub(tostring(p), tostring(Path.home), "~")
+function M.contractuser(p)
+    local s = tostring(p):gsub(tostring(M.home), "~")
 
-    if Path.is_a(p) == Path then
+    if M.is_a(p) == M then
         p.p = s
     else
         p = s
@@ -183,7 +138,7 @@ function Path.contractuser(p)
     return p
 end
 
-function Path:rename(target)
+function M:rename(target)
     local source = tostring(self)
     target = tostring(target)
 
@@ -198,37 +153,34 @@ function Path:rename(target)
     end
 end
 
-function Path:join(...)
+function M:join(...)
     local parts = List(...)
-    if type(...) == "string" or Path.is_a(...) == Path then
+    if type(...) == "string" or M.is_a(...) == M then
         parts = List({...})
     end
 
     parts:transform(function(part)
-        return string.removeprefix(tostring(part) or "", self.sep)
+        return string.removeprefix(tostring(part) or "", M.sep)
     end)
 
     parts = parts:filter(function(part)
         return part and #part > 0
     end)
 
-    parts:put(self.p:removesuffix(self.sep))
+    parts:put(self.p:removesuffix(M.sep))
 
-    return Path(parts:join(self.sep))
+    return M(parts:join(M.sep))
 end
 
+M.__div = M.join
 
-Path.__div = function(...)
-    return Path.join(...)
-end
-
-function Path:parents()
+function M:parents()
     local parts = self:parts()
     parts:pop()
 
     local parents = List()
     for _, part in ipairs(parts:reverse()) do
-        part = Path(part)
+        part = M(part)
         parents:transform(function(parent) return part:join(parent) end)
         parents:append(part)
     end
@@ -236,66 +188,67 @@ function Path:parents()
     return parents
 end
 
-function Path:parent()
-    return self:parents():pop(1)
-end
+function M.parent(p)
+    local s = tostring(p)
 
-function Path:name()
-    return self:parts():pop()
-end
-
-function Path:suffixes()
-    return List(self:name():split(".")):transform(function(s) return "." .. s end):remove(1)
-end
-
-function Path:suffix()
-    return PATH.extension(tostring(self))
-end
-
-function Path:stem()
-    return self:name():split(".", 1)[1]
-end
-
-function Path:with_name(name)
-    if #self:parents() > 0 then
-        return self:parent():join(name)
+    local parent = ""
+    if s:match("/") then
+        parent = s:rsplit(M.sep, 1)[1]
+        parent = #parent > 0 and parent or s:startswith(M.sep) and M.sep
     end
 
-    return Path(name)
+    return M(parent)
 end
 
-function Path:with_stem(stem)
-    local name = self:name():gsub(self:stem(), stem, 1)
-    return self:with_name(name)
+function M.name(p)
+    local parts = tostring(p):rsplit(M.sep, 1)
+    return parts[#parts]
 end
 
-function Path:with_suffix(suffix)
-    return self:with_name(self:stem() .. suffix)
+function M.suffixes(p)
+    return List(M.name(p):split(".")):transform(function(s) return "." .. s end):remove(1)
 end
 
-function Path:is_absolute()
-    return string.startswith(tostring(self), self.sep)
+function M.suffix(p) return PATH.extension(tostring(p)) end
+
+function M.stem(p) return M.name(p):split(".", 1)[1] end
+
+function M.with_name(p, name)
+    if tostring(p):match(M.sep) then
+        return M.parent(p):join(name)
+    end
+
+    return M(name)
 end
 
-function Path:is_relative_to(other)
-    return string.startswith(tostring(self), tostring(other))
+function M.with_stem(p, stem)
+    local name = M.name(p):gsub(M.stem(p), stem, 1)
+    return M.with_name(p, name)
 end
 
-function Path:relative_to(other)
-    local a = tostring(self)
+function M.with_suffix(p, suffix)
+    return M.with_name(p, M.stem(p) .. suffix)
+end
+
+function M.is_absolute(p) return tostring(p):startswith(M.sep) end
+
+function M.is_relative_to(p, other) return tostring(p):startswith(tostring(other)) end
+
+function M.relative_to(p, other)
+    local a = tostring(p)
     local b = tostring(other)
     if a:startswith(b) then
-        return Path(a:removeprefix(b):removeprefix("/"))
+        return M(a:removeprefix(b):removeprefix("/"))
     else
         error(a .. " is not relative to " .. b)
     end
 end
 
-function Path:resolve()
+function M:resolve()
     self.p = self.p:removeprefix("./")
 
-    if not self:is_relative_to(self.root) and not self:is_relative_to(self.cwd()) then
-        self = self.cwd():join(self)
+    if not self:is_relative_to(M.root) and not self:is_relative_to(M.cwd()) then
+        self = M.cwd():join(self)
     end
 
     local parts = List()
@@ -304,25 +257,25 @@ function Path:resolve()
             if #parts > 0 then
                 parts:pop()
             end
-        else
+        elseif part ~= '.' then
             parts:append(part)
         end
     end
 
     if #parts == 0 then
-        parts:append(self.root)
+        parts:append(M.root)
     end
 
-    return Path(""):join(unpack(parts))
+    return M(""):join(unpack(parts))
 end
 
-function Path:iterdir(args)
+function M:iterdir(args)
     args = Dict(args, {recursive = true, files = true, dirs = true, hidden=false})
 
     local paths = List()
-    local exclusions = Set({[[.]], [[..]]})
+    local exclusions = List({[[.]], [[..]]})
     for stem in lfs.dir(tostring(self)) do
-        if not exclusions[stem] then
+        if not exclusions:contains(stem) then
             local p = self:join(stem)
 
             if (p:is_file() and args.files) or (p:is_dir() and args.dirs) then
@@ -344,21 +297,21 @@ function Path:iterdir(args)
     return paths
 end
 
-function Path:files(args)
+function M:files(args)
     args = args or {}
     args.files = true
     args.dirs = false
-    
+
     return self:iterdir(args)
 end
 
-function Path:glob(pattern, args)
-    return Path.iterdir(self, args):filter(function(p)
+function M:glob(pattern, args)
+    return M.iterdir(self, args):filter(function(p)
         return tostring(p):match(pattern)
     end)
 end
 
-function Path:rmdir(force)
+function M:rmdir(force)
     force = force or false
 
     if not self:exists() then
@@ -380,7 +333,7 @@ function Path:rmdir(force)
     end
 end
 
-function Path:open(open_command)
+function M:open(open_command)
     open_command = open_command or "edit"
 
     if #self:suffix() > 0 then
@@ -404,28 +357,20 @@ function Path:open(open_command)
     end
 end
 
-function Path.cmp(a, b) return tostring(a) < tostring(b) end
-
-function Path.from_commandline(path)
-    return Path(path):resolve()
-end
-
-function Path.string_to_path(s)
+function M.string_to_path(s)
     s = s:gsub("%-", "_")
     s = s:gsub("%s", "-")
-    return Path(s)
+    return M(s)
 end
 
-function Path.this()
-    return Path(vim.fn.expand('%:p'))
-end
+function M.from_commandline(path) return M(path):resolve() end
 
-function Path.cwd()
-    return Path(os.getenv("PWD"))
-end
+function M.this() return M(vim.fn.expand('%:p')) end
 
-Path.root = Path(Path.sep)
-Path.home = Path(os.getenv("HOME"))
-Path.tempdir = Path.root:join("tmp")
+function M.cwd() return M(os.getenv("PWD")) end
 
-return Path
+M.root = M(M.sep)
+M.home = M(os.getenv("HOME"))
+M.tempdir = M.root:join("tmp")
+
+return M

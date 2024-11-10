@@ -43,7 +43,7 @@ function M:insert(row)
     end
 
     local project = DB.projects.get_by_path(row.path)
-    
+
     if not project then
         return
     end
@@ -154,10 +154,10 @@ end
 --------------------------------------------------------------------------------
 function M.move(move)
     local source, target = move.source, move.target
-    
+
     local source_url = M:where({path = source})
     local target_should_exist = M.should_track(target)
-    
+
     if source_url then
         if target_should_exist then
             local to_set = {path = tostring(target)}
@@ -210,45 +210,6 @@ end
 
 function M:get_reference(url)
     return Link({label = url.label, url = url.id})
-end
-
---------------------------------------------------------------------------------
---                                                                            --
---                                   fuzzy                                    --
---                                                                            --
---------------------------------------------------------------------------------
-M.fuzzy = {}
-
-function M.fuzzy.get_path(url, dir)
-    local path = url.path
-
-    if dir then
-        path = path:relative_to(dir)
-    end
-
-    return tostring(path)
-end
-
-function M.fuzzy.get_paths(dir)
-    local q = {where = {type = "file"}}
-
-    if dir then
-        q.contains = {path = string.format("%s*", tostring(dir))}
-    end
-
-    return M:get(q):transform(M.fuzzy.get_path, dir):sorted(function(a, b)
-        return #a < #b
-    end)
-end
-
-function M.fuzzy.from_path(path, dir)
-    local q = {path = path}
-
-    if dir then
-        q.path = Path(dir) / q.path
-    end
-
-    return M:where(q)
 end
 
 return M
