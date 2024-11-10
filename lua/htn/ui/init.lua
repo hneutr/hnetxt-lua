@@ -1,7 +1,4 @@
-local fzf = require("fzf-lua")
-
 local Link = require("htl.text.Link")
-local Line = require("htl.text.Line")
 local Document = require("htl.text.Document")
 local Mirrors = require("htl.Mirrors")
 local Metadata = require("htl.Metadata")
@@ -230,80 +227,6 @@ function M.goto_map_fn(open_cmd)
         end
     end
 end
-
---------------------------------------------------------------------------------
---                                                                            --
---                                                                            --
---                                   fuzzy                                    --
---                                                                            --
---                                                                            --
---------------------------------------------------------------------------------
-function M.fuzzy_goto_map_fn(open_command)
-    return function(selection, scope)
-        local dir = M.get_dir_from_fuzzy_scope(scope)
-        local url = DB.urls.fuzzy.from_path(selection[1], dir)
-        M.goto_url(open_command, url)
-    end
-end
-
-function M.get_dir_from_fuzzy_scope(scope)
-    if scope == "global" then
-        return Path.home
-    end
-
-    return vim.b.htn_project_path and Path(vim.b.htn_project_path) or Path.this():parent()
-end
-
-function M.fuzzy_put(selection, scope)
-    local path = selection[1]
-    vim.api.nvim_put({M.get_fuzzy_reference(path, scope)} , 'c', 1, 0)
-end
-
-function M.fuzzy_insert(selection, scope)
-    local path = selection[1]
-    local reference = M.get_fuzzy_reference(path, scope)
-
-    local cursor = vim.fn.getpos('.')
-    local col = cursor[3]
-
-    local line = vim.fn.getline('.')
-    line, cursor[3] = Line.insert_at_pos(line, col, reference)
-
-    vim.fn.setline('.', line)
-
-    vim.fn.setpos('.', cursor)
-    vim.api.nvim_input(cursor[3] > #line and 'a' or 'i')
-end
-
-function M.get_fuzzy_reference(path, scope)
-    local dir = M.get_dir_from_fuzzy_scope(scope)
-    local url = DB.urls.fuzzy.from_path(path, dir)
-    return tostring(DB.urls:get_reference(url))
-end
-
-function M.map_fuzzy(operation, scope)
-    return function()
-        local dir = tostring(M.get_dir_from_fuzzy_scope(scope))
-
-        local actions = {}
-        for key, fn in pairs(M.fuzzy_actions[operation]) do
-            actions[key] = function(selection) fn(selection, scope) end
-        end
-
-        fzf.fzf_exec(DB.urls.fuzzy.get_paths(dir), {actions = actions})
-    end
-end
-
-M.fuzzy_actions = {
-    goto = {
-        default = M.fuzzy_goto_map_fn("edit"),
-        ["ctrl-j"] = M.fuzzy_goto_map_fn("split"),
-        ["ctrl-l"] = M.fuzzy_goto_map_fn("vsplit"),
-        ["ctrl-t"] = M.fuzzy_goto_map_fn("tabedit"),
-    },
-    put = {default = M.fuzzy_put},
-    insert = {default = M.fuzzy_insert},
-}
 
 --------------------------------------------------------------------------------
 --                                                                            --

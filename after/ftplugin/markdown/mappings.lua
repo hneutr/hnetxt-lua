@@ -1,5 +1,6 @@
 local ui = require("htn.ui")
 local HeadingPopup = require("htn.popup.headings")
+local UrlsPopup = require("htn.popup.urls")
 local TextList = require("htn.text.list")
 
 local mappings = Dict(
@@ -31,6 +32,8 @@ local mappings = Dict(
             ["<C-5>"] = HeadingPopup({level = 5}),
 
             -- misc
+            ["<C-/>"] = UrlsPopup(),
+            ["<C-\\>"] = UrlsPopup({global = false}),
             ["<C-t>"] = ui.set_time_or_calculate_sum,
             ["gG"] = ui.copy_wordcount,
         }),
@@ -40,6 +43,9 @@ local mappings = Dict(
 
             -- symbols
             ["<M-i>"] = require("htn.popup.symbols"),
+
+            -- url insert
+            ["<C-/>"] = UrlsPopup(),
         }),
         v = Dict(),
     },
@@ -47,15 +53,6 @@ local mappings = Dict(
 )
 
 if vim.b.htn_project_path then
-    -- fuzzy
-    mappings.n["<leader>df"] = ui.map_fuzzy("goto")
-    mappings.n["<C-/>"] = ui.map_fuzzy("put")
-    mappings.i["<C-/>"] = ui.map_fuzzy("insert")
-
-    mappings.n["<leader>dF"] = ui.map_fuzzy("goto", "global")
-    mappings.n["<C-\\>"] = ui.map_fuzzy("put", "global")
-    mappings.i["<C-\\>"] = ui.map_fuzzy("insert", "global")
-
     -- scratch
     mappings.n["<leader>s"] = ui.scratch
     mappings.v["<leader>s"] = ui.scratch_map_visual_cmd
@@ -63,6 +60,7 @@ if vim.b.htn_project_path then
     -- mirrors
     mappings.n:update(ui.mirror_mappings())
 end
+
 
 mappings:foreach(function(mode, mode_mappings)
     mode_mappings:foreach(function(rhs, lhs)

@@ -20,7 +20,7 @@ function M.parse(l)
     l = type(l) == "string" and l or tostring(l)
 
     local quote, indent, text = l:match(M.regex)
-    
+
     if #quote > 0 and #indent % 2 == 1 then
         quote = quote .. " "
         indent = indent:sub(2)
@@ -38,15 +38,5 @@ function M:get_next(text)
 end
 
 function M.transform(lines) return lines end
-
-function M.insert_at_pos(l, pos, text)
-    l = l or ""
-    text = text or ""
-
-    local before = l:sub(1, pos - 1)
-    local after = l:sub(pos)
-
-    return before .. text .. after, #before + #text + 1
-end
 
 return M
