@@ -51,10 +51,10 @@ function M.change_type(lines, outer_line, change_type)
         direction = 'on'
         sigil = Item.get_conf("name", change_type).sigil
     end
-    
+
     local toggle_info = M.toggle_info[change_type] or {}
     local Toggler = toggle_info[direction] or Item
-    
+
     return Toggler.transform(lines, sigil):transform(Toggler.__tostring)
 end
 
@@ -67,9 +67,9 @@ function M.change_indent(lines, direction)
         else
             indent = indent:sub(3)
         end
-        
+
         l.indent = indent
-        
+
         return tostring(l)
     end)
 end
@@ -78,7 +78,7 @@ function M.change(lines, change_type, direction)
     lines = lines:transform(M.parse)
 
     local outer_line = lines:sorted(function(a, b) return #a.indent < #b.indent end)[1]
-    
+
     if change_type == 'quote' then
         return M.change_quote(lines, outer_line)
     elseif change_type == 'indent' then

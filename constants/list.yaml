@@ -1,45 +1,28 @@
 - name: bullet
   sigil: '-'
   toggle_key: l
-  toggle_to: line
 - name: dot
   sigil: '*'
   toggle_key: o
   sigil_regex: "\\*"
 - name: number
   toggle_key: n
-  toggle_to: bullet
   sigil_regex: "(\\d+)\\."
 - name: todo
-  sigil: '◻'
-  toggle_key: t
-  highlights:
-    sigil: 
-      fg: blue
-- name: todo.md
   sigil: '- [ ]'
-  toggle_key: T
+  toggle_key: t
 - name: done
-  sigil: '✓'
+  sigil: '- [x]'
   toggle_key: d
-  highlights:
-    sigil: 
-      fg: green
-    text:
-      fg: surface0
-      strikethrough: true
 - name: reject
   sigil: '⨉'
   toggle_key: x
-  highlights: 
-    sigil: 
+  highlights:
+    sigil:
       fg: red
     text:
       fg: surface0
       strikethrough: true
-- name: done.md
-  sigil: '- [x]'
-  toggle_key: D
 - name: maybe
   sigil: '~'
   toggle_key: m
