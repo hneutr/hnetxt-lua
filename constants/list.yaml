@@ -15,22 +15,11 @@
   sigil: '- [x]'
   toggle_key: d
 - name: reject
-  sigil: '⨉'
+  sigil: '- [!]'
   toggle_key: x
-  highlights:
-    sigil:
-      fg: red
-    text:
-      fg: surface0
-      strikethrough: true
 - name: maybe
-  sigil: '~'
+  sigil: '- [~]'
   toggle_key: m
   sigil_regex: "\\~"
-  highlights:
-    sigil:
-      fg: surface2
-    text:
-      fg: surface2
 - name: quote
   toggle_key: q

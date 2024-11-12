@@ -66,44 +66,6 @@ function M.continue()
     vim.api.nvim_input("<esc>" .. command)
 end
 
-function M.syntax()
-    local d = Dict()
-
-    Item.confs:filter(function(conf)
-        return conf.highlights
-    end):foreach(function(conf)
-        local sigil_key = conf.name .. "ListItemSigil"
-        local sigil_pattern = string.format([[^\s*%s\s]], conf.sigil_regex or conf.sigil)
-        local text_key = conf.name .. "ListItemText"
-
-        d[sigil_key] = {
-            val = conf.highlights.sigil,
-            cmd = List({
-                "syn",
-                "match",
-                sigil_key,
-                string.format([[/%s/]], sigil_pattern),
-                "contained"
-            }):join(" "),
-        }
-
-        d[text_key] = {
-            val = conf.highlights.text,
-            cmd = List({
-                "syn",
-                "region",
-                text_key,
-                string.format([[start="%s\+"]], sigil_pattern),
-                [[end="$"]],
-                "containedin=ALL",
-                string.format("contains=%s", sigil_key),
-            }):join(" "),
-        }
-    end)
-
-    return d
-end
-
 function M.change(mode, change_type, ...)
     local lines = TextList.change(
         ui.get_selection({mode = mode}),
