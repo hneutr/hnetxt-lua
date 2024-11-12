@@ -234,22 +234,17 @@ function Popup:init(args)
 end
 
 function Popup:get_data(field)
-    local key = tostring(self.source.buffer)
+    local key = self.source.buffer
     self.data[key] = self.data[key] or {}
     return self.data[key][field]
 end
 
 function Popup:set_data(field, val)
-    local key = tostring(self.source.buffer)
-    self.data[key][field] = val
+    self.data[self.source.buffer][field] = val
 end
 
 function Popup:watch()
-    if self:get_data("watch_autocmd") then
-        return
-    end
-
-    self:set_data(
+    return self:get_data("watch_autocmd") or self:set_data(
         "watch_autocmd",
         vim.api.nvim_create_autocmd(
             "BufModifiedSet",
