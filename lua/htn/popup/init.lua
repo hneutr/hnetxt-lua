@@ -172,7 +172,8 @@ end
 function Item:filter() return self:fuzzy_match() end
 
 function Item:fuzzy_match()
-    return not self.ui.pattern or MiniFuzzy.match(self.ui.pattern, self:fuzzy_string()).score > 0
+    self.score = self.ui.pattern and MiniFuzzy.match(self.ui.pattern, self:fuzzy_string()).score or 0
+    return not self.ui.pattern or self.score > 0
 end
 
 function Item:cursor_highlight_group() return "TelescopeSelection" end

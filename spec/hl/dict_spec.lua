@@ -1,28 +1,6 @@
 local List = require("hl.List")
+require("hl.string")
 local M = require("hl.Dict")
-
-describe("__newindex/__index", function()
-    it("nil", function()
-        local d = M({a = 1})
-        d[nil] = 1
-
-        assert.are.same({a = 1}, d)
-    end)
-
-    it("string", function()
-        local d = M()
-        d.a = 1
-
-        assert.are.same({a = 1}, d)
-    end)
-
-    it("list", function()
-        local l = List({1, 2})
-        local d = M()
-        d[l] = 3
-        assert.are.same(3, d[l])
-    end)
-end)
 
 describe("delist", function()
     it("works", function()
@@ -185,5 +163,43 @@ describe("is_like", function()
 
     it("+: key val", function()
         assert(M.is_like({a = 1}))
+    end)
+end)
+
+describe("set_default", function()
+    it("number", function()
+        local d = M({x = 5}):set_default(1)
+
+        assert.are.same(1, d.y)
+        assert.are.same(5, d.x)
+        assert.are.same({"x", "y"}, d:keys():sorted())
+
+        local _d = M()
+        assert.is_nil(_d.x)
+    end)
+
+    it("string", function()
+        local d = M({x = 5}):set_default("abc")
+
+        assert.are.same("abc", d.y)
+        assert.are.same(5, d.x)
+    end)
+
+    it("list", function()
+        local d = M({x = 1}):set_default(List)
+
+        d.y:append(1)
+        assert.are.same({1}, d.y)
+        assert.are.same(0, #d.z)
+        assert.are.same(1, d.x)
+    end)
+
+    it("dict", function()
+        local d = M({x = 1}):set_default(M)
+
+        d.y.z = 2
+        assert.are.same(2, d.y.z)
+        assert.are.same(M(), d.w)
+        assert.are.same(1, d.x)
     end)
 end)

@@ -13,7 +13,6 @@ end
 
 require("hl.List")
 require("hl.Dict")
-require("hl.DefaultDict")
 require("hl.Set")
 
 require("hl.string")

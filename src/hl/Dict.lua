@@ -1,46 +1,56 @@
 require("pl.class").Dict()
 
--- convert tables into strings when setting
-function Dict.__newindex(self, key, val)
-    key = type(key) == 'table' and tostring(key) or key
+local M = Dict
 
-    if key ~= nil then
-        rawset(self, key, val)
-    end
-end
+local defaults = {}
 
--- 1. convert tables into strings when getting
--- 2. retrieve from Dict first.
-function Dict.__index(self, key)
-    key = type(key) == 'table' and tostring(key) or key
-    return Dict[key] or rawget(self, key)
-end
-
-function Dict:_init(...)
-    self:update(...)
-end
-
-function Dict.update(d, d2, ...)
+function M.update(d, d2, ...)
     if d == nil then
         d = d2
     elseif type(d) == 'table' and type(d2) == 'table' then
-        for k, v2 in pairs(Dict.delist(d2)) do
-            d[k] = Dict.update(d[k], v2)
+        for k, v2 in pairs(M.delist(d2)) do
+            d[k] = d[k] == nil and v2 or M.update(d[k], v2)
         end
     end
 
     if ... then
-        d = Dict.update(d, ...)
+        d = M.update(d, ...)
     end
 
     return d
 end
 
-function Dict.is_like(v)
+M._init = M.update
+
+function M.set_default(d, val)
+    if not defaults[val] then
+        local fn
+
+        if val == M then
+            fn = function() return M():set_default(M) end
+        elseif type(val) == 'table' or type(val) == 'function' then
+            fn = function(self, key) return val() end
+        else
+            fn = function() return val end
+        end
+
+        defaults[val] = function(self, key)
+            if not M[key] and not rawget(self, key) then
+                rawset(self, key, fn())
+            end
+
+            return M[key] or rawget(self, key)
+        end
+    end
+
+    return setmetatable(d, {__index = defaults[val]})
+end
+
+function M.is_like(v)
     return type(v) == 'table' and #v == 0
 end
 
-function Dict.delist(t)
+function M.delist(t)
     local _t = {}
     for k, v in pairs(t) do
         _t[k] = v
@@ -53,8 +63,8 @@ function Dict.delist(t)
     return _t
 end
 
-function Dict.from_list(list, fn)
-    local d = Dict()
+function M.from_list(list, fn)
+    local d = M()
     list:foreach(function(item)
         local key, val = fn(item)
         d[key] = val
@@ -63,7 +73,7 @@ function Dict.from_list(list, fn)
     return d
 end
 
-function Dict.keys(d)
+function M.keys(d)
     local keys = List()
     for key, _ in pairs(d) do
         keys:append(key)
@@ -72,7 +82,7 @@ function Dict.keys(d)
     return keys
 end
 
-function Dict.values(d)
+function M.values(d)
     local values = List()
     for _, value in pairs(d) do
         values:append(value)
@@ -81,21 +91,21 @@ function Dict.values(d)
     return values
 end
 
-function Dict:foreachk(fun, ...)
+function M:foreachk(fun, ...)
     for k, _ in pairs(self) do
         fun(k, ...)
     end
     return self
 end
 
-function Dict:foreachv(fun, ...)
+function M:foreachv(fun, ...)
     for _, v in pairs(self) do
         fun(v, ...)
     end
     return self
 end
 
-function Dict:foreach(fun, ...)
+function M:foreach(fun, ...)
     for k, v in pairs(self) do
         fun(k, v, ...)
     end
@@ -103,8 +113,8 @@ function Dict:foreach(fun, ...)
     return self
 end
 
-function Dict:transformk(fun, ...)
-    local _d = Dict()
+function M:transformk(fun, ...)
+    local _d = M()
     for k, v in pairs(self) do
         self[k] = nil
         _d[fun(k, ...)] = v
@@ -115,7 +125,7 @@ function Dict:transformk(fun, ...)
     return self
 end
 
-function Dict:transformv(fun, ...)
+function M:transformv(fun, ...)
     for k, v in pairs(self) do
         self[k] = fun(v, ...)
     end
@@ -123,7 +133,7 @@ function Dict:transformv(fun, ...)
     return self
 end
 
-function Dict:filterk(fun, ...)
+function M:filterk(fun, ...)
     for k, _ in pairs(self) do
         if not fun(k, ...) then
             self[k] = nil
@@ -133,7 +143,7 @@ function Dict:filterk(fun, ...)
     return self
 end
 
-function Dict:filterv(fun, ...)
+function M:filterv(fun, ...)
     for k, v in pairs(self) do
         if not fun(v, ...) then
             self[k] = nil
@@ -143,35 +153,7 @@ function Dict:filterv(fun, ...)
     return self
 end
 
-function Dict.default(dict, key, val)
-    if dict[key] == nil then
-        dict[key] = val
-    end
-
-    return dict[key]
-end
-
-function Dict.get(dict, key, ...)
-    local value = dict[key] or Dict()
-
-    if ... then
-        value = value:get(...)
-    end
-
-    return value
-end
-
-function Dict:has(key, ...)
-    local has = self:keys():contains(key)
-
-    if has and ... then
-        has = self[key]:has(...)
-    end
-
-    return has
-end
-
-function Dict:__tostring()
+function M:__tostring()
     local lines = List()
 
     self:keys():sorted():foreach(function(k)
@@ -190,14 +172,35 @@ function Dict:__tostring()
     return lines:join("\n")
 end
 
-function Dict.print(d)
-    print(Dict(d))
+function M.print(d)
+    print(M(d))
 end
 
-function Dict:pop(key)
+function M:pop(key)
     local val = self[key]
     self[key] = nil
     return val
 end
 
-return Dict
+function M.get(dict, key, ...)
+    local value = dict[key] or M()
+
+    if ... then
+        value = value:get(...)
+    end
+
+    return value
+end
+
+function M:has(key, ...)
+    local has = self:keys():contains(key)
+
+    if has and ... then
+        has = self[key]:has(...)
+    end
+
+    return has
+end
+
+return M
+-- return M

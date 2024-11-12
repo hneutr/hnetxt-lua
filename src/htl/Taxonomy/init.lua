@@ -74,7 +74,7 @@ function M:get_urls(path, conditions)
 end
 
 function M:get_taxonomy(seeds)
-    local relations_by_subject = DefaultDict(List)
+    local relations_by_subject = Dict():set_default(List)
 
     DB.Relations:get({
         where = {relation = {"instance", "subset", "instances_are_also"}}
@@ -83,7 +83,7 @@ function M:get_taxonomy(seeds)
     end)
     
     local taxonomy = Tree()
-    local taxon_instances = DefaultDict(Set)
+    local taxon_instances = Dict():set_default(Set)
     local instances_are_also = List()
 
     seeds = seeds:clone()

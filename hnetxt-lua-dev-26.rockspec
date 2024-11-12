@@ -31,7 +31,6 @@ build = {
         ["hl.yaml"] = "src/hl/yaml.lua",
         ["hl.List"] = "src/hl/List.lua",
         ["hl.Dict"] = "src/hl/Dict.lua",
-        ["hl.DefaultDict"] = "src/hl/DefaultDict.lua",
         ['hl.Set'] = "src/hl/Set.lua",
         ["hl.Path"] = "src/hl/Path.lua",
         ["hl.Tree"] = "src/hl/Tree.lua",

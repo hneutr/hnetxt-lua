@@ -160,7 +160,7 @@ end
 --------------------------------------------------------------------------------
 function M:_init(args)
     args = args or {}
-    
+
     self.include_instances = args.include_instances
     self.by_attribute = args.by_attribute
     self.by_tag = args.by_tag
@@ -181,7 +181,7 @@ function M:get_included_types()
     if self.include_instances then
         types:add("instance")
     end
-    
+
     if self.include_attribute_values then
         types:add("value")
     end
@@ -207,17 +207,17 @@ end
 
 function M:get_tag_relations_by_key()
     local seeds = Set(self.T.seeds)
-    
+
     local conditions = self.T.conditions:filter(function(c)
         return c.relation and c.relation == "tag"
     end)
-    
+
     if #conditions == 0 then
         conditions:append({relation = "tag"})
     end
-    
-    local key_to_relations = DefaultDict(Set)
-    
+
+    local key_to_relations = Dict():set_default(Set)
+
     conditions:map(self.T.get_condition_rows):foreach(function(rows)
         rows:foreach(function(r)
             if r.key and seeds:has(r.source) then
@@ -225,7 +225,7 @@ function M:get_tag_relations_by_key()
             end
         end)
     end)
-    
+
     return key_to_relations
 end
 
@@ -265,21 +265,21 @@ end
 
 function M:get_attribute_relations_by_key()
     local seeds = Set(self.T.seeds)
-    
+
     local conditions = self.T.conditions:filter(function(c)
         return c.relation and c.relation == "connection"
     end)
-    
+
     if #conditions == 0 then
         conditions:append({relation = "connection"})
     end
-    
-    local key_to_relations = DefaultDict(function() return DefaultDict(Set) end)
-    
+
+    local key_to_relations = Dict():set_default(function() return Dict():set_default(Set) end)
+
     conditions:map(self.T.get_condition_rows):foreach(function(rows)
         rows:foreach(function(r)
             local thing
-            
+
             if r.val then
                 thing = r.val
                 if not self.T.urls_by_id[thing] then
@@ -288,13 +288,13 @@ function M:get_attribute_relations_by_key()
             elseif r.object then
                 thing = r.object
             end
-            
+
             if thing and seeds:has(r.subject) then
                 key_to_relations[r.key or M.conf.__all_relation_type][thing]:add(r.subject)
             end
         end)
     end)
-    
+
     return key_to_relations
 end
 
