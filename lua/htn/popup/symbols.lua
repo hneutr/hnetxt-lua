@@ -61,7 +61,7 @@ end
 --------------------------------------------------------------------------------
 local Choices = Class({}, popup.Choices)
 
-function Choices:get_items()
+function Choices:set_items()
     local items = symbols()
 
     self.ui.path:foreach(function(part) items = items[part] end)
@@ -73,7 +73,7 @@ function Choices:get_items()
         items = Dict.keys(items):sorted()
     end
 
-    return List(items):map(function(item) return ItemClass:new(self.ui, item) end):filterm("filter")
+    self.items = List(items):map(function(item) return ItemClass:new(self.ui, item) end):filterm("filter")
 end
 
 --------------------------------------------------------------------------------

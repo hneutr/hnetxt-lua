@@ -23,8 +23,7 @@ local mappings = Dict(
             ["<c-n>"] = ui.sections.next,
 
             -- headings
-            ["<C-,>"] = HeadingPopup(),
-            ["<C-.>"] = HeadingPopup({nearest = true}),
+            ["<C-.>"] = HeadingPopup(),
             ["<C-1>"] = HeadingPopup({level = 1}),
             ["<C-2>"] = HeadingPopup({level = 2}),
             ["<C-3>"] = HeadingPopup({level = 3}),

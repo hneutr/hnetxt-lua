@@ -184,25 +184,15 @@ local Choices = Class({}, popup.Choices)
 
 Popup.Choices = Choices
 
-function Choices:get_items()
-    if self.ui.nearest then
-        local line = self.ui.nearest
-        self.ui.nearest = false
-        self.ui.items:foreach(function(item)
-            self.ui.parent = item.line <= line and item.index or self.ui.parent
-        end)
-    end
-
+function Choices:set_items()
     self.ui.parent = self.ui.parent or 0
 
-    local items = self.ui.items:filterm("filter")
+    self.items = self.ui.items:filterm("filter")
 
-    if #items > 0 then
-        local pad_level_start = math.min(unpack(items:col("level")))
-        items:foreach(function(item) item.pad_level_start = pad_level_start end)
+    if #self.items > 0 then
+        local pad_level_start = math.min(unpack(self.items:col("level")))
+        self.items:foreach(function(item) item.pad_level_start = pad_level_start end)
     end
-
-    return items
 end
 
 --------------------------------------------------------------------------------
@@ -211,7 +201,6 @@ end
 function Popup:init(args)
     self.level = args.level or #Heading.levels
     self.parent = 0
-    self.nearest = args.nearest and ui.get_cursor().row
 
     self:watch()
     self:set_items()
@@ -281,6 +270,18 @@ function Popup:set_items()
     end
 
     self.items = items
+end
+
+function Popup:open()
+    self.prompt:update()
+    self.input:update()
+    self.choices:set_items()
+
+    for i, item in ipairs(self.choices.items) do
+        self.cursor.index = item.line <= self.source.line and i or self.cursor.index
+    end
+
+    self.cursor:move(0, true)
 end
 
 function Popup:goto_selection()

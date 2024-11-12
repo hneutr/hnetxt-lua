@@ -15,6 +15,9 @@ local Popup = Class({
         ["<C-f>"] = "cursor_page_down",
         ["<C-b>"] = "cursor_page_up",
 
+        ["<C-0>"] = "cursor_top",
+        ["<C-9>"] = "cursor_bottom",
+
         ["<C-z>"] = "center_cursor",
     }
 })
@@ -206,7 +209,7 @@ function Choices:init()
     }
 end
 
-function Choices:get_items() return List() end
+function Choices:set_items() self.items = List() end
 
 function Choices:visible_range()
     local start = self.ui.cursor.offset + 1
@@ -215,7 +218,7 @@ function Choices:visible_range()
 end
 
 function Choices:update()
-    self.items = self:get_items()
+    self:set_items()
     self:draw()
 end
 
@@ -337,6 +340,7 @@ function Popup:new(args)
         buffer = vim.api.nvim_get_current_buf(),
         window = vim.fn.win_getid(),
         mode = vim.api.nvim_get_mode().mode,
+        line = ui.get_cursor().row,
     }
 
     instance:set_dimensions()
@@ -351,7 +355,7 @@ function Popup:new(args)
 
     instance:set_keymap()
 
-    instance:update()
+    instance:open()
 
     vim.cmd.startinsert()
 
@@ -389,11 +393,16 @@ function Popup:update()
     self.components:mapm("update")
 end
 
+Popup.open = Popup.update
+
 function Popup:cursor_down() self.cursor:move(1) end
 function Popup:cursor_up() self.cursor:move(-1) end
 
 function Popup:cursor_page_down() self.cursor:move(self.dimensions.half_page, true) end
 function Popup:cursor_page_up() self.cursor:move(-self.dimensions.half_page, true) end
+
+function Popup:cursor_top() self.cursor:move(-#self.choices.items, true) end
+function Popup:cursor_bottom() self.cursor:move(#self.choices.items, true) end
 
 function Popup:center_cursor() self.cursor:move(0, true) end
 
