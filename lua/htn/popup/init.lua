@@ -209,17 +209,14 @@ function Choices:init()
     }
 end
 
-function Choices:set_items() self.items = List() end
+function Choices:update()
+    self.items = List()
+end
 
 function Choices:visible_range()
     local start = self.ui.cursor.offset + 1
     local stop = start + self.ui.dimensions.height - 1
     return start, stop
-end
-
-function Choices:update()
-    self:set_items()
-    self:draw()
 end
 
 function Choices:draw()
@@ -258,6 +255,7 @@ function Cursor:update()
 end
 
 function Cursor:draw()
+    self.ui.choices:draw()
     self:reset()
 
     if #self.ui.choices.items > 0 then
@@ -287,7 +285,6 @@ function Cursor:move(delta, center)
 
     self:bound_offset()
 
-    self.ui.choices:draw()
     self:draw()
 end
 

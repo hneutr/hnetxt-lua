@@ -74,7 +74,7 @@ end
 local Choices = Class({}, popup.Choices)
 Popup.Choices = Choices
 
-function Choices:set_items()
+function Choices:update()
     self.items = self.ui.items:filterm("filter"):sorted(function(a, b) return a.score < b.score end)
 end
 

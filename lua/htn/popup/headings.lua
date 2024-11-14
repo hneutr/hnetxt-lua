@@ -184,7 +184,7 @@ local Choices = Class({}, popup.Choices)
 
 Popup.Choices = Choices
 
-function Choices:set_items()
+function Choices:update()
     self.ui.parent = self.ui.parent or 0
 
     self.items = self.ui.items:filterm("filter")
@@ -275,7 +275,7 @@ end
 function Popup:open()
     self.prompt:update()
     self.input:update()
-    self.choices:set_items()
+    self.choices:update()
 
     for i, item in ipairs(self.choices.items) do
         self.cursor.index = item.line <= self.source.line and i or self.cursor.index

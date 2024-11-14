@@ -61,7 +61,7 @@ end
 --------------------------------------------------------------------------------
 local Choices = Class({}, popup.Choices)
 
-function Choices:set_items()
+function Choices:update()
     local items = symbols()
 
     self.ui.path:foreach(function(part) items = items[part] end)
