@@ -109,8 +109,11 @@ function M.start()
 end
 
 function M.change()
+    local buffer = vim.api.nvim_get_current_buf()
+    M.sections.clear(buffer)
+
     vim.b.htn_modified = true
-    vim.b.sections = nil
+
     M.set_modified_date()
 end
 
@@ -128,12 +131,14 @@ function M.leave()
 
         M.set_file_url(path)
 
-        Metadata.record(DB.urls:get_file(path))
+        local url = DB.urls:get_file(path)
+        Metadata.record(url)
+        DB.Metadata.record(url)
     end
 
     vim.b.htn_modified = false
 
-    vim.cmd("noautocmd silent! mkview")
+    -- vim.cmd("noautocmd silent! mkview")
 end
 
 --------------------------------------------------------------------------------
@@ -394,11 +399,11 @@ end
 --------------------------------------------------------------------------------
 M.sections = {}
 
-function M.sections.get()
-    if vim.b.sections then
-        return List(vim.b.sections)
-    end
+function M.sections.clear(buffer)
+    M.sections[buffer] = nil
+end
 
+function M.sections.get()
     local query = vim.treesitter.query.parse(
         "markdown",
         [[
@@ -414,15 +419,14 @@ function M.sections.get()
         sections:append(node:start() + 1)
     end
 
-    sections:append(vim.fn.line('$'))
-
-    vim.b.sections = sections
-
-    return sections
+    return sections:append(vim.fn.line('$'))
 end
 
 function M.sections.goto(direction)
-    local sections = M.sections.get()
+    local buffer = vim.api.nvim_get_current_buf()
+    M.sections[buffer] = M.sections[buffer] or M.sections.get()
+
+    local sections = M.sections[buffer]
 
     local row = M.get_cursor().row
 

@@ -46,10 +46,10 @@ describe("convert_lines", function()
             },
             M.transform(List({
                 Item("* a"),
-                Item("  ~ b"),
+                Item("  - [~] b"),
                 Item("    - c"),
                 Item("    - d"),
-                Item("  ~ e"),
+                Item("  - [~] e"),
                 Item("    - f"),
                 Item("    - g"),
                 Item("- h"),

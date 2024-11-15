@@ -51,7 +51,7 @@ function M:insert(row)
     return SqliteTable.insert(M, {
         path = tostring(row.path),
         project = project.title,
-        label = row.label or M:path_to_label(row.path),
+        label = row.label or M.path_to_label(row.path),
         type = row.type,
         created = row.created or os.date("%Y%m%d"),
     })
@@ -163,7 +163,7 @@ function M.move(move)
             local to_set = {path = tostring(target)}
 
             if M.has_default_label(source_url) then
-                to_set.label = M:path_to_label(target)
+                to_set.label = M.path_to_label(target)
             end
 
             M:update({
@@ -193,7 +193,7 @@ function M:update_project(path)
     end
 end
 
-function M:path_to_label(path)
+function M.path_to_label(path)
     if path:name() == tostring(Conf.paths.dir_file) then
         path = path:parent()
     end
@@ -205,7 +205,7 @@ function M:path_to_label(path)
 end
 
 function M.has_default_label(url)
-    return url.label == M:path_to_label(url.path)
+    return url.label == M.path_to_label(url.path)
 end
 
 function M:get_reference(url)

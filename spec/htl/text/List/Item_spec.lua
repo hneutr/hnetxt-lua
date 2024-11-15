@@ -41,7 +41,7 @@ describe("convert_lines", function()
             M.transform(
                 List({
                     M("* a"),
-                    M("  ~ b"),
+                    M("  - [~] b"),
                     M("    - c")
                 }),
                 "-"

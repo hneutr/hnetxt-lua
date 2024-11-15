@@ -21,6 +21,8 @@ require("hl.io")
 require("hl.Path")
 require("hl.Tree")
 
+UnitTest = require("hl.UnitTest")
+
 utils = require("hl.utils")
 
 SqliteTable = require("sqlite.tbl")

@@ -23,7 +23,7 @@ end
 function M.get_metadata_lines(path)
     local lines = M.separate_metadata(M.read_metadata_lines(path))
     lines:extend(M.read_metadata_lines(Mirrors:get_path(path, "metadata")))
-    
+
     return lines
 end
 
@@ -42,7 +42,7 @@ function M.read_metadata_lines(path)
             end
         end)
     end
-    
+
     return lines
 end
 
@@ -123,7 +123,7 @@ end
 
 function Relation:syntax()
     local conf = M.conf.relations[self.name]
-    
+
     if conf then
         return {[self.name .. "TaxonomySymbol"] = {string = conf.symbol, color = conf.color.syntax}}
     end
@@ -133,7 +133,7 @@ function Relation:condition_is_a(l) return self:line_is_a(l) end
 function Relation:from_commandline(str)
     local condition = Dict({relation = self.name})
     str, condition.is_exclusion = str:removesuffix(M.conf.grammar.exclusion_suffix)
-    
+
     str, condition.is_recursive = str:gsub(M.conf.grammar.recursive, ":")
 
     condition.is_recursive = condition.is_recursive > 0
@@ -152,7 +152,7 @@ function Relation.val_to_url_id(val)
         local url = DB.urls:get_file(path)
         val = url and url.id or val
     end
-    
+
     return val
 end
 
@@ -182,7 +182,7 @@ function ConnectionRelation:make(key, val)
 
     r[key_field] = key
     r[val_field] = val
-    
+
     return r
 end
 
@@ -201,11 +201,11 @@ function ConnectionRelation:annotate_condition(condition, str)
                 vals:append(v)
             end
         end)
-        
+
         if #objects > 0 then
             condition.object = objects
         end
-        
+
         if #vals > 0 then
             condition.val = vals
         end
@@ -276,12 +276,12 @@ function InstanceRelation:line_is_a(l) return l and l:strip():startswith("is a:"
 
 function InstanceRelation:parse(object, subject)
     local l = ""
-    
+
     if object:match(",") then
         l, object = unpack(object:rsplit(',', 1):mapm("strip"))
         l = string.format("is a: %s", l)
     end
-    
+
     return l, self:make(subject, object)
 end
 
@@ -297,11 +297,11 @@ function TagRelation:clean(l) return l:strip():removeprefix(self.symbol) end
 function TagRelation:line_is_a(l) return l and l:match(self.symbol) and true or false end
 function TagRelation:parse(tag)
     local l = ""
-    
+
     tag = tag:strip()
     if not tag:startswith(self.symbol) then
         local split = tag:rsplit(self.symbol, 1)
-        
+
         if #split == 1 then
             tag = split[1]
         else
@@ -317,7 +317,7 @@ function TagRelation:make(tag)
 
     tag = self:clean(tag)
     tag = self.parse_link(tag)
-    
+
     if type(tag) == "number" then
         r.object = tag
     else
@@ -341,13 +341,13 @@ function TagRelation:annotate_condition(condition, str)
             condition.key:append(key)
         end
     end)
-    
+
     List({"object", "key"}):foreach(function(k)
         if #condition[k] == 0 then
             condition[k] = nil
         end
     end)
-    
+
     return condition
 end
 
@@ -370,7 +370,7 @@ function M.parse_condition(str)
         SubsetRelation,
         ConnectionRelation,
     })
-    
+
     for _Relation in Relations:iter() do
         if _Relation:condition_is_a(str) then
             return _Relation:from_commandline(str)
@@ -380,7 +380,7 @@ end
 
 function M.get_relations(url, line, context)
     local relations = List()
-    
+
     M.Relations:filter(function(_Relation)
         return _Relation.contexts[context]
     end):foreach(function(_Relation)

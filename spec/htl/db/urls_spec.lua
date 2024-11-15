@@ -28,7 +28,7 @@ before_each(function()
     f3:touch()
     f4:touch()
     f5:touch()
-    
+
     M = DB.urls
 end)
 
@@ -385,18 +385,6 @@ describe("get", function()
     end)
 end)
 
-describe("path_to_label", function()
-    Dict({
-        ["no label, non-dir file"] = {input = Path("a/b/c.md"), expected = "c"},
-        ["no label, dir file"] = {input = Path("a/b/@.md"), expected = "b"},
-        ["underscore → hyphen"] = {input = Path("_a.md"), expected = "-a"},
-    }):foreach(function(name, test)
-        it(name, function()
-            assert.are.same(test.expected, M:path_to_label(test.input))
-        end)
-    end)
-end)
-
 describe("set_project", function()
     it("works", function()
         DB.projects:drop()
@@ -459,3 +447,10 @@ describe("clean", function()
     end)
 end)
 
+describe("path_to_label", function()
+    UnitTest.suite(M.path_to_label, {
+        ["no label, non-dir file"] = {input = Path("a/b/c.md"), expected = "c"},
+        ["no label, dir file"] = {input = Path("a/b/@.md"), expected = "b"},
+        ["underscore → hyphen"] = {input = Path("_a.md"), expected = "-a"},
+    })
+end)

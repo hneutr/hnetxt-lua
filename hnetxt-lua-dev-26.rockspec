@@ -34,6 +34,7 @@ build = {
         ['hl.Set'] = "src/hl/Set.lua",
         ["hl.Path"] = "src/hl/Path.lua",
         ["hl.Tree"] = "src/hl/Tree.lua",
+        ["hl.UnitTest"] = "src/hl/UnitTest.lua",
         ["hl.utils"] = "src/hl/utils.lua",
         
         ["htl"] = "src/htl/init.lua",
@@ -53,6 +54,7 @@ build = {
         ["htl.db.Log"] = "src/htl/db/Log.lua",
         ["htl.db.Paths"] = "src/htl/db/Paths.lua",
         ["htl.db.Relations"] = "src/htl/db/Relations.lua",
+        ["htl.db.Metadata"] = "src/htl/db/Metadata.lua",
         ["htl.db.Instances"] = "src/htl/db/Instances.lua",
 
         ["htl.Taxonomy"] = "src/htl/Taxonomy/init.lua",
