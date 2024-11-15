@@ -1,5 +1,5 @@
 colors:
   label: [cyan, underline]
-  label_delimiters: black
-  url: black
-  url_delimiters: black
+  label_delimiters: base
+  url: base
+  url_delimiters: base

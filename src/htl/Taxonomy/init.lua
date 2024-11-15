@@ -7,7 +7,7 @@ function M:_init(args)
     self:read_args(args)
 
     self.urls_by_id, self.seeds = self:get_urls(self.path, self.conditions)
-    
+
     self.taxonomy, self.taxon_instances = M:get_taxonomy(self.seeds)
 
     self.taxonomy, self.taxon_instances = self:filter_taxa(
@@ -16,7 +16,7 @@ function M:_init(args)
         self.urls_by_id,
         self.conditions
     )
-    
+
     self.rows = M:get_rows(self.urls_by_id, self.taxonomy, self.taxon_instances)
 
     if self.should_persist then
@@ -32,7 +32,7 @@ function M:read_args(args)
     end
 
     self.conditions = M:transform_conditions(List(args.conditions))
-    
+
     self.should_persist = not self.path and #self.conditions == 0
 end
 
@@ -59,14 +59,14 @@ end
 function M:get_urls(path, conditions)
     local urls_by_id = Dict()
     local seeds = Set()
-    
+
     DB.urls:get({where = {type = {"file", "taxonomy_entry"}}}):foreach(function(u)
         if u.type == "file" then
             if not path or u.path:is_relative_to(path) then
                 seeds:add(u.id)
             end
         end
-        
+
         urls_by_id[u.id] = u
     end)
 
@@ -81,7 +81,7 @@ function M:get_taxonomy(seeds)
     }):foreach(function(r)
         relations_by_subject[r.subject]:append(r)
     end)
-    
+
     local taxonomy = Tree()
     local taxon_instances = Dict():set_default(Set)
     local instances_are_also = List()
@@ -130,13 +130,13 @@ function M.taxa_object_to_url_id(object, taxa, urls_by_id)
     if type(object) == "number" then
         return object
     end
-    
+
     for id in taxa:iter() do
         if urls_by_id[id].label == object then
             return id
         end
     end
-    
+
     return
 end
 
@@ -157,7 +157,7 @@ function M:filter_taxa(taxonomy, taxon_instances, urls_by_id, conditions)
             end)
         end
     end)
-    
+
     if #taxa == 0 then
         return taxonomy, taxon_instances
     end
@@ -172,7 +172,7 @@ function M:filter_taxa(taxonomy, taxon_instances, urls_by_id, conditions)
             clean_taxonomy[t] = taxonomy:get(t)
         end
     end)
-    
+
     taxonomy = clean_taxonomy
 
     local nodes = Set(taxonomy:nodes())
@@ -187,8 +187,6 @@ end
 --                                                                            --
 --                                                                            --
 --------------------------------------------------------------------------------
-M.TagRelation = Metadata.TagRelation
-
 function M:apply_conditions(seeds, conditions)
     conditions:foreach(function(condition)
         if condition.relation ~= "subset" then
@@ -214,13 +212,13 @@ function M.get_condition_rows(c)
     while #objects > 0 do
         local object = objects:pop()
         q.where.object = #object > 0 and object or nil
-        
+
         local subrows = DB.Relations:get(q)
         rows:extend(subrows)
 
         if c.is_recursive then
             local object = subrows:col('subject')
-            
+
             if #object > 0 then
                 objects:append(object)
             end
@@ -239,9 +237,9 @@ function M.get_condition_query(c)
             relation = relation,
         }
     }
-    
+
     local relations = List({"tag", "connection"})
-    
+
     if relations:contains(relation) then
         -- TODO: this is janky; we should probably get rid of the `connection` type entirely
         -- but...
@@ -275,7 +273,7 @@ function M.get_condition_query(c)
     if c.val and #c.val > 0 then
         q.where.val = c.val
     end
-    
+
     return q
 end
 
@@ -283,7 +281,7 @@ function M:transform_conditions(conditions)
     conditions:transform(M.clean_condition)
     conditions = M.merge_conditions(conditions)
     conditions:transform(Metadata.parse_condition)
-    
+
     return conditions
 end
 

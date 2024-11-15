@@ -18,7 +18,7 @@ return {
                     {"[", colors.bracket},
                     {p.created, colors.date},
                     {"]", colors.bracket},
-                    {p.title},
+                    {" " .. p.title},
                 })
             end):join("\n")
         end
@@ -30,12 +30,11 @@ return {
             {"-c --created", default = os.date("%Y%m%d"), description = "start date"},
             action = function(args)
                 args.path:mkdir()
-                local Metadata = require("htl.Metadata")
 
                 DB.projects:insert(args)
                 args.path:glob("%.md$"):foreach(function(path)
                     DB.urls:insert({path = path})
-                    Metadata.record(DB.urls:get_file(path))
+                    DB.Metadata.record(DB.urls:get_file(path))
                 end)
             end,
         },

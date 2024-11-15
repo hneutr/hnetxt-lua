@@ -52,7 +52,7 @@ require("htl.cli")({
                 end
 
                 local page = args.page and tostring(args.page) or ''
-                
+
                 return string.format([[%s +"lua require('htn.ui').quote(%s)"]], p, page)
             end,
         },
@@ -113,10 +113,7 @@ require("htl.cli")({
                 end
 
                 local id = DB.urls:insert({path = path})
-
-                local Metadata = require("htl.Metadata")
-
-                Metadata.record(DB.urls:where({id = id}))
+                require("htl.db.Metadata").record(DB.urls:where({id = id}))
 
                 return path
             end,
@@ -134,7 +131,7 @@ require("htl.cli")({
                 require("htl.Taxonomy")()
 
                 if args.reparse_taxonomy then
-                    require("htl.Metadata").persist()
+                    require("htl.db.Metadata").persist()
                 end
             end
         },
@@ -168,10 +165,10 @@ require("htl.cli")({
 
                 local path = args.directory / string.format("%s.md", name)
                 path:write(lines)
-                
+
                 if args.date then
                     DB.urls:insert({path = path})
-                    
+
                     local url = DB.urls:get_file(path)
                     if url then
                         DB.urls:update({
@@ -180,7 +177,7 @@ require("htl.cli")({
                         })
                     end
                 end
-                
+
                 return string.format(
                     [[%s %s]],
                     path,
@@ -202,13 +199,13 @@ require("htl.cli")({
             action = function(args)
                 local pdf = args.directory / string.format("%s.pdf", args.path:stem())
                 local tmp = Path.tempdir / args.path:name()
-                
+
                 local Document = require("htl.text.Document")
                 local doc = Document({
                     path = args.path,
                     private = args.private,
                 })
-                
+
                 tmp:write(doc.lines)
                 os.execute(string.format("pandoc --pdf-engine=lualatex -s -o %s %s", pdf, tmp))
                 tmp:unlink()

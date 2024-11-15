@@ -2,7 +2,7 @@ require("htl")
 
 local M = {}
 
-M.color_to_code = Dict()
+M.colors = {}
 
 function M.hex_to_rgb(hex)
     hex = hex:removeprefix("#")
@@ -10,37 +10,35 @@ function M.hex_to_rgb(hex)
         hex:sub(1, 2),
         hex:sub(3, 4),
         hex:sub(5, 6),
-    }):transform(function(x)
+    }):map(function(x)
         return tonumber("0x" .. x)
     end)
 end
 
-function M.ansi_from_hex(hex)
-    return string.format("[38;2;%d;%d;%dm", unpack(M.hex_to_rgb(hex)))
+function M.from_hex(hex)
+    return ("[38;2;%d;%d;%dm"):format(unpack(M.hex_to_rgb(hex)))
 end
 
-function M.ansi_from_code(code)
-    return string.format("%s[%dm", string.char(27), Conf.colors.term[code])
+function M.from_code(code)
+    return ("[%dm"):format(code)
 end
 
-function M.get_code(color)
-    if not M.color_to_code[color] then
-        if color:startswith("#") then
-            M.color_to_code[color] = M.ansi_from_hex(color)
-        else
-            M.color_to_code[color] = M.ansi_from_code(color)
-        end
-    end
-    
-    return M.color_to_code[color] or ""
+function M.define(color)
+    color = Conf.colors.term[color] or Conf.colors.vim[color] or color
+    return type(color) == "number" and M.from_code(color) or M.from_hex(color)
+end
+
+function M.get(color)
+    M.colors[color] = M.colors[color] or M.define(color)
+    return M.colors[color] or ""
 end
 
 function M.apply(str, colors)
     return string.format(
         "%s%s%s",
-        List.as_list(colors):transform(M.get_code):join(""),
+        List.as_list(colors):transform(M.get):join(""),
         tostring(str),
-        M.get_code("reset")
+        M.get("reset")
     )
 end
 

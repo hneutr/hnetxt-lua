@@ -1,3 +1,4 @@
+local OldMetadata = require("htl.Metadata")
 local Mirrors = require("htl.Mirrors")
 
 local M = SqliteTable("Metadata", {
@@ -360,6 +361,9 @@ function M.get_rows(url)
 end
 
 function M.record(url)
+    -- TODO: remove
+    OldMetadata.record(url)
+
     if not url then
         return
     end
@@ -398,6 +402,8 @@ function M.set_quote_label(url)
 end
 
 function M.persist()
+    -- TODO: remove
+    OldMetadata.persist(url)
     DB.Metadata:drop()
 
     DB.urls:get({where = {type = "file"}}):sorted(function(a, b)

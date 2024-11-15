@@ -1,6 +1,5 @@
 local htl = require("htl")
 local Mirrors = require("htl.Mirrors")
-local Metadata = require("htl.Metadata")
 
 local Link = require("htl.text.Link")
 
@@ -257,40 +256,37 @@ describe("remove", function()
 
         local u2 = DB.urls:where({path = f2})
 
-        Metadata.record(u1)
-        Metadata.record(u2)
+        DB.Metadata.record(u1)
+        DB.Metadata.record(u2)
 
-        assert(DB.Relations:where({
+        assert(DB.Metadata:where({
             subject = u1.id,
-            relation = "instance",
-            object = DB.Relations.get_url_id("x"),
+            predicate = "instance",
+            object = DB.Metadata.Taxonomy.get_url("x"),
         }))
 
         local u2_instance_r = {
             subject = u2.id,
-            relation = "instance",
-            object = DB.Relations.get_url_id("y"),
+            predicate = "instance",
+            object = DB.Metadata.Taxonomy.get_url("y"),
         }
 
-        assert(DB.Relations:where(u2_instance_r))
+        assert(DB.Metadata:where(u2_instance_r))
 
-        assert(DB.Relations:where({
+        assert(DB.Metadata:where({
             subject = u2.id,
-            relation = "connection",
+            predicate = "test_connection",
             object = u1.id,
-            key = "test_connection",
         }))
 
         M:remove({id = u1.id})
-        assert.is_nil(DB.Relations:where({subject = u1.id}))
+        assert.is_nil(DB.Metadata:where({subject = u1.id}))
 
-        assert(DB.Relations:where(u2_instance_r))
+        assert(DB.Metadata:where(u2_instance_r))
 
-        assert(DB.Relations:where({
+        assert(DB.Metadata:where({
             subject = u2.id,
-            relation = "connection",
-            val = l1,
-            key = "test_connection",
+            predicate = "test_connection." .. l1,
         }))
 
         assert.are.same(
@@ -324,39 +320,36 @@ describe("remove_references_to_url", function()
 
         local u2 = DB.urls:where({path = f2})
 
-        Metadata.record(u1)
-        Metadata.record(u2)
+        DB.Metadata.record(u1)
+        DB.Metadata.record(u2)
 
-        assert(DB.Relations:where({
+        assert(DB.Metadata:where({
             subject = u1.id,
-            relation = "instance",
-            object = DB.Relations.get_url_id("x"),
+            predicate = "instance",
+            object = DB.Metadata.Taxonomy.get_url("x"),
         }))
 
         local u2_instance_r = {
             subject = u2.id,
-            relation = "instance",
-            object = DB.Relations.get_url_id("y"),
+            predicate = "instance",
+            object = DB.Metadata.Taxonomy.get_url("y"),
         }
 
-        assert(DB.Relations:where(u2_instance_r))
+        assert(DB.Metadata:where(u2_instance_r))
 
-        assert(DB.Relations:where({
+        assert(DB.Metadata:where({
             subject = u2.id,
-            relation = "connection",
+            predicate = "test_connection",
             object = u1.id,
-            key = "test_connection",
         }))
 
         M.remove_references_to_url(u1)
 
-        assert(DB.Relations:where(u2_instance_r))
+        assert(DB.Metadata:where(u2_instance_r))
 
-        assert(DB.Relations:where({
+        assert(DB.Metadata:where({
             subject = u2.id,
-            relation = "connection",
-            val = l1,
-            key = "test_connection",
+            predicate = "test_connection." .. l1,
         }))
 
         assert.are.same(

@@ -17,7 +17,7 @@ Component.keys = List({
 function Component:_init(conf, parent)
     self.conf = self:format_conf(conf)
     self.name = self.conf.name
-    
+
     self:set_parent(parent)
     self:set_element()
     self:set_element_keys()
@@ -139,7 +139,7 @@ Command.subcomponent_types = List({
 function Command:_init(conf, parent)
     Component._init(self, conf, parent)
 
-    self.name_parts = List.from(self.parent.name_parts, {self.name})  
+    self.name_parts = List.from(self.parent.name_parts, {self.name})
 
     self:add_alias()
     self:add_subcomponents()
@@ -149,21 +149,21 @@ function Command:format_conf(conf)
     if conf.alias == true then
         conf.alias = conf.name
     end
-    
+
     local print_fn = Dict.pop(conf, "print")
 
     if print_fn then
         conf.action = function(args)
-            print(print_fn(args))
+            io.write(tostring(print_fn(args)) .. "\n")
         end
     end
-    
+
     local edit_fn = Dict.pop(conf, "edit")
-    
+
     if edit_fn then
         conf.action = function(args)
             local result = edit_fn(args)
-            
+
             if conf.call_with then
                 result = string.format("%s %s", result, conf.call_with)
             end
@@ -171,7 +171,7 @@ function Command:format_conf(conf)
             os.execute(string.format("< /dev/tty nvim %s", result))
         end
     end
-    
+
     conf.commands = Dict(conf.commands):foreach(function(k, v) v.name = k end):values()
 
     return conf
@@ -212,7 +212,7 @@ Parser.bin_dir = Conf.paths.lib_dir / "bin"
 
 function Parser:_init(conf)
     Command._init(self, conf)
-    
+
     self:write_shell_content()
 
     self.element:parse()

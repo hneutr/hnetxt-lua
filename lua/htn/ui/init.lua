@@ -1,7 +1,6 @@
 local Link = require("htl.text.Link")
 local Document = require("htl.text.Document")
 local Mirrors = require("htl.Mirrors")
-local Metadata = require("htl.Metadata")
 
 local M = {}
 
@@ -130,10 +129,7 @@ function M.leave()
         end
 
         M.set_file_url(path)
-
-        local url = DB.urls:get_file(path)
-        Metadata.record(url)
-        DB.Metadata.record(url)
+        DB.Metadata.record(DB.urls:get_file(path))
     end
 
     vim.b.htn_modified = false

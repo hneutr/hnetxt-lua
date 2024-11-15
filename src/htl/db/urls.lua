@@ -1,6 +1,5 @@
 local Mirrors = require("htl.Mirrors")
 local Link = require("htl.text.Link")
-local Metadata = require("htl.Metadata")
 
 local M = SqliteTable("urls", {
     id = true,
@@ -140,7 +139,7 @@ function M.remove_references_to_url(url_to_remove)
                     p:write(p:read():gsub(link_string, link.label))
                 end
             end)
-            Metadata.record(url)
+            DB.Metadata.record(url)
         end)
     end
 end
