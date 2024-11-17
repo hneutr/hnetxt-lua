@@ -197,33 +197,30 @@ end
 function M.set_file_url(path)
     path = path or Path.this()
     if path and path:exists() and DB.urls.should_track(path) then
-        DB.urls:insert({path = path})
-
-        local url = DB.urls:get_file(path) or {}
-
-        vim.b.url_id = url.id
-    end
-end
-
-function M.goto_url(open_command, url)
-    if not url then
-        return
-    end
-
-    if url.path ~= Path.this() then
-        url.path:open(open_command)
+        vim.b.url_id = DB.urls:insert({path = path})
     end
 end
 
 function M.goto_map_fn(open_cmd)
     return function()
-        local url = Link:get_nearest(vim.fn.getline('.'), M.get_cursor().col).url
+        local col = M.get_cursor().col
+        local line = vim.fn.getline('.')
+        local path = Path.from_commandline(line:strip())
 
-        if url then
-            if Path(url):is_url() then
-                os.execute(string.format("open %s", url))
-            else
-                M.goto_url(open_cmd, DB.urls:where({id = url}))
+        if path:exists() then
+            path:open(open_cmd)
+        else
+            local url = Link:get_nearest(line, col).url
+
+            if url then
+                if Path.is_url(url) then
+                    os.execute(string.format("open %s", url))
+                else
+                    url = DB.urls:where({id = url})
+                    if url and url.path ~= Path.this() then
+                        url.path:open(open_cmd)
+                    end
+                end
             end
         end
     end

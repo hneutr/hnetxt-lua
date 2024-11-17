@@ -52,7 +52,6 @@ build = {
         ["htl.db.samples"] = "src/htl/db/samples.lua",
         ["htl.db.Log"] = "src/htl/db/Log.lua",
         ["htl.db.Paths"] = "src/htl/db/Paths.lua",
-        ["htl.db.Relations"] = "src/htl/db/Relations.lua",
         ["htl.db.Metadata"] = "src/htl/db/Metadata.lua",
         ["htl.db.Instances"] = "src/htl/db/Instances.lua",
 

@@ -1,5 +1,4 @@
 local M = class()
-M.conf = Dict(Conf.Taxonomy)
 
 function M:_init(args)
     self:read_args(args)

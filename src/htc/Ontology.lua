@@ -201,8 +201,8 @@ function M:__tostring()
     return lines:transform(tostring):join("\n")
 end
 
+-- TODO fix this
 function M:get_attribute_relations_by_key()
-    -- TODO fix this
     local seeds = Set(self.T.seeds)
 
     local conditions = self.T.conditions:filter(function(c)

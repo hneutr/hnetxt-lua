@@ -31,14 +31,22 @@ local M = SqliteTable("urls", {
 })
 
 function M.should_track(path)
-    return path:suffix() == ".md" and not Mirrors:is_mirror(path) and DB.projects.get_by_path(path) ~= nil
+    return List.all({
+        path:suffix() == ".md",
+        not Mirrors:is_mirror(path),
+        DB.projects.get_by_path(path) ~= nil,
+    })
 end
 
 function M:insert(row)
     row.type = row.type or "file"
 
-    if row.type == "file" and M:get_file(row.path) then
-        return
+    if row.type == "file" then
+        local url = M:get_file(row.path)
+
+        if url then
+            return url.id
+        end
     end
 
     local project = DB.projects.get_by_path(row.path)

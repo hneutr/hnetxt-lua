@@ -385,7 +385,7 @@ function M.set_quote_label(url)
     })
 
     if is_quote and DB.urls.has_default_label(url) and tonumber(url.label) then
-        local source_row = DB.Relations:where({subject = url.id, predicate = "source"})
+        local source_row = DB.Metadata:where({subject = url.id, predicate = "source"})
         local source = source_row and DB.urls:where({id = source_row.object})
 
         if source then
