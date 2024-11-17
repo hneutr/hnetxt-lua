@@ -127,9 +127,9 @@ function Item:filter()
         result = result and is_todo
     end
 
-    if self.ui.meta_type then
+    if #self.ui.meta_types:keys() > 0 then
         local is_type = false
-        self.meta:foreach(function(meta) is_type = is_type or meta.key == self.ui.meta_type end)
+        self.meta:foreach(function(key) is_type = is_type or self.ui.meta_types[key] end)
         result = result and is_type
     end
 
@@ -150,8 +150,10 @@ function Prompt:get()
         parts:append("todo")
     end
 
-    if self.ui.meta_type then
-        parts:append(Heading.conf.meta[self.ui.meta_type].symbol)
+    if self.ui.meta_types then
+        parts:extend(self.ui.meta_types:keys():sorted():map(function(key)
+            return Heading.conf.meta[key].symbol
+        end))
     end
 
     if self.ui.level < #Heading.levels then
@@ -200,6 +202,7 @@ end
 --------------------------------------------------------------------------------
 function Popup:init(args)
     self.level = args.level or #Heading.levels
+    self.meta_types = Dict({})
     self.parent = 0
 
     self:watch()
@@ -215,8 +218,7 @@ function Popup:init(args)
 
     for key, conf in pairs(Heading.conf.meta) do
         self.actions[string.format("filter_%s", key)] = function()
-            self.todo = false
-            self.meta_type = self.meta_type ~= key and key or nil
+            self.meta_types[key] = not self.meta_types[key] and true or nil
             self:update()
         end
     end
@@ -309,9 +311,13 @@ function Popup:enter_root()
 end
 
 function Popup:filter_todo()
-    self.todo = self.todo or false
-    self.todo = not self.todo
-    self.meta_type = nil
+    if #self.meta_types:keys() > 0 then
+        self.meta_types = Dict()
+    else
+        Dict.foreachk(Heading.conf.meta, function(key)
+            self.meta_types[key] = true
+        end)
+    end
     self:update()
 end
 
