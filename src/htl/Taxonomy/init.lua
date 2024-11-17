@@ -1,5 +1,3 @@
-local Metadata = require("htl.Metadata")
-
 local M = class()
 M.conf = Dict(Conf.Taxonomy)
 
@@ -31,9 +29,14 @@ function M:read_args(args)
         self.path = Path.from_commandline(args.path)
     end
 
-    self.conditions = M:transform_conditions(List(args.conditions))
+    self:parse_conditions(List(args.conditions))
 
     self.should_persist = not self.path and #self.conditions == 0
+end
+
+function M:parse_conditions(raw)
+    self.conditions = List()
+    raw:map(M.Condition.clean):map(M.Condition.split):reduce(List.extend):foreach(M.Condition.add, self.conditions)
 end
 
 function M:get_rows(urls_by_id, taxonomy, taxon_instances)
@@ -70,27 +73,27 @@ function M:get_urls(path, conditions)
         urls_by_id[u.id] = u
     end)
 
-    return urls_by_id, self:apply_conditions(seeds, conditions):vals()
+    self.conditions:foreach(function(c) seeds = M.Condition.apply(c, seeds) end)
+
+    return urls_by_id, seeds:vals()
 end
 
 function M:get_taxonomy(seeds)
-    local relations_by_subject = Dict():set_default(List)
+    local subject_to_rows = Dict():set_default(List)
 
-    DB.Relations:get({
-        where = {relation = {"instance", "subset", "instances_are_also"}}
-    }):foreach(function(r)
-        relations_by_subject[r.subject]:append(r)
-    end)
+    DB.Metadata:get({
+        where = {predicate = {"instance", "subset", "instances are a"}}
+    }):foreach(function(r) subject_to_rows[r.subject]:append(r) end)
 
     local taxonomy = Tree()
     local taxon_instances = Dict():set_default(Set)
-    local instances_are_also = List()
+    local instances_are_a = List()
 
     seeds = seeds:clone()
     while #seeds > 0 do
         local subject = seeds:pop()
 
-        relations_by_subject:pop(subject):foreach(function(r)
+        subject_to_rows:pop(subject):foreach(function(r)
             local object = r.object
 
             if r.relation == "instance" then
@@ -98,7 +101,7 @@ function M:get_taxonomy(seeds)
             elseif r.relation == "subset" then
                 taxonomy:add_edge(object, subject)
             else
-                instances_are_also:append({subject = subject, object = object})
+                instances_are_a:append({subject = subject, object = object})
             end
 
             seeds:append(object)
@@ -109,7 +112,7 @@ function M:get_taxonomy(seeds)
     local generations = taxonomy:generations()
     local descendants = taxonomy:descendants()
     local ancestors = taxonomy:ancestors()
-    instances_are_also:sorted(function(a, b)
+    instances_are_a:sorted(function(a, b)
         return generations[a.object] < generations[b.object]
     end):foreach(function(r)
         local instances = Set(taxon_instances[r.subject])
@@ -180,47 +183,185 @@ function M:filter_taxa(taxonomy, taxon_instances, urls_by_id, conditions)
 
     return taxonomy, taxon_instances
 end
+
 --------------------------------------------------------------------------------
 --                                                                            --
 --                                                                            --
---                                 Conditions                                 --
+--                                  Condition                                 --
 --                                                                            --
 --                                                                            --
 --------------------------------------------------------------------------------
-function M:apply_conditions(seeds, conditions)
-    conditions:foreach(function(condition)
-        if condition.relation ~= "subset" then
-            seeds = self.apply_condition(seeds, condition)
+M.Condition = {}
+M.Condition.symbols = List({
+    {char = "#", name = "taxonomy", position = "start"},
+    {char = ":", name = "keyval", position = "middle"},
+    {char = ",", name = "comma", position = "middle"},
+    {char = "!", name = "recurse", position = "end"},
+    {char = "-", name = "exclude", position = "end"},
+})
+
+function M.Condition.get_symbol(str)
+    for symbol in M.Condition.symbols:iter() do
+        if str == symbol.char then
+            return symbol
         end
+    end
+end
+
+function M.Condition.clean(str)
+    str = str:strip():gsub("%s+", " ")
+    M.Condition.symbols:foreach(function(symbol)
+        str = str:gsub("%s*" .. symbol.char:escape() .. "%s*", symbol.char)
     end)
 
-    return seeds
+    return str
 end
 
-function M.apply_condition(seeds, c)
-    local Operation = c.is_exclusion and Set.difference or Set.intersection
-    return Operation(seeds, Set(M.get_condition_rows(c):col('subject')))
+-- might want to filter this to avoid commas/colons after # and etc
+-- but leaving it for now
+function M.Condition.split(str)
+    local pattern = ("[%s]"):format(M.Condition.symbols:col('char'):mapm("escape"))
+    local parts = List()
+    while #str > 0 do
+        local index = str:find(pattern)
+        parts:append(str:sub(1, index and math.max(index - 1, 1)))
+        str = str:sub(#parts[#parts] + 1)
+    end
+
+    return parts
 end
 
-function M.get_condition_rows(c)
-    local q = M.get_condition_query(c)
+function M.Condition.parse_element(element)
+    local path = Path.from_commandline(val)
+    local url = path:exists() and DB.urls:get_file(path)
+    return url and url.id or val
+end
 
-    local objects = List()
-    objects:append(c.object or {})
+function M.Condition.new()
+    return Dict({
+        predicate = List(),
+        object = List(),
+        predicate_object = List(),
+        list_key = "predicate",
+        behavior = "append",
+    })
+end
+
+function M.Condition.add(part, conditions)
+    local symbol = M.Condition.get_symbol(part)
+
+    if symbol then
+        M.Condition.add_symbol(symbol.name, conditions)
+    else
+        part = M.Condition.parse_element(part)
+        local taxonomy_context = #conditions > 0 and conditions[#conditions].context == "taxonomy"
+
+        if type(part) == "string" and taxonomy_context then
+            part = DB.Metadata.Taxonomy.get_url(part)
+        end
+
+        M.Condition.add_element(part, conditions)
+    end
+
+    return conditions
+end
+
+function M.Condition.add_symbol(name, conditions)
+    local fields
+
+    if name == "taxonomy" then
+        conditions:append(M.Condition.new())
+        fields = {list_key = "object", predicate = List({"instance", "subset"}), context = "taxonomy"}
+    elseif name == "recurse" or name == "exclude" then
+        fields = {[name] = true, behavior = "new"}
+    elseif name == "keyval" then
+        fields = {list_key = "object", behavior = "append"}
+    elseif name == "comma" then
+        fields = {behavior = "append"}
+    end
+
+    local condition = #conditions > 0 and conditions[#conditions]
+    if condition then
+        Dict.foreach(fields, function(k, v) condition[k] = v end)
+    end
+
+    return conditions
+end
+
+function M.Condition.add_element(element, conditions)
+    local is_url = type(element) == "number"
+    local c = #conditions > 0 and conditions[#conditions]
+
+    if not c or c.behavior ~= "append" or (is_url and c.list_key == "predicate") then
+        c = M.Condition.new()
+        conditions:append(c)
+    end
+
+    c.behavior = "new"
+
+    if is_url then
+        c.list_key = "object"
+        c[c.list_key]:append(element)
+    elseif c.list_key == "predicate" then
+        c[c.list_key]:append(element)
+    else
+        local parts = #c.predicate == 0 and {element} or c.predicate:map(function(p)
+            return p .. DB.Metadata.conf.subpredicate_sep .. element
+        end)
+
+        c.predicate_object:extend(parts)
+    end
+
+    return conditions
+end
+
+function M.Condition.query(c)
+    local object = c.object or {}
+    local predicate = c.predicate or {}
+
+    -- things get weird when we have both objects and predicate objects...
+    -- for now we're just going to do one or the other
+    if #object > 0 then
+        c.predicate_object = nil
+    end
+
+    if c.predicate_object then
+        predicate = c.predicate_object
+    end
+
+    local q = Dict({
+        where = {object = #object > 0 and c.object or nil},
+        contains = {},
+    })
+
+    if #predicate > 0 then
+        local field
+        predicate = predicate:map(function(p)
+            local replacements
+            p, replacements = p:gsub("%++", "*")
+
+            field = replacements > 0 and "contains" or field
+            return p
+        end)
+
+        q[field or "where"].predicate = predicate
+    end
+
+    return q:filterv(function(v) return #Dict.keys(v) > 0 and v end)
+end
+
+function M.Condition.get(c)
+    local queries = List(M.Condition.query(c))
 
     local rows = List()
-    while #objects > 0 do
-        local object = objects:pop()
-        q.where.object = #object > 0 and object or nil
+    while #queries > 0 do
+        local subrows = DB.Metadata:get(queries:pop())
 
-        local subrows = DB.Relations:get(q)
-        rows:extend(subrows)
+        if #subrows > 0 then
+            rows:extend(subrows)
 
-        if c.is_recursive then
-            local object = subrows:col('subject')
-
-            if #object > 0 then
-                objects:append(object)
+            if c.recurse then
+                queries:append({where = {object = subrows:col('subject')}})
             end
         end
     end
@@ -228,97 +369,9 @@ function M.get_condition_rows(c)
     return rows
 end
 
-function M.get_condition_query(c)
-    local relation = c.relation
-    local key = c.key or ""
-
-    local q = {
-        where = {
-            relation = relation,
-        }
-    }
-
-    local relations = List({"tag", "connection"})
-
-    if relations:contains(relation) then
-        -- TODO: this is janky; we should probably get rid of the `connection` type entirely
-        -- but...
-        -- what this does is make it so that if there's no key, we'll look for both tags and connections
-        if key == "" then
-            q.where.relation = relations
-        elseif relation == "tag" and key then
-            q.contains = {key = key:map(function(v) return string.format("%s*", v) end)}
-        elseif relation == "connection" and #key > 0 then
-            local contains = false
-
-            if key:startswith("+") then
-                contains = true
-                key = string.format("*%s", key:removeprefix("+"))
-            end
-
-            if c.type and c.type:endswith("+") then
-                contains = true
-                key = string.format("%s*", key:removesuffix("+"))
-            end
-
-            if contains then
-                q.contains = {key = key}
-            else
-                q.where.key = key
-            end
-        end
-
-    end
-
-    if c.val and #c.val > 0 then
-        q.where.val = c.val
-    end
-
-    return q
-end
-
-function M:transform_conditions(conditions)
-    conditions:transform(M.clean_condition)
-    conditions = M.merge_conditions(conditions)
-    conditions:transform(Metadata.parse_condition)
-
-    return conditions
-end
-
-function M.merge_conditions(conditions)
-    local start_chars = List({":", ",", "-"})
-    local end_chars = List({":", ",", "#", "@"})
-    local cant_start_chars = Set({",", "-"})
-
-    local startswith = function(c) return start_chars:map(function(s) return c:startswith(s) end):any() end
-    local endswith = function(c) return end_chars:map(function(e) return c:endswith(e) end):any() end
-
-    local merged = List()
-    while #conditions > 0 do
-        local c = conditions:pop(1)
-        while startswith(c) and #merged > 0 do
-            c = merged:pop() .. c
-        end
-
-        while endswith(c) and #conditions > 0 do
-            c = c .. conditions:pop(1)
-        end
-
-        merged:append(c)
-    end
-
-    merged:transform(string.rstrip, end_chars)
-
-    return merged:filter(function(c) return not cant_start_chars:has(c:sub(1, 1)) end)
-end
-
-function M.clean_condition(c)
-    c = c:gsub("  ", " ")
-    c = c:gsub("%s*:%s*", ":")
-    c = c:gsub("%s*,%s*", ",")
-    c = c:gsub("%s*#%s*", "#")
-    c = c:gsub("%s*%-", "%-")
-    return c:strip()
+function M.Condition.apply(c, seeds)
+    local Operation = c.exclude and Set.difference or Set.intersection
+    return Operation(seeds, Set(M.Condition.get(c):col('subject')))
 end
 
 return M

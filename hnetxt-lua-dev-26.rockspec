@@ -18,7 +18,6 @@ dependencies = {
     "inspect",
     "lua-path",
     "luasocket",
-    "fzf-lua",
     "htmlparser",
     "luasec",
 }

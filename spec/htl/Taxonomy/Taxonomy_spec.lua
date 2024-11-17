@@ -1,72 +1,167 @@
 local htl = require("htl")
 local M = require("htl.Taxonomy")
 
-before_each(function()
-    htl.before_test()
-end)
-
-after_each(htl.after_test)
-
-describe("clean_condition", function()
-    -- folds commas
-    -- folds colons
-    -- folds negations
-    -- doesn't fuck up spaces
-    it("works", function()
-        Dict({
-            ["a b"] = List({"a  b", " a b", "a b "}),
-            ["a,b"] = List({"a, b", "a , b"}),
-            ["a:b"] = List({"a: b", "a : b"}),
-            ["a-"] = List({"a -", "a - "}),
-        }):foreach(function(expected, inputs)
-            inputs:foreach(function(input)
-                assert.are.same(expected, M.clean_condition(input))
-            end)
-        end)
+describe("Conditions", function()
+    describe("clean", function()
+        UnitTest.suite(M.Condition.clean, {
+            ["fold spaces"] = {input = "a   b", expected = "a b"},
+            ["trim spaces"] = {input = " a b  ", expected = "a b"},
+            ["remove comma spaces"] = {input = "a  , b", expected = "a,b"},
+            ["remove colon spaces"] = {input = "a  : b", expected = "a:b"},
+            ["remove dash spaces"] = {input = "a  -", expected = "a-"},
+            ["remove exclamation spaces"] = {input = "a  !", expected = "a!"},
+        })
     end)
-end)
 
-describe("merge_condition", function()
-    Dict({
-        ["strips endswith chars"] = List({
-            {{"a"}, {"a:"}},
-            {{"a"}, {"a,"}},
-        }),
-        ["adds to previous"] = List({
-            {{"a:b"}, {"a", ":b"}},
-            {{"a,b"}, {"a", ",b"}},
-            {{"a-"}, {"a", "-"}},
+    describe("split", function()
+        UnitTest.suite(M.Condition.split, {
+            ["start char ~= start"] = {input = "a#b", expected = {"a", "#", "b"}},
+            ["end char ~= end"] = {input = "a-b", expected = {"a", "-", "b"}},
+            ["keyval"] = {input = "a:b", expected = {"a", ":", "b"}},
+            ["multiple end chars"] = {input = "a-!", expected = {"a", "-", "!"}},
+        })
+    end)
 
-            {{"a:b", "c"}, {"a", ":b", "c"}},
-            {{"a,b", "c"}, {"a", ",b", "c"}},
-            {{"a-", "b"}, {"a", "-", "b"}},
-        }),
-        ["adds next"] = List({
-            {{"a:b"}, {"a:", "b"}},
-            {{"a::b"}, {"a:", ":", "b"}},
-            {{"a,b"}, {"a,", "b"}},
-            {{"#a"}, {"#", "a"}},
-            {{"@a"}, {"@", "a"}},
+    describe("add_symbol", function()
+        UnitTest.suite(function(args) return M.Condition.add_symbol(unpack(args)) end, {
+            ["taxonomy"] = {
+                input = {"taxonomy", List()},
+                expected = {
+                    {
+                        predicate = {"instance", "subset"},
+                        object = {},
+                        predicate_object = {},
+                        list_key = "object",
+                        behavior = "append",
+                        context = "taxonomy",
+                    },
+                },
+            },
+            ["recurse"] = {
+                input = {"recurse", List({{}})},
+                expected = {{recurse = true, behavior = "new"}},
+            },
+            ["exclude"] = {
+                input = {"exclude", List({{}})},
+                expected = {{exclude = true, behavior = "new"}},
+            },
+            ["keyval"] = {
+                input = {"keyval", List({{list_key = "predicate"}})},
+                expected = {{behavior = "append", list_key = "object"}},
+            },
+            ["comma"] = {
+                input = {"comma", List({{behavior = "new"}})},
+                expected = {{behavior = "append"}},
+            },
+        })
+    end)
 
-            {{"a:b"}, {"a", ":", "b"}},
-            {{"a,b"}, {"a", ",", "b"}},
-        }),
-        ["rejects at start"] = List({
-            {{"b"}, {",", "a", "b"}},
-            {{"a"}, {"-", "a"}},
-        }),
-        ["accepts at start"] = List({
-            {{":a"}, {":", "a"}},
-        }),
-    }):foreach(function(test_category, cases)
-        cases:foreach(function(case)
-            local expected = List(case[1])
-            local input = List(case[2])
-            local test_descriptor = string.format("%s: %s → %s", test_category, input, expected)
-            
-            it(test_descriptor, function()
-                assert.are.same(expected, M.merge_conditions(input))
-            end)
-        end)
+    describe("add_element", function()
+        UnitTest.suite(function(args) return M.Condition.add_element(unpack(args)) end, {
+            ["string + no condition"] = {
+                input = {"a", List()},
+                expected = {
+                    {
+                        predicate = {"a"},
+                        object = {},
+                        predicate_object = {},
+                        list_key = "predicate",
+                        behavior = "new",
+                    },
+                },
+            },
+            ["string + new"] = {
+                input = {"a", List({{behavior = "new"}})},
+                expected = {
+                    {behavior = "new"},
+                    {
+                        predicate = {"a"},
+                        object = {},
+                        predicate_object = {},
+                        list_key = "predicate",
+                        behavior = "new",
+                    },
+                },
+            },
+            ["string + append"] = {
+                input = {
+                    "b",
+                    List({
+                        {
+                            predicate = List("a"),
+                            list_key = "predicate",
+                            behavior = "append",
+                        },
+                    }),
+                },
+                expected = {
+                    {
+                        predicate = {"a", "b"},
+                        list_key = "predicate",
+                        behavior = "new",
+                    },
+                },
+            },
+            ["string + object"] = {
+                input = {
+                    "c",
+                    List({
+                        {
+                            predicate = List({"a", "b"}),
+                            predicate_object = List(),
+                            list_key = "object",
+                            behavior = "append",
+                        },
+                    }),
+                },
+                expected = {
+                    {
+                        predicate = {"a", "b"},
+                        predicate_object = List({"a.c", "b.c"}),
+                        list_key = "object",
+                        behavior = "new",
+                    },
+                },
+            },
+            ["url, condition, predicate → new"] = {
+                input = {
+                    1,
+                    List({
+                        {list_key = "predicate"},
+                    }),
+                },
+                expected = {
+                    {list_key = "predicate"},
+                    {
+                        object = {1},
+                        predicate = {},
+                        predicate_object = {},
+                        list_key = "object",
+                        behavior = "new",
+                    },
+                },
+            },
+        })
+    end)
+
+    describe("query", function()
+        UnitTest.suite(M.Condition.query, {
+            ["objects"] = {
+                input = {object = {1}},
+                expected = {where = {object = {1}}},
+            },
+            ["predicates"] = {
+                input = {predicate = List({"a", "b+", "+c+"})},
+                expected = {contains = {predicate = {"a", "b*", "*c*"}}},
+            },
+            ["objects + predicate_objects"] = {
+                input = {object = {1}, predicate_object = {"a.b"}, predicate = List({"a"})},
+                expected = {where = {object = {1}, predicate = {"a"}}},
+            },
+            ["no objects + predicate_objects"] = {
+                input = {predicate_object = List({"a.b+"}), predicate = List({"a"})},
+                expected = {contains = {predicate = {"a.b*"}}},
+            },
+        })
     end)
 end)

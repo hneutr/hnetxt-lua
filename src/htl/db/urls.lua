@@ -130,7 +130,7 @@ function M.remove_references_to_url(url_to_remove)
     local link = M:get_reference(url_to_remove)
     local link_string = tostring(link):escape()
 
-    local url_ids = DB.Relations:get({where = {object = url_to_remove.id}}):col('source')
+    local url_ids = DB.Metadata:get({where = {object = url_to_remove.id}}):col('source')
 
     if #url_ids > 0 then
         DB.urls:get({where = {id = url_ids}}):foreach(function(url)

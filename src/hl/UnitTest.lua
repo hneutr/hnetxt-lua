@@ -1,6 +1,7 @@
 local M = {}
 
-function M.suite(test_fn, tests)
+function M.suite(test_fn, tests, opts)
+    opts = opts or {}
     setfenv(1, getfenv(2))
     Dict(tests):foreach(function(name, test)
         it(name, function()
