@@ -58,8 +58,6 @@ build = {
 
         ["htl.Taxonomy"] = "src/htl/Taxonomy/init.lua",
 
-        ["htl.Metadata"] = "src/htl/Metadata.lua",
-
         ["htl.Mirrors"] = "src/htl/Mirrors.lua",
 
         ["htl.text.Line"] = "src/htl/text/Line.lua",

@@ -96,9 +96,9 @@ function M:get_taxonomy(seeds)
         subject_to_rows:pop(subject):foreach(function(r)
             local object = r.object
 
-            if r.relation == "instance" then
+            if r.predicate == "instance" then
                 taxon_instances[object]:add(subject)
-            elseif r.relation == "subset" then
+            elseif r.predicate == "subset" then
                 taxonomy:add_edge(object, subject)
             else
                 instances_are_a:append({subject = subject, object = object})
@@ -148,7 +148,7 @@ function M:filter_taxa(taxonomy, taxon_instances, urls_by_id, conditions)
 
     local taxa = List()
     conditions:foreach(function(condition)
-        if condition.relation == "subset" then
+        if condition.predicate == "subset" then
             condition.object:foreach(function(object)
                 local taxon = M.taxa_object_to_url_id(object, nodes, urls_by_id)
 
@@ -232,9 +232,9 @@ function M.Condition.split(str)
 end
 
 function M.Condition.parse_element(element)
-    local path = Path.from_commandline(val)
+    local path = Path.from_commandline(element)
     local url = path:exists() and DB.urls:get_file(path)
-    return url and url.id or val
+    return url and url.id or element
 end
 
 function M.Condition.new()
@@ -329,10 +329,14 @@ function M.Condition.query(c)
         predicate = c.predicate_object
     end
 
-    local q = Dict({
-        where = {object = #object > 0 and c.object or nil},
+    local q = {
+        where = {},
         contains = {},
-    })
+    }
+
+    if #object > 0 then
+        q.where.object = #object == 1 and object[1] or object
+    end
 
     if #predicate > 0 then
         local field
@@ -344,18 +348,19 @@ function M.Condition.query(c)
             return p
         end)
 
-        q[field or "where"].predicate = predicate
+        q[field or "where"].predicate = #predicate == 1 and predicate[1] or predicate
     end
 
-    return q:filterv(function(v) return #Dict.keys(v) > 0 and v end)
+    return Dict.filterv(q, function(v) return #Dict.keys(v) > 0 and v end)
 end
 
 function M.Condition.get(c)
-    local queries = List(M.Condition.query(c))
+    local queries = List({M.Condition.query(c)})
 
     local rows = List()
     while #queries > 0 do
-        local subrows = DB.Metadata:get(queries:pop())
+        local query = queries:pop()
+        local subrows = DB.Metadata:get(query)
 
         if #subrows > 0 then
             rows:extend(subrows)
