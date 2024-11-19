@@ -2,8 +2,8 @@ local M = class()
 
 function M:_init(args)
     args = args or {}
-    local path = args.path and Path.from_commandline(args.path) or nil
-    local conditions = M.Condition.parse(List(args.conditions))
+    local path = args.path and Path.from_cli(args.path) or nil
+    local conditions = M.Condition.parse(args.conditions)
     local persist = not path and #conditions == 0
 
     local urls_by_id, seeds = M.get_urls(path, conditions)
@@ -231,7 +231,7 @@ function M.Condition.split(str)
 end
 
 function M.Condition.parse_element(element)
-    local path = Path.from_commandline(element)
+    local path = Path.from_cli(element)
     local url = path:exists() and DB.urls:get_file(path)
     return url and url.id or element
 end
@@ -316,41 +316,23 @@ end
 
 function M.Condition.query(c)
     local object = c.object or {}
-    local predicate = c.predicate or {}
 
     -- things get weird when we have both objects and predicate objects...
     -- for now we're just going to do one or the other
-    if #object > 0 then
-        c.predicate_object = nil
-    end
+    local predicate_object = #object == 0 and c.predicate_object or {}
+    local predicate = #predicate_object > 0 and predicate_object or c.predicate or {}
 
-    if c.predicate_object then
-        predicate = c.predicate_object
-    end
-
-    local q = {
-        where = {},
-        contains = {},
-    }
+    local q = {}
 
     if #object > 0 then
-        q.where.object = #object == 1 and object[1] or object
+        q.where = {object = object}
     end
 
     if #predicate > 0 then
-        local field
-        predicate = predicate:map(function(p)
-            local replacements
-            p, replacements = p:gsub("%++", "*")
-
-            field = replacements > 0 and "contains" or field
-            return p
-        end)
-
-        q[field or "where"].predicate = #predicate == 1 and predicate[1] or predicate
+        q.contains = {predicate = predicate:map(function(p) return p:gsub("%++", "*") end)}
     end
 
-    return Dict.filterv(q, function(v) return #Dict.keys(v) > 0 and v end)
+    return q
 end
 
 function M.Condition.get(c)

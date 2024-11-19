@@ -26,7 +26,7 @@ return {
     commands = {
         add = {
             {"title", default = Path.cwd():name(), description = "title", args = "1"},
-            {"-p --path", default = Path.cwd(), description = "dir (default=cwd)", convert=Path.from_commandline},
+            {"-p --path", default = Path.cwd(), description = "dir (default=cwd)", convert=Path.from_cli},
             {"-c --created", default = os.date("%Y%m%d"), description = "start date"},
             action = function(args)
                 args.path:mkdir()

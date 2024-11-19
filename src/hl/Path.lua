@@ -363,7 +363,7 @@ function M.string_to_path(s)
     return M(s)
 end
 
-function M.from_commandline(path) return M(path):resolve() end
+function M.from_cli(path) return M(path):resolve() end
 
 function M.this() return M(vim.fn.expand('%:p')) end
 

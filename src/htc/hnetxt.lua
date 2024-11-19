@@ -21,13 +21,13 @@ require("htl.cli")({
         },
         move = {
             alias = "mv",
-            {"source", args = "1", convert = Path.from_commandline},
-            {"target", args = "1", convert = Path.from_commandline},
+            {"source", args = "1", convert = Path.from_cli},
+            {"target", args = "1", convert = Path.from_cli},
             action = require("htc.move").run,
         },
         remove = {
             alias = "rm",
-            {"path", args = "1", convert = Path.from_commandline},
+            {"path", args = "1", convert = Path.from_cli},
             {"+r", target = "recursive", description = "delete recursively", switch = "on"},
             {"+d", target = "directories", description = "delete directories", switch = "on"},
             {"+f", target = "force", description = "force", switch = "on"},
@@ -43,7 +43,7 @@ require("htl.cli")({
             alias = true,
             description = "add a quote",
             {"page", description = "page number", args = "?"},
-            {"-p --path", default = Path.cwd(), description = "dir", convert=Path.from_commandline},
+            {"-p --path", default = Path.cwd(), description = "dir", convert=Path.from_cli},
             edit = function(args)
                 local p = args.path:join("1.md")
 
@@ -76,7 +76,7 @@ require("htl.cli")({
                     "    {x}!        →    apply recursively",
                 }):join("\n"),
             },
-            {"-p --path", default = Path.cwd(), convert = Path.from_commandline},
+            {"-p --path", default = Path.cwd(), convert = Path.from_cli},
             {"+i", target = "include_instances", description = "include instances", switch = "on"},
             {"+I", target = "instances_only", description = "only print instances", switch = "on"},
             {"+a", target = "by_attribute", description = "by attribute", switch = "on"},
@@ -135,7 +135,7 @@ require("htl.cli")({
         add = {
             alias = true,
             {"title_words", default = List(), action="concat", args = "*"},
-            {"-D --directory", default = Path.cwd(), convert=Path.from_commandline},
+            {"-D --directory", default = Path.cwd(), convert=Path.from_cli},
             {"-d --date", default = os.date('%Y%m%d')},
             {"-i --instance_type"},
             edit = function(args)
@@ -185,13 +185,13 @@ require("htl.cli")({
         setmd = {
             alias = true,
             description = "make a pdf of a markdown file",
-            {"path", args = "1", convert = Path.from_commandline},
+            {"path", args = "1", convert = Path.from_cli},
             {"+p", target = "private", description = "leave private headings in", switch = "on"},
             {
                 "-d --directory",
                 description = "output directory",
                 default = Path.home / "Desktop",
-                convert = Path.from_commandline,
+                convert = Path.from_cli,
             },
             action = function(args)
                 local pdf = args.directory / string.format("%s.pdf", args.path:stem())

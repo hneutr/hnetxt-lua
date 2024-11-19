@@ -148,7 +148,7 @@ describe("Conditions", function()
         UnitTest.suite(M.Condition.query, {
             ["object"] = {
                 input = {object = {1}},
-                expected = {where = {object = 1}},
+                expected = {where = {object = {1}}},
             },
             ["objects"] = {
                 input = {object = {1, 2}},
@@ -160,11 +160,11 @@ describe("Conditions", function()
             },
             ["objects + predicate_objects"] = {
                 input = {object = {1}, predicate_object = {"a.b"}, predicate = List({"a"})},
-                expected = {where = {object = 1, predicate = "a"}},
+                expected = {where = {object = {1}}, contains = {predicate = {"a"}}},
             },
             ["no objects + predicate_objects"] = {
                 input = {predicate_object = List({"a.b+"}), predicate = List({"a"})},
-                expected = {contains = {predicate = "a.b*"}},
+                expected = {contains = {predicate = {"a.b*"}}},
             },
         })
     end)

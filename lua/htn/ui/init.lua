@@ -205,7 +205,7 @@ function M.goto_map_fn(open_cmd)
     return function()
         local col = M.get_cursor().col
         local line = vim.fn.getline('.')
-        local path = Path.from_commandline(line:strip())
+        local path = Path.from_cli(line:strip())
 
         if path:exists() then
             path:open(open_cmd)

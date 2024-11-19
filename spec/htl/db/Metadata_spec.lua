@@ -478,5 +478,33 @@ describe("db", function()
                 DB.Metadata:get({where = {source = u1}})
             )
         end)
+
+        it("multiline", function()
+            f1:write({
+                "x:",
+                "  y",
+                "  z",
+            })
+
+            M.record(DB.urls:where({id = u1}))
+
+            assert.are.same(
+                {
+                    {
+                        id = 1,
+                        source = u1,
+                        subject = u1,
+                        predicate = "x.y",
+                    },
+                    {
+                        id = 2,
+                        source = u1,
+                        subject = u1,
+                        predicate = "x.z",
+                    },
+                },
+                DB.Metadata:get({where = {source = u1}})
+            )
+        end)
     end)
 end)
