@@ -1,44 +1,38 @@
 local M = class()
 
 function M:_init(args)
-    self:read_args(args)
+    args = args or {}
+    local path = args.path and Path.from_commandline(args.path) or nil
+    local conditions = M.Condition.parse(List(args.conditions))
+    local persist = not path and #conditions == 0
 
-    self.urls_by_id, self.seeds = self:get_urls(self.path, self.conditions)
+    local urls_by_id, seeds = M.get_urls(path, conditions)
 
-    self.taxonomy, self.taxon_instances = M:get_taxonomy(self.seeds)
+    local taxonomy, taxon_instances = M.get_taxonomy(seeds)
 
-    self.taxonomy, self.taxon_instances = self:filter_taxa(
-        self.taxonomy,
-        self.taxon_instances,
-        self.urls_by_id,
-        self.conditions
+    taxonomy, taxon_instances = M.filter_taxa(
+        taxonomy,
+        taxon_instances,
+        urls_by_id,
+        conditions
     )
 
-    self.rows = M:get_rows(self.urls_by_id, self.taxonomy, self.taxon_instances)
+    local rows = M.get_rows(urls_by_id, taxonomy, taxon_instances)
 
-    if self.should_persist then
-        DB.Instances:replace(self.rows)
-    end
-end
-
-function M:read_args(args)
-    args = Dict(args or {})
-
-    if args.path then
-        self.path = Path.from_commandline(args.path)
+    if persist then
+        DB.Instances:replace(rows)
     end
 
-    self:parse_conditions(List(args.conditions))
-
-    self.should_persist = not self.path and #self.conditions == 0
+    return {
+        taxonomy = taxonomy,
+        taxon_instances = taxon_instances,
+        seeds = seeds,
+        conditions = conditions,
+        urls_by_id = urls_by_id,
+    }
 end
 
-function M:parse_conditions(raw)
-    self.conditions = List()
-    raw:map(M.Condition.clean):map(M.Condition.split):reduce(List.extend):foreach(M.Condition.add, self.conditions)
-end
-
-function M:get_rows(urls_by_id, taxonomy, taxon_instances)
+function M.get_rows(urls_by_id, taxonomy, taxon_instances)
     local ancestors = taxonomy:ancestors()
     local rows = List()
     taxon_instances:foreach(function(taxon_id, urls)
@@ -58,7 +52,7 @@ function M:get_rows(urls_by_id, taxonomy, taxon_instances)
     return rows
 end
 
-function M:get_urls(path, conditions)
+function M.get_urls(path, conditions)
     local urls_by_id = Dict()
     local seeds = Set()
 
@@ -72,12 +66,12 @@ function M:get_urls(path, conditions)
         urls_by_id[u.id] = u
     end)
 
-    self.conditions:foreach(function(c) seeds = M.Condition.apply(c, seeds) end)
+    conditions:foreach(function(c) seeds = M.Condition.apply(c, seeds) end)
 
     return urls_by_id, seeds:vals()
 end
 
-function M:get_taxonomy(seeds)
+function M.get_taxonomy(seeds)
     local subject_to_rows = Dict():set_default(List)
 
     DB.Metadata:get({
@@ -142,7 +136,7 @@ function M.taxa_object_to_url_id(object, taxa, urls_by_id)
     return
 end
 
-function M:filter_taxa(taxonomy, taxon_instances, urls_by_id, conditions)
+function M.filter_taxa(taxonomy, taxon_instances, urls_by_id, conditions)
     local nodes = taxonomy:nodes()
 
     local taxa = List()
@@ -192,12 +186,18 @@ end
 --------------------------------------------------------------------------------
 M.Condition = {}
 M.Condition.symbols = List({
-    {char = "#", name = "taxonomy", position = "start"},
-    {char = ":", name = "keyval", position = "middle"},
-    {char = ",", name = "comma", position = "middle"},
-    {char = "!", name = "recurse", position = "end"},
-    {char = "-", name = "exclude", position = "end"},
+    {char = "#", name = "taxonomy"},
+    {char = ":", name = "keyval"},
+    {char = ",", name = "comma"},
+    {char = "!", name = "recurse"},
+    {char = "-", name = "exclude"},
 })
+
+function M.Condition.parse(raw)
+    local conditions = List()
+    raw:map(M.Condition.clean):map(M.Condition.split):reduce(List.extend):foreach(M.Condition.add, conditions)
+    return conditions
+end
 
 function M.Condition.get_symbol(str)
     for symbol in M.Condition.symbols:iter() do

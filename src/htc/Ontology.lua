@@ -202,41 +202,41 @@ function M:__tostring()
 end
 
 -- TODO fix this
-function M:get_attribute_relations_by_key()
-    local seeds = Set(self.T.seeds)
-
-    local conditions = self.T.conditions:filter(function(c)
-        return c.predicate and not DB.Metadata.conf.taxonomy_predicates:contains(c.predicate)
-    end)
-
-    local rows = List()
-    if #conditions == 0 then
-        conditions:append({predicate = "???????????????"})
-    end
-
-    local key_to_relations = Dict():set_default(function() return Dict():set_default(Set) end)
-
-    conditions:map(self.T.get_condition_rows):foreach(function(rows)
-        rows:foreach(function(r)
-            local thing
-
-            if r.val then
-                thing = r.val
-                if not self.T.urls_by_id[thing] then
-                    self.T.urls_by_id[thing] = Dict({label = thing, id = thing})
-                end
-            elseif r.object then
-                thing = r.object
-            end
-
-            if thing and seeds:has(r.subject) then
-                key_to_relations[r.key or M.conf.__all_relation_type][thing]:add(r.subject)
-            end
-        end)
-    end)
-
-    return key_to_relations
-end
+-- function M:get_attribute_relations_by_key()
+--     local seeds = Set(self.T.seeds)
+--
+--     local conditions = self.T.conditions:filter(function(c)
+--         return c.predicate and not DB.Metadata.conf.taxonomy_predicates:contains(c.predicate)
+--     end)
+--
+--     local rows = List()
+--     if #conditions == 0 then
+--         conditions:append({predicate = "???????????????"})
+--     end
+--
+--     local key_to_relations = Dict():set_default(function() return Dict():set_default(Set) end)
+--
+--     conditions:map(self.T.get_condition_rows):foreach(function(rows)
+--         rows:foreach(function(r)
+--             local thing
+--
+--             if r.val then
+--                 thing = r.val
+--                 if not self.T.urls_by_id[thing] then
+--                     self.T.urls_by_id[thing] = Dict({label = thing, id = thing})
+--                 end
+--             elseif r.object then
+--                 thing = r.object
+--             end
+--
+--             if thing and seeds:has(r.subject) then
+--                 key_to_relations[r.key or M.conf.__all_relation_type][thing]:add(r.subject)
+--             end
+--         end)
+--     end)
+--
+--     return key_to_relations
+-- end
 
 function M:get_attribute_lines()
     local key_to_relations = self:get_attribute_relations_by_key()

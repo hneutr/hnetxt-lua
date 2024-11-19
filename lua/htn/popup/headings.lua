@@ -121,16 +121,10 @@ function Item:filter()
     result = result and self.parents:contains(self.ui.parent)
     result = result and self.level <= self.ui.level
 
-    if self.ui.todo then
-        local is_todo = false
-        self.meta:foreach(function(meta) is_todo = is_todo or meta.todo end)
-        result = result and is_todo
-    end
-
     if #self.ui.meta_types:keys() > 0 then
-        local is_type = false
-        self.meta:foreach(function(key) is_type = is_type or self.ui.meta_types[key] end)
-        result = result and is_type
+        result = result and self.meta:map(function(m)
+            return self.ui.meta_types[m.key]
+        end):any()
     end
 
     return result and self:fuzzy_match()
@@ -145,10 +139,6 @@ Popup.Prompt = Prompt
 
 function Prompt:get()
     local parts = List()
-
-    if self.ui.todo then
-        parts:append("todo")
-    end
 
     if self.ui.meta_types then
         parts:extend(self.ui.meta_types:keys():sorted():map(function(key)
