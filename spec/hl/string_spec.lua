@@ -1,236 +1,173 @@
 local Dict = require("hl.Dict")
+local UnitTest = require("hl.UnitTest")
+
 string = require('hl.string')
 
+local M = string
+
 describe("split", function()
-    it("has nothing to split", function()
-        assert.are.same({"a"}, string.split("a"))
-    end)
-
-    it("starts with sep", function()
-        assert.are.same({"a"}, string.split(" a"))
-    end)
-
-    it("ends with sep", function()
-        assert.are.same({"a"}, string.split("a "))
-    end)
-
-    it("starts with defined sep", function()
-        assert.are.same({"", "a"}, string.split("\na", "\n"))
-    end)
-
-    it("ends with defined sep", function()
-        assert.are.same({"a", ""}, string.split("a\n", "\n"))
-    end)
-
-    it("once", function()
-        assert.are.same({"a", "b"}, string.split("a b"))
-    end)
-
-    it("twice", function()
-        assert.are.same({"a", "b", "c"}, string.split("a b c"))
-    end)
-
-    it("different sep", function()
-        assert.are.same({"a", "b", "c"}, string.split("a-b-c", "-"))
-    end)
-
-    it("maxsplit", function()
-        assert.are.same({"a", "b-c"},string.split("a-b-c", "-", 1))
-    end)
-
-    it("long sep", function()
-        assert.are.same({"a", "b", "c"},string.split("a--b--c", "--"))
-    end)
-
-    it("consecutive splits, sep defined", function()
-        assert.are.same({"", "", "", ""}, string.split("\n\n\n", "\n"))
-    end)
-
-    it("consecutive splits, sep undefined", function()
-        assert.are.same({}, string.split("    "))
-    end)
+    UnitTest.suite(function(input) return M.split(unpack(input)) end, {
+        ["no match"] = {input = {"a"}, expected = {"a"}},
+        ["starts with sep"] = {input = {" a"}, expected = {"a"}},
+        ["ends with sep"] = {input = {"a "}, expected = {"a"}},
+        ["starts with defined sep"] = {input = {"\na", "\n"}, expected = {"", "a"}},
+        ["ends with defined sep"] = {input = {"a\n", "\n"}, expected = {"a", ""}},
+        ["once"] = {input = {"a b"}, expected = {"a", "b"}},
+        ["twice"] = {input = {"a b c"}, expected = {"a", "b", "c"}},
+        ["different sep"] = {input = {"a-b-c", "-"}, expected = {"a", "b", "c"}},
+        ["maxsplit"] = {input = {"a-b-c", "-", 1}, expected = {"a", "b-c"}},
+        ["long sep"] = {input = {"a--b--c", "--"}, expected = {"a", "b", "c"}},
+        ["consecutive splits, sep defined"] = {input = {"\n\n\n", "\n"}, expected = {"", "", "", ""}},
+        ["consecutive splits, sep undefined"] = {input = {"    "}, expected = {}},
+    })
 end)
 
 describe("rsplit", function()
-    it("base", function()
-        assert.are.same({"a-b", "c"}, string.rsplit("a-b-c", "-", 1))
-    end)
-
-    it("long sep", function()
-        assert.are.same({"a--b", "c"}, string.rsplit("a--b--c", "--", 1))
-    end)
+    UnitTest.suite(function(input) return M.rsplit(unpack(input)) end, {
+        ["base"] = {input = {"a-b-c", "-", 1}, expected = {"a-b", "c"}},
+        ["long sep"] = {input = {"a--b--c", "--", 1}, expected = {"a--b", "c"}},
+    })
 end)
 
 describe("splitlines", function()
-    it('base case', function() 
-        assert.are.same({"a", "b", "c"}, string.splitlines("a\nb\nc"))
-    end)
-
-    it('empty line between', function() 
-        assert.are.same({"a", "", "", "b"}, string.splitlines("a\n\n\nb"))
-    end)
-
-    it('newline starts', function() 
-        assert.are.same({"", "", "a", "b"}, string.splitlines("\n\na\nb"))
-    end)
-    it('newline ends', function() 
-        assert.are.same({"a", "b", "", ""}, string.splitlines("a\nb\n\n"))
-    end)
-    it('multicase', function() 
-        assert.are.same({"", "", "a", "", "", "b", "c", "", ""}, string.splitlines("\n\na\n\n\nb\nc\n\n"))
-    end)
+    UnitTest.suite(M.splitlines, {
+        ['base case'] = {input = "a\nb\nc", expected = {"a", "b", "c"}},
+        ['empty line between'] = {input = "a\n\n\nb", expected = {"a", "", "", "b"}},
+        ['newline starts'] = {input = "\n\na\nb", expected = {"", "", "a", "b"}},
+        ['newline ends'] = {input = "a\nb\n\n", expected = {"a", "b", "", ""}},
+        ['multicase'] = {input = "\n\na\n\n\nb\nc\n\n", expected = {"", "", "a", "", "", "b", "c", "", ""}},
+    })
 end)
 
 describe("startswith", function()
-    it('positive case', function() 
-        assert(string.startswith("abc", "a"))
-    end)
-
-    it('negative case', function() 
-        assert.is_false(string.startswith("abc", "b"))
-    end)
-
-    it('escaped string, plain', function() 
-        assert(string.startswith([[%sa]], [[%s]]))
-    end)
-
-    it('escaped string, not plain', function() 
-        assert.is_false(string.startswith([[%sa]], [[%s]], false))
-    end)
+    UnitTest.suite(function(input) return M.startswith(unpack(input)) end, {
+        ['+'] = {input = {"abc", "a"}, expected = true},
+        ["-"] = {input = {"abc", "b"}, expected = false},
+        ["escaped, not plain"] = {input = {[[%sa]], [[%s]], false}, expected = false},
+        ["escaped, plain"] = {input = {[[%sa]], [[%s]]}, expected = true},
+    })
 end)
 
 describe("endswith", function()
-    it('+', function() 
-        assert(string.endswith("abc", "c"))
-    end)
-
-    it('+: multichar ending', function() 
-        assert(string.endswith("abc", "bc"))
-    end)
-
-    it('-', function() 
-        assert.is_false(string.endswith("abc", "b"))
-    end)
-
-    it('escaped string, plain', function() 
-        assert(string.endswith([[a%s]], [[%s]]))
-    end)
-
-    it('escaped string, not plain', function() 
-        assert.is_false(string.endswith([[as%]], [[s%]], false))
-    end)
+    UnitTest.suite(function(input) return M.endswith(unpack(input)) end, {
+        ['+'] = {input = {"abc", "c"}, expected = true},
+        ["multichar ending"] = {input = {"abc", "bc"}, expected = true},
+        ['-'] = {input = {"abc", "b"}, expected = false},
+        ["escaped, plain"] = {input = {[[a%s]], [[%s]]}, expected = true},
+        ["escaped, not plain"] = {input = {[[as%]], [[s%]], false}, expected = false},
+    })
 end)
 
 describe("join", function()
-    it('does', function() 
-        assert.are.same("a, b, c", string.join(", ", {"a", "b", "c"}))
+    it('does', function()
+        assert.are.same("a, b, c", M.join(", ", {"a", "b", "c"}))
     end)
 end)
 
 describe("lstrip", function()
-    it('whitespace', function() 
-        assert.are.same("a ", string.lstrip(" a "))
+    it('whitespace', function()
+        assert.are.same("a ", M.lstrip(" a "))
     end)
 
-    it('multiple chars', function() 
-        assert.are.same("a ", string.lstrip("! a ", {"%s", "%!"}))
+    it('multiple chars', function()
+        assert.are.same("a ", M.lstrip("! a ", {"%s", "%!"}))
     end)
 end)
 
 describe("rstrip", function()
-    it('whitespace', function() 
-        assert.are.same(" a", string.rstrip(" a "))
+    it('whitespace', function()
+        assert.are.same(" a", M.rstrip(" a "))
     end)
 
-    it('multiple chars', function() 
-        assert.are.same("! a", string.rstrip("! a !", {"%s", "%!"}))
+    it('multiple chars', function()
+        assert.are.same("! a", M.rstrip("! a !", {"%s", "%!"}))
     end)
 end)
 
 describe("strip", function()
-    it('whitespace', function() 
-        assert.are.same("a", string.strip(" a "))
+    it('whitespace', function()
+        assert.are.same("a", M.strip(" a "))
     end)
 
-    it('multiple chars', function() 
-        assert.are.same("a", string.strip("! a !", {"%s", "%!"}))
+    it('multiple chars', function()
+        assert.are.same("a", M.strip("! a !", {"%s", "%!"}))
     end)
 end)
 
 describe("removeprefix", function()
-    it('+', function() 
-        assert.are.same({"abcz", true}, {string.removeprefix("zabcz", "z")})
+    it('+', function()
+        assert.are.same({"abcz", true}, {M.removeprefix("zabcz", "z")})
     end)
 
-    it('-', function() 
-        assert.are.same({"abc", false}, {string.removeprefix("abc", "z")})
+    it('-', function()
+        assert.are.same({"abc", false}, {M.removeprefix("abc", "z")})
     end)
 
-    it('multichar prefix', function() 
-        assert.are.same("abczzzz", string.removeprefix("zzzabczzzz", "zzz"))
+    it('multichar prefix', function()
+        assert.are.same("abczzzz", M.removeprefix("zzzabczzzz", "zzz"))
     end)
 end)
 
 describe("removesuffix", function()
-    it('+', function() 
-        assert.are.same({"zabc", true}, {string.removesuffix("zabcz", "z")})
+    it('+', function()
+        assert.are.same({"zabc", true}, {M.removesuffix("zabcz", "z")})
     end)
 
-    it('-', function() 
-        assert.are.same({"zabc", false}, {string.removesuffix("zabc", "z")})
+    it('-', function()
+        assert.are.same({"zabc", false}, {M.removesuffix("zabc", "z")})
     end)
 
-    it('multichar prefix', function() 
-        assert.are.same("zzzabc", string.removesuffix("zzzabczzz", "zzz"))
+    it('multichar prefix', function()
+        assert.are.same("zzzabc", M.removesuffix("zzzabczzz", "zzz"))
     end)
 end)
 
 describe("partition", function()
     it("does", function()
-        assert.are.same({"abc ", "1", " xyz"}, string.partition("abc 1 xyz", "1"))
+        assert.are.same({"abc ", "1", " xyz"}, M.partition("abc 1 xyz", "1"))
     end)
 
     it("no sep", function()
-        assert.are.same({"abc xyz", "", ""}, string.partition("abc xyz", "1"))
+        assert.are.same({"abc xyz", "", ""}, M.partition("abc xyz", "1"))
     end)
 end)
 
 describe("rpartition", function()
     it("does", function()
-        assert.are.same({"abc 1 ", "1", " xyz"}, string.rpartition("abc 1 1 xyz", "1"))
+        assert.are.same({"abc 1 ", "1", " xyz"}, M.rpartition("abc 1 1 xyz", "1"))
     end)
 end)
 
 describe("rfind", function()
     it("does", function()
-        assert.are.same(6, string.rfind("a bc bc d", "bc"))
+        assert.are.same(6, M.rfind("a bc bc d", "bc"))
     end)
 end)
 
 describe("center", function()
     it("does evenly", function()
-        assert.are.same("    ab    ", string.center("ab", 10))
+        assert.are.same("    ab    ", M.center("ab", 10))
     end)
 
     it("does oddly", function()
-        assert.are.same("     a    ", string.center("a", 10))
+        assert.are.same("     a    ", M.center("a", 10))
     end)
 
-    it("long string", function()
-        assert.are.same("a", string.center("a", 1))
+    it("long", function()
+        assert.are.same("a", M.center("a", 1))
     end)
 end)
 
 describe("escape", function()
     it("escapes", function()
         for _, char in ipairs({"^", "$", "(", ")", "%", ".", "[", "]", "*", "+", "-", "?"}) do
-            assert.are.same("%" .. char, string.escape(char))
+            assert.are.same("%" .. char, M.escape(char))
         end
     end)
 
-    it("longer string", function()
-        assert.are.same("%-%*", string.escape("-*"))
-        assert.are.same(" %-> ", string.escape(" -> "))
+    it("multiple", function()
+        assert.are.same("%-%*", M.escape("-*"))
+        assert.are.same(" %-> ", M.escape(" -> "))
     end)
 end)
 
@@ -244,26 +181,37 @@ end)
 
 describe("title", function()
     it("works", function()
-        assert.are.same("The Lord of the Rings", string.title("the lord of The rings"))
+        assert.are.same("The Lord of the Rings", M.title("the lord of The rings"))
     end)
 end)
 
 describe("rpad", function()
     it("works", function()
-        assert.are.same("1 ", string.rpad("1", 2))
+        assert.are.same("1 ", M.rpad("1", 2))
     end)
 
     it("works", function()
-        assert.are.same("122", string.rpad("1", 3, "2"))
+        assert.are.same("122", M.rpad("1", 3, "2"))
     end)
 end)
 
 describe("lpad", function()
     it("works", function()
-        assert.are.same(" 1", string.lpad("1", 2))
+        assert.are.same(" 1", M.lpad("1", 2))
     end)
 
     it("works", function()
-        assert.are.same("221", string.lpad("1", 3, "2"))
+        assert.are.same("221", M.lpad("1", 3, "2"))
     end)
+end)
+
+describe("bisect", function()
+    UnitTest.suite(function(input) return M.bisect(unpack(input)) end, {
+        ["index < 1"] = {input = {"abc", -1}, expected = {"", "abc"}},
+        ["index = 1"] = {input = {"abc", 1}, expected = {"a", "bc"}},
+        ["index > #string"] = {input = {"abc", 4}, expected = {"abc", ""}},
+        ["index == #string"] = {input = {"abc", 3}, expected = {"abc", ""}},
+        ["exclude"] = {input = {"abc", 2, true}, expected = {"a", "c"}},
+        ["index = 1 + exclude"] = {input = {"abc", 1, true}, expected = {"", "bc"}},
+    }, {pack_output = true})
 end)

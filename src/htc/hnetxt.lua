@@ -56,33 +56,7 @@ require("htl.cli")({
                 return string.format([[%s +"lua require('htn.ui').quote(%s)"]], p, page)
             end,
         },
-        ontology = {
-            alias = "on",
-            description = "print the ontology",
-            {
-                "conditions",
-                args = "*",
-                default = List(),
-                action = "concat",
-                description = List({
-                    "filter conditions:",
-                    "    #taxon      →    taxon",
-                    "    key         →    key (any val)",
-                    "    +key        →    *key",
-                    "    key+        →    key*",
-                    "    key:val     →    key = val (can be a file)",
-                    "    key:a,b     →    key = a or b",
-                    "    {x}-        →    key ≠ val",
-                    "    {x}!        →    apply recursively",
-                }):join("\n"),
-            },
-            {"-p --path", default = Path.cwd(), convert = Path.from_cli},
-            {"+i", target = "include_instances", description = "include instances", switch = "on"},
-            {"+I", target = "instances_only", description = "only print instances", switch = "on"},
-            {"+a", target = "by_attribute", description = "by attribute", switch = "on"},
-            {"+V", target = "include_attribute_values", description = "exclude attribute values", switch = "off"},
-            print = require("htc.Ontology"),
-        },
+        metadata = require('htc.Metadata').cli,
         ety = {
             alias = true,
             description = "open etymonline to the word",
@@ -114,10 +88,6 @@ require("htl.cli")({
 
                 return path
             end,
-        },
-        clean = {
-            description = "clean the db",
-            action = require("htl.db").clean,
         },
         persist = {
             description = "save things used by services",

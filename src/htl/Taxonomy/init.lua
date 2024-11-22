@@ -189,13 +189,13 @@ M.Condition.symbols = List({
     {char = "#", name = "taxonomy"},
     {char = ":", name = "keyval"},
     {char = ",", name = "comma"},
-    {char = "!", name = "recurse"},
-    {char = "-", name = "exclude"},
+    {char = "!", name = "exclude"},
+    {char = "~", name = "recurse"},
 })
 
 function M.Condition.parse(raw)
     local conditions = List()
-    raw:map(M.Condition.clean):map(M.Condition.split):reduce(List.extend):foreach(M.Condition.add, conditions)
+    raw:map(M.Condition.split):reduce(List.extend):foreach(M.Condition.add, conditions)
     return conditions
 end
 
@@ -205,15 +205,6 @@ function M.Condition.get_symbol(str)
             return symbol
         end
     end
-end
-
-function M.Condition.clean(str)
-    str = str:strip():gsub("%s+", " ")
-    M.Condition.symbols:foreach(function(symbol)
-        str = str:gsub("%s*" .. symbol.char:escape() .. "%s*", symbol.char)
-    end)
-
-    return str
 end
 
 -- might want to filter this to avoid commas/colons after # and etc

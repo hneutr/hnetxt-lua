@@ -1,24 +1,34 @@
 local htl = require("htl")
 local M = require("htl.Taxonomy")
 
-describe("Conditions", function()
-    describe("clean", function()
-        UnitTest.suite(M.Condition.clean, {
-            ["fold spaces"] = {input = "a   b", expected = "a b"},
-            ["trim spaces"] = {input = " a b  ", expected = "a b"},
-            ["remove comma spaces"] = {input = "a  , b", expected = "a,b"},
-            ["remove colon spaces"] = {input = "a  : b", expected = "a:b"},
-            ["remove dash spaces"] = {input = "a  -", expected = "a-"},
-            ["remove exclamation spaces"] = {input = "a  !", expected = "a!"},
-        })
-    end)
+--[[
+----------------------------------------
+examples:
+----------------------------------------
+!#quote
+#quote
+# glossary/hemon.md
+components.com-,re-
+components: com_.md
+tag,instance
+tag! #quote
 
+com_.md, re_.md
+
+----------------------------------------
+maybe:
+----------------------------------------
+components: com-, com_.md
+
+--]]
+
+describe("Conditions", function()
     describe("split", function()
         UnitTest.suite(M.Condition.split, {
             ["start char ~= start"] = {input = "a#b", expected = {"a", "#", "b"}},
-            ["end char ~= end"] = {input = "a-b", expected = {"a", "-", "b"}},
+            ["end char ~= end"] = {input = "a~b", expected = {"a", "~", "b"}},
             ["keyval"] = {input = "a:b", expected = {"a", ":", "b"}},
-            ["multiple end chars"] = {input = "a-!", expected = {"a", "-", "!"}},
+            ["multiple end chars"] = {input = "a~!", expected = {"a", "~", "!"}},
         })
     end)
 

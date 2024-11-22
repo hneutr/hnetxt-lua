@@ -246,14 +246,24 @@ end
 
 function string.rpad(str, width, char)
     char = char or " "
-
     return str .. char:rep(width - str:len())
 end
 
 function string.lpad(str, width, char)
     char = char or " "
-
     return char:rep(width - str:len()) .. str
+end
+
+function string.bisect(str, index, exclude)
+    index = index == nil and #str or index
+    index = math.min(index, #str)
+
+    local right = str:sub(math.max(1, index + 1))
+
+    index = exclude and index - 1 or index
+
+    local left = index > 0 and str:sub(1, index) or ""
+    return left, right
 end
 
 return string

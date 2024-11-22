@@ -73,7 +73,8 @@ build = {
         ["htc.project"] = "src/htc/project.lua",
         ["htc.remove"] = "src/htc/remove.lua",
         ["htc.move"] = "src/htc/move.lua",
-        ["htc.Ontology"] = "src/htc/Ontology.lua",
+        ["htc.Metadata"] = "src/htc/Metadata/init.lua",
+        ["htc.Metadata.Ontology"] = "src/htc/Metadata/Ontology.lua",
         ["htc.ety"] = "src/htc/ety.lua",
     }
 }

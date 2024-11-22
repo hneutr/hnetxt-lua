@@ -20,6 +20,10 @@ describe("update", function()
         assert.are.same({a = 1, b = 2}, M.update({a = 1}, {b = 2, "c"}))
     end)
 
+    it("table and table with list key, sets list", function()
+        assert.are.same({a = 1, b = {2}}, M.update({a = 1}, {b = {2}}))
+    end)
+
     it("table and table", function()
         assert.are.same(
             {a = true, b = true},
