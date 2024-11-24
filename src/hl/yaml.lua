@@ -27,10 +27,7 @@ function M.write_document(path, frontmatter_table, text)
     local frontmatter_str = M.dump(frontmatter_table):rstrip()
 
     text = text or ''
-
-    if type(text) == "table" then
-        text = string.join("\n", text)
-    end
+    text = type(text) == "table" and List.join(text, "\n") or text
 
     text = text:lstrip()
 

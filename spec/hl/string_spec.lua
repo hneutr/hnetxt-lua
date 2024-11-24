@@ -59,39 +59,54 @@ describe("endswith", function()
 end)
 
 describe("join", function()
-    it('does', function()
-        assert.are.same("a, b, c", M.join(", ", {"a", "b", "c"}))
-    end)
+    UnitTest.suite(function(input) return M.join(unpack(input)) end, {
+        ["+"] = {input = {", ", {"a", "b", "c"}}, expected = "a, b, c"},
+    })
 end)
 
 describe("lstrip", function()
-    it('whitespace', function()
-        assert.are.same("a ", M.lstrip(" a "))
-    end)
-
-    it('multiple chars', function()
-        assert.are.same("a ", M.lstrip("! a ", {"%s", "%!"}))
-    end)
+    UnitTest.suite(function(input) return M.lstrip(unpack(input)) end, {
+        ["whitespace"] = {input = {" a "}, expected = "a "},
+        ["multiple chars"] = {input = {"! a ", {"%s", "!"}}, expected = "a "},
+    })
 end)
 
 describe("rstrip", function()
-    it('whitespace', function()
-        assert.are.same(" a", M.rstrip(" a "))
-    end)
-
-    it('multiple chars', function()
-        assert.are.same("! a", M.rstrip("! a !", {"%s", "%!"}))
-    end)
+    UnitTest.suite(function(input) return M.rstrip(unpack(input)) end, {
+        ["whitespace"] = {input = {" a "}, expected = " a"},
+        ["multiple chars"] = {input = {"! a !", {"%s", "!"}}, expected = "! a"},
+    })
 end)
 
 describe("strip", function()
-    it('whitespace', function()
-        assert.are.same("a", M.strip(" a "))
-    end)
+    UnitTest.suite(function(input) return M.strip(unpack(input)) end, {
+        ["whitespace"] = {input = {" a "}, expected = "a"},
+        ["multiple chars"] = {input = {"! a !", {"%s", "!"}}, expected = "a"},
+    })
+end)
 
-    it('multiple chars', function()
-        assert.are.same("a", M.strip("! a !", {"%s", "%!"}))
-    end)
+describe("partition", function()
+    UnitTest.suite(function(input) return M.partition(unpack(input)) end, {
+        ["+"] = {input = {"abc 1 xyz", "1"}, expected = {"abc ", "1", " xyz"}},
+        ["sep at start"] = {input = {"1 abc", "1"}, expected = {"1", " abc"}},
+        ["no sep"] = {input = {"abc xyz", "1"}, expected = {"abc xyz"}},
+        ["multiple partitions"] = {input = {"a 1 b 1", "1"}, expected = {"a ", "1", " b ", "1"}},
+        ["maxpartitions"] = {
+            input = {"a 1 b 1 c 1", "1", 2},
+            expected = {"a ", "1", " b ", "1", " c 1"}
+        },
+        ["multiple seps"] = {
+            input = {"a 1 b 2 c 1 d", {"2", "1"}},
+            expected = {"a ", "1", " b ", "2", " c ", "1", " d"},
+        },
+    })
+end)
+
+describe("rpartition", function()
+    UnitTest.suite(function(input) return M.rpartition(unpack(input)) end, {
+        ["+"] = {input = {"a 1 1 b", "1", 1}, expected = {"a 1 ", "1", " b"}},
+        ["long sep"] = {input = {"a x1 b 1x c", "1x"}, expected = {"a x1 b ", "1x", " c"}},
+    })
 end)
 
 describe("removeprefix", function()
@@ -119,22 +134,6 @@ describe("removesuffix", function()
 
     it('multichar prefix', function()
         assert.are.same("zzzabc", M.removesuffix("zzzabczzz", "zzz"))
-    end)
-end)
-
-describe("partition", function()
-    it("does", function()
-        assert.are.same({"abc ", "1", " xyz"}, M.partition("abc 1 xyz", "1"))
-    end)
-
-    it("no sep", function()
-        assert.are.same({"abc xyz", "", ""}, M.partition("abc xyz", "1"))
-    end)
-end)
-
-describe("rpartition", function()
-    it("does", function()
-        assert.are.same({"abc 1 ", "1", " xyz"}, M.rpartition("abc 1 1 xyz", "1"))
     end)
 end)
 
@@ -179,12 +178,6 @@ describe("keys", function()
     end)
 end)
 
-describe("title", function()
-    it("works", function()
-        assert.are.same("The Lord of the Rings", M.title("the lord of The rings"))
-    end)
-end)
-
 describe("rpad", function()
     it("works", function()
         assert.are.same("1 ", M.rpad("1", 2))
@@ -211,7 +204,5 @@ describe("bisect", function()
         ["index = 1"] = {input = {"abc", 1}, expected = {"a", "bc"}},
         ["index > #string"] = {input = {"abc", 4}, expected = {"abc", ""}},
         ["index == #string"] = {input = {"abc", 3}, expected = {"abc", ""}},
-        ["exclude"] = {input = {"abc", 2, true}, expected = {"a", "c"}},
-        ["index = 1 + exclude"] = {input = {"abc", 1, true}, expected = {"", "bc"}},
     }, {pack_output = true})
 end)

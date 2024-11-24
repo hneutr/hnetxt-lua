@@ -19,7 +19,6 @@ com_.md, re_.md
 maybe:
 ----------------------------------------
 components: com-, com_.md
-
 --]]
 
 describe("Conditions", function()

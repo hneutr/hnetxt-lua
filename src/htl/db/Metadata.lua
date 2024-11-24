@@ -364,7 +364,7 @@ function M.record(url)
         return
     end
 
-    if #DB.Metadata:get() > 0 then
+    if not DB.Metadata:empty() then
         DB.Metadata:remove({source = url.id})
     end
 
@@ -400,7 +400,7 @@ end
 function M.persist()
     DB.Metadata:drop()
 
-    DB.urls:get({where = {type = "file"}}):sorted(function(a, b)
+    local urls = DB.urls:get({where = {type = "file"}}):sorted(function(a, b)
         return tostring(a.path) < tostring(b.path)
     end):foreach(function(u)
         print(u.path)

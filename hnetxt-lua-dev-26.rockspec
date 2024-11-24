@@ -55,6 +55,8 @@ build = {
         ["htl.db.Instances"] = "src/htl/db/Instances.lua",
         ["htl.db.Metadata"] = "src/htl/db/Metadata.lua",
 
+        ["htl.Metadata.Condition"] = "src/htl/Metadata/Condition.lua",
+        ["htl.Metadata.Conditions"] = "src/htl/Metadata/Conditions.lua",
         ["htl.Taxonomy"] = "src/htl/Taxonomy/init.lua",
 
         ["htl.Mirrors"] = "src/htl/Mirrors.lua",

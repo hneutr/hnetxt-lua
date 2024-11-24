@@ -56,7 +56,7 @@ require("htl.cli")({
                 return string.format([[%s +"lua require('htn.ui').quote(%s)"]], p, page)
             end,
         },
-        metadata = require('htc.Metadata').cli,
+        metadata = require('htc.Metadata'),
         ety = {
             alias = true,
             description = "open etymonline to the word",
@@ -95,7 +95,7 @@ require("htl.cli")({
             action = function(args)
                 DB.Log:persist()
                 DB.Paths:persist()
-                require("htl.Taxonomy")()
+                -- require("htl.Taxonomy")()
 
                 if args.reparse_taxonomy then
                     require("htl.db.Metadata").persist()

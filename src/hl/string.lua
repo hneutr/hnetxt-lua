@@ -1,5 +1,4 @@
 local List = require("hl.List")
-local Set = require("pl.Set")
 
 -- ljust
 -- rjust
@@ -32,13 +31,8 @@ local Set = require("pl.Set")
 -- translate
 -- zfill
 
-local PLAIN_DEFAULT = true
-
 local function _default_plain(plain)
-    if plain == nil then
-        plain = PLAIN_DEFAULT
-    end
-    return plain
+    return plain == nil and true or plain
 end
 
 function string.split(str, sep, maxsplit, plain)
@@ -116,68 +110,72 @@ function string.join(sep, strs)
     return joined
 end
 
-function string.lstrip(str, charsToStrip)
-    charsToStrip = charsToStrip or {"%s"}
-    local pattern = string.format("^[%s]*(.*)", table.concat(charsToStrip))
-    return str:match(pattern)
+function string.lstrip(str, chars)
+    return str:match(("^[%s]*(.*)"):format(table.concat(chars or {"%s"})))
 end
 
-function string.rstrip(str, charsToStrip)
-    return str:reverse():lstrip(charsToStrip):reverse()
+function string.rstrip(str, chars)
+    return str:reverse():lstrip(chars):reverse()
 end
 
-function string.strip(str, charsToStrip)
-    return str:lstrip(charsToStrip):rstrip(charsToStrip)
+function string.strip(str, chars)
+    return str:lstrip(chars):rstrip(chars)
 end
 
 function string.removeprefix(str, prefix, plain)
-    local removed = false
     if str:startswith(prefix, plain) then
-        str = str:sub(#prefix + 1)
-        removed = true
+        return str:sub(#prefix + 1), true
     end
 
-    return str, removed
+    return str, false
 end
 
 function string.removesuffix(str, suffix, plain)
-    local removed
-    str, removed = str:reverse():removeprefix(suffix:reverse(), plain)
-    return str:reverse(), removed
+    if str:endswith(suffix, plain) then
+        return str:sub(1, #str - #suffix), true
+    end
+
+    return str, false
 end
 
-function string.partition(str, sep, plain)
+function string.partition(str, seps, maxpartition, plain)
     plain = _default_plain(plain)
 
-    local sepIndex = str:find(sep, 1, plain)
-    if sepIndex then
-        local pre = str:sub(1, sepIndex - 1)
-        local post = str:sub(sepIndex + #sep)
-        return {pre, sep, post}
-    end
+    seps = List.as_list(seps)
 
-    return {str, '', ''}
+    local parts = List({str})
+    local n = 0
+
+    repeat
+        local str = parts:pop()
+        local subparts
+        local i
+        seps:foreach(function(sep)
+            local _i = str:find(sep, 1, plain)
+            if _i and (not i or _i < i) then
+                i = _i
+                subparts = {str:sub(1, i - 1), sep, str:sub(i + #sep)}
+            end
+        end)
+
+        parts:extend(subparts or {str})
+        n = i and n + 1 or maxpartition
+    until n == maxpartition
+
+    return parts:filter(function(s) return #s > 0 end)
 end
 
-function string.rpartition(str, sep, plain)
-    local reversedPartition = str:reverse():partition(sep:reverse(), plain)
-    local partition = {}
-    for i=#reversedPartition, 1, -1 do
-        partition[#partition + 1] = reversedPartition[i]:reverse()
-    end
-
-    return partition
+function string.rpartition(str, seps, maxpartition, plain)
+    return str:reverse():partition(
+        List.as_list(seps):map(string.reverse),
+        maxpartition,
+        plain
+    ):clone():reverse():map(string.reverse)
 end
 
 function string.rfind(str, substr, plain)
-    plain = _default_plain(plain)
-    local index = str:reverse():find(substr:reverse(), 1, plain)
-
-    if index then
-        index = #str - index
-    end
-
-    return index
+    local index = str:reverse():find(substr:reverse(), 1, _default_plain(plain))
+    return index and #str - index or index
 end
 
 function string.center(str, width, fillchar)
@@ -185,10 +183,7 @@ function string.center(str, width, fillchar)
 
     while #str < width do
         str = fillchar .. str
-
-        if #str < width then
-            str = str .. fillchar
-        end
+        str = #str < width and (str .. fillchar) or str
     end
 
     return str
@@ -198,71 +193,20 @@ function string.escape(str)
     return str:gsub('[%-%.%+%[%]%(%)%$%^%%%?%*]','%%%1')
 end
 
---[[
-https://en.wikipedia.org/wiki/Wikipedia:Manual_of_Style/Titles_of_works#Capital_letters
-https://en.wikipedia.org/wiki/List_of_English_prepositions
---]]
-function string.title(str)
-    local keep_lower = Set({
-        -- articles
-        "a", "an", "the",
-        -- coordinating conjunctions
-        "and", "but", "or", "nor", "for", "yet", "so",
-        -- prepositions
-        "a", "abt.", "aft", "ago", "amid", "anti", "as", "at", "atop", "away", "away",
-        "back", "bar", "but", "by", "by",
-        "chez", "come", "cum", "c̄",
-        "down", "east", "ere", "for", "for", "for", "from", "from",
-        "here", "home",
-        "if", "in", "in", "into", "into",
-        "less", "lest", "like", "like",
-        "mid", "mod",
-        "near", "next", "now", "now",
-        "o'", "o'er", "of", "of", "off", "on", "on", "on", "on", "once", "onto", "out", "over", "over",
-        "pace", "past", "per", "plus", "post", "pre", "pro",
-        "qua",
-        "re",
-        "sans", "save", "save", "so", "sub",
-        "t'", "than", "than", "then", "thru", "till", "till", "to", "to",
-        "unto", "up", "upon", "upon",
-        "via", "vice",
-        "w/i", "w/o", "west", "when", "when", "with", "with",
-    })
-
-    local parts = List(str:split())
-    for i, part in ipairs(parts) do
-        part = part:lower()
-        local start_char = part:sub(1, 1):upper()
-
-        if keep_lower[part] and not (i == 1 or i == #parts) then
-            start_char = start_char:lower()
-        end
-
-        parts[i] = start_char .. part:sub(2)
-    end
-
-    return parts:join(" ")
-end
-
 function string.rpad(str, width, char)
-    char = char or " "
-    return str .. char:rep(width - str:len())
+    return str .. (char or " "):rep(width - str:len())
 end
 
 function string.lpad(str, width, char)
-    char = char or " "
-    return char:rep(width - str:len()) .. str
+    return (char or " "):rep(width - str:len()) .. str
 end
 
-function string.bisect(str, index, exclude)
-    index = index == nil and #str or index
-    index = math.min(index, #str)
-
-    local right = str:sub(math.max(1, index + 1))
-
-    index = exclude and index - 1 or index
+function string.bisect(str, index)
+    index = math.min(index == nil and #str or index, #str)
 
     local left = index > 0 and str:sub(1, index) or ""
+    local right = str:sub(math.max(1, index + 1))
+
     return left, right
 end
 
