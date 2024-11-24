@@ -1,8 +1,8 @@
 require("htl")
 
-local media_s = "/Users/hne/eidola/media"
-local media_dir = Path(media_s)
-local urls = DB.urls:get({contains = {path = media_s .. "/*"}}):sorted(function(a, b)
+local dir_s = "/Users/hne/eidola"
+local dir = Path(dir_s)
+local urls = DB.urls:get({where = {project = "eidola", type = "file"}}):sorted(function(a, b)
     return tostring(a.path) < tostring(b.path)
 -- end):filter(function(u)
 --     if u.path:parent() == media_dir then
@@ -16,7 +16,7 @@ end):foreach(function(u)
     if n_meta == 0 then
         DB.Metadata.record(u)
         local new_n = #DB.Metadata:get({where = {subject = u.id}})
-        print(("%s: 0 → %d"):format(tostring(u.path:relative_to(media_dir)), new_n))
+        print(("%s: 0 → %d"):format(tostring(u.path:relative_to(dir)), new_n))
     end
     -- local lines = u.path:readlines()
     -- local changed = false

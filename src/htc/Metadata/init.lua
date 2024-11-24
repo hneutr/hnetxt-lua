@@ -26,9 +26,8 @@ return {
     {"+V", target = "include_attribute_values", description = "exclude attribute values", switch = "off"},
     -- print = require("htc.Metadata.Ontology"),
     action = function(args)
-        -- local conditions = require("htl.Metadata.Conditions").from_elements(args.conditions)
-        local conditions = require("htl.Metadata.Conditions"):new(args.conditions, args.path)
-        conditions.conditions:foreach(Dict.print)
-        print(conditions.urls)
+        args.conditions = require("htl.Metadata.Conditions"):new(args.conditions, args.path)
+        args.conditions.conditions:foreach(Dict.print)
+        print(args.conditions.urls)
     end,
 }

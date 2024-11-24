@@ -364,7 +364,7 @@ function M.record(url)
         return
     end
 
-    if not DB.Metadata:empty() then
+    if DB.Metadata:exists() then
         DB.Metadata:remove({source = url.id})
     end
 
@@ -404,10 +404,7 @@ function M.persist()
         return tostring(a.path) < tostring(b.path)
     end):foreach(function(u)
         print(u.path)
-
-        if not pcall(function() M.record(u) end) then
-            os.exit()
-        end
+        M.record(u)
     end)
 end
 

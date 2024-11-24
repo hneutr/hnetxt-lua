@@ -158,8 +158,6 @@ end
 --                                                                            --
 --------------------------------------------------------------------------------
 function M:_init(args)
-    args = args or {}
-
     self.include_instances = args.include_instances
     self.by_attribute = args.by_attribute
     self.include_attribute_values = args.include_attribute_values
