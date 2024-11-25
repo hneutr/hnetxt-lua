@@ -1,17 +1,10 @@
 local socket = require("socket")
 
 require("hl.string")
+require("hl.List")
 require("hl.Dict")
 
 local M = {}
-
-function M.randint(args)
-    args = Dict(args or {}, {min = 1, seed = os.time()})
-    args.max = args.max or args.min
-
-    math.randomseed(args.seed)
-    return math.random(args.min, args.max)
-end
 
 function M.parsekv(s, delimiter)
     delimiter = delimiter or ":"
@@ -27,7 +20,7 @@ function M.parsekv(s, delimiter)
 end
 
 function M.formatkv(k, v, delimiter)
-    return string.format("%s%s%s", k, delimiter or ": ", v)
+    return ("%s%s%s"):format(k, delimiter or ": ", v)
 end
 
 function M.time_it(label)
@@ -38,6 +31,33 @@ function M.time_it(label)
     print(str)
     TIME = now
     return str
+end
+
+function M.typify(object)
+    if List.is_like(object) then
+        object = List(object)
+        object:transform(M.typify)
+    elseif Dict.is_like(object) then
+        object = Dict(object)
+        object:transformv(M.typify)
+    end
+
+    return object
+end
+
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                    math                                    --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
+function math.randint(args)
+    args = Dict(args or {}, {min = 1, seed = os.time()})
+    args.max = args.max or args.min
+
+    math.randomseed(args.seed)
+    return math.random(args.min, args.max)
 end
 
 function math.between(n, args)

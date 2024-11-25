@@ -2,7 +2,7 @@ local Condition = require("htl.Metadata.Condition")
 
 local M = Class({
     prefixes = Dict({
-        ["#"] = {taxonomy = true, predicates = List({"instance"})},
+        ["#"] = {taxonomy = true, predicates = List({"instance", "subset"})},
     }),
     infixes = Dict({
         [":"] = Condition.default_predicates,

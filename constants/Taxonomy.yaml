@@ -1,47 +1,9 @@
-relations:
-  subset:
-    symbol: ⊃
-    color:
-      syntax: yellow
-      term:
-        label: yellow
-  instance:
-    symbol: ⪾
-    color:
-      syntax: blue
-      term:
-        label: blue
-  connection:
-    color:
-      syntax: white
-      term:
-        label: blue
-  instances_are_also:
-    symbol: ⪽
-    color:
-      syntax: maroon
-  tag:
-    symbol: "@"
-    color:
-      syntax: pink
-      term:
-        label: magenta
-  value:
-    color:
-      term:
-        label: [magenta]
-  attribute:
-    color:
-      term:
-        label: green
-grammar:
-  taxon_prefix: "#"
-  exclusion_suffix: "-"
-  recursive: "::"
-  or_delimiter: ","
-  comment_prefix: "~"
-metadata:
-  max_length: 120
+all_relation_type: "__all"
+indent_size: "  "
+color:
+  subset: blue
+  instance: yellow
+  attribute: green
 display:
   defaults:
     can_merge: true

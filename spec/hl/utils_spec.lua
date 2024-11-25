@@ -1,7 +1,11 @@
+local List = require("hl.List")
+local Dict = require("hl.Dict")
+local UnitTest = require("hl.UnitTest")
+
 local M = require("hl.utils")
 
 describe("randint", function()
-    local fn = M.randint
+    local fn = math.randint
     it("no args", function()
         assert.are.same(1, fn())
     end)
@@ -69,5 +73,32 @@ describe("between", function()
 
     it("min > max", function()
         assert.are.same(2, fn(3, {min = 2, max = 0}))
+    end)
+end)
+
+describe("typeify", function()
+    local fn = M.typify
+    it("list", function()
+        assert.are.same(List, getmetatable(fn({1})))
+    end)
+
+    it("list with dict", function()
+        local out = fn({1, {x = 1}})
+
+        assert.are.same(List, getmetatable(out))
+        assert.are.same(getmetatable(1), getmetatable(out[1]))
+        assert.are.same(Dict, getmetatable(out[2]))
+    end)
+
+    it("dict", function()
+        assert.are.same(Dict, getmetatable(fn({x = 1})))
+    end)
+
+    it("dict with list", function()
+        local out = fn({x = 1, y = {1}})
+
+        assert.are.same(Dict, getmetatable(out))
+        assert.are.same(getmetatable(1), getmetatable(out.x))
+        assert.are.same(List, getmetatable(out.y))
     end)
 end)

@@ -43,7 +43,7 @@ function M.apply(str, colors)
 end
 
 return function(items)
-    return List(type(items[1]) == "string" and {items} or items):transform(function(item)
+    return List.as_list(items):map(function(item)
         return M.apply(unpack(item))
     end):join("")
 end

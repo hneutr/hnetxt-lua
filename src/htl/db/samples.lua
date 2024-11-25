@@ -1,4 +1,4 @@
-local Taxonomy = require("htl.Taxonomy")
+local Conditions = require("htl.Metadata.Conditions")
 local Snippet = require("htl.Snippet")
 
 local M = SqliteTable("samples", {
@@ -19,20 +19,18 @@ local M = SqliteTable("samples", {
     },
 })
 
-M.conf = Dict(Conf.samples)
-
 function M:set(args)
     if args.rerun then
         M:remove({date = args.date})
     end
 
-    M.conf:foreach(function(frame, cmd_args)
+    Conf.samples:foreach(function(frame, cmd_args)
         if not M:where({date = args.date, frame = frame}) then
-            local ids = Set(Taxonomy(cmd_args).rows:col('url')):vals()
+            local ids = Conditions(cmd_args).urls
 
             M:insert({
                 date = args.date,
-                url = ids[utils.randint({max = #ids})],
+                url = ids[math.randint({max = #ids})],
                 frame = frame,
             })
         end

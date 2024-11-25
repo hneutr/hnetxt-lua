@@ -95,7 +95,7 @@ require("htl.cli")({
             action = function(args)
                 DB.Log:persist()
                 DB.Paths:persist()
-                -- require("htl.Taxonomy")()
+                -- require("htl.Metadata.Taxonomy")()
 
                 if args.reparse_taxonomy then
                     require("htl.db.Metadata").persist()

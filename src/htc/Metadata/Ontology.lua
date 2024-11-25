@@ -1,13 +1,10 @@
 local TerminalLink = require("htl.text.TerminalLink")
 local Color = require("htl.Color")
-local Taxonomy = require("htl.Taxonomy")
+local Taxonomy = require("htl.Metadata.Taxonomy")
 
 local M = class()
 
-M.conf = Dict(Conf.Taxonomy)
-M.conf.indent_size = "  "
-M.conf.__all_relation_type = "__all"
-M.conf.display = Dict(M.conf.display)
+M.conf = Conf.Taxonomy
 
 function M.indent(indent)
     if type(indent) == "string" then
@@ -42,9 +39,8 @@ end
 local LinePrinter = class()
 LinePrinter.type_sort = List({
     "subset",
-    "value",
-    "attribute",
     "instance",
+    "predicate",
 })
 
 function LinePrinter:_init(url, type)
@@ -54,8 +50,7 @@ function LinePrinter:_init(url, type)
     self.sublines = List()
     self.id = self.url.id
 
-    self.conf = M.conf.relations[self.type] or {color = {term = {label = 'white'}}}
-    self.colors = self.conf.color.term
+    self.color = M.conf.color[self.type] or 'white'
 end
 
 function LinePrinter:__tostring()
@@ -67,11 +62,11 @@ function LinePrinter:get_label()
         return TerminalLink({
             label = self.url.label,
             url = self.url.id,
-            colors = self.colors,
+            colors = {label = self.color},
         })
     end
 
-    return Color({self.url.label, self.colors.label})
+    return Color({self.url.label, self.color})
 end
 
 function LinePrinter.__lt(a, b)
@@ -158,130 +153,34 @@ end
 --                                                                            --
 --------------------------------------------------------------------------------
 function M:_init(args)
-    self.include_instances = args.include_instances
-    self.by_attribute = args.by_attribute
-    self.include_attribute_values = args.include_attribute_values
-    self.instances_only = args.instances_only
-    self.included_types = self:get_included_types()
+    self.conditions = args.conditions
+
+    self.types = Set({"subset"})
+
+    if args.include_instances then
+        self.types:add("instance")
+    end
 
     self.T = Taxonomy(args)
 end
 
-function M:get_included_types()
-    if self.instances_only then
-        return Set({"instance"})
-    end
-
-    local types = Set({"subset", "attribute"})
-
-    if self.include_instances then
-        types:add("instance")
-    end
-
-    if self.include_attribute_values then
-        types:add("value")
-    end
-
-    return types
-end
-
 function M:__tostring()
-    local lines
+    local taxonomy = self.T.taxonomy
+    local taxa = self:get_urls(taxonomy, "subset")
 
-    if self.instances_only then
-        lines = self:get_instance_lines(self.T.taxon_instances:values())
-    elseif self.by_attribute then
-        lines = self:get_attribute_lines()
-    else
-        lines = self:get_lines()
+    local lines = List(taxa)
+    while #taxa > 0 do
+        local taxon = taxa:pop()
+        taxon.sublines:extend(self:get_urls(taxonomy:get(taxon.id), "subset"))
+        taxa:extend(taxon.sublines)
+        taxon.sublines:extend(self:get_urls(taxonomy.taxon_instances[taxon.id], "instance"))
     end
 
     return lines:transform(tostring):join("\n")
 end
 
--- TODO fix this
--- function M:get_attribute_relations_by_key()
---     local seeds = Set(self.T.seeds)
---
---     local conditions = self.T.conditions:filter(function(c)
---         return c.predicate and not DB.Metadata.conf.taxonomy_predicates:contains(c.predicate)
---     end)
---
---     local rows = List()
---     if #conditions == 0 then
---         conditions:append({predicate = "???????????????"})
---     end
---
---     local key_to_relations = Dict():set_default(function() return Dict():set_default(Set) end)
---
---     conditions:map(self.T.get_condition_rows):foreach(function(rows)
---         rows:foreach(function(r)
---             local thing
---
---             if r.val then
---                 thing = r.val
---                 if not self.T.urls_by_id[thing] then
---                     self.T.urls_by_id[thing] = Dict({label = thing, id = thing})
---                 end
---             elseif r.object then
---                 thing = r.object
---             end
---
---             if thing and seeds:has(r.subject) then
---                 key_to_relations[r.key or M.conf.__all_relation_type][thing]:add(r.subject)
---             end
---         end)
---     end)
---
---     return key_to_relations
--- end
-
-function M:get_attribute_lines()
-    local key_to_relations = self:get_attribute_relations_by_key()
-
-    local lines = List()
-    local key_to_line = Dict()
-
-    key_to_relations:keys():sorted():foreach(function(attribute_key)
-        local parent_key
-        attribute_key:split("."):foreach(function(key_part)
-            local key = key_part
-            if parent_key then
-                key = string.format("%s.%s", parent_key, key)
-            end
-
-            if not key_to_line[key] then
-                local line = LinePrinter({label = key_part}, "attribute")
-                key_to_line[key] = line
-
-                if parent_key then
-                    key_to_line[parent_key].sublines:append(line)
-                else
-                    lines:append(line)
-                end
-            end
-
-            parent_key = key
-        end)
-
-        local attribute_line = key_to_line[attribute_key]
-        local vals_by_object = key_to_relations[attribute_key]
-
-        if self.included_types:has("value") then
-            self:get_urls(vals_by_object, "value"):foreach(function(object)
-                attribute_line.sublines:append(object)
-                object.sublines:extend(self:get_urls(vals_by_object[object.url.id], "instance"))
-            end)
-        else
-            attribute_line.sublines:extend(self:get_instance_lines(vals_by_object:values()))
-        end
-    end)
-
-    return lines
-end
-
 function M:get_urls(ids, type)
-    if self.included_types:has(type) then
+    if self.types:has(type) then
         if ids:is_a(Set) then
             ids = ids:vals()
         elseif ids:is_a(Dict) then
@@ -294,27 +193,6 @@ function M:get_urls(ids, type)
     end
 
     return List()
-end
-
-function M:get_instance_lines(d)
-    local instances = Set()
-    d:foreach(function(_instances) instances:add(_instances) end)
-    return self:get_urls(instances, "instance")
-end
-
-function M:get_lines()
-    local taxonomy = self.T.taxonomy
-    local taxa = self:get_urls(taxonomy, "subset")
-
-    local lines = List(taxa)
-    while #taxa > 0 do
-        local taxon = taxa:pop()
-        taxon.sublines:extend(self:get_urls(taxonomy:get(taxon.id), "subset"))
-        taxa:extend(taxon.sublines)
-        taxon.sublines:extend(self:get_urls(self.T.taxon_instances[taxon.id], "instance"))
-    end
-
-    return lines
 end
 
 return M

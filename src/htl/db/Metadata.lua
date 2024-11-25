@@ -25,21 +25,7 @@ local M = SqliteTable("Metadata", {
     },
 })
 
-M.conf = {
-    max_length = 120,
-    comment_prefix = "~",
-    subpredicate_sep = ".",
-    tag_prefix = "@",
-    default_predicate = "tag",
-    predicate_remap = {
-        ["is a"] = "instance",
-    },
-    taxonomy_predicates = List({
-        "instance",
-        "subset",
-        "instances are a",
-    }),
-}
+M.conf = Conf.Metadata
 
 --------------------------------------------------------------------------------
 --                                                                            --
@@ -407,7 +393,6 @@ function M.persist()
         M.record(u)
     end)
 end
-
 
 function M:get(q)
     return List(M:__get(q))

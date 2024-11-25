@@ -1,7 +1,6 @@
 local M = class()
 
-M.conf = Dict(Conf.text.heading)
-M.conf.meta = Dict(M.conf.meta)
+M.conf = Conf.text.heading
 
 M.levels = List.range(1, 6):map(function(level)
     return {

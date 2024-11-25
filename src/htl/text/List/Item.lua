@@ -2,7 +2,7 @@ local Line = require("htl.text.Line")
 
 local M = class(Line)
 M.name = "item"
-M.confs = List(Conf.list)
+M.confs = Conf.list
 M.confs_by_sigil_len = M.confs:filter(function(c)
     return c.sigil
 end):sort(function(a, b)

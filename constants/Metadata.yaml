@@ -1,0 +1,11 @@
+max_length: 120
+comment_prefix: "~"
+subpredicate_sep: "."
+tag_prefix: "@"
+default_predicate: tag
+predicate_remap:
+    is a: instance
+taxonomy_predicates:
+  - instance
+  - subset
+  - instances are a

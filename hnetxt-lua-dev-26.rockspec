@@ -57,7 +57,7 @@ build = {
 
         ["htl.Metadata.Condition"] = "src/htl/Metadata/Condition.lua",
         ["htl.Metadata.Conditions"] = "src/htl/Metadata/Conditions.lua",
-        ["htl.Taxonomy"] = "src/htl/Taxonomy/init.lua",
+        ["htl.Metadata.Taxonomy"] = "src/htl/Metadata/Taxonomy.lua",
 
         ["htl.Mirrors"] = "src/htl/Mirrors.lua",
 

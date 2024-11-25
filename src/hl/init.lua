@@ -26,3 +26,5 @@ UnitTest = require("hl.UnitTest")
 utils = require("hl.utils")
 
 SqliteTable = require("sqlite.tbl")
+
+P = print
