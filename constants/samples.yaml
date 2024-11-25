@@ -1,6 +1,4 @@
 quote:
-  conditions:
-    - "#quote"
+  - "#quote"
 question:
-  conditions:
-    - "#question"
+  - "#question"

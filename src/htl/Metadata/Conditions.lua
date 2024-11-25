@@ -18,7 +18,6 @@ function M:new(conditions, path)
     local instance = setmetatable(
         {
             conditions = M.parse(conditions),
-            urls = List(),
             rows = List(),
         },
         self

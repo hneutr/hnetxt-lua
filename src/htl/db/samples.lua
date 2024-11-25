@@ -26,7 +26,7 @@ function M:set(args)
 
     Conf.samples:foreach(function(frame, cmd_args)
         if not M:where({date = args.date, frame = frame}) then
-            local ids = Conditions(cmd_args).urls
+            local ids = Conditions:new(cmd_args).urls
 
             M:insert({
                 date = args.date,
