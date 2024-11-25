@@ -11,25 +11,26 @@ M.Url = {
         local args = List(opts.fargs)
 
         local field = args:pop(1)
-        local fields = Set({"created", "label", "project", "modified"})
-        
+        local fields = Set({"id", "created", "label", "project", "modified"})
+        local cant_set = List({"id", "project"})
+
         if not fields:has(field) then
-            vim.notify("Url: Unknown field: " .. field, vim.log.levels.ERROR)
+            return vim.notify("Url: Unknown field: " .. field, vim.log.levels.ERROR)
         end
 
         local path = Path.this()
         ui.set_file_url(path)
 
-        local url = DB.urls:get_file(path)
+        local url = DB.urls.get_file(path)
 
         if not url then
-            vim.notify("Url: untracked file", vim.log.levels.ERROR)
+            return vim.notify("Url: untracked file", vim.log.levels.ERROR)
         end
 
         if #args == 0 then
             print(url[field])
-        elseif field == "project" then
-            vim.notify("Url: can't set project", vim.log.levels.ERROR)
+        elseif cant_set:contains(field) then
+            vim.notify(("Url: can't set %s"):format(field), vim.log.levels.ERROR)
         else
             DB.urls:update({
                 where = {id = url.id},
@@ -41,7 +42,7 @@ M.Url = {
         nargs = "+",
         desc = "get/set a DB.Url field",
         complete = function(lead)
-            return List({"created", "label", "project", "modified"}):filter(function(field)
+            return List({"id", "created", "label", "project", "modified"}):filter(function(field)
                 return field:startswith(lead)
             end)
         end,
@@ -51,11 +52,11 @@ M.Url = {
 M.Ety = {
     function(opts)
         local args = List(opts.fargs)
-        
+
         local word
         if #args == 0 then
             local url = DB.urls:where({path = Path.this(), type = "file"})
-            
+
             if url then
                 word = url.label
             end

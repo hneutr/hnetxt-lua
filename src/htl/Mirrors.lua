@@ -44,7 +44,7 @@ function M:get_paths(path)
 end
 
 function M:get_source(path)
-    local source = DB.urls:get_file(path)
+    local source = DB.urls.get_file(path)
 
     if source then
         return source

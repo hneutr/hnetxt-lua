@@ -358,9 +358,8 @@ function M.record(url)
 
     if #rows > 0 then
         DB.Metadata:insert(rows)
+        M.set_quote_label(url)
     end
-
-    M.set_quote_label(url)
 end
 
 function M.set_quote_label(url)

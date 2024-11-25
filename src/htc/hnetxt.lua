@@ -136,7 +136,7 @@ require("htl.cli")({
                 if args.date then
                     DB.urls:insert({path = path})
 
-                    local url = DB.urls:get_file(path)
+                    local url = DB.urls.get_file(path)
                     if url then
                         DB.urls:update({
                             where = {id = url.id},

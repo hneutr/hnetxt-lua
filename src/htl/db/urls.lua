@@ -42,7 +42,7 @@ function M:insert(row)
     row.type = row.type or "file"
 
     if row.type == "file" then
-        local url = M:get_file(row.path)
+        local url = M.get_file(row.path)
 
         if url then
             return url.id
@@ -72,7 +72,7 @@ function M:where(q)
     return M:__where(q)
 end
 
-function M:get_file(path)
+function M.get_file(path)
     return M:where({path = path, type = 'file'})
 end
 
@@ -178,7 +178,7 @@ function M.move(move)
                 set = to_set,
             })
 
-            M:update_project(target)
+            M.update_project(target)
         else
             M:remove({path = source})
         end
@@ -187,7 +187,7 @@ function M.move(move)
     end
 end
 
-function M:update_project(path)
+function M.update_project(path)
     local project = DB.projects.get_by_path(path)
 
     if project then

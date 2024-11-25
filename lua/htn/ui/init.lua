@@ -129,7 +129,7 @@ function M.leave()
         end
 
         M.set_file_url(path)
-        DB.Metadata.record(DB.urls:get_file(path))
+        DB.Metadata.record(DB.urls.get_file(path))
     end
 
     vim.b.htn_modified = false
@@ -158,7 +158,7 @@ function M.get_statusline()
         end
 
         path = source.path
-    elseif DB.urls:get_file(path) then
+    elseif DB.urls.get_file(path) then
         post = Mirrors:get_strings(path)
 
         if #post > 0 then
@@ -300,7 +300,7 @@ function M.quote(page_number)
     vim.api.nvim_input("iquote<tab>")
 
     local path = Path.this():parent() / Conf.paths.dir_file
-    local source = DB.urls:get_reference(DB.urls:get_file(path))
+    local source = DB.urls:get_reference(DB.urls.get_file(path))
 
     if source then
         vim.api.nvim_input(tostring(source))

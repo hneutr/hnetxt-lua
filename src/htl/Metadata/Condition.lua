@@ -24,7 +24,7 @@ end
 
 function M:parse_element(element)
     local path = Path.from_cli(element)
-    local url = path:exists() and DB.urls:get_file(path)
+    local url = path:exists() and DB.urls.get_file(path)
 
     if not url and self.taxonomy then
         url = {id = DB.Metadata.Taxonomy.get_url(element, {insert = false})}

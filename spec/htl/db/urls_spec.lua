@@ -395,12 +395,12 @@ describe("set_project", function()
 
         local u1 = DB.urls:insert({path = f1})
 
-        assert.are.same("1", DB.urls:get_file(f1).project)
+        assert.are.same("1", DB.urls.get_file(f1).project)
 
         DB.projects:insert(p2)
-        DB.urls:update_project(f1)
+        DB.urls.update_project(f1)
 
-        assert.are.same("2", DB.urls:get_file(f1).project)
+        assert.are.same("2", DB.urls.get_file(f1).project)
     end)
 end)
 

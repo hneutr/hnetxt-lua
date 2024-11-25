@@ -37,7 +37,7 @@ function M:insert(row)
     ))
     
     DB.urls:get({contains = {path = string.format("%s*", tostring(row.path))}}):foreach(function(url)
-        DB.urls:update_project(url.path)
+        DB.urls.update_project(url.path)
     end)
 end
 

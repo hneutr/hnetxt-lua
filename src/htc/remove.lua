@@ -49,7 +49,7 @@ function M:remove_dir(dir, args)
 end
 
 function M:remove_file(path)
-    if DB.urls:get_file(path) then
+    if DB.urls.get_file(path) then
         Mirrors:get_paths(path):values():foreach(function(p) p:unlink() end)
     end
 
