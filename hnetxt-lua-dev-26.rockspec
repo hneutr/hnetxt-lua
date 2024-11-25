@@ -77,6 +77,7 @@ build = {
         ["htc.move"] = "src/htc/move.lua",
         ["htc.Metadata"] = "src/htc/Metadata/init.lua",
         ["htc.Metadata.Ontology"] = "src/htc/Metadata/Ontology.lua",
+        ["htc.Metadata.Predicates"] = "src/htc/Metadata/Predicates.lua",
         ["htc.ety"] = "src/htc/ety.lua",
     }
 }

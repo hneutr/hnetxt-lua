@@ -12,6 +12,24 @@ local M = Class({
         ["!"] = {exclude = true},
         ["~"] = {recurse = true},
     }),
+    cli = {
+        "conditions",
+        args = "*",
+        default = List(),
+        action = "concat",
+        description = List({
+            "filter conditions:",
+            "    x      [x = str]        →   predicate: x",
+            "    x      [x = path]       →   object: x",
+            "   +x      [x = str]        →   predicate: *x",
+            "    x+     [x = str]        →   predicate: x*",
+            "   :x      [x = str]        →   predicate: *.x",
+            "   #x      [x = str|path]   →   predicate: subset|instance, object: x",
+            "    x!     [x = query]      →   exclude x",
+            "    x~     [x = query]      →   recursively match x",
+            "    x, y                    →   x|y",
+        }):join("\n"),
+    }
 })
 
 function M:new(conditions, path)
