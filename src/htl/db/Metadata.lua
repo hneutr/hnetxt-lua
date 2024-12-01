@@ -326,39 +326,37 @@ end
 --                                                                            --
 --                                                                            --
 --------------------------------------------------------------------------------
-M.Element = {
+M.Row = {
     cols = List({'subject', 'object', 'predicate'}),
     nil_val = "__NONE__",
     sep = ":",
 }
 
-function M.Element.tostring(row, cols)
-    cols = not cols and M.Element.cols or List.as_list(cols):filter(function(col)
-        return M.Element.cols:contains(col)
-    end)
+function M.Row.tostring(row, cols)
+    cols = not cols and M.Row.cols or List.as_list(cols)
 
     return cols:map(function(c)
         local val = row[c]
         val = type(val) == "table" and val.label or val
-        return val or M.Element.nil_val
-    end):join(M.Element.sep)
+        return val or M.Row.nil_val
+    end):join(M.Row.sep)
 end
 
-function M.Element.compare(a, b)
+function M.Row.compare(a, b)
     if a == b then
         return false
     end
 
-    local a_parts = a:split(M.Element.sep)
-    local b_parts = b:split(M.Element.sep)
+    local a_parts = a:split(M.Row.sep)
+    local b_parts = b:split(M.Row.sep)
 
     for i, _a in ipairs(a_parts) do
-        local _b = #b_parts >= i and b_parts[i] or M.Element.nil_val
+        local _b = #b_parts >= i and b_parts[i] or M.Row.nil_val
 
         if _a ~= _b then
-            if _a == M.Element.nil_val then
+            if _a == M.Row.nil_val then
                 return false
-            elseif _b == M.Element.nil_val then
+            elseif _b == M.Row.nil_val then
                 return true
             elseif _a > _b then
                 return false
@@ -367,42 +365,6 @@ function M.Element.compare(a, b)
     end
 
     return true
-end
-
-function M.group_rows_by_operation(rows_by_age)
-    rows_by_age = rows_by_age or {}
-
-    local age_keys = Dict():set_default(List)
-    for age in List({"old", "new"}):iter() do
-        age_keys[age] = List(rows_by_age[age]):map(M.Element.tostring)
-    end
-
-    return Dict({
-        keep = {"new", "old", operation = Set.intersection},
-        remove = {"old", "new", operation = Set.difference},
-        insert = {"new", "old", operation = Set.difference},
-    }):transformv(function(d)
-        return d.operation(
-            Set(age_keys[d[1]]),
-            Set(age_keys[d[2]])
-        ):vals():map(function(key)
-            return age_keys[d[1]]:index(key)
-        end):sort():map(function(index)
-            return rows_by_age[d[1]][index]
-        end)
-    end):filterv(function(rows) return #rows > 0 end)
-end
-
-function M.apply(rows_by_age)
-    local rows_by_operation = M.group_rows_by_operation(rows_by_age)
-
-    if rows_by_operation.remove then
-        DB.Metadata:remove({id = rows_by_operation.remove:col('id')})
-    end
-
-    if rows_by_operation.insert then
-        DB.Metadata:insert(rows_by_operation.insert)
-    end
 end
 
 function M.get_rows(url)
@@ -429,7 +391,17 @@ function M.record(url)
         return
     end
 
-    M.apply({old = DB.Metadata:get({source = url.id}), new = M.get_rows(url)})
+    if M:exists() then
+        M:remove({source = url.id})
+    end
+
+    local rows = M.get_rows(url)
+
+    if #rows > 0 then
+        M:insert(rows)
+        -- pass rows to `htl.db.Taxonomy.staleness.set`
+    end
+
     M.set_quote_label(url)
 end
 

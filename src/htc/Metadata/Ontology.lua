@@ -1,6 +1,5 @@
 local TerminalLink = require("htl.text.TerminalLink")
 local Color = require("htl.Color")
-local Taxonomy = require("htl.Metadata.Taxonomy")
 
 local M = class()
 
@@ -161,7 +160,7 @@ function M:_init(args)
         self.types:add("instance")
     end
 
-    self.T = Taxonomy(args)
+    -- self.T = Taxonomy(args)
 end
 
 function M:__tostring()

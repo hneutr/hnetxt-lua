@@ -34,7 +34,6 @@ build = {
         ["hl.Path"] = "src/hl/Path.lua",
         ["hl.Tree"] = "src/hl/Tree.lua",
         ["hl.UnitTest"] = "src/hl/UnitTest.lua",
-        ["hl.SqliteTable"] = "src/hl/SqliteTable.lua",
         ["hl.utils"] = "src/hl/utils.lua",
         
         ["htl"] = "src/htl/init.lua",
@@ -53,13 +52,11 @@ build = {
         ["htl.db.samples"] = "src/htl/db/samples.lua",
         ["htl.db.Log"] = "src/htl/db/Log.lua",
         ["htl.db.Paths"] = "src/htl/db/Paths.lua",
-        ["htl.db.Instances"] = "src/htl/db/Instances.lua",
         ["htl.db.Taxonomy"] = "src/htl/db/Taxonomy.lua",
         ["htl.db.Metadata"] = "src/htl/db/Metadata.lua",
 
         ["htl.Metadata.Condition"] = "src/htl/Metadata/Condition.lua",
         ["htl.Metadata.Conditions"] = "src/htl/Metadata/Conditions.lua",
-        ["htl.Metadata.Taxonomy"] = "src/htl/Metadata/Taxonomy.lua",
 
         ["htl.Mirrors"] = "src/htl/Mirrors.lua",
 

@@ -223,43 +223,6 @@ describe("parse_lines", function()
     })
 end)
 
-describe("group_rows_by_operation", function()
-    UnitTest.suite(M.group_rows_by_operation, {
-        ["remove"] = {
-            input = {old = {{subject = "a"}}},
-            expected = {remove = {{subject = "a"}}},
-        },
-        ["keep"] = {
-            input = {
-                old = {{subject = "a", order = 1}},
-                new = {{subject = "a", order = 2}},
-            },
-            expected = {keep = {{subject = "a", order = 2}}},
-        },
-        ["insert"] = {
-            input = {new = {{subject = "a"}}},
-            expected = {insert = {{subject = "a"}}},
-        },
-        ["multiple"] = {
-            input = {
-                old = {
-                    {subject = "a", object = "b", predicate = "remove"},
-                    {subject = "c", object = "d", predicate = "keep"},
-                },
-                new = {
-                    {subject = "a", object = "b", predicate = "insert"},
-                    {subject = "c", object = "d", predicate = "keep"},
-                },
-            },
-            expected = {
-                remove = {{subject = "a", object = "b", predicate = "remove"}},
-                keep = {{subject = "c", object = "d", predicate = "keep"}},
-                insert = {{subject = "a", object = "b", predicate = "insert"}},
-            },
-        },
-    })
-end)
-
 describe("Taxonomy", function()
     describe("is_taxonomy_file", function()
         local d1 = htl.test_dir / "dir-1"
@@ -354,8 +317,8 @@ describe("Taxonomy", function()
     end)
 end)
 
-describe("Element", function()
-    local M = M.Element
+describe("Row", function()
+    local M = M.Row
 
     describe("tostring", function()
         UnitTest.suite(function(input) return M.tostring(unpack(input)) end, {
@@ -608,62 +571,6 @@ describe("db", function()
                     },
                 },
                 DB.Metadata:get({where = {source = u1}}):sort(idsort)
-            )
-        end)
-
-        it("updates but doesn't overwrite", function()
-            f1:write({
-                "x:",
-                "  y",
-                "  z",
-            })
-
-            M.record(DB.urls:where({id = u1}))
-
-            local q = {where = {source = u1}}
-
-            assert.are.same(
-                {
-                    {
-                        id = 1,
-                        source = u1,
-                        subject = u1,
-                        predicate = "x.y",
-                    },
-                    {
-                        id = 2,
-                        source = u1,
-                        subject = u1,
-                        predicate = "x.z",
-                    },
-                },
-                DB.Metadata:get(q):sort(idsort)
-            )
-
-            f1:write({
-                "x:",
-                "  w",
-                "  z",
-            })
-
-            M.record(DB.urls:where({id = u1}))
-
-            assert.are.same(
-                {
-                    {
-                        id = 2,
-                        source = u1,
-                        subject = u1,
-                        predicate = "x.z",
-                    },
-                    {
-                        id = 3,
-                        source = u1,
-                        subject = u1,
-                        predicate = "x.w",
-                    },
-                },
-                DB.Metadata:get(q):sort(idsort)
             )
         end)
     end)

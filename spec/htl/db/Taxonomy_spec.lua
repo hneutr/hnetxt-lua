@@ -11,6 +11,10 @@ before_each(function()
     htl.before_test()
     M = DB.Taxonomy
 
+    Conf.paths.global_taxonomy_file:touch()
+    DB.projects:insert({title = "global", path = Conf.paths.global_taxonomy_file:parent()})
+    DB.urls:insert({path = Conf.paths.global_taxonomy_file})
+
     DB.projects:insert(p1)
     DB.urls:insert({path = f1})
     DB.urls:insert({path = f2})
