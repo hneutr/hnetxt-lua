@@ -108,6 +108,7 @@ end
 
 function Set:add(other)
     Set.__get_vals(other):foreach(function(val) self:add_val(val) end)
+    return self
 end
 
 function Set:remove(other)

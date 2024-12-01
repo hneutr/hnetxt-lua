@@ -1,11 +1,8 @@
-require("hl.string")
-
-local class = require("pl.class")
 local Dict = require("hl.Dict")
 local Set = require("hl.Set")
 local List = require("hl.List")
 
-class.Tree(Dict)
+require("pl.class").Tree(Dict)
 
 function Tree:_init(...)
     self:update(...)
@@ -100,6 +97,12 @@ function Tree:ancestors()
     end)
 
     return ancestors
+end
+
+function Tree:lineages()
+    local d = Dict()
+    self:ancestors():foreach(function(id, ancestors) d[id] = List(ancestors):append(id) end)
+    return d
 end
 
 function Tree:generations()

@@ -10,7 +10,6 @@ describe("Reader", function()
     local f1 = d1 / "file-1.md"
 
     describe("get_lines", function()
-
         before_each(function()
             htl.before_test()
             M = DB.Metadata
@@ -224,8 +223,44 @@ describe("parse_lines", function()
     })
 end)
 
-describe("Taxonomy", function()
+describe("group_rows_by_operation", function()
+    UnitTest.suite(M.group_rows_by_operation, {
+        ["remove"] = {
+            input = {old = {{subject = "a"}}},
+            expected = {remove = {{subject = "a"}}},
+        },
+        ["keep"] = {
+            input = {
+                old = {{subject = "a", order = 1}},
+                new = {{subject = "a", order = 2}},
+            },
+            expected = {keep = {{subject = "a", order = 2}}},
+        },
+        ["insert"] = {
+            input = {new = {{subject = "a"}}},
+            expected = {insert = {{subject = "a"}}},
+        },
+        ["multiple"] = {
+            input = {
+                old = {
+                    {subject = "a", object = "b", predicate = "remove"},
+                    {subject = "c", object = "d", predicate = "keep"},
+                },
+                new = {
+                    {subject = "a", object = "b", predicate = "insert"},
+                    {subject = "c", object = "d", predicate = "keep"},
+                },
+            },
+            expected = {
+                remove = {{subject = "a", object = "b", predicate = "remove"}},
+                keep = {{subject = "c", object = "d", predicate = "keep"}},
+                insert = {{subject = "a", object = "b", predicate = "insert"}},
+            },
+        },
+    })
+end)
 
+describe("Taxonomy", function()
     describe("is_taxonomy_file", function()
         local d1 = htl.test_dir / "dir-1"
 
@@ -319,6 +354,73 @@ describe("Taxonomy", function()
     end)
 end)
 
+describe("Element", function()
+    local M = M.Element
+
+    describe("tostring", function()
+        UnitTest.suite(function(input) return M.tostring(unpack(input)) end, {
+            ["nil col"] = {
+                input = {{subject = "a", object = "b"}},
+                expected = "a:b:" .. M.nil_val,
+            },
+            ["cols = str"] = {
+                input = {{subject = "a", object = "b"}, "subject"},
+                expected = "a",
+            },
+            ["cols = List(str)"] = {
+                input = {{subject = "a", object = "b", predicate = "c"}, {"predicate", "subject"}},
+                expected = "c:a",
+            },
+            ["col = table"] = {
+                input = {{
+                    subject = {id = 1, label = "a"},
+                    object = "b",
+                    predicate = "c"
+                }},
+                expected = "a:b:c",
+            },
+        })
+    end)
+
+    describe("compare_strings", function()
+        UnitTest.suite(function(input) return M.compare(unpack(input)) end, {
+            ["a == b"] = {
+                input = {"abc", "abc"},
+                expected = false,
+            },
+            ["x:nil == x:y"] = {
+                input = {
+                    ("x%s%s"):format(M.sep, M.nil_val),
+                    ("x%sy"):format(M.sep),
+                },
+                expected = false
+            },
+            ["x:y == x:nil"] = {
+                input = {
+                    ("x%sy"):format(M.sep),
+                    ("x%s%s"):format(M.sep, M.nil_val),
+                },
+                expected = true
+            },
+            ["x:y == x:z"] = {
+                input = {
+                    ("x%sy"):format(M.sep),
+                    ("x%sz"):format(M.sep),
+                },
+                expected = true
+            },
+            ["x:z == x:y"] = {
+                input = {
+                    ("x%sz"):format(M.sep),
+                    ("x%sy"):format(M.sep),
+                },
+                expected = false
+            },
+        })
+    end)
+
+end)
+
 describe("db", function()
     local d1 = htl.test_dir / "dir-1"
     local p1 = {title = "test", path = d1}
@@ -342,6 +444,8 @@ describe("db", function()
     end)
 
     after_each(htl.after_test)
+
+    local idsort = function(a, b) return a.id < b.id end
 
     describe("taxonomy", function()
         it("taxonomy file", function()
@@ -475,7 +579,7 @@ describe("db", function()
                         predicate = "z",
                     },
                 },
-                DB.Metadata:get({where = {source = u1}})
+                DB.Metadata:get({where = {source = u1}}):sort(idsort)
             )
         end)
 
@@ -503,7 +607,63 @@ describe("db", function()
                         predicate = "x.z",
                     },
                 },
-                DB.Metadata:get({where = {source = u1}})
+                DB.Metadata:get({where = {source = u1}}):sort(idsort)
+            )
+        end)
+
+        it("updates but doesn't overwrite", function()
+            f1:write({
+                "x:",
+                "  y",
+                "  z",
+            })
+
+            M.record(DB.urls:where({id = u1}))
+
+            local q = {where = {source = u1}}
+
+            assert.are.same(
+                {
+                    {
+                        id = 1,
+                        source = u1,
+                        subject = u1,
+                        predicate = "x.y",
+                    },
+                    {
+                        id = 2,
+                        source = u1,
+                        subject = u1,
+                        predicate = "x.z",
+                    },
+                },
+                DB.Metadata:get(q):sort(idsort)
+            )
+
+            f1:write({
+                "x:",
+                "  w",
+                "  z",
+            })
+
+            M.record(DB.urls:where({id = u1}))
+
+            assert.are.same(
+                {
+                    {
+                        id = 2,
+                        source = u1,
+                        subject = u1,
+                        predicate = "x.z",
+                    },
+                    {
+                        id = 3,
+                        source = u1,
+                        subject = u1,
+                        predicate = "x.w",
+                    },
+                },
+                DB.Metadata:get(q):sort(idsort)
             )
         end)
     end)

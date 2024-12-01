@@ -245,6 +245,14 @@ describe("remove", function()
         local u1 = DB.urls:where({path = f1})
         local l1 = u1.label
 
+        DB.Metadata.record(u1)
+
+        assert(DB.Metadata:where({
+            subject = u1.id,
+            predicate = "instance",
+            object = DB.Metadata.Taxonomy.get_url("x"),
+        }))
+
         f2:write(List({
             "is a: y",
             string.format("test_connection: %s", tostring(M:get_reference(u1))),
@@ -256,14 +264,7 @@ describe("remove", function()
 
         local u2 = DB.urls:where({path = f2})
 
-        DB.Metadata.record(u1)
         DB.Metadata.record(u2)
-
-        assert(DB.Metadata:where({
-            subject = u1.id,
-            predicate = "instance",
-            object = DB.Metadata.Taxonomy.get_url("x"),
-        }))
 
         local u2_instance_r = {
             subject = u2.id,
@@ -309,6 +310,14 @@ describe("remove_references_to_url", function()
         local u1 = DB.urls:where({path = f1})
         local l1 = u1.label
 
+        DB.Metadata.record(u1)
+
+        assert(DB.Metadata:where({
+            subject = u1.id,
+            predicate = "instance",
+            object = DB.Metadata.Taxonomy.get_url("x"),
+        }))
+
         f2:write(List({
             "is a: y",
             string.format("test_connection: %s", tostring(M:get_reference(u1))),
@@ -320,14 +329,7 @@ describe("remove_references_to_url", function()
 
         local u2 = DB.urls:where({path = f2})
 
-        DB.Metadata.record(u1)
         DB.Metadata.record(u2)
-
-        assert(DB.Metadata:where({
-            subject = u1.id,
-            predicate = "instance",
-            object = DB.Metadata.Taxonomy.get_url("x"),
-        }))
 
         local u2_instance_r = {
             subject = u2.id,

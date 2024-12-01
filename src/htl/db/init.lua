@@ -7,8 +7,8 @@ local M = {
         samples = require("htl.db.samples"),
         Paths = require("htl.db.Paths"),
         Log = require("htl.db.Log"),
-        Instances = require("htl.db.Instances"),
         Metadata = require("htl.db.Metadata"),
+        Taxonomy = require("htl.db.Taxonomy"),
     })
 }
 

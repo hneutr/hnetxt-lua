@@ -50,6 +50,9 @@ eidola_dir:
 global_taxonomy_file:
   path: .taxonomy.md
   parent: eidola_dir
+lineage_file:
+  path: .lineage
+  parent: eidola_dir
 language_dir:
   path: language
   parent: eidola_dir
