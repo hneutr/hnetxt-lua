@@ -2,7 +2,7 @@ data_dir:
   path: ".data"
   parent: root
 test_dir:
-  path: "htl-test-dir"
+  path: "htl-test"
   parent: tempdir
 lib_dir:
   path: "lib/hnetxt-lua"
@@ -49,9 +49,6 @@ eidola_dir:
   parent: root
 global_taxonomy_file:
   path: .taxonomy.md
-  parent: eidola_dir
-language_dir:
-  path: language
   parent: eidola_dir
 dictionary_dir:
   path: dictionary

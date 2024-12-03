@@ -51,22 +51,22 @@ function Element:is_instance(e)
     if self.name and e.name ~= self.name then
         return false
     end
-    
+
     local classes = Set(e.classes)
 
     for cls in self.classes:iter() do
         if not classes:has(cls) then
             return false
-        end 
+        end
     end
-    
+
     return true
 end
 
 function Element:_init(e, str, args)
     args = args or {}
     self.str_start_i = args.start_i or 1
-    
+
     self.e = e
 
     self.old = self.e:gettext():escape()
@@ -89,14 +89,14 @@ function Element:get_new_str() return self:get_word() end
 function Element:find_from()
     local start_i = self.start_i - 1
     local pre = self.str:sub(self.str_start_i, start_i > 0 and start_i or 1)
-    
+
     if pre:match("from") then
         local from = pre:split("from"):pop():strip()
-        
+
         if from == "PIE root" then
             return "PIE"
         end
-        
+
         if #from:split() < 5 then
             return from
         end
@@ -111,7 +111,7 @@ function Element:file_url()
     local word = self:get_word()
     word = word:gsub("^%*", "_")
     word = word:gsub("%-", "_")
-    return Conf.paths.language_dir / string.format("%s.md", word)
+    return Conf.paths.eidola_dir / "language" / string.format("%s.md", word)
 end
 
 --------------------------------------------------------------------------------
@@ -134,13 +134,13 @@ Reference.name = "a"
 
 function Reference:clean_href()
     local str = self.e.attributes.href
-    
+
     local hashtag_i = str:find("#")
-    
+
     if hashtag_i then
         str = str:sub(1, hashtag_i - 1)
     end
-    
+
     return str
 end
 
@@ -157,7 +157,7 @@ function Reference:get_new_str()
     else
         url = M.base_url / self:clean_href()
     end
-    
+
     return tostring(Link({label = self:get_word(), url = tostring(url)}))
 end
 
@@ -167,7 +167,7 @@ function M.get_element(node, str, args)
             return ElementType(node, str, args)
         end
     end
-    
+
     return
 end
 
@@ -175,13 +175,13 @@ function M.get_section(word)
     local url = M.get_url(word)
     local body, code, headers, status = http.request(url)
     local root = htmlparser.parse(body)
-    
+
     List(root:select("div")):filter(M.is_a_word):foreach(function(word_div)
         local section = List(word_div:select("section")):filter(M.is_definition):pop()
-        
+
         List(section:select("p")):foreach(function(p)
             local str = p:getcontent()
-            
+
             local start_i = 1
             List(p.nodes):foreach(function(node)
                 if node.name == "strong" then
@@ -189,15 +189,15 @@ function M.get_section(word)
                 end
 
                 local element = M.get_element(node, str, {start_i = start_i})
-                
+
                 if element then
                     str = element.str
                     start_i = element.end_i
                 end
             end)
-            
+
             str = clean_str(str)
-            
+
             print(str)
             print(" ")
         end)

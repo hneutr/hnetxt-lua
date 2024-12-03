@@ -2,6 +2,15 @@ local htl = require("htl")
 local M = require("htl.Mirrors")
 local Config = require("htl.Config")
 
+local confs = {
+    constants = Conf.mirror,
+    test = Config.Mirrors.get_object({
+        a = {},
+        b = {},
+        c = {},
+    })
+}
+
 local d1 = htl.test_dir / "dir-1"
 local d2 = htl.test_dir / "dir-2"
 
@@ -10,12 +19,6 @@ local f2 = d2 / "file-2.md"
 
 local p1 = {title = "test", path = d1, created = "19930120"}
 local p2 = {title = "test2", path = d2, created = "19930121"}
-
-local test_config = Dict({
-    a = {},
-    b = {},
-    c = {},
-})
 
 before_each(function()
     htl.before_test()
@@ -29,10 +32,13 @@ before_each(function()
     DB.urls:insert({path = f1})
     DB.urls:insert({path = f2})
 
-    Conf.mirror = Config.Mirrors.get_object(test_config)
+    Conf.mirror = confs.test
 end)
 
-after_each(htl.after_test)
+after_each(function()
+    htl.after_test()
+    Conf.mirror = confs.constants
+end)
 
 describe("is_mirror", function()
     it("+", function()
@@ -62,7 +68,7 @@ end)
 
 describe("get_path", function()
     local f_a, f_b
-    
+
     before_each(function()
         DB.urls:insert({path = f1})
         f_a = Conf.mirror.a.path / "1.md"

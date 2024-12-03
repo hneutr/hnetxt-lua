@@ -429,7 +429,7 @@ function M.set_quote_label(url)
     end
 end
 
-function M.persist()
+function M.reparse()
     DB.Metadata:drop()
 
     local urls = DB.urls:get({where = {type = "file"}}):sorted(function(a, b)

@@ -8,22 +8,14 @@ M.constants_dir = Path.home / "lib/hnetxt-lua/constants"
 M.root = Path.home
 
 --------------------------------------------------------------------------------
---                                                                            --
---                                                                            --
---                                   Paths                                    --
---                                                                            --
---                                                                            --
+--                                    Paths                                   --
 --------------------------------------------------------------------------------
 M.Paths = {}
 
-function M.Paths.define(key, for_test, path, parent)
-    if parent then
-        path = parent / path
-    else
-        path = Path(path)
-    end
+function M.Paths.define(key, path, parent)
+    path = parent and parent / path or Path(path)
 
-    if for_test and path:is_absolute() then
+    if path:is_relative_to(Path.tempdir) then
         if key:endswith("_file") then
             path:touch()
         elseif key:endswith("_dir") then
@@ -35,26 +27,20 @@ function M.Paths.define(key, for_test, path, parent)
 end
 
 function M.Paths.get_object(constants)
-    local d = Dict({root = M.root, tempdir = Path.tempdir})
-    local for_test = M.root:is_relative_to(d.tempdir)
-
     constants = Dict(constants)
+    local d = {root = M.root, tempdir = Path.tempdir}
 
     return setmetatable(
+        {keys = function() return constants:keys() end},
         {
-            keys = function() return constants:keys() end,
-        },
-        {
-            __newindex = function(_, ...) rawset(d, ...) end,
             __tostring = function() return tostring(d) end,
             __index = function(self, key)
-                local conf = constants[key]
-                if not d[key] and conf then
+                local c = constants[key]
+                if not d[key] and c then
                     d[key] = M.Paths.define(
                         key,
-                        for_test,
-                        conf.path,
-                        conf.parent and self[conf.parent]
+                        c.path,
+                        c.parent and self[c.parent]
                     )
                 end
 
@@ -65,25 +51,17 @@ function M.Paths.get_object(constants)
 end
 
 --------------------------------------------------------------------------------
---                                                                            --
---                                                                            --
---                                  Mirrors                                   --
---                                                                            --
---                                                                            --
+--                                   Mirrors                                  --
 --------------------------------------------------------------------------------
 M.Mirrors = {}
 
 function M.Mirrors.get_object(constants)
-    local d = Dict({})
     constants = Dict(constants)
+    local d = {}
 
     return setmetatable(
+        {keys = function() return constants:keys() end},
         {
-            keys = function() return constants:keys() end,
-        },
-        {
-            __newindex = function(_, ...) rawset(d, ...) end,
-            __tostring = function() return tostring(d) end,
             __index = function(self, key)
                 local conf = constants[key]
                 if not d[key] and conf then
@@ -124,25 +102,19 @@ function M.Constants.define(key, path)
 end
 
 function M.Constants.get_object(dir)
-    dir = dir or M.constants_dir
+    local d = {}
 
-    local d = Dict({})
-
-    local stem_to_path = Dict.from_list(
+    local key_to_path = Dict.from_list(
         dir:iterdir({recursive = false}),
         function(p) return p:relative_to(dir):stem(), p end
     )
 
     return setmetatable(
+        {keys = function() return key_to_path:keys() end},
         {
-            keys = function() return stem_to_path:keys() end,
-        },
-        {
-            __newindex = function(_, ...) rawset(d, ...) end,
-            __tostring = function() return tostring(d) end,
             __index = function(_, key)
-                if not d[key] and stem_to_path[key] then
-                    d[key] = M.Constants.define(key, stem_to_path[key])
+                if not d[key] and key_to_path[key] then
+                    d[key] = M.Constants.define(key, key_to_path[key])
                 end
 
                 return d[key]
@@ -152,7 +124,7 @@ function M.Constants.get_object(dir)
 end
 
 function M.init()
-    Conf = M.Constants.get_object()
+    Conf = M.Constants.get_object(M.constants_dir)
 end
 
 M.init()

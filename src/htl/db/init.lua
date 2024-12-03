@@ -17,8 +17,10 @@ function M.init()
 
     M.schema:foreach(function(key, _tbl)
         DB[key] = _tbl
-        SqliteTable.set_db(_tbl, DB)
+        _tbl:set_db(DB)
     end)
 end
+
+M.init()
 
 return M

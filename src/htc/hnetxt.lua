@@ -83,22 +83,21 @@ require("htl.cli")({
                     path:write(lines)
                 end
 
-                local id = DB.urls:insert({path = path})
-                require("htl.db.Metadata").record(DB.urls:where({id = id}))
+                DB.Metadata.record(DB.urls:where({id = DB.urls:insert({path = path})}))
 
                 return path
             end,
         },
         persist = {
             description = "save things used by services",
-            {"+r", target = "reparse_taxonomy", description = "reparse taxonomy", switch = "on"},
+            {"+r", target = "reparse_metadata", description = "reparse metadata", switch = "on"},
             action = function(args)
                 DB.Log:persist()
                 DB.Paths:persist()
                 DB.Taxonomy.refresh()
 
-                if args.reparse_taxonomy then
-                    require("htl.db.Metadata").persist()
+                if args.reparse_metadata then
+                    DB.Metadata.reparse()
                 end
             end
         },
