@@ -40,7 +40,25 @@ describe("insert", function()
                 lineage = {u2, u1},
                 type = "instance",
             },
-            M:where({url = u1})
+            M:__get({where = {url = u1}})[1]
+        )
+    end)
+
+    it("empty lineage", function()
+        M:insert({
+            url = u1,
+            lineage = {},
+            type = "instance",
+        })
+
+        assert.are.same(
+            {
+                id = 1,
+                url = u1,
+                lineage = {},
+                type = "instance",
+            },
+            M:__get({where = {url = u1}})[1]
         )
     end)
 end)

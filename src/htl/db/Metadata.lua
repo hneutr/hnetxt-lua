@@ -391,16 +391,20 @@ function M.record(url)
         return
     end
 
+    local rows = Dict():set_default(List)
+
     if M:exists() then
+        rows.old = M:get({{source = url.id}})
         M:remove({source = url.id})
     end
 
-    local rows = M.get_rows(url)
+    rows.new = M.get_rows(url)
 
-    if #rows > 0 then
-        M:insert(rows)
-        -- pass rows to `htl.db.Taxonomy.staleness.set`
+    if #rows.new > 0 then
+        M:insert(rows.new)
     end
+
+    DB.Taxonomy.set_staleness(rows)
 
     M.set_quote_label(url)
 end

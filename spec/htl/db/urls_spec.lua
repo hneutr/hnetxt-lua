@@ -20,6 +20,11 @@ local M
 
 before_each(function()
     htl.before_test()
+
+    Conf.paths.global_taxonomy_file:touch()
+    DB.projects:insert({title = "global", path = Conf.paths.global_taxonomy_file:parent()})
+    DB.urls:insert({path = Conf.paths.global_taxonomy_file})
+
     DB.projects:insert(p1)
     DB.projects:insert(p2)
     f1:touch()
@@ -368,15 +373,11 @@ end)
 
 describe("get", function()
     it("works", function()
+        M:remove()
         M:insert({path = f1, label = "a"})
         M:insert({path = f2, label = "b"})
 
-        assert.are.same(
-            {"a", "b"},
-            M:get():transform(function(u)
-                return u.label
-            end):sorted()
-        )
+        assert.are.same({"a", "b"}, M:get():col("label"):sorted())
     end)
 end)
 

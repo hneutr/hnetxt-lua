@@ -23,3 +23,6 @@
   sigil_regex: "\\~"
 - name: quote
   toggle_key: q
+- name: important
+  sigil: '- [#]'
+  toggle_key: i

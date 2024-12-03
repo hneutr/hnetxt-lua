@@ -71,6 +71,9 @@ nvim_dir:
 undo_dir:
   path: .undodir
   parent: nvim_dir
+sessions_dir:
+  path: .sessions
+  parent: nvim_dir
 spell_dir:
   path: .spell
   parent: data_dir
