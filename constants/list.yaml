@@ -4,10 +4,8 @@
 - name: dot
   sigil: '*'
   toggle_key: o
-  sigil_regex: "\\*"
 - name: number
   toggle_key: n
-  sigil_regex: "(\\d+)\\."
 - name: todo
   sigil: '- [ ]'
   toggle_key: t
@@ -20,7 +18,6 @@
 - name: maybe
   sigil: '- [~]'
   toggle_key: m
-  sigil_regex: "\\~"
 - name: quote
   toggle_key: q
 - name: important

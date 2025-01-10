@@ -106,7 +106,7 @@ require("htl.cli")({
             {"title_words", default = List(), action="concat", args = "*"},
             {"-D --directory", default = Path.cwd(), convert=Path.from_cli},
             {"-d --date", default = os.date('%Y%m%d')},
-            {"-i --instance_type"},
+            {"-i --instance_type", description = "is a"},
             edit = function(args)
                 local name = args.title_words:join(' ')
                 local lines = List({

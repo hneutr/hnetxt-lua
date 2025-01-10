@@ -5,7 +5,8 @@ local snippets = List({
     parse_snippet("l", "[$1]($2)"),
     parse_snippet("r", "[][$1]"),
     -- dividers
-    parse_snippet("d", "---\n$1"),
+    parse_snippet("d", "***\n$1"),
+    parse_snippet("D", "---\n$1"),
     -- headers
     parse_snippet("h", "# $1"),
     parse_snippet("hd", "## $1"),

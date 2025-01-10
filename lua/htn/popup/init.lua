@@ -19,6 +19,7 @@ local Popup = Class({
         ["<C-9>"] = "cursor_bottom",
 
         ["<C-z>"] = "center_cursor",
+        ["<C-y>"] = "yank",
     }
 })
 
@@ -136,7 +137,16 @@ end
 function Prompt:get() return "> " end
 
 function Prompt:update()
-    self.window:update({title = (" %s "):format(self.ui:title() or self.ui.name), title_pos = "center"})
+    local title = self.ui:title() or self.ui.name
+
+    if type(title) == "table" then
+        title[1][1] = " " .. title[1][1]
+        title[#title][1] = title[#title][1] .. " "
+    else
+        title = " " .. title .. " "
+    end
+
+    self.window:update({title = title, title_pos = "center"})
 
     self:set_lines({self:get()})
     self:highlight()
@@ -402,6 +412,7 @@ function Popup:cursor_top() self.cursor:move(-#self.choices.items, true) end
 function Popup:cursor_bottom() self.cursor:move(#self.choices.items, true) end
 
 function Popup:center_cursor() self.cursor:move(0, true) end
+function Popup:yank() vim.fn.setreg('"', self.choices.items:mapm("tostring"):mapm("rstrip")) end
 
 function Popup:get_action(key)
     self.actions = self.actions or {}

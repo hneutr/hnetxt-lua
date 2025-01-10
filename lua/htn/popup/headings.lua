@@ -238,7 +238,10 @@ function Popup:watch()
 end
 
 function Popup:title()
-    return self.parent ~= 0 and self.items[self.parent].string
+    if self.parent ~= 0 then
+        local item = self.items[self.parent]
+        return {{item.string, item._level.hl_group}}
+    end
 end
 
 function Popup:set_items()

@@ -100,7 +100,7 @@ function M.touch(args)
 end
 
 M.ui = {
-    cli = function(args) print(M.touch(args)) end,
+    cli = function(args) return tostring(M.touch(args)) end,
     cmd = function() M.touch():open() end,
 }
 
