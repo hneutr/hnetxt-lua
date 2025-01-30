@@ -29,6 +29,7 @@ local Popup = Class({
         ["<C-e>"] = "filter_finish",
         ["<C-m>"] = "filter_move",
         ["<C-o>"] = "filter_outline",
+        ["<C-r>"] = "put_reference",
     },
 }, popup.Popup)
 
@@ -312,6 +313,22 @@ function Popup:filter_todo()
         end)
     end
     self:update()
+end
+
+function Popup:put_reference()
+    local item = self.cursor:get()
+    local reference = ("[%s][%s]"):format(item.string, ("#"):rep(item.level) .. " " .. item.string)
+
+    self:close()
+
+    local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+
+    local line = vim.api.nvim_get_current_line()
+    local before = line:sub(1, col + 1)
+    local after = line:sub(col + 2)
+
+    vim.api.nvim_set_current_line(before .. reference .. after)
+    vim.api.nvim_win_set_cursor(0, {row, col + 1 + #reference})
 end
 
 return function(args) return function() Popup:new(args) end end

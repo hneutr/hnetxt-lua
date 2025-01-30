@@ -8,7 +8,7 @@ require("htl.cli")({
         journal = {
             alias = true,
             edit = require("htl.journal"),
-            call_with = [[-c "lua require('zen-mode').toggle()"]],
+            call_with = [[-c Spruce]],
         },
         aim = {
             alias = true,
@@ -73,7 +73,10 @@ require("htl.cli")({
                 local path = DB.projects:where({title = "dictionary"}).path / entry
 
                 if not path:exists() then
-                    local lines = List({string.format("is a: %s", args.part_of_speech)})
+                    local lines = List({
+                        ("is a: %s"):format(args.part_of_speech),
+                        "sense: ",
+                    })
 
                     if args.word:match("/") then
                         lines:append(string.format("language: %s", path:parent():name()))
