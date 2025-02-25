@@ -6,23 +6,28 @@ heading:
   meta:
     write:
       char: w
-      symbol: ◯
       todo: true
+      symbol: 󰏭
+      #  󰏬   󰏭  󰜄
     change:
       char: c
-      symbol: ⧕
-      # △
+      symbol: 󰆖
       todo: true
+      # 󰆕
     finish:
       char: f
-      symbol: ◩
+      symbol: 󰿦
       todo: true
+      # 󰷫
+      # 
+      # 󰿦
     move:
       char: m
-      symbol: ↕
-      # ↕⇅↯
+      symbol: 󰒺
+      # 󱎞 󰹹 󰒺
       todo: true
     outline:
       char: o
-      symbol: ∴
+      symbol: 
+      #  󰌵 󰒔 󰒅 󰈚
       exclude: true

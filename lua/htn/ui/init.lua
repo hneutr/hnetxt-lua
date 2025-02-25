@@ -297,20 +297,26 @@ function M.mirror_mappings()
 end
 
 function M.quote(page_number)
-    vim.api.nvim_input("iquote<tab>")
+    local text = Conf.snippets.quote.template
 
     local path = Path.this():parent() / Conf.paths.dir_file
     local source = DB.urls:get_reference(DB.urls.get_file(path))
 
-    if source then
-        vim.api.nvim_input(tostring(source))
-        vim.api.nvim_input("<C-f>")
+    text = text:gsub("$1", source and tostring(source) or "")
+    text = text:gsub("$2", page_number or "")
+    text = text:rstrip():gsub("$3", "")
 
-        if page_number then
-            vim.api.nvim_input(tostring(page_number))
-            vim.api.nvim_input("<C-f>")
-        end
-    end
+    local lines = text:split("\n")
+
+    local line
+    line = not source and 2
+    line = line or not page_number and 3
+    line = line or #lines
+
+    vim.api.nvim_buf_set_lines(0, 0, -1, false, lines)
+
+    M.set_cursor({row = line})
+    vim.api.nvim_input("A")
 end
 
 function M.set_time_or_calculate_sum()
