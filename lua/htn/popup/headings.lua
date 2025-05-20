@@ -206,10 +206,10 @@ function Choices:update()
     for i, item in ipairs(self.items) do
         if item.index == last_cursor_index then
             self.ui.cursor.index = i
-            self.ui.cursor:move(0, true)
-            return
         end
     end
+
+    self.ui.cursor:move(0, true)
 end
 
 --------------------------------------------------------------------------------
