@@ -260,7 +260,6 @@ end
 
 function Cursor:update()
     self:bound_index()
-    self.offset = 0
     self:draw()
 end
 

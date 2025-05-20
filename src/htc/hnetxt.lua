@@ -176,7 +176,8 @@ require("htl.cli")({
                 })
 
                 tmp:write(doc.lines)
-                os.execute(string.format("pandoc --pdf-engine=lualatex -s -o %s %s", pdf, tmp))
+                -- os.execute(string.format("pandoc --pdf-engine=lualatex -s -o %s %s", pdf, tmp))
+                os.execute(string.format("pandoc -s -o %s %s", pdf, tmp))
                 tmp:unlink()
             end
         },

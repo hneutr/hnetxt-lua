@@ -1,0 +1,4 @@
+template: |
+    is a: $1
+    in: $2
+string: "{label} {in}"

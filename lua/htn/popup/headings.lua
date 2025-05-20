@@ -30,6 +30,7 @@ local Popup = Class({
         ["<C-m>"] = "filter_move",
         ["<C-o>"] = "filter_outline",
         ["<C-r>"] = "put_reference",
+        ["<M-p>"] = "filter_parents",
     },
 }, popup.Popup)
 
@@ -47,7 +48,7 @@ function Item:init(marker_node)
     self._level = Heading.levels[self.level]
     self.string, self.meta = Heading.parse(self.string)
 
-    self.n_children = 0
+    self.children = List()
 
     self.pad_level_start = 0
 end
@@ -71,7 +72,7 @@ function Item:set_context(items, level_to_parent)
 
     self.parents:foreach(function(parent_i)
         if parent_i > 0 then
-            items[parent_i].n_children = items[parent_i].n_children + 1
+            items[parent_i].children:append(self)
         end
     end)
 
@@ -178,13 +179,36 @@ local Choices = Class({}, popup.Choices)
 Popup.Choices = Choices
 
 function Choices:update()
+    local last_cursor_index = self.items and self.items[self.ui.cursor.index].index or -1
+
     self.ui.parent = self.ui.parent or 0
 
     self.items = self.ui.items:filterm("filter")
 
+    if self.ui.include_parents then
+        local seen_indexes = Set(self.items:map(function(item) return item.index end))
+        self.items:foreach(function(item)
+            item.parents:foreach(function(index)
+                if not seen_indexes:has(index) then
+                    self.items:append(self.ui.items[index])
+                    seen_indexes:add_val(index)
+                end
+            end)
+        end)
+        self.items:sort(function(a, b) return a.index < b.index end)
+    end
+
     if #self.items > 0 then
         local pad_level_start = math.min(unpack(self.items:col("level")))
         self.items:foreach(function(item) item.pad_level_start = pad_level_start end)
+    end
+
+    for i, item in ipairs(self.items) do
+        if item.index == last_cursor_index then
+            self.ui.cursor.index = i
+            self.ui.cursor:move(0, true)
+            return
+        end
     end
 end
 
@@ -195,6 +219,7 @@ function Popup:init(args)
     self.level = args.level or #Heading.levels
     self.meta_types = Dict({})
     self.parent = 0
+    self.include_parents = true
 
     self:watch()
     self:set_items()
@@ -304,12 +329,17 @@ function Popup:enter_root()
     self:update()
 end
 
+function Popup:filter_parents()
+    self.include_parents = not self.include_parents
+    self:update()
+end
+
 function Popup:filter_todo()
     if #self.meta_types:keys() > 0 then
         self.meta_types = Dict()
     else
-        Dict.foreachk(Heading.conf.meta, function(key)
-            self.meta_types[key] = true
+        Heading.conf.meta:foreach(function(key, meta)
+            self.meta_types[key] = meta.todo
         end)
     end
     self:update()
