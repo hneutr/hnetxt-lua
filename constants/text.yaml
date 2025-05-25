@@ -4,29 +4,56 @@ heading:
   patterns:
     meta: "(.*)%s%[%]%[(.-)%]$"
   meta:
+    # 1. ideate
+    # 2. write
+    # 3. finish
+    # 4. change
+    # 5. add
+    # 6. fix
+    # 7. edit
+    ideate:
+      order: 1
+      char: i
+      symbol: 󰞋
+      todo: true
     write:
+      order: 2
       char: w
       todo: true
-      symbol: 󰏭
-      #  󰏬   󰏭  󰜄
-    change:
-      char: c
-      symbol: 󰆖
-      todo: true
-      # 󰆕
+      symbol: 󰏬 #  󰏬   󰏭  󰜄
     finish:
+      order: 3
       char: f
-      symbol: 󰿦
       todo: true
-      # 󰷫
-      # 
-    move:
-      char: m
-      symbol: 󰒺
-      # 󱎞 󰹹 󰒺
+      symbol: 󱅄 # 󰷫 
+    edit:
+      order: 4
+      char: e
       todo: true
-    outline:
-      char: o
-      symbol: 
-      #  󰌵 󰒔 󰒅 󰈚
+      symbol: 󰦓
+    change:
+      order: 5
+      char: c
+      todo: true
+      symbol: 󱨂 # 󰆕
+    add:
+      order: 6
+      char: a
+      todo: true
       exclude: true
+      symbol: 󰐖
+    fix:
+      order: 7
+      char: F
+      todo: true
+      symbol: 󰒔
+    move:
+      order: 8
+      char: m
+      todo: true
+      symbol: 󱎞 # 󰒺 󱎞 󰹹 󰒺
+    outline:
+      order: 9
+      char: o
+      exclude: true
+      # symbol: 󰞋 #  󰌵 󰒔 󰒅 󰈚 

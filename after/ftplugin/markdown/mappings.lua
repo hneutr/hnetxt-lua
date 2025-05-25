@@ -29,6 +29,7 @@ local mappings = Dict(
             ["<C-3>"] = HeadingPopup({level = 3}),
             ["<C-4>"] = HeadingPopup({level = 4}),
             ["<C-5>"] = HeadingPopup({level = 5}),
+            ["<M-.>"] = HeadingPopup({todo = true}),
 
             -- misc
             ["<C-/>"] = UrlsPopup(),

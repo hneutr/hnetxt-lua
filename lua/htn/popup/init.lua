@@ -328,6 +328,9 @@ function Input:init()
 end
 
 function Input:update()
+    self:reset()
+    self:highlight()
+
     local prompt_len = #vim.str_utf_pos(self.ui.prompt:get())
     self.window:update({width = self.ui.dimensions.width - prompt_len, col = prompt_len})
 end

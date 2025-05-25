@@ -86,16 +86,17 @@ function Item:cursor_highlight_group() return self._level.bg_hl_group end
 function Item:highlight(line)
     self.ui.choices:add_highlight(self._level.hl_group, line, 0, -1)
 
-    local text = self.meta:col('symbol'):join(" ")
+    local text = self.meta:col('symbol'):notnil():join(" ")
 
     if #text > 0 then
         self.ui.choices:add_extmark(
             line,
             0,
             {
-                virt_text = {{text .. " ", "Text"}},
+                virt_text = {{" " .. text .. " ", "Text"}},
                 virt_text_pos = "right_align",
-                hl_mode = "combine",
+                -- hl_mode = "combine",
+                hl_mode = "replace",
             }
         )
     end
@@ -136,38 +137,11 @@ end
 --                                   Prompt                                   --
 --------------------------------------------------------------------------------
 local Prompt = Class({}, popup.Prompt)
-
 Popup.Prompt = Prompt
-
-function Prompt:get()
-    local parts = List()
-
-    if self.ui.meta_types then
-        parts:extend(self.ui.meta_types:keys():sorted():map(function(key)
-            return Heading.conf.meta[key].symbol
-        end))
-    end
-
-    if self.ui.level < #Heading.levels then
-        parts:append(self.ui.level)
-    end
-
-    if #parts > 0 then
-        self.filters_string = parts:map(tostring):join(" ")
-        return ("[%s] > "):format(self.filters_string)
-    end
-
-    return "> "
-end
 
 function Prompt:highlight()
     if self.ui.level < #Heading.levels then
-        self:add_highlight(
-            Heading.levels[self.ui.level].hl_group,
-            0,
-            #self.filters_string,
-            #self.filters_string + 1
-        )
+        self:add_highlight(Heading.levels[self.ui.level].hl_group, 0, 0, 1)
     end
 end
 
@@ -179,7 +153,10 @@ local Choices = Class({}, popup.Choices)
 Popup.Choices = Choices
 
 function Choices:update()
-    local last_cursor_index = self.items and self.items[self.ui.cursor.index].index or -1
+    local last_cursor_index = -1
+    if self.items and #self.items >= self.ui.cursor.index then
+        last_cursor_index = self.items[self.ui.cursor.index].index
+    end
 
     self.ui.parent = self.ui.parent or 0
 
@@ -213,11 +190,35 @@ function Choices:update()
 end
 
 --------------------------------------------------------------------------------
+--                                    Input                                   --
+--------------------------------------------------------------------------------
+local Input = Class({}, popup.Input)
+Popup.Input = Input
+
+function Input:highlight()
+    if self.ui.meta_types then
+        local text = self.ui.meta_types:keys():sorted():map(function(key)
+            return Heading.conf.meta[key].symbol
+        end):join(" ")
+
+        self:add_extmark(
+            0,
+            0,
+            {
+                virt_text = {{text .. " ", "Text"}},
+                virt_text_pos = "right_align",
+                hl_mode = "combine",
+            }
+        )
+    end
+end
+
+--------------------------------------------------------------------------------
 --                                    Popup                                   --
 --------------------------------------------------------------------------------
 function Popup:init(args)
     self.level = args.level or #Heading.levels
-    self.meta_types = Dict({})
+    self.meta_types = Dict()
     self.parent = 0
     self.include_parents = true
 
@@ -237,6 +238,10 @@ function Popup:init(args)
             self.meta_types[key] = not self.meta_types[key] and true or nil
             self:update()
         end
+    end
+
+    if args.todo then
+        self:toggle_todos()
     end
 end
 
@@ -305,6 +310,16 @@ function Popup:open()
     self.cursor:move(0, true)
 end
 
+function Popup:toggle_todos()
+    if #self.meta_types:keys() > 0 then
+        self.meta_types = Dict()
+    else
+        Heading.conf.meta:foreach(function(key, meta)
+            self.meta_types[key] = meta.todo
+        end)
+    end
+end
+
 function Popup:goto_selection()
     self:close()
     ui.set_cursor({row = self.cursor:get().line})
@@ -313,6 +328,14 @@ end
 function Popup:enter_selection()
     self.parent = self.cursor:get().index
     self.cursor.index = 1
+
+    -- when entering a parent of the filter level, increment it by 1
+    if self.level == self.items[self.parent].level then
+        self.level = self.level + 1
+    end
+
+    -- clear text on enter bc usually it was used to find the entered item
+    vim.api.nvim_input("<C-u>")
     self:update()
 end
 
@@ -335,13 +358,7 @@ function Popup:filter_parents()
 end
 
 function Popup:filter_todo()
-    if #self.meta_types:keys() > 0 then
-        self.meta_types = Dict()
-    else
-        Heading.conf.meta:foreach(function(key, meta)
-            self.meta_types[key] = meta.todo
-        end)
-    end
+    self:toggle_todos()
     self:update()
 end
 

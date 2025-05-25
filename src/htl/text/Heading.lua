@@ -1,6 +1,7 @@
 local M = class()
 
 M.conf = Conf.text.heading
+M.conf.meta_count = #M.conf.meta:keys()
 
 M.levels = List.range(1, 6):map(function(level)
     return {
@@ -27,7 +28,7 @@ function M.parse(str)
 end
 
 function M:__tostring()
-    return string.format("%s %s", self.level.marker, self.str)
+    return ("%s %s"):format(self.level.marker, self.str)
 end
 
 function M.str_is_a(str)
