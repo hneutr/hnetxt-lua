@@ -1,16 +1,15 @@
 local M = class()
 
 M.conf = Conf.text.heading
-M.conf.meta_count = #M.conf.meta:keys()
 
 M.levels = List.range(1, 6):map(function(level)
     return {
         n = level,
-        hl_group = string.format("markdownH%d", level),
-        bg_hl_group = string.format("RenderMarkdownH%dBg", level),
-        marker = string.rep("#", level),
-        selector = string.format("(atx_h%d_marker)", level),
-        indent = string.rep("  ", level - 1),
+        hl_group = ("markdownH%d"):format(level),
+        bg_hl_group = ("RenderMarkdownH%dBg"):format(level),
+        marker = ("#"):rep(level),
+        selector = ("(atx_h%d_marker)"):format(level),
+        indent = ("  "):format(level - 1),
     }
 end)
 
@@ -24,7 +23,7 @@ end
 
 function M.parse(str)
     local text, meta = str:match(M.conf.patterns.meta)
-    return text or str, List(meta or {}):map(M.get_meta_conf)
+    return text or str, Set(List(meta or {}):map(M.get_meta_conf))
 end
 
 function M:__tostring()
@@ -41,16 +40,19 @@ function M.from_str(str, line)
 end
 
 function M:exclude_from_document()
-    local exclude = false
-    self.meta:foreach(function(conf) exclude = exclude or conf.exclude end)
-    return exclude
+    return M.conf.meta:map(function(conf)
+        return conf.exclude and self.meta:has(conf.key) or nil
+    end):any()
+    -- local exclude = false
+    -- print(self.meta)
+    -- self.meta:vals():foreach(function(conf) exclude = exclude or conf.exclude end)
+    -- return exclude
 end
 
 function M.get_meta_conf(char)
-    for key, conf in pairs(M.conf.meta) do
+    for i, conf in ipairs(M.conf.meta) do
         if char == conf.char then
-            conf.key = key
-            return conf
+            return conf.key
         end
     end
 

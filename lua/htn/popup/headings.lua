@@ -23,12 +23,17 @@ local Popup = Class({
         ["<C-5>"] = "filter_h5",
         ["<C-6>"] = "filter_h6",
 
-        ["<C-t>"] = "filter_todo",
-        ["<C-w>"] = "filter_write",
-        ["<C-a>"] = "filter_change",
-        ["<C-e>"] = "filter_finish",
-        ["<C-m>"] = "filter_move",
-        ["<C-o>"] = "filter_outline",
+        ["<M-1>"] = "filter_m1",
+        ["<M-2>"] = "filter_m2",
+        ["<M-3>"] = "filter_m3",
+        ["<M-4>"] = "filter_m4",
+        ["<M-5>"] = "filter_m5",
+        ["<M-6>"] = "filter_m6",
+        ["<M-7>"] = "filter_m7",
+        ["<M-8>"] = "filter_m8",
+        ["<M-9>"] = "filter_m9",
+        ["<M-0>"] = "filter_todo",
+
         ["<C-r>"] = "put_reference",
         ["<M-p>"] = "filter_parents",
     },
@@ -40,6 +45,9 @@ local Popup = Class({
 local Item = Class({}, popup.Item)
 
 function Item:init(marker_node)
+    -- TODO: wordcount stuff
+    -- local start_row, _, end_row = marker_node:parent():range()
+
     local content_node = marker_node:next_sibling()
 
     self.string = content_node and vim.treesitter.get_node_text(content_node, 0) or ""
@@ -57,8 +65,8 @@ function Item:include()
     local result = true
     result = result and #self.string > 0
 
-    self.meta:foreach(function(m_conf)
-        if m_conf.key == "outline" and self.string == "outline" then
+    self.meta:foreach(function(key)
+        if key == "outline" and self.string == "outline" then
             result = false
         end
     end)
@@ -81,24 +89,34 @@ function Item:set_context(items, level_to_parent)
     end
 end
 
+function Item:set_child_meta()
+    self.child_meta = Set()
+    self.children:foreach(function(child) self.child_meta:add(child.meta) end)
+end
+
 function Item:cursor_highlight_group() return self._level.bg_hl_group end
 
 function Item:highlight(line)
     self.ui.choices:add_highlight(self._level.hl_group, line, 0, -1)
 
-    local text = self.meta:col('symbol'):notnil():join(" ")
+    local texts = Heading.conf.meta:filter(function(conf)
+        return conf.symbol
+    end):map(function(conf)
+        if self.meta:has(conf.key) then
+            return {conf.symbol .. " ", "Text"}
+        elseif self.child_meta:has(conf.key) then
+            return {conf.symbol .. " ", "Whitespace"}
+        end
 
-    if #text > 0 then
-        self.ui.choices:add_extmark(
-            line,
-            0,
-            {
-                virt_text = {{" " .. text .. " ", "Text"}},
-                virt_text_pos = "right_align",
-                -- hl_mode = "combine",
-                hl_mode = "replace",
-            }
-        )
+        return {"  ", "Text"}
+    end)
+
+    if #texts > 0 then
+        self.ui.choices:add_extmark(line, 0, {
+            virt_text = texts:put({" ", "Text"}),
+            virt_text_pos = "right_align",
+            hl_mode = "combine",
+        })
     end
 end
 
@@ -124,9 +142,9 @@ function Item:filter()
     result = result and self.parents:contains(self.ui.parent)
     result = result and self.level <= self.ui.level
 
-    if #self.ui.meta_types:keys() > 0 then
-        result = result and self.meta:map(function(m)
-            return self.ui.meta_types[m.key]
+    if #self.ui.metas:keys() > 0 then
+        result = result and self.meta:vals():map(function(key)
+            return self.ui.metas[key]
         end):any()
     end
 
@@ -196,9 +214,11 @@ local Input = Class({}, popup.Input)
 Popup.Input = Input
 
 function Input:highlight()
-    if self.ui.meta_types then
-        local text = self.ui.meta_types:keys():sorted():map(function(key)
-            return Heading.conf.meta[key].symbol
+    if self.ui.metas then
+        local text = Heading.conf.meta:filter(function(conf)
+            return conf.symbol
+        end):map(function(conf)
+            return self.ui.metas[conf.key] and conf.symbol or " "
         end):join(" ")
 
         self:add_extmark(
@@ -218,7 +238,7 @@ end
 --------------------------------------------------------------------------------
 function Popup:init(args)
     self.level = args.level or #Heading.levels
-    self.meta_types = Dict()
+    self.metas = Dict()
     self.parent = 0
     self.include_parents = true
 
@@ -233,9 +253,16 @@ function Popup:init(args)
         end
     end
 
-    for key, conf in pairs(Heading.conf.meta) do
-        self.actions[string.format("filter_%s", key)] = function()
-            self.meta_types[key] = not self.meta_types[key] and true or nil
+    for _, conf in ipairs(Heading.conf.meta) do
+        self.actions[string.format("filter_%s", conf.key)] = function()
+            self.metas[conf.key] = not self.metas[conf.key] and true or nil
+            self:update()
+        end
+    end
+
+    for i, conf in ipairs(Heading.conf.meta) do
+        self.actions[("filter_m%d"):format(i)] = function()
+            self.metas[conf.key] = not self.metas[conf.key] and true or nil
             self:update()
         end
     end
@@ -281,6 +308,11 @@ function Popup:set_items()
     if items then
         items:foreach(function(item) item.ui = self end)
     else
+        -- TODO: wordcount stuff (complex bc `level_to_parent`)
+        -- local line_wordcounts = List(vim.api.nvim_buf_get_lines(0, 0, -1, false)):map(function(l)
+        --     return #l:strip():split()
+        -- end)
+
         local level_to_parent = List({0, 0, 0, 0, 0, 0})
 
         items = List()
@@ -293,6 +325,7 @@ function Popup:set_items()
         end
 
         self:set_data("items", items)
+        items:foreachm("set_child_meta")
     end
 
     self.items = items
@@ -311,11 +344,11 @@ function Popup:open()
 end
 
 function Popup:toggle_todos()
-    if #self.meta_types:keys() > 0 then
-        self.meta_types = Dict()
+    if #self.metas:keys() > 0 then
+        self.metas = Dict()
     else
-        Heading.conf.meta:foreach(function(key, meta)
-            self.meta_types[key] = meta.todo
+        Heading.conf.meta:foreach(function(conf)
+            self.metas[conf.key] = conf.todo
         end)
     end
 end
@@ -336,6 +369,7 @@ function Popup:enter_selection()
 
     -- clear text on enter bc usually it was used to find the entered item
     vim.api.nvim_input("<C-u>")
+
     self:update()
 end
 
