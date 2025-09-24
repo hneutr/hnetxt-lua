@@ -36,6 +36,7 @@ local Popup = Class({
 
         ["<C-r>"] = "put_reference",
         ["<M-p>"] = "filter_parents",
+        ["<C-w>"] = "toggle_wordcounts",
     },
 }, popup.Popup)
 
@@ -45,13 +46,15 @@ local Popup = Class({
 local Item = Class({}, popup.Item)
 
 function Item:init(marker_node)
-    -- TODO: wordcount stuff
-    -- local start_row, _, end_row = marker_node:parent():range()
-
     local content_node = marker_node:next_sibling()
 
     self.string = content_node and vim.treesitter.get_node_text(content_node, 0) or ""
     self.line = marker_node:start() + 1
+
+    -- TODO: wordcount stuff
+    self.range = {}
+    self.range[1], _, self.range[2] = marker_node:parent():parent():range(false)
+
     self.level = tonumber(marker_node:type():match("atx_h(%d+)_marker"))
     self._level = Heading.levels[self.level]
     self.string, self.meta = Heading.parse(self.string)
@@ -111,6 +114,10 @@ function Item:highlight(line)
         return {"  ", "Text"}
     end)
 
+    if self.ui.display_wordcounts then
+        texts:put({self:get_wordcount() .. " ", "Whitespace"})
+    end
+
     if #texts > 0 then
         self.ui.choices:add_extmark(line, 0, {
             virt_text = texts:put({" ", "Text"}),
@@ -118,6 +125,15 @@ function Item:highlight(line)
             hl_mode = "combine",
         })
     end
+end
+
+function Item:get_wordcount()
+    local s = "<.1"
+    if self.wordcount >= 100 then
+        s = tostring(math.floor((self.wordcount / 100) + .5) / 10)
+    end
+
+    return s .. "k"
 end
 
 function Item:choice_string()
@@ -241,6 +257,7 @@ function Popup:init(args)
     self.metas = Dict()
     self.parent = 0
     self.include_parents = true
+    self.display_wordcounts = false
 
     self:watch()
     self:set_items()
@@ -304,14 +321,12 @@ end
 
 function Popup:set_items()
     local items = self:get_data("items")
+    local excluded_ranges = self:get_data("excluded_ranges")
 
     if items then
         items:foreach(function(item) item.ui = self end)
     else
-        -- TODO: wordcount stuff (complex bc `level_to_parent`)
-        -- local line_wordcounts = List(vim.api.nvim_buf_get_lines(0, 0, -1, false)):map(function(l)
-        --     return #l:strip():split()
-        -- end)
+        excluded_ranges = List()
 
         local level_to_parent = List({0, 0, 0, 0, 0, 0})
 
@@ -321,13 +336,17 @@ function Popup:set_items()
             if item:include() then
                 items:append(item)
                 item:set_context(items, level_to_parent)
+            else
+                excluded_ranges:append(item.range)
             end
         end
 
+        self:set_data("excluded_ranges", excluded_ranges)
         self:set_data("items", items)
         items:foreachm("set_child_meta")
     end
 
+    self.excluded_ranges = excluded_ranges
     self.items = items
 end
 
@@ -410,6 +429,33 @@ function Popup:put_reference()
 
     vim.api.nvim_set_current_line(before .. reference .. after)
     vim.api.nvim_win_set_cursor(0, {row, col + 1 + #reference})
+end
+
+function Popup:toggle_wordcounts()
+    self.display_wordcounts = not self.display_wordcounts
+
+    if self.display_wordcounts then
+        local line_wordcounts = List(vim.api.nvim_buf_get_lines(self.source.buffer, 0, -1, true)):map(function(l)
+            return #l:split(" ")
+        end)
+
+        self.excluded_ranges:foreach(function(range)
+            for i = range[1] + 1, range[2] do
+                line_wordcounts[i] = 0
+            end
+        end)
+
+        self.total_words = 0
+        self.items:foreach(function(item)
+            item.wordcount = 0
+            for i = item.range[1] + 1, item.range[2] do
+                item.wordcount = item.wordcount + line_wordcounts[i]
+            end
+            self.total_words = self.total_words + item.wordcount
+        end)
+    end
+
+    self:update()
 end
 
 return function(args) return function() Popup:new(args) end end

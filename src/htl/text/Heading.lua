@@ -43,10 +43,6 @@ function M:exclude_from_document()
     return M.conf.meta:map(function(conf)
         return conf.exclude and self.meta:has(conf.key) or nil
     end):any()
-    -- local exclude = false
-    -- print(self.meta)
-    -- self.meta:vals():foreach(function(conf) exclude = exclude or conf.exclude end)
-    -- return exclude
 end
 
 function M.get_meta_conf(char)
