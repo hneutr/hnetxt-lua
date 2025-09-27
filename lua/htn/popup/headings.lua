@@ -128,6 +128,10 @@ function Item:highlight(line)
 end
 
 function Item:get_wordcount()
+    if self.wordcount == 0 then
+        return ""
+    end
+
     local s = "<.1"
     if self.wordcount >= 100 then
         s = tostring(math.floor((self.wordcount / 100) + .5) / 10)

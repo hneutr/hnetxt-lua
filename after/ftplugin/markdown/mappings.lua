@@ -18,10 +18,6 @@ local mappings = Dict(
             ["<M-e>"] = ui.goto_map_fn("edit"),
             ["<M-t>"] = ui.goto_map_fn("tabedit"),
 
-            -- sections
-            ["<c-p>"] = ui.sections.prev,
-            ["<c-n>"] = ui.sections.next,
-
             -- headings
             ["<C-.>"] = HeadingPopup(),
             ["<C-1>"] = HeadingPopup({level = 1}),
@@ -48,6 +44,12 @@ local mappings = Dict(
             ["<C-/>"] = UrlsPopup(),
         }),
         v = Dict(),
+        nv = Dict({
+            -- sections
+            ["<c-p>"] = ui.sections.prev,
+            ["<c-n>"] = ui.sections.next,
+
+        }),
     },
     require("htn.text.list").mappings()
 )
@@ -61,9 +63,8 @@ if vim.b.htn_project_path then
     mappings.n:update(ui.mirror_mappings())
 end
 
-
-mappings:foreach(function(mode, mode_mappings)
+mappings:foreach(function(modes, mode_mappings)
     mode_mappings:foreach(function(rhs, lhs)
-        vim.keymap.set(mode, rhs, lhs, {silent = true, buffer = true})
+        vim.keymap.set(List(modes), rhs, lhs, {silent = true, buffer = true})
     end)
 end)
