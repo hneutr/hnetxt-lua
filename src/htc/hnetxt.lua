@@ -76,6 +76,7 @@ require("htl.cli")({
                     local lines = List({
                         ("is a: %s"):format(args.part_of_speech),
                         "sense: ",
+                        "components: ",
                     })
 
                     if args.word:match("/") then

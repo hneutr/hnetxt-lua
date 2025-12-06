@@ -179,7 +179,7 @@ function Item:fuzzy_string() return self.string end
 
 function Item:tostring()
     local str = self:choice_string()
-    return str .. string.rep(" ", self.ui.dimensions.width - #vim.str_utf_pos(str))
+    return str .. (" "):rep(self.ui.dimensions.width - #vim.str_utf_pos(str))
 end
 
 function Item:filter() return self:fuzzy_match() end
@@ -363,6 +363,7 @@ function Popup:new(args)
     }):mapm("new", instance)
 
     instance:set_keymap()
+    instance:add_autocmds()
 
     instance:open()
 
@@ -427,23 +428,30 @@ function Popup:set_keymap()
     self.keymap:foreach(function(lhs, action)
         vim.keymap.set("i", lhs, self:get_action(action), {silent = true, buffer = true})
     end)
+end
 
-	vim.api.nvim_create_autocmd(
-        "TextChangedI",
-        {
-            callback = self:get_action("update"),
-            buffer = self.input.buffer,
-        }
-    )
+function Popup:get_autocmds() return List() end
 
-	vim.api.nvim_create_autocmd(
-        "InsertLeave",
+function Popup:add_autocmds()
+    self:get_autocmds():extend({
         {
-            callback = self:get_action("close"),
-            buffer = self.input.buffer,
-            once = true,
-        }
-    )
+            event = "TextChangedI",
+            opts = {
+                callback = self:get_action("update"),
+                buffer = self.input.buffer,
+            }
+        },
+        {
+            event = "InsertLeave",
+            opts = {
+                callback = self:get_action("close"),
+                buffer = self.input.buffer,
+                once = true,
+            }
+        },
+    }):foreach(function(autocmd)
+        vim.api.nvim_create_autocmd(autocmd.event, autocmd.opts)
+    end)
 end
 
 return {

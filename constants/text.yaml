@@ -10,33 +10,25 @@ heading:
       todo: true
     - key: write
       char: w
-      todo: true
       symbol: 󰏬
+      todo: true
     - key: finish
       char: f
       todo: true
       symbol: 󱅄
     - key: add
       char: a
+      symbol: 󰐖
       todo: true
       exclude: true
-      symbol: 󰐖
     - key: fix
       char: F
-      todo: true
       symbol: 󰒔
-    # - key: edit
-    #   char: e
-    #   todo: true
-    #   symbol: 󰦓
-    # - key: change
-    #   char: c
-    #   todo: true
-    #   symbol: 󱨂 # 󰆕
-    # - key: move
-    #   char: m
-    #   todo: true
+      todo: true
+    - key: cut
+      char: c
+      symbol: 󰍵
+      todo: true
     - key: outline
       char: o
       exclude: true
-      # symbol: 󰞋 #  󰌵 󰒔 󰒅 󰈚 

@@ -43,7 +43,9 @@ local Popup = Class({
 --------------------------------------------------------------------------------
 --                                    Item                                    --
 --------------------------------------------------------------------------------
-local Item = Class({}, popup.Item)
+local Item = Class({
+    metas = Heading.conf.meta:filter(function(m) return m.symbol end),
+}, popup.Item)
 
 function Item:init(marker_node)
     local content_node = marker_node:next_sibling()
@@ -51,7 +53,6 @@ function Item:init(marker_node)
     self.string = content_node and vim.treesitter.get_node_text(content_node, 0) or ""
     self.line = marker_node:start() + 1
 
-    -- TODO: wordcount stuff
     self.range = {}
     self.range[1], _, self.range[2] = marker_node:parent():parent():range(false)
 
@@ -92,31 +93,18 @@ function Item:set_context(items, level_to_parent)
     end
 end
 
-function Item:set_child_meta()
-    self.child_meta = Set()
-    self.children:foreach(function(child) self.child_meta:add(child.meta) end)
-end
-
 function Item:cursor_highlight_group() return self._level.bg_hl_group end
 
 function Item:highlight(line)
     self.ui.choices:add_highlight(self._level.hl_group, line, 0, -1)
 
-    local texts = Heading.conf.meta:filter(function(conf)
-        return conf.symbol
-    end):map(function(conf)
-        if self.meta:has(conf.key) then
-            return {conf.symbol .. " ", "Text"}
-        elseif self.child_meta:has(conf.key) then
-            return {conf.symbol .. " ", "Whitespace"}
-        end
-
-        return {"  ", "Text"}
-    end)
+    local texts = self:get_metas_for_display()
 
     if self.ui.display_wordcounts then
-        texts:put({self:get_wordcount() .. " ", "Whitespace"})
+        texts:put({self:get_wordcount(), "Whitespace"})
     end
+
+    texts:foreach(function(text) text[1] = text[1] .. " " end)
 
     if #texts > 0 then
         self.ui.choices:add_extmark(line, 0, {
@@ -125,6 +113,44 @@ function Item:highlight(line)
             hl_mode = "combine",
         })
     end
+end
+
+function Item:set_nearest_displayed_parent()
+    self.nearest_displayed_parent = nil
+    self.parents:foreach(function(parent_index)
+        if parent_index and parent_index > 0 and self.ui.items[parent_index].display then
+            self.nearest_displayed_parent = parent_index
+        end
+    end)
+end
+
+function Item:get_child_meta(children)
+    return Set.union(unpack(children:map(function(c) return c.meta end)))
+end
+
+function Item:get_metas_for_display()
+    local hidden_child_meta = self:get_child_meta(self.children:filter(function(c)
+        return c.nearest_displayed_parent == self.index and not c.display
+    end))
+
+    return self.metas:map(function(conf)
+        local text, highlight = " ", "Text"
+
+        if self.meta:has(conf.key) then
+            text = conf.symbol
+        elseif hidden_child_meta:has(conf.key) then
+            text, highlight = conf.symbol, "Whitespace"
+        end
+
+        return {text, highlight}
+    end)
+end
+
+function Item:get_reference()
+    return ("[%s][%s]"):format(
+        self.string,
+        ("#"):rep(self.level) .. " " .. self.string
+    )
 end
 
 function Item:get_wordcount()
@@ -147,8 +173,7 @@ end
 function Item:get_query()
     self.query = self.query or vim.treesitter.query.parse(
         "markdown",
-        string.format(
-            "(atx_heading [%s] @hne_heading)",
+        ("(atx_heading [%s] @hne_heading)"):format(
             Heading.levels:map(function(l) return l.selector end):join(" ")
         )
     )
@@ -168,7 +193,8 @@ function Item:filter()
         end):any()
     end
 
-    return result and self:fuzzy_match()
+    self.display = result and self:fuzzy_match()
+    return self.display
 end
 
 --------------------------------------------------------------------------------
@@ -199,6 +225,8 @@ function Choices:update()
     self.ui.parent = self.ui.parent or 0
 
     self.items = self.ui.items:filterm("filter")
+
+    self.ui.items:mapm("set_nearest_displayed_parent")
 
     if self.ui.include_parents then
         local seen_indexes = Set(self.items:map(function(item) return item.index end))
@@ -241,15 +269,11 @@ function Input:highlight()
             return self.ui.metas[conf.key] and conf.symbol or " "
         end):join(" ")
 
-        self:add_extmark(
-            0,
-            0,
-            {
-                virt_text = {{text .. " ", "Text"}},
-                virt_text_pos = "right_align",
-                hl_mode = "combine",
-            }
-        )
+        self:add_extmark(0, 0, {
+            virt_text = {{text .. " ", "Text"}},
+            virt_text_pos = "right_align",
+            hl_mode = "combine",
+        })
     end
 end
 
@@ -263,20 +287,12 @@ function Popup:init(args)
     self.include_parents = true
     self.display_wordcounts = false
 
-    self:watch()
     self:set_items()
 
     self.actions = {}
     for level = 1, #Heading.levels do
-        self.actions[string.format("filter_h%d", level)] = function()
+        self.actions[("filter_h%d"):format(level)] = function()
             self.level = self.level ~= level and level or #Heading.levels
-            self:update()
-        end
-    end
-
-    for _, conf in ipairs(Heading.conf.meta) do
-        self.actions[string.format("filter_%s", conf.key)] = function()
-            self.metas[conf.key] = not self.metas[conf.key] and true or nil
             self:update()
         end
     end
@@ -293,6 +309,13 @@ function Popup:init(args)
     end
 end
 
+function Popup:title()
+    if self.parent ~= 0 then
+        local item = self.items[self.parent]
+        return {{item.string, item._level.hl_group}}
+    end
+end
+
 function Popup:get_data(field)
     local key = self.source.buffer
     self.data[key] = self.data[key] or {}
@@ -303,24 +326,16 @@ function Popup:set_data(field, val)
     self.data[self.source.buffer][field] = val
 end
 
-function Popup:watch()
-    return self:get_data("watch_autocmd") or self:set_data(
-        "watch_autocmd",
-        vim.api.nvim_create_autocmd(
-            "BufModifiedSet",
-            {
+function Popup:get_autocmds()
+    return List({
+        {
+            event = "BufModifiedSet",
+            opts = {
                 buffer = self.source.buffer,
                 callback = function() self:set_data("items", nil) end,
             }
-        )
-    )
-end
-
-function Popup:title()
-    if self.parent ~= 0 then
-        local item = self.items[self.parent]
-        return {{item.string, item._level.hl_group}}
-    end
+        },
+    })
 end
 
 function Popup:set_items()
@@ -347,7 +362,7 @@ function Popup:set_items()
 
         self:set_data("excluded_ranges", excluded_ranges)
         self:set_data("items", items)
-        items:foreachm("set_child_meta")
+        items:foreach(function(item) item.child_meta = item:get_child_meta(item.children) end)
     end
 
     self.excluded_ranges = excluded_ranges
@@ -383,7 +398,6 @@ end
 
 function Popup:enter_selection()
     self.parent = self.cursor:get().index
-    self.cursor.index = 1
 
     -- when entering a parent of the filter level, increment it by 1
     if self.level == self.items[self.parent].level then
@@ -392,6 +406,8 @@ function Popup:enter_selection()
 
     -- clear text on enter bc usually it was used to find the entered item
     vim.api.nvim_input("<C-u>")
+
+    self.cursor.index = 1
 
     self:update()
 end
@@ -420,8 +436,7 @@ function Popup:filter_todo()
 end
 
 function Popup:put_reference()
-    local item = self.cursor:get()
-    local reference = ("[%s][%s]"):format(item.string, ("#"):rep(item.level) .. " " .. item.string)
+    local reference = self.cursor:get():get_reference()
 
     self:close()
 
