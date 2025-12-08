@@ -2,25 +2,29 @@ local ui = require("htn.ui")
 
 local Popup = Class({
     name = "popup",
-    width = 80,
-    height = 41,
-    default_keymap = {
-        ["<C-c>"] = "close",
+    default = {
+        dimensions = {
+            width = 80,
+            height = 41,
+        },
+        keymap = {
+            ["<C-c>"] = "close",
 
-        ["<C-n>"] = "cursor_down",
-        ["<C-p>"] = "cursor_up",
-        ["<Down>"] = "cursor_down",
-        ["<Up>"] = "cursor_up",
+            ["<C-n>"] = "cursor_down",
+            ["<C-p>"] = "cursor_up",
+            ["<Down>"] = "cursor_down",
+            ["<Up>"] = "cursor_up",
 
-        ["<C-f>"] = "cursor_page_down",
-        ["<C-b>"] = "cursor_page_up",
+            ["<C-f>"] = "cursor_page_down",
+            ["<C-b>"] = "cursor_page_up",
 
-        ["<C-0>"] = "cursor_top",
-        ["<C-9>"] = "cursor_bottom",
+            ["<C-0>"] = "cursor_top",
+            ["<C-9>"] = "cursor_bottom",
 
-        ["<C-z>"] = "center_cursor",
-        ["<C-y>"] = "yank",
-    }
+            ["<C-z>"] = "center_cursor",
+            ["<C-y>"] = "yank",
+        },
+    },
 })
 
 --------------------------------------------------------------------------------
@@ -63,7 +67,7 @@ end
 --------------------------------------------------------------------------------
 --                                                                            --
 --                                                                            --
---                                 container                                  --
+--                                  Component                                 --
 --                                                                            --
 --                                                                            --
 --------------------------------------------------------------------------------
@@ -107,9 +111,9 @@ function Component:add_extmark(line, col, opts)
     vim.api.nvim_buf_set_extmark(self.buffer, self.namespace, line, col, opts)
 end
 
-function Component:init() return end
-function Component:update() return end
-function Component:highlight() return end
+function Component:init() return self end
+function Component:update() end
+function Component:highlight() end
 
 --------------------------------------------------------------------------------
 --                                                                            --
@@ -195,7 +199,7 @@ function Item:highlight_cursor(line)
     self.ui.cursor:add_highlight(self:cursor_highlight_group(), line, 0, -1)
 end
 
-function Item:highlight(line) return end
+function Item:highlight(line) end
 
 --------------------------------------------------------------------------------
 --                                                                            --
@@ -352,8 +356,9 @@ function Popup:new(args)
         line = ui.get_cursor().row,
     }
 
-    instance:set_dimensions()
     instance:init(args or {})
+
+    instance:set_dimensions()
 
     instance.components = List({
         instance.Choices or Choices,
@@ -373,17 +378,14 @@ function Popup:new(args)
 end
 
 function Popup:set_dimensions()
-    self.dimensions = {
-        height = self.height,
-        width = self.width,
-    }
+    self.dimensions = Dict(self.dimensions or {}, self.default.dimensions)
 
-    self.dimensions.row = math.floor((vim.go.lines - self.height) / 2)
-    self.dimensions.col = math.floor((vim.go.columns - self.width) / 2 - 1)
+    self.dimensions.row = math.floor((vim.go.lines - self.dimensions.height) / 2)
+    self.dimensions.col = math.floor((vim.go.columns - self.dimensions.width) / 2 - 1)
     self.dimensions.half_page = math.floor(self.dimensions.height / 2)
 end
 
-function Popup:init(args) return end
+function Popup:init(args) end
 
 function Popup:title() return self.name end
 
@@ -401,6 +403,7 @@ function Popup:update()
     self.pattern = ui.get_cursor_line()
     self.pattern = #self.pattern > 0 and self.pattern or nil
     self.components:mapm("update")
+    self.updated_by_input = false
 end
 
 Popup.open = Popup.update
@@ -417,14 +420,16 @@ function Popup:cursor_bottom() self.cursor:move(#self.choices.items, true) end
 function Popup:center_cursor() self.cursor:move(0, true) end
 function Popup:yank() vim.fn.setreg('"', self.choices.items:mapm("tostring"):mapm("rstrip")) end
 
+function Popup:define_actions() self.actions = {} end
+
 function Popup:get_action(key)
-    self.actions = self.actions or {}
+    self:define_actions()
     self.actions[key] = self.actions[key] or function() self[key](self) end
     return self.actions[key]
 end
 
 function Popup:set_keymap()
-    self.keymap = Dict(self.keymap):update(self.default_keymap)
+    self.keymap = Dict(self.keymap or {}):update(self.default.keymap)
     self.keymap:foreach(function(lhs, action)
         vim.keymap.set("i", lhs, self:get_action(action), {silent = true, buffer = true})
     end)
@@ -437,7 +442,10 @@ function Popup:add_autocmds()
         {
             event = "TextChangedI",
             opts = {
-                callback = self:get_action("update"),
+                callback = function()
+                    self.updated_by_input = true
+                    self:update()
+                end,
                 buffer = self.input.buffer,
             }
         },

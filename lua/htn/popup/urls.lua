@@ -2,9 +2,11 @@ local ui = require("htn.ui")
 local popup = require("htn.popup")
 
 local Popup = Class({
-    width = 100,
-    height = 51,
     name = "urls",
+    dimensions = {
+        width = 100,
+        height = 51,
+    },
     keymap = {
         ["<CR>"] = "select_edit",
         ["<C-l>"] = "select_vsplit",

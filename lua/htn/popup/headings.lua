@@ -1,6 +1,5 @@
 local ui = require("htn.ui")
 local popup = require("htn.popup")
-
 local Heading = require("htl.text.Heading")
 
 local Popup = Class({
@@ -10,11 +9,15 @@ local Popup = Class({
         ["<C-,>"] = "close",
         ["<C-.>"] = "close",
 
-        ["<CR>"] = "goto_selection",
+        ["<CR>"]  = "goto_selection",
 
         ["<C-l>"] = "enter_selection",
         ["<C-h>"] = "enter_parent",
-        ["<C-r>"] = "enter_root",
+        ["<C-t>"] = "enter_root",
+
+        ["<C-a>"] = "show_ancestors",
+        ["<C-r>"] = "put_reference",
+        ["<C-w>"] = "toggle_wordcounts",
 
         ["<C-1>"] = "filter_h1",
         ["<C-2>"] = "filter_h2",
@@ -33,10 +36,6 @@ local Popup = Class({
         ["<M-8>"] = "filter_m8",
         ["<M-9>"] = "filter_m9",
         ["<M-0>"] = "filter_todo",
-
-        ["<C-r>"] = "put_reference",
-        ["<M-p>"] = "filter_parents",
-        ["<C-w>"] = "toggle_wordcounts",
     },
 }, popup.Popup)
 
@@ -47,22 +46,18 @@ local Item = Class({
     metas = Heading.conf.meta:filter(function(m) return m.symbol end),
 }, popup.Item)
 
-function Item:init(marker_node)
-    local content_node = marker_node:next_sibling()
-
-    self.string = content_node and vim.treesitter.get_node_text(content_node, 0) or ""
-    self.line = marker_node:start() + 1
-
-    self.range = {}
-    self.range[1], _, self.range[2] = marker_node:parent():parent():range(false)
-
-    self.level = tonumber(marker_node:type():match("atx_h(%d+)_marker"))
-    self._level = Heading.levels[self.level]
-    self.string, self.meta = Heading.parse(self.string)
-
+function Item:init(marker)
     self.children = List()
 
-    self.pad_level_start = 0
+    self.level = tonumber(marker:type():match("atx_h(%d+)_marker"))
+    self._level = Heading.levels[self.level]
+
+    local label = marker:next_sibling()
+    self.string, self.meta = Heading.parse(label and vim.treesitter.get_node_text(label, 0) or "")
+
+    local range = {marker:parent():parent():range(false)}
+    self.range = {range[1], range[3]}
+    self.line = range[1] + 1
 end
 
 function Item:include()
@@ -167,7 +162,7 @@ function Item:get_wordcount()
 end
 
 function Item:choice_string()
-    return ("  "):rep(self.level - self.pad_level_start) .. self.string
+    return ("  "):rep(self.level - self.ui.choices.min_item_level) .. self.string
 end
 
 function Item:get_query()
@@ -241,10 +236,7 @@ function Choices:update()
         self.items:sort(function(a, b) return a.index < b.index end)
     end
 
-    if #self.items > 0 then
-        local pad_level_start = math.min(unpack(self.items:col("level")))
-        self.items:foreach(function(item) item.pad_level_start = pad_level_start end)
-    end
+    self.min_item_level = #self.items > 0 and math.min(unpack(self.items:col("level"))) or 0
 
     for i, item in ipairs(self.items) do
         if item.index == last_cursor_index then
@@ -252,6 +244,19 @@ function Choices:update()
         end
     end
 
+    -- move to the highest fuzzy score
+    if self.ui.updated_by_input and self.ui.pattern then
+        local score
+
+        for i, item in ipairs(self.items) do
+            if not score or item.score < score then
+                score = item.score
+                self.ui.cursor.index = i
+            end
+        end
+    end
+
+    -- move the cursor
     self.ui.cursor:move(0, true)
 end
 
@@ -282,13 +287,27 @@ end
 --------------------------------------------------------------------------------
 function Popup:init(args)
     self.level = args.level or #Heading.levels
-    self.metas = Dict()
     self.parent = 0
     self.include_parents = true
     self.display_wordcounts = false
+    self.metas = Dict()
+
+    if args.todo then
+        self:toggle_todos()
+    end
 
     self:set_items()
+    self:set_height()
+end
 
+function Popup:set_height()
+    local window_height = vim.api.nvim_win_get_config(self.source.window).height
+    if #self.items * 2 > window_height then
+        self.dimensions = {height = window_height}
+    end
+end
+
+function Popup:define_actions()
     self.actions = {}
     for level = 1, #Heading.levels do
         self.actions[("filter_h%d"):format(level)] = function()
@@ -303,11 +322,17 @@ function Popup:init(args)
             self:update()
         end
     end
-
-    if args.todo then
-        self:toggle_todos()
-    end
 end
+
+--[[
+what goes into state?
+- level
+- metas
+- cursor position
+- parent
+- include parents?
+- display wordcounts?
+--]]
 
 function Popup:title()
     if self.parent ~= 0 then
@@ -425,7 +450,7 @@ function Popup:enter_root()
     self:update()
 end
 
-function Popup:filter_parents()
+function Popup:show_ancestors()
     self.include_parents = not self.include_parents
     self:update()
 end
