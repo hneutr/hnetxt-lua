@@ -8,7 +8,7 @@ local Popup = Class({
         height = 51,
     },
     keymap = {
-        ["<CR>"] = "select_edit",
+        ["<CR>"]  = "select_edit",
         ["<C-l>"] = "select_vsplit",
         ["<C-j>"] = "select_split",
         ["<C-t>"] = "select_tabedit",
@@ -85,10 +85,29 @@ end
 --------------------------------------------------------------------------------
 function Popup:init(args)
     self.global = args.global == nil and true or args.global
-
     self:set_data()
+end
 
-    self.actions = {}
+function Popup:set_data()
+    if not self.projects then
+        self.projects = Dict()
+        DB.projects:get():foreach(function(p) self.projects[p.title] = tostring(p.path) end)
+    end
+
+    local project = DB.projects.get_by_path(Path.this()) or {}
+    self.project = project.title
+
+    if not self.project then
+        self.global = true
+    end
+
+    self.items = DB.urls:get({where = {type = "file"}}):map(function(url) return Item:new(self, url) end)
+end
+
+function Popup:title() return not self.global and self.project end
+
+-----------------------------------[ actions ]----------------------------------
+function Popup:define_actions()
     for _, operation in ipairs({"edit", "vsplit", "split", "tabedit"}) do
         self.actions[("select_%s"):format(operation)] = function()
             self:close()
@@ -113,24 +132,6 @@ function Popup:init(args)
         end
     end
 end
-
-function Popup:set_data()
-    if not self.projects then
-        self.projects = Dict()
-        DB.projects:get():foreach(function(p) self.projects[p.title] = tostring(p.path) end)
-    end
-
-    local project = DB.projects.get_by_path(Path.this()) or {}
-    self.project = project.title
-
-    if not self.project then
-        self.global = true
-    end
-
-    self.items = DB.urls:get({where = {type = "file"}}):map(function(url) return Item:new(self, url) end)
-end
-
-function Popup:title() return not self.global and self.project end
 
 function Popup:toggle_global()
     if self.project then

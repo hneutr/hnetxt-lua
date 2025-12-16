@@ -14,6 +14,7 @@ local snippets = List({
     parse_snippet("ha", "#### $1"),
     parse_snippet("he", "##### $1"),
     parse_snippet("hw", "###### $1"),
+    parse_snippet("ho", "#### outline [][o]\n$1"),
     parse_snippet("end", Conf.text.end_document),
     parse_snippet("change", Conf.text.change),
 })

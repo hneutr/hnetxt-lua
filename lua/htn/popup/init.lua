@@ -8,21 +8,21 @@ local Popup = Class({
             height = 41,
         },
         keymap = {
-            ["<C-c>"] = "close",
+            ["<C-c>"]  = "close",
 
-            ["<C-n>"] = "cursor_down",
-            ["<C-p>"] = "cursor_up",
+            ["<C-n>"]  = "cursor_down",
+            ["<C-p>"]  = "cursor_up",
             ["<Down>"] = "cursor_down",
-            ["<Up>"] = "cursor_up",
+            ["<Up>"]   = "cursor_up",
 
-            ["<C-f>"] = "cursor_page_down",
-            ["<C-b>"] = "cursor_page_up",
+            ["<C-f>"]  = "cursor_page_down",
+            ["<C-b>"]  = "cursor_page_up",
 
-            ["<C-0>"] = "cursor_top",
-            ["<C-9>"] = "cursor_bottom",
+            ["<C-0>"]  = "cursor_top",
+            ["<C-9>"]  = "cursor_bottom",
 
-            ["<C-z>"] = "center_cursor",
-            ["<C-y>"] = "yank",
+            ["<C-z>"]  = "center_cursor",
+            ["<C-y>"]  = "yank",
         },
     },
 })
@@ -389,52 +389,6 @@ function Popup:init(args) end
 
 function Popup:title() return self.name end
 
-function Popup:close()
-    self.components:mapm("close")
-
-    vim.fn.win_gotoid(self.source.window)
-
-    if self.source.mode ~= 'i' then
-        vim.api.nvim_input("<esc>")
-    end
-end
-
-function Popup:update()
-    self.pattern = ui.get_cursor_line()
-    self.pattern = #self.pattern > 0 and self.pattern or nil
-    self.components:mapm("update")
-    self.updated_by_input = false
-end
-
-Popup.open = Popup.update
-
-function Popup:cursor_down() self.cursor:move(1) end
-function Popup:cursor_up() self.cursor:move(-1) end
-
-function Popup:cursor_page_down() self.cursor:move(self.dimensions.half_page, true) end
-function Popup:cursor_page_up() self.cursor:move(-self.dimensions.half_page, true) end
-
-function Popup:cursor_top() self.cursor:move(-#self.choices.items, true) end
-function Popup:cursor_bottom() self.cursor:move(#self.choices.items, true) end
-
-function Popup:center_cursor() self.cursor:move(0, true) end
-function Popup:yank() vim.fn.setreg('"', self.choices.items:mapm("tostring"):mapm("rstrip")) end
-
-function Popup:define_actions() self.actions = {} end
-
-function Popup:get_action(key)
-    self:define_actions()
-    self.actions[key] = self.actions[key] or function() self[key](self) end
-    return self.actions[key]
-end
-
-function Popup:set_keymap()
-    self.keymap = Dict(self.keymap or {}):update(self.default.keymap)
-    self.keymap:foreach(function(lhs, action)
-        vim.keymap.set("i", lhs, self:get_action(action), {silent = true, buffer = true})
-    end)
-end
-
 function Popup:get_autocmds() return List() end
 
 function Popup:add_autocmds()
@@ -445,6 +399,7 @@ function Popup:add_autocmds()
                 callback = function()
                     self.updated_by_input = true
                     self:update()
+                    self.updated_by_input = false
                 end,
                 buffer = self.input.buffer,
             }
@@ -461,6 +416,54 @@ function Popup:add_autocmds()
         vim.api.nvim_create_autocmd(autocmd.event, autocmd.opts)
     end)
 end
+
+function Popup:set_keymap()
+    self.actions = {}
+    self:define_actions()
+
+    Dict(self.keymap or {}):update(self.default.keymap):foreach(function(lhs, action)
+        vim.keymap.set("i", lhs, self:get_action(action), {silent = true, buffer = true})
+    end)
+end
+
+-----------------------------------[ actions ]----------------------------------
+function Popup:define_actions() end
+
+function Popup:get_action(key)
+    self.actions[key] = self.actions[key] or function() self[key](self) end
+    return self.actions[key]
+end
+
+function Popup:update()
+    self.pattern = ui.get_cursor_line()
+    self.pattern = #self.pattern > 0 and self.pattern or nil
+
+    self.components:mapm("update")
+end
+
+Popup.open = Popup.update
+
+function Popup:close()
+    self.components:mapm("close")
+
+    vim.fn.win_gotoid(self.source.window)
+
+    if self.source.mode ~= 'i' then
+        vim.api.nvim_input("<esc>")
+    end
+end
+
+function Popup:cursor_down() self.cursor:move(1) end
+function Popup:cursor_up() self.cursor:move(-1) end
+
+function Popup:cursor_page_down() self.cursor:move(self.dimensions.half_page, true) end
+function Popup:cursor_page_up() self.cursor:move(-self.dimensions.half_page, true) end
+
+function Popup:cursor_top() self.cursor:move(-#self.choices.items, true) end
+function Popup:cursor_bottom() self.cursor:move(#self.choices.items, true) end
+
+function Popup:center_cursor() self.cursor:move(0, true) end
+function Popup:yank() vim.fn.setreg('"', self.choices.items:mapm("tostring"):mapm("rstrip")) end
 
 return {
     Popup = Popup,

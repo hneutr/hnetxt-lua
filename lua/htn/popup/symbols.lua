@@ -4,7 +4,7 @@ local symbols = require("htn.ui.symbols")
 local Popup = Class({
     name = "symbols",
     keymap = {
-        ["<CR>"] = "select",
+        ["<CR>"]  = "select",
         ["<C-l>"] = "select",
         ["<C-h>"] = "enter_parent",
         ["<C-r>"] = "enter_root",
@@ -87,6 +87,7 @@ end
 
 function Popup:title() return #self.path > 0 and self.path:join(".") end
 
+-----------------------------------[ actions ]----------------------------------
 function Popup:select()
     self.cursor:get():select()
 end

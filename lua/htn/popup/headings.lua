@@ -239,7 +239,7 @@ function Choices:update()
     self.min_item_level = #self.items > 0 and math.min(unpack(self.items:col("level"))) or 0
 
     for i, item in ipairs(self.items) do
-        if item.index == last_cursor_index then
+        if item.index <= last_cursor_index then
             self.ui.cursor.index = i
         end
     end
@@ -304,23 +304,6 @@ function Popup:set_height()
     local window_height = vim.api.nvim_win_get_config(self.source.window).height
     if #self.items * 2 > window_height then
         self.dimensions = {height = window_height}
-    end
-end
-
-function Popup:define_actions()
-    self.actions = {}
-    for level = 1, #Heading.levels do
-        self.actions[("filter_h%d"):format(level)] = function()
-            self.level = self.level ~= level and level or #Heading.levels
-            self:update()
-        end
-    end
-
-    for i, conf in ipairs(Heading.conf.meta) do
-        self.actions[("filter_m%d"):format(i)] = function()
-            self.metas[conf.key] = not self.metas[conf.key] and true or nil
-            self:update()
-        end
     end
 end
 
@@ -392,6 +375,23 @@ function Popup:set_items()
 
     self.excluded_ranges = excluded_ranges
     self.items = items
+end
+
+-----------------------------------[ actions ]----------------------------------
+function Popup:define_actions()
+    for level = 1, #Heading.levels do
+        self.actions[("filter_h%d"):format(level)] = function()
+            self.level = self.level ~= level and level or #Heading.levels
+            self:update()
+        end
+    end
+
+    for i, conf in ipairs(Heading.conf.meta) do
+        self.actions[("filter_m%d"):format(i)] = function()
+            self.metas[conf.key] = not self.metas[conf.key] and true or nil
+            self:update()
+        end
+    end
 end
 
 function Popup:open()

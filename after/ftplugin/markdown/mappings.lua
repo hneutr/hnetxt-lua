@@ -28,6 +28,7 @@ local mappings = Dict(
             ["<M-.>"] = HeadingPopup({todo = true}),
 
             -- misc
+            ["<leader>n"] = ui.open_record_for_today,
             ["<C-/>"] = UrlsPopup(),
             ["<C-\\>"] = UrlsPopup({global = false}),
             ["<C-t>"] = ui.set_time_or_calculate_sum,

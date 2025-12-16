@@ -344,6 +344,21 @@ function M.set_time_or_calculate_sum()
     end
 end
 
+function M.open_record_for_today()
+    local path = Path.this()
+
+    local options = {
+        {dir = Conf.paths.goals_dir, fn = require("htl.goals")},
+        {dir = Conf.paths.track_dir, fn = require("htl.db.Log").touch}
+    }
+
+    for _, option in ipairs(options) do
+        if path:is_relative_to(option.dir) then
+            option.fn():open()
+        end
+    end
+end
+
 function M.copy_wordcount()
     vim.fn.setreg("+", Document({path = Path.this()}).wordcount)
 end
