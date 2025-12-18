@@ -27,7 +27,7 @@ local mappings = Dict(
             ["<C-4>"] = HeadingPopup({level = 4}),
             ["<C-5>"] = HeadingPopup({level = 5}),
             ["<C-6>"] = HeadingPopup({level = 6}),
-            ["<C-m>"] = HeadingPopup({todo = true}),
+            ["<M-.>"] = HeadingPopup({todo = true}),
 
             -- misc
             ["<leader>n"] = ui.open_record_for_today,
