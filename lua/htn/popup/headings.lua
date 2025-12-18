@@ -119,14 +119,13 @@ function Item:set_nearest_displayed_parent()
     end)
 end
 
-function Item:get_child_meta(children)
-    return Set.union(unpack(children:map(function(c) return c.meta end)))
-end
-
 function Item:get_metas_for_display()
-    local hidden_child_meta = self:get_child_meta(self.children:filter(function(c)
-        return c.nearest_displayed_parent == self.index and not c.display
-    end))
+    local hidden_child_meta = Set()
+    self.children:foreach(function(child)
+        if child.nearest_displayed_parent == self.index and not child.display then
+            hidden_child_meta:add(child.meta)
+        end
+    end)
 
     return self.metas:map(function(conf)
         local text, highlight = " ", "Text"
@@ -213,6 +212,7 @@ Popup.Choices = Choices
 
 function Choices:update()
     local last_cursor_index = -1
+
     if self.items and #self.items >= self.ui.cursor.index then
         last_cursor_index = self.items[self.ui.cursor.index].index
     end
@@ -370,7 +370,6 @@ function Popup:set_items()
 
         self:set_data("excluded_ranges", excluded_ranges)
         self:set_data("items", items)
-        items:foreach(function(item) item.child_meta = item:get_child_meta(item.children) end)
     end
 
     self.excluded_ranges = excluded_ranges
