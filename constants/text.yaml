@@ -1,42 +1,6 @@
 end_document: ">[!end]"
 change: "> [!change]"
 heading:
-  # patterns:
-  #   meta: "(.*)%s%[%]%[(.-)%]$"
-  # meta:
-  #   - key: tbd
-  #     char: "?"
-  #     symbol: 󰞋
-  #     todo: true
-  #   - key: write
-  #     char: w
-  #     symbol: 󰏬
-  #     todo: true
-  #   - key: finish
-  #     char: "+"
-  #     todo: true
-  #     symbol: 󰐖
-  #
-  #   - key: add
-  #     char: "*"
-  #     symbol: 󰎃
-  #     todo: true
-  #     exclude: true
-  #   - key: fix
-  #     char: "!"
-  #     symbol: 󰀧
-  #     todo: true
-  #   - key: refine
-  #     char: "%"
-  #     symbol: 󱨂
-  #     todo: true
-  #   - key: cut
-  #     char: x
-  #     symbol: 󰅗
-  #     todo: true
-  #   - key: outline
-  #     char: o
-  #     exclude: true
   meta:
     pattern: "(.*)%s%[%]%[(.-)%]$"
     groups:
