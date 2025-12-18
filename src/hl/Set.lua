@@ -77,7 +77,7 @@ end
 Set.__pow = Set.symmetric_difference
 
 function Set.issubset(self, other)
-    for k in pairs(self:vals()) do
+    for _, k in ipairs(self:vals()) do
         if not other:has(k) then
             return false
         end

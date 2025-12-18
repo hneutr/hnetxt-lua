@@ -6,18 +6,12 @@ local Popup = Class({
     name = "headings",
     data = {},
     keymap = {
-        ["<C-,>"] = "close",
-        ["<C-.>"] = "close",
-
         ["<CR>"]  = "goto_selection",
-
-        ["<C-l>"] = "enter_selection",
-        ["<C-h>"] = "enter_parent",
-        ["<C-t>"] = "enter_root",
-
-        ["<C-a>"] = "show_ancestors",
         ["<C-r>"] = "put_reference",
-        ["<C-w>"] = "toggle_wordcounts",
+
+        ["<C-.>"] = "enter_selection",
+        ["<C-,>"] = "enter_parent",
+        ["<C-/>"] = "enter_root",
 
         ["<C-1>"] = "filter_h1",
         ["<C-2>"] = "filter_h2",
@@ -26,66 +20,59 @@ local Popup = Class({
         ["<C-5>"] = "filter_h5",
         ["<C-6>"] = "filter_h6",
 
-        ["<M-1>"] = "filter_m1",
-        ["<M-2>"] = "filter_m2",
-        ["<M-3>"] = "filter_m3",
-        ["<M-4>"] = "filter_m4",
-        ["<M-5>"] = "filter_m5",
-        ["<M-6>"] = "filter_m6",
-        ["<M-7>"] = "filter_m7",
-        ["<M-8>"] = "filter_m8",
-        ["<M-9>"] = "filter_m9",
-        ["<M-0>"] = "filter_todo",
+        ["<C-w>"] = "toggle_wordcounts",
+        ["<C-l>"] = "toggle_lineage",
+
+        ["<C-h>"] = "toggle_meta_filter_all",
+        ["<C-j>"] = "toggle_meta_filter_create",
+        ["<C-k>"] = "toggle_meta_filter_change",
+
+        ["<M-h>"] = "toggle_meta_collapse_all",
+        ["<M-j>"] = "toggle_meta_collapse_create",
+        ["<M-k>"] = "toggle_meta_collapse_change",
     },
 }, popup.Popup)
+
 
 --------------------------------------------------------------------------------
 --                                    Item                                    --
 --------------------------------------------------------------------------------
-local Item = Class({
-    metas = Heading.conf.meta:filter(function(m) return m.symbol end),
-}, popup.Item)
+local Item = Class({}, popup.Item)
 
-function Item:init(marker)
-    self.children = List()
+function Item:init(args)
+    local marker = args.marker
+    local label = marker:next_sibling()
+    local section = marker:parent():parent()
 
     self.level = tonumber(marker:type():match("atx_h(%d+)_marker"))
     self._level = Heading.levels[self.level]
 
-    local label = marker:next_sibling()
-    self.string, self.meta = Heading.parse(label and vim.treesitter.get_node_text(label, 0) or "")
-
-    local range = {marker:parent():parent():range(false)}
+    local range = {section:range(false)}
     self.range = {range[1], range[3]}
     self.line = range[1] + 1
+
+    self.string, self.meta = Heading.Meta.parse(label and vim.treesitter.get_node_text(label, 0) or "")
+
+    self.children = List()
+    self.parents = self:get_parents(args.previous_item)
+    self.include = self:get_inclusion()
+
+    if self.include then
+        self.parents:foreach(function(parent) parent.children:append(self) end)
+    end
 end
 
-function Item:include()
-    local result = true
-    result = result and #self.string > 0
+function Item:get_parents(previous_item)
+    local parents = previous_item and previous_item.parents:clone():put(previous_item) or List()
+    return parents:filter(function(parent) return parent.level < self.level end)
+end
 
-    self.meta:foreach(function(key)
-        if key == "outline" and self.string == "outline" then
-            result = false
-        end
-    end)
+function Item:get_inclusion()
+    local result = #self.string > 0
+    result = result and not (self.string == "outline" and self.meta.hide)
+    self.parents:foreach(function(parent) result = result and parent.include end)
 
     return result
-end
-
-function Item:set_context(items, level_to_parent)
-    self.index = #items
-    self.parents = level_to_parent:slice(1, self.level):unique()
-
-    self.parents:foreach(function(parent_i)
-        if parent_i > 0 then
-            items[parent_i].children:append(self)
-        end
-    end)
-
-    for i = self.level + 1, #Heading.levels do
-        level_to_parent[i] = self.index
-    end
 end
 
 function Item:cursor_highlight_group() return self._level.bg_hl_group end
@@ -95,7 +82,7 @@ function Item:highlight(line)
 
     local texts = self:get_metas_for_display()
 
-    if self.ui.display_wordcounts then
+    if self.ui.show_wordcounts then
         texts:put({self:get_wordcount(), "Whitespace"})
     end
 
@@ -111,33 +98,33 @@ function Item:highlight(line)
 end
 
 function Item:set_nearest_displayed_parent()
-    self.nearest_displayed_parent = nil
-    self.parents:foreach(function(parent_index)
-        if parent_index and parent_index > 0 and self.ui.items[parent_index].display then
-            self.nearest_displayed_parent = parent_index
-        end
-    end)
+    local displayed_parents = self.parents:filter(function(p) return p.display end)
+    self.nearest_displayed_parent = #displayed_parents > 0 and displayed_parents[1] or nil
+end
+
+function Item:get_child_meta(children)
+    local child_vals = Set.union(unpack(children:map(function(child) return child.meta.vals end)))
+    return Heading.Meta(child_vals:vals())
 end
 
 function Item:get_metas_for_display()
-    local hidden_child_meta = Set()
-    self.children:foreach(function(child)
-        if child.nearest_displayed_parent == self.index and not child.display then
-            hidden_child_meta:add(child.meta)
-        end
-    end)
+    local child_signs = self:get_child_meta(self.children:filter(function(child)
+        return child.nearest_displayed_parent == self and not child.display
+    end)):get_signs(self.ui.meta.collapse)
 
-    return self.metas:map(function(conf)
-        local text, highlight = " ", "Text"
+    local signs = List()
+    for i, sign in ipairs(self.meta:get_signs(self.ui.meta.collapse)) do
+        local highlight = "Text"
 
-        if self.meta:has(conf.key) then
-            text = conf.symbol
-        elseif hidden_child_meta:has(conf.key) then
-            text, highlight = conf.symbol, "Whitespace"
+        if sign == " " then
+            sign = child_signs[i]
+            highlight = "Whitespace"
         end
 
-        return {text, highlight}
-    end)
+        signs:append({sign, highlight})
+    end
+
+    return signs
 end
 
 function Item:get_reference()
@@ -178,17 +165,18 @@ end
 function Item:filter()
     local result = true
 
-    result = result and self.parents:contains(self.ui.parent)
-    result = result and self.level <= self.ui.level
-
-    if #self.ui.metas:keys() > 0 then
-        result = result and self.meta:vals():map(function(key)
-            return self.ui.metas[key]
-        end):any()
+    if not self.child_meta then
+        self.child_meta = self:get_child_meta(self.children)
     end
 
-    self.display = result and self:fuzzy_match()
-    return self.display
+    result = result and (not self.ui.parent or self.parents:contains(self.ui.parent))
+    result = result and self.level <= self.ui.level
+    result = result and (self.meta:filter(self.ui.meta.filter) or self.child_meta:filter(self.ui.meta.filter))
+    result = result and self:fuzzy_match()
+
+    self.display = result
+
+    return result
 end
 
 --------------------------------------------------------------------------------
@@ -217,19 +205,19 @@ function Choices:update()
         last_cursor_index = self.items[self.ui.cursor.index].index
     end
 
-    self.ui.parent = self.ui.parent or 0
+    self.ui.parent = self.ui.parent or nil
 
     self.items = self.ui.items:filterm("filter")
 
     self.ui.items:mapm("set_nearest_displayed_parent")
 
-    if self.ui.include_parents then
+    if self.ui.show_lineage then
         local seen_indexes = Set(self.items:map(function(item) return item.index end))
         self.items:foreach(function(item)
-            item.parents:foreach(function(index)
-                if not seen_indexes:has(index) then
-                    self.items:append(self.ui.items[index])
-                    seen_indexes:add_val(index)
+            item.parents:foreach(function(parent)
+                if not seen_indexes:has(parent.index) then
+                    self.items:append(parent)
+                    seen_indexes:add_val(parent.index)
                 end
             end)
         end)
@@ -267,15 +255,11 @@ local Input = Class({}, popup.Input)
 Popup.Input = Input
 
 function Input:highlight()
-    if self.ui.metas then
-        local text = Heading.conf.meta:filter(function(conf)
-            return conf.symbol
-        end):map(function(conf)
-            return self.ui.metas[conf.key] and conf.symbol or " "
-        end):join(" ")
+    local signs = Heading.Meta.get_displayable_signs(self.ui.meta)
 
+    if #signs > 0 then
         self:add_extmark(0, 0, {
-            virt_text = {{text .. " ", "Text"}},
+            virt_text = {{signs:join(" ") .. " ", "Text"}},
             virt_text_pos = "right_align",
             hl_mode = "combine",
         })
@@ -287,13 +271,15 @@ end
 --------------------------------------------------------------------------------
 function Popup:init(args)
     self.level = args.level or #Heading.levels
-    self.parent = 0
-    self.include_parents = true
-    self.display_wordcounts = false
-    self.metas = Dict()
+    -- TODO
+    self.localize = args.localize
+    self.parent = nil
+    self.show_lineage = true
+    self.show_wordcounts = false
+    self.meta = Heading.Meta.get_display_defaults()
 
     if args.todo then
-        self:toggle_todos()
+        self:toggle_meta("filter", "all")
     end
 
     self:set_items()
@@ -307,20 +293,9 @@ function Popup:set_height()
     end
 end
 
---[[
-what goes into state?
-- level
-- metas
-- cursor position
-- parent
-- include parents?
-- display wordcounts?
---]]
-
 function Popup:title()
-    if self.parent ~= 0 then
-        local item = self.items[self.parent]
-        return {{item.string, item._level.hl_group}}
+    if self.parent then
+        return {{self.parent.string, self.parent._level.hl_group}}
     end
 end
 
@@ -347,29 +322,26 @@ function Popup:get_autocmds()
 end
 
 function Popup:set_items()
-    local items = self:get_data("items")
-    local excluded_ranges = self:get_data("excluded_ranges")
+    local items = self:get_data("items") or List()
+    local excluded_ranges = self:get_data("excluded_ranges") or List()
 
-    if items then
+    if #items > 0 then
         items:foreach(function(item) item.ui = self end)
     else
-        excluded_ranges = List()
+        local item
+        for _, marker in Item:get_query():iter_captures(ui.ts.get_root(), 0, 0, -1) do
+            item = Item:new(self, {marker = marker, previous_item = item})
 
-        local level_to_parent = List({0, 0, 0, 0, 0, 0})
-
-        items = List()
-        for _, node in Item:get_query():iter_captures(ui.ts.get_root(), 0, 0, -1) do
-            local item = Item:new(self, node)
-            if item:include() then
+            if item.include then
                 items:append(item)
-                item:set_context(items, level_to_parent)
+                item.index = #items
             else
-                excluded_ranges:append(item.range)
+                excluded_ranges:append(items.range)
             end
         end
 
-        self:set_data("excluded_ranges", excluded_ranges)
         self:set_data("items", items)
+        self:set_data("excluded_ranges", excluded_ranges)
     end
 
     self.excluded_ranges = excluded_ranges
@@ -385,10 +357,28 @@ function Popup:define_actions()
         end
     end
 
-    for i, conf in ipairs(Heading.conf.meta) do
-        self.actions[("filter_m%d"):format(i)] = function()
-            self.metas[conf.key] = not self.metas[conf.key] and true or nil
-            self:update()
+    List({"filter", "collapse"}):foreach(function(action)
+        List({"all", "create", "change"}):foreach(function(group)
+            self.actions[("toggle_meta_%s_%s"):format(action, group)] = function()
+                self:toggle_meta(action, group)
+                self:update()
+            end
+        end)
+    end)
+end
+
+function Popup:toggle_meta(field, group)
+    if group == 'all' then
+        if #self.meta[field]:vals() == 0 then
+            self.meta[field] = Set(Heading.Meta.conf.display_groups)
+        else
+            self.meta[field] = Set()
+        end
+    else
+        if self.meta[field]:has(group) then
+            self.meta[field]:remove(group)
+        else
+            self.meta[field]:add(group)
         end
     end
 end
@@ -403,15 +393,13 @@ function Popup:open()
     end
 
     self.cursor:move(0, true)
-end
 
-function Popup:toggle_todos()
-    if #self.metas:keys() > 0 then
-        self.metas = Dict()
-    else
-        Heading.conf.meta:foreach(function(conf)
-            self.metas[conf.key] = conf.todo
-        end)
+    if self.localize then
+        local parents = self.cursor:get().parents
+        if #parents > 0 then
+            self.parent = parents[#parents]
+            self:update()
+        end
     end
 end
 
@@ -421,10 +409,10 @@ function Popup:goto_selection()
 end
 
 function Popup:enter_selection()
-    self.parent = self.cursor:get().index
+    self.parent = self.cursor:get()
 
     -- when entering a parent of the filter level, increment it by 1
-    if self.level == self.items[self.parent].level then
+    if self.level == self.parent.level then
         self.level = self.level + 1
     end
 
@@ -437,25 +425,20 @@ function Popup:enter_selection()
 end
 
 function Popup:enter_parent()
-    if self.parent ~= 0 then
-        local parents = self.items[self.parent].parents
-        self.parent = parents[#parents]
+    if self.parent then
+        local parents = self.parent.parents
+        self.parent = #parents > 0 and parents[1]
         self:update()
     end
 end
 
 function Popup:enter_root()
-    self.parent = 0
+    self.parent = nil
     self:update()
 end
 
-function Popup:show_ancestors()
-    self.include_parents = not self.include_parents
-    self:update()
-end
-
-function Popup:filter_todo()
-    self:toggle_todos()
+function Popup:toggle_lineage()
+    self.show_lineage = not self.show_lineage
     self:update()
 end
 
@@ -475,9 +458,9 @@ function Popup:put_reference()
 end
 
 function Popup:toggle_wordcounts()
-    self.display_wordcounts = not self.display_wordcounts
+    self.show_wordcounts = not self.show_wordcounts
 
-    if self.display_wordcounts then
+    if self.show_wordcounts then
         local line_wordcounts = List(vim.api.nvim_buf_get_lines(self.source.buffer, 0, -1, true)):map(function(l)
             return #l:split(" ")
         end)

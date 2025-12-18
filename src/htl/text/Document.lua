@@ -88,7 +88,7 @@ function M:filter_lines(lines)
             local heading = Heading.from_str(line)
             level = heading.level.n
 
-            if heading:exclude_from_document() then
+            if heading.meta.hide then
                 if not exclude or exclude > level then
                     exclude = level
                 end

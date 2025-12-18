@@ -1,34 +1,76 @@
 end_document: ">[!end]"
 change: "> [!change]"
 heading:
-  patterns:
-    meta: "(.*)%s%[%]%[(.-)%]$"
+  # patterns:
+  #   meta: "(.*)%s%[%]%[(.-)%]$"
+  # meta:
+  #   - key: tbd
+  #     char: "?"
+  #     symbol: 󰞋
+  #     todo: true
+  #   - key: write
+  #     char: w
+  #     symbol: 󰏬
+  #     todo: true
+  #   - key: finish
+  #     char: "+"
+  #     todo: true
+  #     symbol: 󰐖
+  #
+  #   - key: add
+  #     char: "*"
+  #     symbol: 󰎃
+  #     todo: true
+  #     exclude: true
+  #   - key: fix
+  #     char: "!"
+  #     symbol: 󰀧
+  #     todo: true
+  #   - key: refine
+  #     char: "%"
+  #     symbol: 󱨂
+  #     todo: true
+  #   - key: cut
+  #     char: x
+  #     symbol: 󰅗
+  #     todo: true
+  #   - key: outline
+  #     char: o
+  #     exclude: true
   meta:
-    - key: ideate
-      char: i
-      symbol: 󰞋
-      todo: true
-    - key: write
-      char: w
-      symbol: 󰏬
-      todo: true
-    - key: finish
-      char: f
-      todo: true
-      symbol: 󱅄
-    - key: add
-      char: a
-      symbol: 󰐖
-      todo: true
-      exclude: true
-    - key: fix
-      char: F
-      symbol: 󰒔
-      todo: true
-    - key: cut
-      char: c
-      symbol: 󰍵
-      todo: true
-    - key: outline
-      char: o
-      exclude: true
+    pattern: "(.*)%s%[%]%[(.-)%]$"
+    groups:
+      - label: create
+        sign: 󰎒
+        collapse: true
+        vals:
+          - flag: "?"
+            sign: 󰞋
+            label: tbd
+          - flag: w
+            sign: 󰏬
+            label: write
+          - flag: "+"
+            sign: 󰐖
+            label: finish
+      - label: change
+        sign: 󱗜
+        collapse: true
+        vals:
+          - flag: "*"
+            sign: 󰎃
+            label: add
+          - flag: "!"
+            sign: 󰀧
+            label: fix
+          - flag: "%"
+            sign: 󱨂
+            label: refine
+          - flag: x
+            sign: 󰅗
+            label: cut
+      - label: hidden
+        hide: true
+        vals:
+          - flag: o
+            label: outline
