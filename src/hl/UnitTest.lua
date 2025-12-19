@@ -1,5 +1,3 @@
-inspect = require("inspect")
-
 local M = {}
 
 function M.suite(test_fn, tests, opts)

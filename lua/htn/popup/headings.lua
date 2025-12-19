@@ -46,6 +46,7 @@ function Item:init(args)
 
     self.level = tonumber(marker:type():match("atx_h(%d+)_marker"))
     self._level = Heading.levels[self.level]
+    self.cursor_highlight_group = self._level.bg_hl_group
 
     local range = {section:range(false)}
     self.range = {range[1], range[3]}
@@ -75,8 +76,6 @@ function Item:get_inclusion()
     return result
 end
 
-function Item:cursor_highlight_group() return self._level.bg_hl_group end
-
 function Item:highlight(line)
     self.ui.choices:add_highlight(self._level.hl_group, line, 0, -1)
 
@@ -98,8 +97,8 @@ function Item:highlight(line)
 end
 
 function Item:set_nearest_displayed_parent()
-    local displayed_parents = self.parents:filter(function(p) return p.display end)
-    self.nearest_displayed_parent = #displayed_parents > 0 and displayed_parents[1] or nil
+    local displayed = self.parents:filter(function(p) return p.display end)
+    self.nearest_displayed_parent = #displayed > 0 and displayed[1] or nil
 end
 
 function Item:get_child_meta(children)
@@ -109,7 +108,7 @@ end
 
 function Item:get_metas_for_display()
     local child_signs = self:get_child_meta(self.children:filter(function(child)
-        return child.nearest_displayed_parent == self and not child.display
+        return not child.display and child.nearest_displayed_parent == self
     end)):get_signs(self.ui.meta.collapse)
 
     local signs = List()
@@ -163,16 +162,19 @@ function Item:get_query()
 end
 
 function Item:filter()
-    local result = true
-
     if not self.child_meta then
         self.child_meta = self:get_child_meta(self.children)
     end
 
+    local result = true
+
     result = result and (not self.ui.parent or self.parents:contains(self.ui.parent))
     result = result and self.level <= self.ui.level
-    result = result and (self.meta:filter(self.ui.meta.filter) or self.child_meta:filter(self.ui.meta.filter))
     result = result and self:fuzzy_match()
+
+    -- this sort of weirdly includes parents w/o matching meta and displayed children w/ matching
+    -- metadata, but that's kind of an edge case that's pretty fine
+    result = result and (self.meta:filter(self.ui.meta.filter) or self.child_meta:filter(self.ui.meta.filter))
 
     self.display = result
 
@@ -195,61 +197,90 @@ end
 --                                   Choices                                  --
 --------------------------------------------------------------------------------
 local Choices = Class({}, popup.Choices)
-
 Popup.Choices = Choices
 
-function Choices:update()
-    local last_cursor_index = -1
-
-    if self.items and #self.items >= self.ui.cursor.index then
-        last_cursor_index = self.items[self.ui.cursor.index].index
-    end
-
-    self.ui.parent = self.ui.parent or nil
-
-    self.items = self.ui.items:filterm("filter")
-
-    self.ui.items:mapm("set_nearest_displayed_parent")
-
-    if self.ui.show_lineage then
-        local seen_indexes = Set(self.items:map(function(item) return item.index end))
-        self.items:foreach(function(item)
-            item.parents:foreach(function(parent)
-                if not seen_indexes:has(parent.index) then
-                    self.items:append(parent)
-                    seen_indexes:add_val(parent.index)
-                end
-            end)
-        end)
-        self.items:sort(function(a, b) return a.index < b.index end)
-    end
-
-    self.min_item_level = #self.items > 0 and math.min(unpack(self.items:col("level"))) or 0
-
-    for i, item in ipairs(self.items) do
-        if item.index <= last_cursor_index then
-            self.ui.cursor.index = i
+function Choices:get_item_nearest_source_cursor(items)
+    local nearest_item, index
+    for i, item in ipairs(items or self.ui.items) do
+        if item.line <= self.ui.source.line then
+            nearest_item = item
+            index = i
         end
     end
 
-    -- move to the highest fuzzy score
-    if self.ui.updated_by_input and self.ui.pattern then
-        local score
+    return nearest_item, index or 0
+end
 
+function Choices:localize()
+    local item = self:get_item_nearest_source_cursor()
+
+    if item then
+        self.ui.parent = item.parents:clone():put(item):pop()
+    end
+end
+
+function Choices:update()
+    if self.ui.update_trigger == 'open' and self.ui.localize then
+        self:localize()
+    end
+
+    self.ui.items:foreach(function(item)
+        item:filter()
+
+        if self.ui.show_lineage and item.display then
+            item.parents:foreach(function(p) p.display = true end)
+        end
+
+        item:set_nearest_displayed_parent()
+    end)
+
+    self.items = self.ui.items:filter(function(item) return item.display end)
+
+    self.min_item_level = #self.items > 0 and math.min(unpack(self.items:col("level"))) or 0
+
+    -- move the cursor to the item visible and nearest the source buffer's cursor
+    if self.ui.update_trigger == 'open' then
+        local _, index = self:get_item_nearest_source_cursor(self.items)
+        self.ui.cursor.index = index
+    -- move the cursor to the highest fuzzy match
+    elseif self.ui.update_trigger == "input" and self.ui.pattern then
+        local score
         for i, item in ipairs(self.items) do
-            if not score or item.score < score then
+            if item.score > 0 and (not score or item.score < score) then
                 score = item.score
                 self.ui.cursor.index = i
             end
         end
+    -- move the cursor upwards to its previous item
+    elseif self.ui.cursor.item then
+        for i, item in ipairs(self.items) do
+            if item.index <= self.ui.cursor.item.index then
+                self.ui.cursor.index = i
+            end
+        end
     end
-
-    -- move the cursor
-    self.ui.cursor:move(0, true)
 end
 
 --------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                   Cursor                                   --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
+local Cursor = Class({}, popup.Cursor)
+Popup.Cursor = Cursor
+
+function Cursor:update()
+    self:move(0, self.ui.update_trigger == "open")
+end
+
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
 --                                    Input                                   --
+--                                                                            --
+--                                                                            --
 --------------------------------------------------------------------------------
 local Input = Class({}, popup.Input)
 Popup.Input = Input
@@ -267,11 +298,14 @@ function Input:highlight()
 end
 
 --------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
 --                                    Popup                                   --
+--                                                                            --
+--                                                                            --
 --------------------------------------------------------------------------------
 function Popup:init(args)
     self.level = args.level or #Heading.levels
-    -- TODO
     self.localize = args.localize
     self.parent = nil
     self.show_lineage = true
@@ -329,6 +363,7 @@ function Popup:set_items()
         items:foreach(function(item) item.ui = self end)
     else
         local item
+
         for _, marker in Item:get_query():iter_captures(ui.ts.get_root(), 0, 0, -1) do
             item = Item:new(self, {marker = marker, previous_item = item})
 
@@ -383,33 +418,13 @@ function Popup:toggle_meta(field, group)
     end
 end
 
-function Popup:open()
-    self.prompt:update()
-    self.input:update()
-    self.choices:update()
-
-    for i, item in ipairs(self.choices.items) do
-        self.cursor.index = item.line <= self.source.line and i or self.cursor.index
-    end
-
-    self.cursor:move(0, true)
-
-    if self.localize then
-        local parents = self.cursor:get().parents
-        if #parents > 0 then
-            self.parent = parents[#parents]
-            self:update()
-        end
-    end
-end
-
 function Popup:goto_selection()
     self:close()
-    ui.set_cursor({row = self.cursor:get().line})
+    ui.set_cursor({row = self.cursor.item.line})
 end
 
 function Popup:enter_selection()
-    self.parent = self.cursor:get()
+    self.parent = self.cursor.item
 
     -- when entering a parent of the filter level, increment it by 1
     if self.level == self.parent.level then
@@ -443,7 +458,7 @@ function Popup:toggle_lineage()
 end
 
 function Popup:put_reference()
-    local reference = self.cursor:get():get_reference()
+    local reference = self.cursor.item:get_reference()
 
     self:close()
 
@@ -471,13 +486,11 @@ function Popup:toggle_wordcounts()
             end
         end)
 
-        self.total_words = 0
         self.items:foreach(function(item)
             item.wordcount = 0
             for i = item.range[1] + 1, item.range[2] do
                 item.wordcount = item.wordcount + line_wordcounts[i]
             end
-            self.total_words = self.total_words + item.wordcount
         end)
     end
 

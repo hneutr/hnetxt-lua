@@ -163,8 +163,10 @@ end
 --                                                                            --
 --                                                                            --
 --------------------------------------------------------------------------------
-local Item = {}
-Item.__index = Item
+local Item = Class({
+    name = "item",
+    cursor_highlight_group = "TelescopeSelection",
+})
 
 function Item:new(ui, args)
     local instance = setmetatable({ui = ui}, self)
@@ -189,14 +191,8 @@ end
 function Item:filter() return self:fuzzy_match() end
 
 function Item:fuzzy_match()
-    self.score = self.ui.pattern and MiniFuzzy.match(self.ui.pattern, self:fuzzy_string()).score or 0
-    return not self.ui.pattern or self.score > 0
-end
-
-function Item:cursor_highlight_group() return "TelescopeSelection" end
-
-function Item:highlight_cursor(line)
-    self.ui.cursor:add_highlight(self:cursor_highlight_group(), line, 0, -1)
+    self.score = self.ui.pattern and MiniFuzzy.match(self.ui.pattern, self:fuzzy_string()).score or 1
+    return self.score > 0
 end
 
 function Item:highlight(line) end
@@ -258,22 +254,13 @@ function Cursor:init()
     self.buffer = self.ui.choices.buffer
 end
 
-function Cursor:get()
-    return self.ui.choices.items[self.index]
-end
-
-function Cursor:update()
-    self:bound_index()
-    self:draw()
-end
-
 function Cursor:draw()
     self.ui.choices:draw()
     self:reset()
 
     if #self.ui.choices.items > 0 then
         self:add_highlight(
-            self:get():cursor_highlight_group(),
+            self.item.cursor_highlight_group,
             self.index - 1 - self.offset,
             0,
             -1
@@ -282,8 +269,19 @@ function Cursor:draw()
 end
 
 function Cursor:move(delta, center)
-    self:bound_index(delta)
+    self:set_index(delta or 0)
+    self:set_offset(center)
+    self:draw()
+end
 
+Cursor.update = Cursor.move
+
+function Cursor:set_index(delta)
+    self.index = math.between(self.index + (delta or 0), {min = 1, max = #self.ui.choices.items})
+    self.item = self.ui.choices.items[self.index]
+end
+
+function Cursor:set_offset(center)
     local start_index, stop_index = self.ui.choices:visible_range()
 
     if self.index < start_index then
@@ -296,16 +294,6 @@ function Cursor:move(delta, center)
         self.offset = self.index - self.ui.dimensions.half_page - 1
     end
 
-    self:bound_offset()
-
-    self:draw()
-end
-
-function Cursor:bound_index(delta)
-    self.index = math.between(self.index + (delta or 0), {min = 1, max = #self.ui.choices.items})
-end
-
-function Cursor:bound_offset()
     self.offset = math.between(self.offset, {min = 0, max = #self.ui.choices.items - self.ui.dimensions.height})
 end
 
@@ -370,6 +358,7 @@ function Popup:new(args)
     instance:set_keymap()
     instance:add_autocmds()
 
+    instance.update_trigger = "open"
     instance:open()
 
     vim.cmd.startinsert()
@@ -397,9 +386,8 @@ function Popup:add_autocmds()
             event = "TextChangedI",
             opts = {
                 callback = function()
-                    self.updated_by_input = true
+                    self.update_trigger = "input"
                     self:update()
-                    self.updated_by_input = false
                 end,
                 buffer = self.input.buffer,
             }
@@ -435,10 +423,12 @@ function Popup:get_action(key)
 end
 
 function Popup:update()
-    self.pattern = ui.get_cursor_line()
+    self.pattern = vim.api.nvim_get_current_line()
     self.pattern = #self.pattern > 0 and self.pattern or nil
 
     self.components:mapm("update")
+
+    self.update_trigger = nil
 end
 
 Popup.open = Popup.update

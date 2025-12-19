@@ -111,7 +111,7 @@ function Popup:define_actions()
     for _, operation in ipairs({"edit", "vsplit", "split", "tabedit"}) do
         self.actions[("select_%s"):format(operation)] = function()
             self:close()
-            local item = self.cursor:get()
+            local item = self.cursor.item
 
             if self.source.mode == 'i' then
                 local cur = vim.fn.getpos('.')

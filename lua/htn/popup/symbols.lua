@@ -89,7 +89,7 @@ function Popup:title() return #self.path > 0 and self.path:join(".") end
 
 -----------------------------------[ actions ]----------------------------------
 function Popup:select()
-    self.cursor:get():select()
+    self.cursor.item:select()
 end
 
 function Popup:clear_input()
