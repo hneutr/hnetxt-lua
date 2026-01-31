@@ -9,10 +9,6 @@ local Popup = Class({
         ["<CR>"]  = "goto_selection",
         ["<C-r>"] = "put_reference",
 
-        ["<C-.>"] = "enter_selection",
-        ["<C-,>"] = "enter_parent",
-        ["<C-/>"] = "enter_root",
-
         ["<C-1>"] = "filter_h1",
         ["<C-2>"] = "filter_h2",
         ["<C-3>"] = "filter_h3",
@@ -23,13 +19,17 @@ local Popup = Class({
         ["<C-w>"] = "toggle_wordcounts",
         ["<C-l>"] = "toggle_lineage",
 
-        ["<C-h>"] = "toggle_meta_filter_all",
-        ["<C-j>"] = "toggle_meta_filter_create",
-        ["<C-k>"] = "toggle_meta_filter_change",
+        ["<C-k>"] = "enter_root",
+        ["<C-h>"] = "enter_parent",
+        ["<C-l>"] = "enter_selection",
 
-        ["<M-h>"] = "toggle_meta_collapse_all",
-        ["<M-j>"] = "toggle_meta_collapse_create",
-        ["<M-k>"] = "toggle_meta_collapse_change",
+        ["<C-/>"] = "toggle_meta_filter_all",
+        ["<C-,>"] = "toggle_meta_filter_create",
+        ["<C-.>"] = "toggle_meta_filter_change",
+
+        ["<M-/>"] = "toggle_meta_collapse_all",
+        ["<M-,>"] = "toggle_meta_collapse_create",
+        ["<M-.>"] = "toggle_meta_collapse_change",
     },
 }, popup.Popup)
 
@@ -371,7 +371,7 @@ function Popup:set_items()
                 items:append(item)
                 item.index = #items
             else
-                excluded_ranges:append(items.range)
+                excluded_ranges:append(item.range)
             end
         end
 

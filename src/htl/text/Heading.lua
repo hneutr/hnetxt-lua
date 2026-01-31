@@ -80,7 +80,13 @@ end
 
 function Meta:_init(vals)
     self.vals = Set(vals)
-    self.groups = Set(vals:map(function(val) return self.conf.vals[val].group end))
+
+    self.groups = Set(vals:filter(function(val)
+        return self.conf.vals[val]
+    end):map(function(val)
+        return self.conf.vals[val].group
+    end))
+
     self.hide = self.groups:has("hidden")
 end
 
