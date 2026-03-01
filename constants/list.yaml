@@ -19,7 +19,10 @@
   sigil: '- [~]'
   toggle_key: m
 - name: quote
-  toggle_key: q
+  toggle_key: "'"
 - name: important
   sigil: '- [#]'
   toggle_key: i
+- name: question
+  sigil: '- [?]'
+  toggle_key: q

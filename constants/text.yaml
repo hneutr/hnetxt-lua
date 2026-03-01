@@ -1,5 +1,5 @@
 end_document: ">[!end]"
-change: "> [!change]"
+change: ">[!change]"
 heading:
   meta:
     pattern: "(.*)%s%[%]%[(.-)%]$"
@@ -33,6 +33,9 @@ heading:
           - flag: x
             sign: 󰅗
             label: cut
+          - flag: s
+            sign: 󰋮
+            label: stitch
       - label: hidden
         hide: true
         vals:

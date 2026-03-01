@@ -23,6 +23,10 @@ local Popup = Class({
 
             ["<C-z>"]  = "center_cursor",
             ["<C-y>"]  = "yank",
+
+            ["<C-y>"]  = "yank",
+
+            ["<M-k>"] = "toggle_help",
         },
     },
 })
@@ -409,7 +413,8 @@ function Popup:set_keymap()
     self.actions = {}
     self:define_actions()
 
-    Dict(self.keymap or {}):update(self.default.keymap):foreach(function(lhs, action)
+    self.keymap = Dict(self.keymap or {}):update(self.default.keymap)
+    self.keymap:foreach(function(lhs, action)
         vim.keymap.set("i", lhs, self:get_action(action), {silent = true, buffer = true})
     end)
 end
@@ -454,6 +459,10 @@ function Popup:cursor_bottom() self.cursor:move(#self.choices.items, true) end
 
 function Popup:center_cursor() self.cursor:move(0, true) end
 function Popup:yank() vim.fn.setreg('"', self.choices.items:mapm("tostring"):mapm("rstrip")) end
+
+function Popup:toggle_help()
+    vim.g.test = 1
+end
 
 return {
     Popup = Popup,

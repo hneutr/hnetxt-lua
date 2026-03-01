@@ -17,7 +17,7 @@ local Popup = Class({
         ["<C-6>"] = "filter_h6",
 
         ["<C-w>"] = "toggle_wordcounts",
-        ["<C-l>"] = "toggle_lineage",
+        ["<C-a>"] = "toggle_lineage",
 
         ["<C-k>"] = "enter_root",
         ["<C-h>"] = "enter_parent",
@@ -82,7 +82,7 @@ function Item:highlight(line)
     local texts = self:get_metas_for_display()
 
     if self.ui.show_wordcounts then
-        texts:put({self:get_wordcount(), "Whitespace"})
+        texts:put({self.get_wordcount(self.wordcount), "Whitespace"})
     end
 
     texts:foreach(function(text) text[1] = text[1] .. " " end)
@@ -133,14 +133,14 @@ function Item:get_reference()
     )
 end
 
-function Item:get_wordcount()
-    if self.wordcount == 0 then
+function Item.get_wordcount(wordcount)
+    if wordcount == 0 then
         return ""
     end
 
     local s = "<.1"
-    if self.wordcount >= 100 then
-        s = tostring(math.floor((self.wordcount / 100) + .5) / 10)
+    if wordcount >= 100 then
+        s = tostring(math.floor((wordcount / 100) + .5) / 10)
     end
 
     return s .. "k"
@@ -286,11 +286,17 @@ local Input = Class({}, popup.Input)
 Popup.Input = Input
 
 function Input:highlight()
-    local signs = Heading.Meta.get_displayable_signs(self.ui.meta)
+    local signs = Heading.Meta.get_displayable_signs(self.ui.meta):map(function(sign)
+        return {sign .. " ", "Text"}
+    end)
+
+    if self.ui.show_wordcounts then
+        signs:put({Item.get_wordcount(self.ui.wordcount) .. " ", "Whitespace"})
+    end
 
     if #signs > 0 then
         self:add_extmark(0, 0, {
-            virt_text = {{signs:join(" ") .. " ", "Text"}},
+            virt_text = signs,
             virt_text_pos = "right_align",
             hl_mode = "combine",
         })
@@ -349,7 +355,10 @@ function Popup:get_autocmds()
             event = "BufModifiedSet",
             opts = {
                 buffer = self.source.buffer,
-                callback = function() self:set_data("items", nil) end,
+                callback = function()
+                    self:set_data("items", nil)
+                    self:set_data("excluded_ranges", nil)
+                end,
             }
         },
     })
@@ -485,6 +494,8 @@ function Popup:toggle_wordcounts()
                 line_wordcounts[i] = 0
             end
         end)
+
+        self.wordcount = line_wordcounts:reduce("+")
 
         self.items:foreach(function(item)
             item.wordcount = 0
