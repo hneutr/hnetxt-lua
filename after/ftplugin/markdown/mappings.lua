@@ -1,6 +1,7 @@
 local ui = require("htn.ui")
 local HeadingPopup = require("htn.popup.headings")
 local UrlsPopup = require("htn.popup.urls")
+local AccentsPopup = require("htn.popup.accents")
 local TextList = require("htn.text.list")
 
 local mappings = Dict(
@@ -35,6 +36,7 @@ local mappings = Dict(
             ["<C-\\>"] = UrlsPopup({global = false}),
             ["<C-t>"] = ui.set_time_or_calculate_sum,
             ["gG"] = ui.copy_wordcount,
+
         }),
         i = Dict({
             -- continue lists
@@ -45,6 +47,9 @@ local mappings = Dict(
 
             -- url insert
             ["<C-/>"] = UrlsPopup(),
+
+            -- accents insert
+            ["<M-a>"] = AccentsPopup,
         }),
         v = Dict(),
         nv = Dict({
