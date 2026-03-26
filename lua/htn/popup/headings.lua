@@ -391,32 +391,6 @@ function Popup:set_items()
     self.items = items
 end
 
------------------------------------[ actions ]----------------------------------
-function Popup:define_actions()
-    for level = 1, #Heading.levels do
-        self.actions[("filter_h%d"):format(level)] = function() self:filter_heading_level(level) end
-
-        -- self.actions[("filter_h%d"):format(level)] = function()
-        --     self.level = self.level ~= level and level or #Heading.levels
-        --     self:update()
-        -- end
-    end
-
-    List({"filter", "collapse"}):foreach(function(action)
-        List({"all", "create", "change"}):foreach(function(group)
-            self.actions[("toggle_meta_%s_%s"):format(action, group)] = function()
-                self:toggle_meta(action, group)
-                self:update()
-            end
-        end)
-    end)
-end
-
-function Popup.filter_heading_level(ui, level)
-    ui.level = ui.level ~= level and level or #Heading.levels
-    ui:update()
-end
-
 function Popup:toggle_meta(field, group)
     if group == 'all' then
         if #self.meta[field]:vals() == 0 then
@@ -433,30 +407,77 @@ function Popup:toggle_meta(field, group)
     end
 end
 
-function Popup:goto()
-    self:close()
-    ui_utils.set_cursor({row = self.cursor.item.line})
+function Popup:count_words()
+    local line_wordcounts = List(vim.api.nvim_buf_get_lines(self.source.buffer, 0, -1, true)):map(function(l)
+        return #l:split(" ")
+    end)
+
+    self.excluded_ranges:foreach(function(range)
+        for i = range[1] + 1, range[2] do
+            line_wordcounts[i] = 0
+        end
+    end)
+
+    self.wordcount = line_wordcounts:reduce("+")
+
+    self.items:foreach(function(item)
+        item.wordcount = 0
+        for i = item.range[1] + 1, item.range[2] do
+            item.wordcount = item.wordcount + line_wordcounts[i]
+        end
+    end)
+end
+-----------------------------------[ actions ]----------------------------------
+function Popup:define_actions()
+    for level = 1, #Heading.levels do
+        self.actions[("filter_h%d"):format(level)] = self:bind_heading_level_filter(level)
+    end
+
+    List({"filter", "collapse"}):foreach(function(action)
+        List({"all", "create", "change"}):foreach(function(group)
+            self.actions[("toggle_meta_%s_%s"):format(action, group)] = self:bind_meta_toggle(action, group)
+        end)
+    end)
 end
 
-function Popup:enter_selection()
-    self.parent = self.cursor.item
+function Popup.bind_heading_level_filter(ui, level)
+    return function()
+        ui.level = ui.level ~= level and level or #Heading.levels
+        ui:update()
+    end
+end
+
+function Popup.bind_meta_toggle(ui, action, group)
+    return function()
+        ui:toggle_meta(action, group)
+        ui:update()
+    end
+end
+
+function Popup.goto(ui)
+    ui:close()
+    ui_utils.set_cursor({row = ui.cursor.item.line})
+end
+
+function Popup.enter_selection(ui)
+    ui.parent = ui.cursor.item
 
     -- when entering a parent of the filter level, increment it by 1
-    if self.level == self.parent.level then
-        self.level = self.level + 1
+    if ui.level == ui.parent.level then
+        ui.level = ui.level + 1
     end
 
     -- clear text on enter bc usually it was used to find the entered item
-    self.cursor.index = 1
-    self.input:clear()
-    self:update()
+    ui.cursor.index = 1
+    ui.input:clear()
+    ui:update()
 end
 
-function Popup:enter_parent()
-    if self.parent then
-        local parents = self.parent.parents
-        self.parent = #parents > 0 and parents[1]
-        self:update()
+function Popup.enter_parent(ui)
+    if ui.parent then
+        local parents = ui.parent.parents
+        ui.parent = #parents > 0 and parents[1]
+        ui:update()
     end
 end
 
@@ -465,15 +486,15 @@ function Popup.enter_root(ui)
     ui:update()
 end
 
-function Popup:toggle_lineage()
-    self.show_lineage = not self.show_lineage
-    self:update()
+function Popup.toggle_lineage(ui)
+    ui.show_lineage = not ui.show_lineage
+    ui:update()
 end
 
-function Popup:reference()
-    local reference = self.cursor.item:get_reference()
+function Popup.reference(ui)
+    local reference = ui.cursor.item:get_reference()
 
-    self:close()
+    ui:close()
 
     local row, col = unpack(vim.api.nvim_win_get_cursor(0))
 
@@ -485,31 +506,14 @@ function Popup:reference()
     vim.api.nvim_win_set_cursor(0, {row, col + 1 + #reference})
 end
 
-function Popup:toggle_wordcounts()
-    self.show_wordcounts = not self.show_wordcounts
+function Popup.toggle_wordcounts(ui)
+    ui.show_wordcounts = not ui.show_wordcounts
 
-    if self.show_wordcounts then
-        local line_wordcounts = List(vim.api.nvim_buf_get_lines(self.source.buffer, 0, -1, true)):map(function(l)
-            return #l:split(" ")
-        end)
-
-        self.excluded_ranges:foreach(function(range)
-            for i = range[1] + 1, range[2] do
-                line_wordcounts[i] = 0
-            end
-        end)
-
-        self.wordcount = line_wordcounts:reduce("+")
-
-        self.items:foreach(function(item)
-            item.wordcount = 0
-            for i = item.range[1] + 1, item.range[2] do
-                item.wordcount = item.wordcount + line_wordcounts[i]
-            end
-        end)
+    if ui.show_wordcounts then
+        ui:count_words()
     end
 
-    self:update()
+    ui:update()
 end
 
 return function(args) return function() Popup:new(args) end end

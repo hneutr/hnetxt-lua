@@ -1,5 +1,14 @@
 local ui_utils = require("htn.ui")
 
+--[[
+help pages todo:
+1. bind `ui` object to action invocation
+2. add action descriptions
+3. make list of actions + descriptions (ordering...)
+4. toggle the choices (maintain old choices + cursor position...) (maybe use extmarks/virtual text?)
+
+--]]
+
 local Popup = Class({
     name = "popup",
     default = {
@@ -13,9 +22,6 @@ local Popup = Class({
 
             ["<C-n>"]  = "cursor_down",
             ["<C-p>"]  = "cursor_up",
-
-            ["<Down>"] = "cursor_down",
-            ["<Up>"]   = "cursor_up",
 
             ["<C-f>"]  = "cursor_page_down",
             ["<C-b>"]  = "cursor_page_up",
@@ -430,23 +436,23 @@ function Popup:get_action(key)
     return self.actions[key]
 end
 
-function Popup:update()
-    self.pattern = vim.api.nvim_get_current_line()
-    self.pattern = #self.pattern > 0 and self.pattern or nil
+function Popup.update(ui)
+    ui.pattern = vim.api.nvim_get_current_line()
+    ui.pattern = #ui.pattern > 0 and ui.pattern or nil
 
-    self.components:mapm("update")
+    ui.components:mapm("update")
 
-    self.update_trigger = nil
+    ui.update_trigger = nil
 end
 
 Popup.open = Popup.update
 
-function Popup:close()
-    self.components:mapm("close")
+function Popup.close(ui)
+    ui.components:mapm("close")
 
-    vim.fn.win_gotoid(self.source.window)
+    vim.fn.win_gotoid(ui.source.window)
 
-    if self.source.mode ~= 'i' then
+    if ui.source.mode ~= 'i' then
         vim.api.nvim_input("<esc>")
     end
 end
@@ -463,9 +469,6 @@ function Popup.cursor_bottom(ui) ui.cursor:move(#ui.choices.items, true) end
 function Popup.cursor_center(ui) ui.cursor:move(0, true) end
 function Popup.yank(ui) vim.fn.setreg('"', ui.choices.items:mapm("tostring"):mapm("rstrip")) end
 
---[[
-what I want to do:
---]]
 function Popup.toggle_help(ui)
     vim.g.test = 1
 end

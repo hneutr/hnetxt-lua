@@ -109,34 +109,39 @@ function Popup:title() return not self.global and self.project end
 -----------------------------------[ actions ]----------------------------------
 function Popup:define_actions()
     for _, operation in ipairs({"edit", "vsplit", "split", "tabedit"}) do
-        self.actions[operation] = function()
-            self:close()
-            local item = self.cursor.item
+        self.actions[operation] = self:bind_open_operation(operation)
+    end
+end
 
-            if self.source.mode == 'i' then
-                local cur = vim.fn.getpos('.')
+function Popup.bind_open_operation(ui, operation)
+    return function()
+        ui:close()
 
-                local line = ui_utils.get_cursor_line()
-                local before = line:sub(1, cur[3] - 1)
-                local after = line:sub(cur[3])
+        local item = ui.cursor.item
 
-                local text = tostring(DB.urls:get_reference(item.url))
+        if ui.source.mode == 'i' then
+            local cur = vim.fn.getpos('.')
 
-                cur[3] = #before + #text + 1
+            local line = ui_utils.get_cursor_line()
+            local before = line:sub(1, cur[3] - 1)
+            local after = line:sub(cur[3])
 
-                ui_utils.set_cursor_line(before .. text .. after)
-                vim.fn.setpos('.', cur)
-            else
-                vim.cmd(("silent %s %s"):format(operation, tostring(item.url.path)))
-            end
+            local text = tostring(DB.urls:get_reference(item.url))
+
+            cur[3] = #before + #text + 1
+
+            ui_utils.set_cursor_line(before .. text .. after)
+            vim.fn.setpos('.', cur)
+        else
+            vim.cmd(("silent %s %s"):format(operation, tostring(item.url.path)))
         end
     end
 end
 
-function Popup:toggle_scope()
-    if self.project then
-        self.global = not self.global
-        self:update()
+function Popup.toggle_scope(ui)
+    if ui.project then
+        ui.global = not ui.global
+        ui:update()
     end
 end
 

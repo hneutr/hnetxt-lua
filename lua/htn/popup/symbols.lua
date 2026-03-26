@@ -88,21 +88,21 @@ end
 function Popup:title() return #self.path > 0 and self.path:join(".") end
 
 -----------------------------------[ actions ]----------------------------------
-function Popup:select()
-    self.cursor.item:select()
+function Popup.select(ui)
+    ui.cursor.item:select()
 end
 
-function Popup:enter_parent()
-    if #self.path > 0 then
-        self.path:pop()
-        self.input:clear()
+function Popup.enter_parent(ui)
+    if #ui.path > 0 then
+        ui.path:pop()
+        ui.input:clear()
     end
 end
 
-function Popup:enter_root()
-    if #self.path > 0 then
-        self.path = List()
-        self.input:clear()
+function Popup.enter_root(ui)
+    if #ui.path > 0 then
+        ui.path = List()
+        ui.input:clear()
     end
 end
 
