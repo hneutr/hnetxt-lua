@@ -430,25 +430,25 @@ end
 -----------------------------------[ actions ]----------------------------------
 function Popup:define_actions()
     for level = 1, #Heading.levels do
-        self.actions[("filter_h%d"):format(level)] = self:bind_heading_level_filter(level)
+        self[("filter_h%d"):format(level)] = self.bind_heading_level_filter(level)
     end
 
     List({"filter", "collapse"}):foreach(function(action)
         List({"all", "create", "change"}):foreach(function(group)
-            self.actions[("toggle_meta_%s_%s"):format(action, group)] = self:bind_meta_toggle(action, group)
+            self[("toggle_meta_%s_%s"):format(action, group)] = self.bind_meta_toggle(action, group)
         end)
     end)
 end
 
-function Popup.bind_heading_level_filter(ui, level)
-    return function()
+function Popup.bind_heading_level_filter(level)
+    return function(ui)
         ui.level = ui.level ~= level and level or #Heading.levels
         ui:update()
     end
 end
 
-function Popup.bind_meta_toggle(ui, action, group)
-    return function()
+function Popup.bind_meta_toggle(action, group)
+    return function(ui)
         ui:toggle_meta(action, group)
         ui:update()
     end

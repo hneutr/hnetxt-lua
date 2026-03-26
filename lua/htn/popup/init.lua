@@ -2,7 +2,7 @@ local ui_utils = require("htn.ui")
 
 --[[
 help pages todo:
-1. bind `ui` object to action invocation
+1. bind `ui` object to action invocation (the confusing bit is in `Popup:get_action` with the `or`)
 2. add action descriptions
 3. make list of actions + descriptions (ordering...)
 4. toggle the choices (maintain old choices + cursor position...) (maybe use extmarks/virtual text?)
@@ -457,6 +457,8 @@ function Popup.close(ui)
     end
 end
 
+function Popup.yank(ui) vim.fn.setreg('"', ui.choices.items:mapm("tostring"):mapm("rstrip")) end
+
 function Popup.cursor_down(ui) ui.cursor:move(1) end
 function Popup.cursor_up(ui) ui.cursor:move(-1) end
 
@@ -467,11 +469,6 @@ function Popup.cursor_top() ui.cursor:move(-#ui.choices.items, true) end
 function Popup.cursor_bottom(ui) ui.cursor:move(#ui.choices.items, true) end
 
 function Popup.cursor_center(ui) ui.cursor:move(0, true) end
-function Popup.yank(ui) vim.fn.setreg('"', ui.choices.items:mapm("tostring"):mapm("rstrip")) end
-
-function Popup.toggle_help(ui)
-    vim.g.test = 1
-end
 
 return {
     Popup = Popup,
