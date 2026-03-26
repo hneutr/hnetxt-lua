@@ -1,4 +1,4 @@
-local ui = require("htn.ui")
+local ui_utils = require("htn.ui")
 local popup = require("htn.popup")
 local Heading = require("htl.text.Heading")
 
@@ -372,7 +372,7 @@ function Popup:set_items()
     else
         local item
 
-        for _, marker in Item:get_query():iter_captures(ui.ts.get_root(), 0, 0, -1) do
+        for _, marker in Item:get_query():iter_captures(ui_utils.ts.get_root(), 0, 0, -1) do
             item = Item:new(self, {marker = marker, previous_item = item})
 
             if item.include then
@@ -394,10 +394,12 @@ end
 -----------------------------------[ actions ]----------------------------------
 function Popup:define_actions()
     for level = 1, #Heading.levels do
-        self.actions[("filter_h%d"):format(level)] = function()
-            self.level = self.level ~= level and level or #Heading.levels
-            self:update()
-        end
+        self.actions[("filter_h%d"):format(level)] = function() self:filter_heading_level(level) end
+
+        -- self.actions[("filter_h%d"):format(level)] = function()
+        --     self.level = self.level ~= level and level or #Heading.levels
+        --     self:update()
+        -- end
     end
 
     List({"filter", "collapse"}):foreach(function(action)
@@ -408,6 +410,11 @@ function Popup:define_actions()
             end
         end)
     end)
+end
+
+function Popup.filter_heading_level(ui, level)
+    ui.level = ui.level ~= level and level or #Heading.levels
+    ui:update()
 end
 
 function Popup:toggle_meta(field, group)
@@ -428,7 +435,7 @@ end
 
 function Popup:goto()
     self:close()
-    ui.set_cursor({row = self.cursor.item.line})
+    ui_utils.set_cursor({row = self.cursor.item.line})
 end
 
 function Popup:enter_selection()
@@ -442,6 +449,7 @@ function Popup:enter_selection()
     -- clear text on enter bc usually it was used to find the entered item
     self.cursor.index = 1
     self.input:clear()
+    self:update()
 end
 
 function Popup:enter_parent()
@@ -452,9 +460,9 @@ function Popup:enter_parent()
     end
 end
 
-function Popup:enter_root()
-    self.parent = nil
-    self:update()
+function Popup.enter_root(ui)
+    ui.parent = nil
+    ui:update()
 end
 
 function Popup:toggle_lineage()
