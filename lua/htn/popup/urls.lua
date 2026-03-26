@@ -1,4 +1,4 @@
-local ui = require("htn.ui")
+local ui_utils = require("htn.ui")
 local popup = require("htn.popup")
 
 local Popup = Class({
@@ -8,11 +8,11 @@ local Popup = Class({
         height = 51,
     },
     keymap = {
-        ["<CR>"]  = "select_edit",
-        ["<C-l>"] = "select_vsplit",
-        ["<C-j>"] = "select_split",
-        ["<C-t>"] = "select_tabedit",
-        ["<C-2>"] = "toggle_global",
+        ["<CR>"]  = "edit",
+        ["<C-l>"] = "vsplit",
+        ["<C-j>"] = "split",
+        ["<C-t>"] = "tabedit",
+        ["<C-2>"] = "toggle_scope",
     },
 }, popup.Popup)
 
@@ -109,14 +109,14 @@ function Popup:title() return not self.global and self.project end
 -----------------------------------[ actions ]----------------------------------
 function Popup:define_actions()
     for _, operation in ipairs({"edit", "vsplit", "split", "tabedit"}) do
-        self.actions[("select_%s"):format(operation)] = function()
+        self.actions[operation] = function()
             self:close()
             local item = self.cursor.item
 
             if self.source.mode == 'i' then
                 local cur = vim.fn.getpos('.')
 
-                local line = ui.get_cursor_line()
+                local line = ui_utils.get_cursor_line()
                 local before = line:sub(1, cur[3] - 1)
                 local after = line:sub(cur[3])
 
@@ -124,7 +124,7 @@ function Popup:define_actions()
 
                 cur[3] = #before + #text + 1
 
-                ui.set_cursor_line(before .. text .. after)
+                ui_utils.set_cursor_line(before .. text .. after)
                 vim.fn.setpos('.', cur)
             else
                 vim.cmd(("silent %s %s"):format(operation, tostring(item.url.path)))
@@ -133,7 +133,7 @@ function Popup:define_actions()
     end
 end
 
-function Popup:toggle_global()
+function Popup:toggle_scope()
     if self.project then
         self.global = not self.global
         self:update()

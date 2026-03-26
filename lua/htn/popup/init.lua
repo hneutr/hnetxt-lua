@@ -12,6 +12,7 @@ local Popup = Class({
 
             ["<C-n>"]  = "cursor_down",
             ["<C-p>"]  = "cursor_up",
+
             ["<Down>"] = "cursor_down",
             ["<Up>"]   = "cursor_up",
 
@@ -22,8 +23,6 @@ local Popup = Class({
             ["<C-9>"]  = "cursor_bottom",
 
             ["<C-z>"]  = "center_cursor",
-            ["<C-y>"]  = "yank",
-
             ["<C-y>"]  = "yank",
 
             ["<M-k>"] = "toggle_help",

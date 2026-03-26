@@ -6,8 +6,15 @@ local Popup = Class({
     name = "headings",
     data = {},
     keymap = {
-        ["<CR>"]  = "goto_selection",
-        ["<C-r>"] = "put_reference",
+        ["<CR>"]  = "goto",
+        ["<C-r>"] = "reference",
+
+        ["<C-k>"] = "enter_root",
+        ["<C-h>"] = "enter_parent",
+        ["<C-l>"] = "enter_selection",
+
+        ["<C-w>"] = "toggle_wordcounts",
+        ["<C-a>"] = "toggle_lineage",
 
         ["<C-1>"] = "filter_h1",
         ["<C-2>"] = "filter_h2",
@@ -15,13 +22,6 @@ local Popup = Class({
         ["<C-4>"] = "filter_h4",
         ["<C-5>"] = "filter_h5",
         ["<C-6>"] = "filter_h6",
-
-        ["<C-w>"] = "toggle_wordcounts",
-        ["<C-a>"] = "toggle_lineage",
-
-        ["<C-k>"] = "enter_root",
-        ["<C-h>"] = "enter_parent",
-        ["<C-l>"] = "enter_selection",
 
         ["<C-/>"] = "toggle_meta_filter_all",
         ["<C-,>"] = "toggle_meta_filter_create",
@@ -427,7 +427,7 @@ function Popup:toggle_meta(field, group)
     end
 end
 
-function Popup:goto_selection()
+function Popup:goto()
     self:close()
     ui.set_cursor({row = self.cursor.item.line})
 end
@@ -466,7 +466,7 @@ function Popup:toggle_lineage()
     self:update()
 end
 
-function Popup:put_reference()
+function Popup:reference()
     local reference = self.cursor.item:get_reference()
 
     self:close()
