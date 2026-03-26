@@ -53,7 +53,7 @@ local SymbolGroup = Class({}, popup.Item)
 function SymbolGroup:select()
     self.ui.cursor.index = 1
     self.ui.path:append(self.string)
-    self.ui:clear_input()
+    self.ui.input:clear()
 end
 
 --------------------------------------------------------------------------------
@@ -92,23 +92,17 @@ function Popup:select()
     self.cursor.item:select()
 end
 
-function Popup:clear_input()
-    self.input:set_lines({""})
-    self.pattern = nil
-    self:update()
-end
-
 function Popup:enter_parent()
     if #self.path > 0 then
         self.path:pop()
-        self:clear_input()
+        self.input:clear()
     end
 end
 
 function Popup:enter_root()
     if #self.path > 0 then
         self.path = List()
-        self:clear_input()
+        self.input:clear()
     end
 end
 

@@ -1,4 +1,4 @@
-local ui = require("htn.ui")
+local ui_utils = require("htn.ui")
 
 local Popup = Class({
     name = "popup",
@@ -9,6 +9,7 @@ local Popup = Class({
         },
         keymap = {
             ["<C-c>"]  = "close",
+            ["<C-y>"]  = "yank",
 
             ["<C-n>"]  = "cursor_down",
             ["<C-p>"]  = "cursor_up",
@@ -22,8 +23,7 @@ local Popup = Class({
             ["<C-0>"]  = "cursor_top",
             ["<C-9>"]  = "cursor_bottom",
 
-            ["<C-z>"]  = "center_cursor",
-            ["<C-y>"]  = "yank",
+            ["<C-z>"]  = "cursor_center",
 
             ["<M-k>"] = "toggle_help",
         },
@@ -330,6 +330,10 @@ function Input:update()
     self.window:update({width = self.ui.dimensions.width - prompt_len, col = prompt_len})
 end
 
+function Input:clear()
+    vim.api.nvim_input("<C-u>")
+end
+
 --------------------------------------------------------------------------------
 --                                                                            --
 --                                                                            --
@@ -344,7 +348,7 @@ function Popup:new(args)
         buffer = vim.api.nvim_get_current_buf(),
         window = vim.fn.win_getid(),
         mode = vim.api.nvim_get_mode().mode,
-        line = ui.get_cursor().row,
+        line = ui_utils.get_cursor().row,
     }
 
     instance:init(args or {})
@@ -447,19 +451,22 @@ function Popup:close()
     end
 end
 
-function Popup:cursor_down() self.cursor:move(1) end
-function Popup:cursor_up() self.cursor:move(-1) end
+function Popup.cursor_down(ui) ui.cursor:move(1) end
+function Popup.cursor_up(ui) ui.cursor:move(-1) end
 
-function Popup:cursor_page_down() self.cursor:move(self.dimensions.half_page, true) end
-function Popup:cursor_page_up() self.cursor:move(-self.dimensions.half_page, true) end
+function Popup.cursor_page_down(ui) ui.cursor:move(ui.dimensions.half_page, true) end
+function Popup.cursor_page_up(ui) ui.cursor:move(-ui.dimensions.half_page, true) end
 
-function Popup:cursor_top() self.cursor:move(-#self.choices.items, true) end
-function Popup:cursor_bottom() self.cursor:move(#self.choices.items, true) end
+function Popup.cursor_top() ui.cursor:move(-#ui.choices.items, true) end
+function Popup.cursor_bottom(ui) ui.cursor:move(#ui.choices.items, true) end
 
-function Popup:center_cursor() self.cursor:move(0, true) end
-function Popup:yank() vim.fn.setreg('"', self.choices.items:mapm("tostring"):mapm("rstrip")) end
+function Popup.cursor_center(ui) ui.cursor:move(0, true) end
+function Popup.yank(ui) vim.fn.setreg('"', ui.choices.items:mapm("tostring"):mapm("rstrip")) end
 
-function Popup:toggle_help()
+--[[
+what I want to do:
+--]]
+function Popup.toggle_help(ui)
     vim.g.test = 1
 end
 

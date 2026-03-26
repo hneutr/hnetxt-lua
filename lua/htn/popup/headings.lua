@@ -33,7 +33,6 @@ local Popup = Class({
     },
 }, popup.Popup)
 
-
 --------------------------------------------------------------------------------
 --                                    Item                                    --
 --------------------------------------------------------------------------------
@@ -441,11 +440,8 @@ function Popup:enter_selection()
     end
 
     -- clear text on enter bc usually it was used to find the entered item
-    vim.api.nvim_input("<C-u>")
-
     self.cursor.index = 1
-
-    self:update()
+    self.input:clear()
 end
 
 function Popup:enter_parent()
