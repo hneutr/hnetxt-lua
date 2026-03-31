@@ -7,13 +7,6 @@ local Popup = Class({
         width = 100,
         height = 51,
     },
-    keymap = {
-        ["<CR>"]  = "edit",
-        ["<C-l>"] = "vsplit",
-        ["<C-j>"] = "split",
-        ["<C-t>"] = "tabedit",
-        ["<C-2>"] = "toggle_scope",
-    },
 }, popup.Popup)
 
 --------------------------------------------------------------------------------
@@ -106,15 +99,12 @@ end
 
 function Popup:title() return not self.global and self.project end
 
------------------------------------[ actions ]----------------------------------
-function Popup:define_actions()
-    for _, operation in ipairs({"edit", "vsplit", "split", "tabedit"}) do
-        self.actions[operation] = self:bind_open_operation(operation)
-    end
-end
 
-function Popup.bind_open_operation(ui, operation)
-    return function()
+
+
+-----------------------------------[ actions ]----------------------------------
+function Popup.bind_open_operation(operation)
+    return function(ui)
         ui:close()
 
         local item = ui.cursor.item
@@ -138,11 +128,30 @@ function Popup.bind_open_operation(ui, operation)
     end
 end
 
-function Popup.toggle_scope(ui)
-    if ui.project then
-        ui.global = not ui.global
-        ui:update()
-    end
-end
+Popup.keymap = List({
+    {
+        lhs = "<C-2>",
+        desc = "toggle global/local scope",
+        callback = function(ui)
+            if ui.project then
+                ui.global = not ui.global
+                ui:update()
+            end
+        end,
+    },
+})
+
+List({
+    {lhs = "<CR>",  op = "edit"},
+    {lhs = "<C-l>", op = "vsplit"},
+    {lhs = "<C-j>", op = "split"},
+    {lhs = "<C-t>", op = "tabedit"},
+}):foreach(function(map)
+    Popup.keymap:append({
+        lhs = map.lhs,
+        desc = ("%s url"):format(map.op),
+        callback = Popup.bind_open_operation(map.op)
+    })
+end)
 
 return function(args) return function() Popup:new(args) end end

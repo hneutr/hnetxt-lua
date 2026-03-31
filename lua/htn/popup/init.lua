@@ -2,10 +2,8 @@ local ui_utils = require("htn.ui")
 
 --[[
 help pages todo:
-1. bind `ui` object to action invocation (the confusing bit is in `Popup:get_action` with the `or`)
-2. add action descriptions
-3. make list of actions + descriptions (ordering...)
-4. toggle the choices (maintain old choices + cursor position...) (maybe use extmarks/virtual text?)
+1. make list of actions + descriptions
+2. toggle the choices (maintain old choices + cursor position...) (maybe use extmarks/virtual text?)
 
 --]]
 
@@ -15,23 +13,6 @@ local Popup = Class({
         dimensions = {
             width = 80,
             height = 41,
-        },
-        keymap = {
-            ["<C-c>"]  = "close",
-            ["<C-y>"]  = "yank",
-
-            ["<C-n>"]  = "cursor_down",
-            ["<C-p>"]  = "cursor_up",
-
-            ["<C-f>"]  = "cursor_page_down",
-            ["<C-b>"]  = "cursor_page_up",
-
-            ["<C-0>"]  = "cursor_top",
-            ["<C-9>"]  = "cursor_bottom",
-
-            ["<C-z>"]  = "cursor_center",
-
-            ["<M-k>"] = "toggle_help",
         },
     },
 })
@@ -408,7 +389,9 @@ function Popup:add_autocmds()
         {
             event = "InsertLeave",
             opts = {
-                callback = self:get_action("close"),
+                callback = function()
+                    self:close()
+                end,
                 buffer = self.input.buffer,
                 once = true,
             }
@@ -419,21 +402,21 @@ function Popup:add_autocmds()
 end
 
 function Popup:set_keymap()
-    self.actions = {}
-    self:define_actions()
-
-    self.keymap = Dict(self.keymap or {}):update(self.default.keymap)
-    self.keymap:foreach(function(lhs, action)
-        vim.keymap.set("i", lhs, self:get_action(action), {silent = true, buffer = true})
+    self.keymap = List(self.keymap or {}):extend(self.default.keymap)
+    self.keymap:foreach(function(map)
+        vim.keymap.set(
+            "i",
+            map.lhs,
+            function()
+                map.callback(self)
+            end,
+            {
+                silent = true,
+                buffer = true,
+                desc = map.desc,
+            }
+        )
     end)
-end
-
------------------------------------[ actions ]----------------------------------
-function Popup:define_actions() end
-
-function Popup:get_action(key)
-    self.actions[key] = self.actions[key] or function() self[key](self) end
-    return self.actions[key]
 end
 
 function Popup.update(ui)
@@ -457,18 +440,70 @@ function Popup.close(ui)
     end
 end
 
-function Popup.yank(ui) vim.fn.setreg('"', ui.choices.items:mapm("tostring"):mapm("rstrip")) end
-
-function Popup.cursor_down(ui) ui.cursor:move(1) end
-function Popup.cursor_up(ui) ui.cursor:move(-1) end
-
-function Popup.cursor_page_down(ui) ui.cursor:move(ui.dimensions.half_page, true) end
-function Popup.cursor_page_up(ui) ui.cursor:move(-ui.dimensions.half_page, true) end
-
-function Popup.cursor_top() ui.cursor:move(-#ui.choices.items, true) end
-function Popup.cursor_bottom(ui) ui.cursor:move(#ui.choices.items, true) end
-
-function Popup.cursor_center(ui) ui.cursor:move(0, true) end
+-----------------------------------[ actions ]----------------------------------
+Popup.default.keymap = List({
+    {
+        lhs = "<C-c>",
+        desc = "close menu",
+        listed = false,
+        callback = Popup.close,
+    },
+    {
+        lhs = "<C-n>",
+        desc = "cursor ↓",
+        listed = false,
+        callback = function(ui) ui.cursor:move(1) end,
+    },
+    {
+        lhs = "<C-p>",
+        desc = "cursor ↑",
+        listed = false,
+        callback = function(ui) ui.cursor:move(-1) end,
+    },
+    {
+        lhs = "<C-f>",
+        desc = "cursor ↓ page",
+        listed = false,
+        callback = function(ui) ui.cursor:move(ui.dimensions.half_page, true) end,
+    },
+    {
+        lhs = "<C->",
+        desc = "cursor ↑ page",
+        listed = false,
+        callback = function(ui) ui.cursor:move(-ui.dimensions.half_page, true) end,
+    },
+    {
+        lhs = "<C-0>",
+        desc = "cursor top",
+        listed = false,
+        callback = function(ui) ui.cursor:move(-#ui.choices.items, true) end,
+    },
+    {
+        lhs = "<C-9>",
+        desc = "cursor bottom",
+        listed = false,
+        callback = function(ui) ui.cursor:move(#ui.choices.items, true) end,
+    },
+    {
+        lhs = "<C-z>",
+        desc = "center cursor",
+        listed = false,
+        callback = function(ui) ui.cursor:move(0, true) end,
+    },
+    {
+        lhs = "<C-y>",
+        desc = "yank",
+        callback = function(ui) vim.fn.setreg('"', ui.choices.items:mapm("tostring"):mapm("rstrip")) end,
+    },
+    {
+        lhs = "<M-h>",
+        desc = "toggle help",
+        callback = function(ui)
+            -- TODO!
+            return
+        end,
+    },
+})
 
 return {
     Popup = Popup,

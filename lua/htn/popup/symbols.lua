@@ -1,15 +1,7 @@
 local popup = require("htn.popup")
 local symbols = require("htn.ui.symbols")
 
-local Popup = Class({
-    name = "symbols",
-    keymap = {
-        ["<CR>"]  = "select",
-        ["<C-l>"] = "select",
-        ["<C-h>"] = "enter_parent",
-        ["<C-r>"] = "enter_root",
-    },
-}, popup.Popup)
+local Popup = Class({name = "symbols"}, popup.Popup)
 
 --------------------------------------------------------------------------------
 --                                   Symbol                                   --
@@ -88,22 +80,37 @@ end
 function Popup:title() return #self.path > 0 and self.path:join(".") end
 
 -----------------------------------[ actions ]----------------------------------
-function Popup.select(ui)
-    ui.cursor.item:select()
-end
-
-function Popup.enter_parent(ui)
-    if #ui.path > 0 then
-        ui.path:pop()
-        ui.input:clear()
-    end
-end
-
-function Popup.enter_root(ui)
-    if #ui.path > 0 then
-        ui.path = List()
-        ui.input:clear()
-    end
-end
+Popup.keymap = List({
+    {
+        lhs = "<CR>",
+        desc = "enter/select",
+        callback = function(ui) ui.cursor.item:select() end,
+    },
+    {
+        lhs = "<C-l>",
+        desc = "enter/select",
+        callback = function(ui) ui.cursor.item:select() end,
+    },
+    {
+        lhs = "<C-h>",
+        desc = "enter parent",
+        callback = function(ui)
+            if #ui.path > 0 then
+                ui.path:pop()
+                ui.input:clear()
+            end
+        end,
+    },
+    {
+        lhs = "<C-r>",
+        desc = "enter root",
+        callback = function(ui)
+            if #ui.path > 0 then
+                ui.path = List()
+                ui.input:clear()
+            end
+        end,
+    },
+})
 
 return function() Popup:new() end

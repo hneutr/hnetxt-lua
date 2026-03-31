@@ -5,32 +5,6 @@ local Heading = require("htl.text.Heading")
 local Popup = Class({
     name = "headings",
     data = {},
-    keymap = {
-        ["<CR>"]  = "goto",
-        ["<C-r>"] = "reference",
-
-        ["<C-k>"] = "enter_root",
-        ["<C-h>"] = "enter_parent",
-        ["<C-l>"] = "enter_selection",
-
-        ["<C-w>"] = "toggle_wordcounts",
-        ["<C-a>"] = "toggle_lineage",
-
-        ["<C-1>"] = "filter_h1",
-        ["<C-2>"] = "filter_h2",
-        ["<C-3>"] = "filter_h3",
-        ["<C-4>"] = "filter_h4",
-        ["<C-5>"] = "filter_h5",
-        ["<C-6>"] = "filter_h6",
-
-        ["<C-/>"] = "toggle_meta_filter_all",
-        ["<C-,>"] = "toggle_meta_filter_create",
-        ["<C-.>"] = "toggle_meta_filter_change",
-
-        ["<M-/>"] = "toggle_meta_collapse_all",
-        ["<M-,>"] = "toggle_meta_collapse_create",
-        ["<M-.>"] = "toggle_meta_collapse_change",
-    },
 }, popup.Popup)
 
 --------------------------------------------------------------------------------
@@ -171,8 +145,10 @@ function Item:filter()
     result = result and self.level <= self.ui.level
     result = result and self:fuzzy_match()
 
-    -- this sort of weirdly includes parents w/o matching meta and displayed children w/ matching
-    -- metadata, but that's kind of an edge case that's pretty fine
+    -- this is sort of weird in that it includes both:
+    -- - children w/ matching metadata (as it should)
+    -- - parents w/o matching meta (as it maybe shouldn't?)
+    -- ... but that's kind of an edge case so I guess it's fine?
     result = result and (self.meta:filter(self.ui.meta.filter) or self.child_meta:filter(self.ui.meta.filter))
 
     self.display = result
@@ -427,19 +403,8 @@ function Popup:count_words()
         end
     end)
 end
+
 -----------------------------------[ actions ]----------------------------------
-function Popup:define_actions()
-    for level = 1, #Heading.levels do
-        self[("filter_h%d"):format(level)] = self.bind_heading_level_filter(level)
-    end
-
-    List({"filter", "collapse"}):foreach(function(action)
-        List({"all", "create", "change"}):foreach(function(group)
-            self[("toggle_meta_%s_%s"):format(action, group)] = self.bind_meta_toggle(action, group)
-        end)
-    end)
-end
-
 function Popup.bind_heading_level_filter(level)
     return function(ui)
         ui.level = ui.level ~= level and level or #Heading.levels
@@ -454,66 +419,130 @@ function Popup.bind_meta_toggle(action, group)
     end
 end
 
-function Popup.goto(ui)
-    ui:close()
-    ui_utils.set_cursor({row = ui.cursor.item.line})
-end
+Popup.keymap = List({
+    {
+        lhs = "<C-a>",
+        desc = "show/hide parents",
+        callback = function(ui)
+            ui.show_lineage = not ui.show_lineage
+            ui:update()
+        end,
+    },
+    {
+        lhs = "<C-w>",
+        desc = "toggle wordcount",
+        callback = function(ui)
+            ui.show_wordcounts = not ui.show_wordcounts
 
-function Popup.enter_selection(ui)
-    ui.parent = ui.cursor.item
+            if ui.show_wordcounts then
+                ui:count_words()
+            end
 
-    -- when entering a parent of the filter level, increment it by 1
-    if ui.level == ui.parent.level then
-        ui.level = ui.level + 1
-    end
+            ui:update()
+        end,
+    },
+    {
+        lhs = "<C-/>",
+        desc = "toggle meta filtering: all",
+        callback = Popup.bind_meta_toggle("filter", "all"),
+    },
+    {
+        lhs = "<C-,>",
+        desc = "toggle meta filtering: create",
+        callback = Popup.bind_meta_toggle("filter", "create"),
+    },
+    {
+        lhs = "<C-.>",
+        desc = "toggle meta filtering: change",
+        callback = Popup.bind_meta_toggle("filter", "change"),
+    },
 
-    -- clear text on enter bc usually it was used to find the entered item
-    ui.cursor.index = 1
-    ui.input:clear()
-    ui:update()
-end
+    {
+        lhs = "<M-/>",
+        desc = "toggle meta collapse: all",
+        callback = Popup.bind_meta_toggle("collapse", "all"),
+    },
+    {
+        lhs = "<M-,>",
+        desc = "toggle meta collapse: create",
+        callback = Popup.bind_meta_toggle("collapse", "create"),
+    },
+    {
+        lhs = "<M-.>",
+        desc = "toggle meta collapse: change",
+        callback = Popup.bind_meta_toggle("collapse", "change"),
+    },
 
-function Popup.enter_parent(ui)
-    if ui.parent then
-        local parents = ui.parent.parents
-        ui.parent = #parents > 0 and parents[1]
-        ui:update()
-    end
-end
+    {
+        lhs = "<C-k>",
+        desc = "leave subtree",
+        callback = function(ui)
+            ui.parent = nil
+            ui:update()
+        end,
+    },
+    {
+        lhs = "<C-h>",
+        desc = "enter parent subtree",
+        callback = function(ui)
+            if ui.parent then
+                local parents = ui.parent.parents
+                ui.parent = #parents > 0 and parents[1]
+                ui:update()
+            end
+        end,
+    },
+    {
+        lhs = "<C-l>",
+        desc = "enter cursor subtree",
+        callback = function(ui)
+            ui.parent = ui.cursor.item
 
-function Popup.enter_root(ui)
-    ui.parent = nil
-    ui:update()
-end
+            -- when entering a parent of the filter level, increment it by 1
+            if ui.level == ui.parent.level then
+                ui.level = ui.level + 1
+            end
 
-function Popup.toggle_lineage(ui)
-    ui.show_lineage = not ui.show_lineage
-    ui:update()
-end
+            -- clear text on enter bc usually it was used to find the entered item
+            ui.cursor.index = 1
+            ui.input:clear()
+            ui:update()
+        end,
+    },
+    {
+        lhs = "<CR>",
+        desc = "go to heading",
+        callback = function(ui)
+            ui:close()
+            ui_utils.set_cursor({row = ui.cursor.item.line})
+        end,
+    },
+    {
+        lhs = "<C-r>",
+        desc = "insert heading reference",
+        callback = function(ui)
+            local reference = ui.cursor.item:get_reference()
 
-function Popup.reference(ui)
-    local reference = ui.cursor.item:get_reference()
+            ui:close()
 
-    ui:close()
+            local row, col = unpack(vim.api.nvim_win_get_cursor(0))
 
-    local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+            local line = vim.api.nvim_get_current_line()
+            local before = line:sub(1, col + 1)
+            local after = line:sub(col + 2)
 
-    local line = vim.api.nvim_get_current_line()
-    local before = line:sub(1, col + 1)
-    local after = line:sub(col + 2)
+            vim.api.nvim_set_current_line(before .. reference .. after)
+            vim.api.nvim_win_set_cursor(0, {row, col + 1 + #reference})
+        end,
+    },
+})
 
-    vim.api.nvim_set_current_line(before .. reference .. after)
-    vim.api.nvim_win_set_cursor(0, {row, col + 1 + #reference})
-end
-
-function Popup.toggle_wordcounts(ui)
-    ui.show_wordcounts = not ui.show_wordcounts
-
-    if ui.show_wordcounts then
-        ui:count_words()
-    end
-
-    ui:update()
+for level = 1, #Heading.levels do
+    Popup.keymap:append({
+        lhs = ("<C-%d>"):format(level),
+        desc = ("filter %d"):format(level),
+        callback = Popup.bind_heading_level_filter(level),
+    })
 end
 
 return function(args) return function() Popup:new(args) end end
