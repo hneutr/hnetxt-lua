@@ -1,14 +1,5 @@
 local popup = require("htn.popup")
 
-local Popup = Class({
-    name = "accents",
-    conf = Conf.accents,
-    dimensions = {
-        height = 18,
-        width = 19,
-    },
-}, popup.Popup)
-
 --------------------------------------------------------------------------------
 --                                   Letter                                   --
 --------------------------------------------------------------------------------
@@ -56,7 +47,15 @@ end
 --------------------------------------------------------------------------------
 --                                    Popup                                   --
 --------------------------------------------------------------------------------
-Popup.Choices = Choices
+local Popup = Class({
+    name = "accents",
+    conf = Conf.accents,
+    Choices = Choices,
+    dimensions = {
+        height = 18,
+        width = 19,
+    },
+}, popup.Popup)
 
 function Popup:init()
     self.items = List(self.conf:keys():sorted():map(function(letter)

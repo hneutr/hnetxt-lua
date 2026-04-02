@@ -2,11 +2,6 @@ local ui_utils = require("htn.ui")
 local popup = require("htn.popup")
 local Heading = require("htl.text.Heading")
 
-local Popup = Class({
-    name = "headings",
-    data = {},
-}, popup.Popup)
-
 --------------------------------------------------------------------------------
 --                                    Item                                    --
 --------------------------------------------------------------------------------
@@ -160,7 +155,6 @@ end
 --                                   Prompt                                   --
 --------------------------------------------------------------------------------
 local Prompt = Class({}, popup.Prompt)
-Popup.Prompt = Prompt
 
 function Prompt:highlight()
     if self.ui.level < #Heading.levels then
@@ -172,7 +166,6 @@ end
 --                                   Choices                                  --
 --------------------------------------------------------------------------------
 local Choices = Class({}, popup.Choices)
-Popup.Choices = Choices
 
 function Choices:get_item_nearest_source_cursor(items)
     local nearest_item, index
@@ -244,7 +237,6 @@ end
 --                                                                            --
 --------------------------------------------------------------------------------
 local Cursor = Class({}, popup.Cursor)
-Popup.Cursor = Cursor
 
 function Cursor:update()
     self:move(0, self.ui.update_trigger == "open")
@@ -258,7 +250,6 @@ end
 --                                                                            --
 --------------------------------------------------------------------------------
 local Input = Class({}, popup.Input)
-Popup.Input = Input
 
 function Input:highlight()
     local signs = Heading.Meta.get_displayable_signs(self.ui.meta):map(function(sign)
@@ -266,7 +257,12 @@ function Input:highlight()
     end)
 
     if self.ui.show_wordcounts then
-        signs:put({Item.get_wordcount(self.ui.wordcount) .. " ", "Whitespace"})
+        -- sum displayed items
+        local wordcount = self.ui.choices.items:map(function(item)
+            return item.nearest_displayed_parent == nil and item.wordcount or 0
+        end):reduce('+')
+
+        signs:put({Item.get_wordcount(wordcount) .. " ", "Whitespace"})
     end
 
     if #signs > 0 then
@@ -285,6 +281,15 @@ end
 --                                                                            --
 --                                                                            --
 --------------------------------------------------------------------------------
+local Popup = Class({
+    name = "headings",
+    data = {},
+    Prompt = Prompt,
+    Cursor = Cursor,
+    Choices = Choices,
+    Input = Input,
+}, popup.Popup)
+
 function Popup:init(args)
     self.level = args.level or #Heading.levels
     self.localize = args.localize
@@ -347,7 +352,6 @@ function Popup:set_items()
         items:foreach(function(item) item.ui = self end)
     else
         local item
-
         for _, marker in Item:get_query():iter_captures(ui_utils.ts.get_root(), 0, 0, -1) do
             item = Item:new(self, {marker = marker, previous_item = item})
 

@@ -1,8 +1,6 @@
 local popup = require("htn.popup")
 local symbols = require("htn.ui.symbols")
 
-local Popup = Class({name = "symbols"}, popup.Popup)
-
 --------------------------------------------------------------------------------
 --                                   Symbol                                   --
 --------------------------------------------------------------------------------
@@ -46,6 +44,7 @@ function SymbolGroup:select()
     self.ui.cursor.index = 1
     self.ui.path:append(self.string)
     self.ui.input:clear()
+    self.ui:update()
 end
 
 --------------------------------------------------------------------------------
@@ -71,7 +70,10 @@ end
 --------------------------------------------------------------------------------
 --                                    Popup                                   --
 --------------------------------------------------------------------------------
-Popup.Choices = Choices
+local Popup = Class({
+    name = "symbols",
+    Choices = Choices,
+}, popup.Popup)
 
 function Popup:init()
     self.path = List()
@@ -98,6 +100,7 @@ Popup.keymap = List({
             if #ui.path > 0 then
                 ui.path:pop()
                 ui.input:clear()
+                ui:update()
             end
         end,
     },
@@ -108,6 +111,7 @@ Popup.keymap = List({
             if #ui.path > 0 then
                 ui.path = List()
                 ui.input:clear()
+                ui:update()
             end
         end,
     },

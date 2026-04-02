@@ -467,7 +467,7 @@ Popup.default.keymap = List({
         callback = function(ui) ui.cursor:move(ui.dimensions.half_page, true) end,
     },
     {
-        lhs = "<C->",
+        lhs = "<C-b>",
         desc = "cursor ↑ page",
         listed = false,
         callback = function(ui) ui.cursor:move(-ui.dimensions.half_page, true) end,

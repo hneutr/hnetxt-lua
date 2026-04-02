@@ -1,14 +1,6 @@
 local ui_utils = require("htn.ui")
 local popup = require("htn.popup")
 
-local Popup = Class({
-    name = "urls",
-    dimensions = {
-        width = 100,
-        height = 51,
-    },
-}, popup.Popup)
-
 --------------------------------------------------------------------------------
 --                                   Symbol                                   --
 --------------------------------------------------------------------------------
@@ -67,7 +59,6 @@ end
 --                                   Choices                                  --
 --------------------------------------------------------------------------------
 local Choices = Class({}, popup.Choices)
-Popup.Choices = Choices
 
 function Choices:update()
     self.items = self.ui.items:filterm("filter"):sorted(function(a, b) return a.score < b.score end)
@@ -76,6 +67,15 @@ end
 --------------------------------------------------------------------------------
 --                                    Popup                                   --
 --------------------------------------------------------------------------------
+local Popup = Class({
+    name = "urls",
+    Choices = Choices,
+    dimensions = {
+        width = 100,
+        height = 51,
+    },
+}, popup.Popup)
+
 function Popup:init(args)
     self.global = args.global == nil and true or args.global
     self:set_data()
@@ -98,9 +98,6 @@ function Popup:set_data()
 end
 
 function Popup:title() return not self.global and self.project end
-
-
-
 
 -----------------------------------[ actions ]----------------------------------
 function Popup.bind_open_operation(operation)
