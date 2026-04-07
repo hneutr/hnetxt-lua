@@ -1,0 +1,515 @@
+local ui_utils = require("htn.ui")
+
+--[[
+help pages todo:
+1. make list of actions + descriptions
+2. toggle the choices (maintain old choices + cursor position...) (maybe use extmarks/virtual text?)
+
+--]]
+
+local Popup = Class({
+    name = "popup",
+    default = {
+        dimensions = {
+            width = 80,
+            height = 41,
+        },
+    },
+})
+
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                   Window                                   --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
+local Window = Class()
+
+function Window:new(buffer, conf)
+    local instance = setmetatable({}, self)
+    instance.buffer = buffer
+	instance.id = vim.api.nvim_open_win(buffer, true, conf)
+    return instance
+end
+
+function Window:close()
+    vim.api.nvim_win_close(self.id, true)
+    vim.api.nvim_buf_delete(self.buffer, {force = true})
+end
+
+function Window:update(new_conf)
+    local conf = vim.api.nvim_win_get_config(self.id)
+
+    local update = false
+    Dict(new_conf):foreach(function(key, val)
+        if conf[key] ~= val then
+            conf[key] = val
+            update = true
+        end
+    end)
+
+    if update then
+        vim.api.nvim_win_set_config(self.id, conf)
+    end
+end
+
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                  Component                                 --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
+local Component = Class({name = "component"})
+
+function Component:new(ui)
+    local instance = setmetatable({ui = ui}, self)
+
+    ui[instance.name] = instance
+
+    instance.namespace = vim.api.nvim_create_namespace(("htn.popup.%s.%s"):format(ui.name, instance.name))
+
+    instance:init()
+
+    if instance.window_conf then
+        instance.buffer = vim.api.nvim_create_buf(false, true)
+        instance.window = Window:new(instance.buffer, instance.window_conf)
+    end
+
+    return instance
+end
+
+function Component:close()
+    return self.window and self.window:close()
+end
+
+function Component:reset()
+	vim.api.nvim_buf_clear_namespace(self.buffer, self.namespace, 0, -1)
+end
+
+function Component:set_lines(lines)
+    self:reset()
+	vim.api.nvim_buf_set_lines(self.buffer, 0, -1, true, lines)
+end
+
+function Component:add_highlight(group, line, start_col, end_col)
+    vim.api.nvim_buf_add_highlight(self.buffer, self.namespace, group, line, start_col, end_col)
+end
+
+function Component:add_extmark(line, col, opts)
+    vim.api.nvim_buf_set_extmark(self.buffer, self.namespace, line, col, opts)
+end
+
+function Component:init() return self end
+function Component:update() end
+function Component:highlight() end
+
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                   Prompt                                   --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
+local Prompt = Class({name = "prompt"}, Component)
+
+function Prompt:init()
+    self.window_conf = {
+        relative = "win",
+        win = self.ui.choices.window.id,
+        width = self.ui.dimensions.width,
+        height = 1,
+        row = -3,
+        col = -1,
+        border = {"╭", "─", "╮", "│", "┤", "─", "├", "│"},
+        noautocmd = true,
+        style = "minimal",
+    }
+end
+
+function Prompt:get() return "> " end
+
+function Prompt:update()
+    local title = self.ui:title() or self.ui.name
+
+    if type(title) == "table" then
+        title[1][1] = " " .. title[1][1]
+        title[#title][1] = title[#title][1] .. " "
+    else
+        title = " " .. title .. " "
+    end
+
+    self.window:update({title = title, title_pos = "center"})
+
+    self:set_lines({self:get()})
+    self:highlight()
+end
+
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                    Item                                    --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
+local Item = Class({
+    name = "item",
+    cursor_highlight_group = "TelescopeSelection",
+})
+
+function Item:new(ui, args)
+    local instance = setmetatable({ui = ui}, self)
+
+    instance:init(args)
+
+    return instance
+end
+
+function Item:init(str)
+    self.string = str
+end
+
+function Item:choice_string() return self.string end
+function Item:fuzzy_string() return self.string end
+
+function Item:tostring()
+    local str = self:choice_string()
+    return str .. (" "):rep(self.ui.dimensions.width - #vim.str_utf_pos(str))
+end
+
+function Item:filter() return self:fuzzy_match() end
+
+function Item:fuzzy_match()
+    self.score = self.ui.pattern and MiniFuzzy.match(self.ui.pattern, self:fuzzy_string()).score or 1
+    return self.score > 0
+end
+
+function Item:highlight(line) end
+
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                  Choices                                   --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
+local Choices = Class({name = "choices"}, Component)
+
+function Choices:init()
+    self.window_conf = {
+        relative = "editor",
+        width = self.ui.dimensions.width,
+        height = self.ui.dimensions.height,
+        row = self.ui.dimensions.row,
+        col = self.ui.dimensions.col,
+        style = "minimal",
+        noautocmd = true,
+        border = {"╭", "─", "╮", "│", "╯", "─", "╰", "│"},
+    }
+end
+
+function Choices:update()
+    self.items = List()
+end
+
+function Choices:visible_range()
+    local start = self.ui.cursor.offset + 1
+    local stop = start + self.ui.dimensions.height - 1
+    return start, stop
+end
+
+function Choices:draw()
+    local to_draw = self.items:slice(self:visible_range())
+
+    self:set_lines(to_draw:mapm("tostring"))
+
+    for i, item in ipairs(to_draw) do
+        item:highlight(i - 1)
+    end
+end
+
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                   Cursor                                   --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
+local Cursor = Class({name = "cursor"}, Component)
+
+function Cursor:init()
+    self.index = 1
+    self.offset = 0
+    self.buffer = self.ui.choices.buffer
+end
+
+function Cursor:draw()
+    self.ui.choices:draw()
+    self:reset()
+
+    if #self.ui.choices.items > 0 then
+        self:add_highlight(
+            self.item.cursor_highlight_group,
+            self.index - 1 - self.offset,
+            0,
+            -1
+        )
+    end
+end
+
+function Cursor:move(delta, center)
+    self:set_index(delta or 0)
+    self:set_offset(center)
+    self:draw()
+end
+
+Cursor.update = Cursor.move
+
+function Cursor:set_index(delta)
+    self.index = math.between(self.index + (delta or 0), {min = 1, max = #self.ui.choices.items})
+    self.item = self.ui.choices.items[self.index]
+end
+
+function Cursor:set_offset(center)
+    local start_index, stop_index = self.ui.choices:visible_range()
+
+    if self.index < start_index then
+        self.offset = self.index - 1
+    elseif stop_index < self.index then
+        self.offset = self.index - self.ui.dimensions.height
+    end
+
+    if center then
+        self.offset = self.index - self.ui.dimensions.half_page - 1
+    end
+
+    self.offset = math.between(self.offset, {min = 0, max = #self.ui.choices.items - self.ui.dimensions.height})
+end
+
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                   Input                                    --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
+local Input = Class({name = 'input'}, Component)
+
+function Input:init()
+    self.window_conf = {
+        relative = "win",
+        win = self.ui.prompt.window.id,
+        width = self.ui.dimensions.width,
+        height = 1,
+        row = 0,
+        col = 0,
+        noautocmd = true,
+        style = "minimal",
+    }
+end
+
+function Input:update()
+    self:reset()
+    self:highlight()
+
+    local prompt_len = #vim.str_utf_pos(self.ui.prompt:get())
+    self.window:update({width = self.ui.dimensions.width - prompt_len, col = prompt_len})
+end
+
+function Input:clear()
+    vim.api.nvim_input("<C-u>")
+end
+
+--------------------------------------------------------------------------------
+--                                                                            --
+--                                                                            --
+--                                   Popup                                    --
+--                                                                            --
+--                                                                            --
+--------------------------------------------------------------------------------
+function Popup:new(args)
+    local instance = setmetatable({}, self)
+
+    instance.source = {
+        buffer = vim.api.nvim_get_current_buf(),
+        window = vim.fn.win_getid(),
+        mode = vim.api.nvim_get_mode().mode,
+        line = ui_utils.get_cursor().row,
+    }
+
+    instance:init(args or {})
+
+    instance:set_dimensions()
+
+    instance.components = List({
+        instance.Choices or Choices,
+        instance.Cursor or Cursor,
+        instance.Prompt or Prompt,
+        instance.Input or Input,
+    }):mapm("new", instance)
+
+    instance:set_keymap()
+    instance:add_autocmds()
+
+    instance.update_trigger = "open"
+    instance:open()
+
+    vim.cmd.startinsert()
+
+    return instance
+end
+
+function Popup:set_dimensions()
+    self.dimensions = Dict(self.dimensions or {}, self.default.dimensions)
+
+    self.dimensions.row = math.floor((vim.go.lines - self.dimensions.height) / 2)
+    self.dimensions.col = math.floor((vim.go.columns - self.dimensions.width) / 2 - 1)
+    self.dimensions.half_page = math.floor(self.dimensions.height / 2)
+end
+
+function Popup:init(args) end
+
+function Popup:title() return self.name end
+
+function Popup:get_autocmds() return List() end
+
+function Popup:add_autocmds()
+    self:get_autocmds():extend({
+        {
+            event = "TextChangedI",
+            opts = {
+                callback = function()
+                    self.update_trigger = "input"
+                    self:update()
+                end,
+                buffer = self.input.buffer,
+            }
+        },
+        {
+            event = "InsertLeave",
+            opts = {
+                callback = function()
+                    self:close()
+                end,
+                buffer = self.input.buffer,
+                once = true,
+            }
+        },
+    }):foreach(function(autocmd)
+        vim.api.nvim_create_autocmd(autocmd.event, autocmd.opts)
+    end)
+end
+
+function Popup:set_keymap()
+    self.keymap = List(self.keymap or {}):extend(self.default.keymap)
+    self.keymap:foreach(function(map)
+        vim.keymap.set(
+            "i",
+            map.lhs,
+            function()
+                map.callback(self)
+            end,
+            {
+                silent = true,
+                buffer = true,
+                desc = map.desc,
+            }
+        )
+    end)
+end
+
+function Popup.update(ui)
+    ui.pattern = vim.api.nvim_get_current_line()
+    ui.pattern = #ui.pattern > 0 and ui.pattern or nil
+
+    ui.components:mapm("update")
+
+    ui.update_trigger = nil
+end
+
+Popup.open = Popup.update
+
+function Popup.close(ui)
+    ui.components:mapm("close")
+
+    vim.fn.win_gotoid(ui.source.window)
+
+    if ui.source.mode ~= 'i' then
+        vim.api.nvim_input("<esc>")
+    end
+end
+
+-----------------------------------[ actions ]----------------------------------
+Popup.default.keymap = List({
+    {
+        lhs = "<C-c>",
+        desc = "close menu",
+        listed = false,
+        callback = Popup.close,
+    },
+    {
+        lhs = "<C-n>",
+        desc = "cursor ↓",
+        listed = false,
+        callback = function(ui) ui.cursor:move(1) end,
+    },
+    {
+        lhs = "<C-p>",
+        desc = "cursor ↑",
+        listed = false,
+        callback = function(ui) ui.cursor:move(-1) end,
+    },
+    {
+        lhs = "<C-f>",
+        desc = "cursor ↓ page",
+        listed = false,
+        callback = function(ui) ui.cursor:move(ui.dimensions.half_page, true) end,
+    },
+    {
+        lhs = "<C-b>",
+        desc = "cursor ↑ page",
+        listed = false,
+        callback = function(ui) ui.cursor:move(-ui.dimensions.half_page, true) end,
+    },
+    {
+        lhs = "<C-0>",
+        desc = "cursor top",
+        listed = false,
+        callback = function(ui) ui.cursor:move(-#ui.choices.items, true) end,
+    },
+    {
+        lhs = "<C-9>",
+        desc = "cursor bottom",
+        listed = false,
+        callback = function(ui) ui.cursor:move(#ui.choices.items, true) end,
+    },
+    {
+        lhs = "<C-z>",
+        desc = "center cursor",
+        listed = false,
+        callback = function(ui) ui.cursor:move(0, true) end,
+    },
+    {
+        lhs = "<C-y>",
+        desc = "yank",
+        callback = function(ui) vim.fn.setreg('"', ui.choices.items:mapm("tostring"):mapm("rstrip")) end,
+    },
+    {
+        lhs = "<M-h>",
+        desc = "toggle help",
+        callback = function(ui)
+            -- TODO!
+            return
+        end,
+    },
+})
+
+return {
+    Popup = Popup,
+    Item = Item,
+    Choices = Choices,
+    Cursor = Cursor,
+    Prompt = Prompt,
+    Input = Input,
+}

@@ -8,7 +8,7 @@ require("htl.cli")({
         journal = {
             alias = true,
             edit = require("htl.journal"),
-            call_with = [[-c Spruce]],
+            call_with = [[-c "lua vim.schedule(Spruce.toggle)"]],
         },
         aim = {
             alias = true,
