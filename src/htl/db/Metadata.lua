@@ -77,6 +77,7 @@ function M.Reader.keep_line(l)
     l = (l or ""):strip()
     return 0 < #l and #l <= M.conf.max_length
 end
+
 --------------------------------------------------------------------------------
 --                                                                            --
 --                                                                            --
@@ -92,11 +93,11 @@ function M.parse_vals(s)
     local quotes = List({'"', "'"})
     while #s > 0 do
         local first_char = s:sub(1, 1)
-        local stop_char = quotes:contains(first_char) and first_char or ','
+        local stop_char = quotes:contains(first_char) and first_char or M.conf.row_element_sep
         s = s:removeprefix(stop_char)
 
         local val = s:sub(1, s:find(stop_char))
-        s = s:sub(#val + 1):removeprefix(","):strip()
+        s = s:sub(#val + 1):removeprefix(M.conf.row_element_sep):strip()
         vals:append(val:removesuffix(stop_char):strip())
     end
 

@@ -48,8 +48,8 @@ end
 --                                    Popup                                   --
 --------------------------------------------------------------------------------
 local Popup = Class({
-    name = "accents",
-    conf = Conf.accents,
+    name = "resymbols",
+    conf = Conf.symbols,
     Choices = Choices,
     dimensions = {
         height = 18,

@@ -94,6 +94,10 @@ return function ()
             {"∇", "inverted delta"},
         },
 
+        misc = {
+            {"§", "section"},
+        },
+
         -- https://en.wikipedia.org/wiki/Unicode_subscripts_and_superscripts
         superscripts = {
             -- numbers

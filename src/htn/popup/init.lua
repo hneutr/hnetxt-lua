@@ -155,7 +155,7 @@ end
 --------------------------------------------------------------------------------
 local Item = Class({
     name = "item",
-    cursor_highlight_group = "TelescopeSelection",
+    cursor_highlight_group = "CursorLine"
 })
 
 function Item:new(ui, args)
@@ -407,9 +407,7 @@ function Popup:set_keymap()
         vim.keymap.set(
             "i",
             map.lhs,
-            function()
-                map.callback(self)
-            end,
+            function() map.callback(self) end,
             {
                 silent = true,
                 buffer = true,
@@ -452,57 +450,55 @@ Popup.default.keymap = List({
         lhs = "<C-n>",
         desc = "cursor ↓",
         listed = false,
-        callback = function(ui) ui.cursor:move(1) end,
+        callback = ui -> ui.cursor:move(1),
     },
     {
         lhs = "<C-p>",
         desc = "cursor ↑",
         listed = false,
-        callback = function(ui) ui.cursor:move(-1) end,
+        callback = ui -> ui.cursor:move(-1),
     },
     {
         lhs = "<C-f>",
         desc = "cursor ↓ page",
         listed = false,
-        callback = function(ui) ui.cursor:move(ui.dimensions.half_page, true) end,
+        callback = ui -> ui.cursor:move(ui.dimensions.half_page, true),
     },
     {
         lhs = "<C-b>",
         desc = "cursor ↑ page",
         listed = false,
-        callback = function(ui) ui.cursor:move(-ui.dimensions.half_page, true) end,
+        callback = ui -> ui.cursor:move(-ui.dimensions.half_page, true),
     },
     {
         lhs = "<C-0>",
         desc = "cursor top",
         listed = false,
-        callback = function(ui) ui.cursor:move(-#ui.choices.items, true) end,
+        callback = ui -> ui.cursor:move(-#ui.choices.items, true),
     },
     {
         lhs = "<C-9>",
         desc = "cursor bottom",
         listed = false,
-        callback = function(ui) ui.cursor:move(#ui.choices.items, true) end,
+        callback = ui -> ui.cursor:move(#ui.choices.items, true),
     },
     {
         lhs = "<C-z>",
         desc = "center cursor",
         listed = false,
-        callback = function(ui) ui.cursor:move(0, true) end,
+        callback = ui -> ui.cursor:move(0, true),
     },
     {
         lhs = "<C-y>",
         desc = "yank",
-        callback = function(ui) vim.fn.setreg('"', ui.choices.items:mapm("tostring"):mapm("rstrip")) end,
+        callback = ui -> vim.fn.setreg('"', ui.choices.items:mapm("tostring"):mapm("rstrip")),
     },
-    {
-        lhs = "<M-h>",
-        desc = "toggle help",
-        callback = function(ui)
-            -- TODO!
-            return
-        end,
-    },
+    -- TODO!
+    -- {
+    --     lhs = "<M-h>",
+    --     desc = "toggle help",
+    --     callback = ui -> ui,
+    -- },
 })
 
 return {

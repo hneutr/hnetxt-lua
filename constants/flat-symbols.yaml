@@ -1,0 +1,158 @@
+greek:
+  alpha: {lower: α, upper: A}
+  beta: {lower: β, upper: B}
+  gamma: {lower: γ, upper: Γ}
+  delta: {lower: δ, upper: Δ}
+  epsilon: {lower: ε, upper: E}
+  zeta: {lower: ζ, upper: Z}
+  eta: {lower: η, upper: H}
+  theta: {lower: θ, upper: Θ}
+  iota: {lower: ι, upper: I}
+  kappa: {lower: κ, upper: K}
+  lambda: {lower: λ, upper: Λ}
+  mu: {lower: μ, upper: M}
+  nu: {lower: ν, upper: N}
+  xi: {lower: ξ, upper: Ξ}
+  pi: {lower: π, upper: Π}
+  rho: {lower: ρ, upper: P}
+  sigma: {lower: σ, upper: Σ}
+  sigma2: {lower: ς, upper: Σ}
+  tau: {lower: τ, upper: T}
+  upsilon: {lower: υ, upper: Y}
+  phi: {lower: φ, upper: Φ}
+  chi: {lower: χ, upper: X}
+  psi: {lower: ψ, upper: Ψ}
+  omega: {lower: ω, upper: Ω}
+math:
+  times: ⨯
+  plus or minus: ±
+  infinity: ∞
+  "null": ∅
+  equals: [≃, ≈, ≤, ≥, ≠, ≡]
+  inverted delta: ∇
+  cup: [⊃, ⊂, ⋂, ⋃]
+  cup dot: [⪾, ⪽, ⩀, ⊍]
+  T: [⊣, ⊢, ⊤, ⊥, ⊨, ⫤, ≔]
+logic:
+  all: Ɐ
+  exists: Ǝ
+  in: ∈
+  and: ∧
+  or: ∨
+  not: ¬
+misc:
+  section: §
+  dotted lines: [⋯, ⋮, ⋰, ⋱]
+superscripts:
+  numbers: [¹, ², ³, ⁴, ⁵, ⁶, ⁷, ⁸, ⁹, ⁰]
+  symbols: [⁽, ⁾, ⁻, ⁼, ⁺]
+  letters:
+    a: {lower: ᵃ, upper: ᴬ}
+    b: {lower: ᵇ, upper: ᴮ}
+    c: {lower: ᶜ}
+    d: {lower: ᵈ, upper: ᴰ}
+    e: {lower: ᵉ, upper: ᴱ}
+    f: {lower: ᶠ}
+    g: {lower: ᵍ, upper: ᴳ}
+    h: {lower: ʰ, upper: ᴴ}
+    i: {lower: ⁱ, upper: ᴵ}
+    j: {lower: ʲ, upper: ᴶ}
+    k: {lower: ᵏ, upper: ᴷ}
+    l: {lower: ˡ, upper: ᴸ}
+    m: {lower: ᵐ, upper: ᴹ}
+    n: {lower: ⁿ, upper: ᴺ}
+    o: {lower: ᵒ, upper: ᴼ}
+    p: {lower: ᵖ, upper: ᴾ}
+    r: {lower: ʳ, upper: ᴿ}
+    s: {lower: ˢ}
+    t: {lower: ᵗ, upper: ᵀ}
+    u: {lower: ᵘ, upper: ᵁ}
+    v: {lower: ᵛ, upper: ⱽ}
+    w: {lower: ʷ, upper: ᵂ}
+    x: {lower: ˣ}
+    y: {lower: ʸ}
+    z: {lower: ᶻ}
+    alpha: ᵅ
+subscript:
+  numbers: [₁, ₂, ₃, ₄, ₅, ₆, ₇, ₈, ₉, ₀]
+  symbols: [₍, ₎, ₋, ₌, ₊]
+  letters:
+    a: ₐ,
+    e: ₑ,
+    h: ₕ,
+    i: ᵢ,
+    j: ⱼ,
+    k: ₖ,
+    l: ₗ,
+    m: ₘ,
+    n: ₙ,
+    o: ₒ,
+    p: ₚ,
+    r: ᵣ,
+    s: ₛ,
+    t: ₜ,
+    u: ᵤ,
+    v: ᵥ,
+    x: ₓ
+    beta: ᵦ
+doublestruck:
+  a: {lower: 𝕒, upper: 𝔸}
+  b: {lower: 𝕓, upper: 𝔹}
+  c: {lower: 𝕔, upper: ℂ}
+  d: {lower: 𝕕, upper: 𝔻}
+  e: {lower: 𝕖, upper: 𝔼}
+  f: {lower: 𝕗, upper: 𝔽}
+  g: {lower: 𝕘, upper: 𝔾}
+  h: {lower: 𝕙, upper: ℍ}
+  i: {lower: 𝕚, upper: 𝕀}
+  j: {lower: 𝕛, upper: 𝕁}
+  k: {lower: 𝕜, upper: 𝕂}
+  l: {lower: 𝕝, upper: 𝕃}
+  m: {lower: 𝕞, upper: 𝕄}
+  n: {lower: 𝕟, upper: ℕ}
+  o: {lower: 𝕠, upper: 𝕆}
+  p: {lower: 𝕡, upper: ℙ}
+  q: {lower: 𝕢, upper: ℚ}
+  r: {lower: 𝕣, upper: ℝ}
+  s: {lower: 𝕤, upper: 𝕊}
+  t: {lower: 𝕥, upper: 𝕋}
+  u: {lower: 𝕦, upper: 𝕌}
+  v: {lower: 𝕧, upper: 𝕍}
+  w: {lower: 𝕨, upper: 𝕎}
+  x: {lower: 𝕩, upper: 𝕏}
+  y: {lower: 𝕪, upper: 𝕐}
+  z: {lower: 𝕫, upper: ℤ}
+arrows:
+  _: [↔, ↕, ↖, ↗, ↙, ↘]
+  bar: [↤, ↦, ↧, ↥]
+shapes:
+  triangles:
+    solid: [◀, ▶, ▲, ▼, ◂, ▸, ▴, ▾, ◄, ►]
+    open:  [◁, ▷, △, ▽, ◃, ▹, ▵, ▿, ◅, ▻]
+    corner:
+      solid: [◤, ◥, ◣, ◢]
+      open: [◸, ◹, ◺, ◿,]
+  diamonds:
+    solid: [◆ , ⧫]
+    open: [◇ , ◊]
+    misc: ⟐
+  circles:
+    solid: ●
+    open: [○ , ◦]
+    inset: [◉, ⊙, ◎, ⍟, ⊝, ⊚, ⨀ , ⦾, ⦿, ⧀, ⧁, ⌾]
+    misc:
+      _: [◌, ◍, ⨁ , ⨷ , ⏼, ⌽, ⨂ , ◖, ◗, ◠, ◡]
+      partial: [◐, ◑, ◒, ◓, ◔, ◕]
+      clock: [◴, ◵, ◶, ◷]
+      strike: [⊘, ⦰, ⦱, ⦲, ⦳, ⦴, ⦵ , ⦶, ⦷, ⦸]
+      backed: [◘, ◙, ◚, ◛,]
+      random: [⊕, ⊖, ⊗, ⦹, ⦺, ⦻, ⦼, ⦽, ⧃ , ⨶ , ⨭, ⨮, ⨴, ⨵, ⨸, ⎉, ⎊]
+  squares:
+      solid L: [■, ◼, ▪, ▬, ▮, ▰]
+      open L: [□, ◻, ▫, ▭, ▯, ▱, ▢, ⎕]
+      inset: [▣, ⊡, ⧆, ⧇, ⧈, ⧉]
+      misc:
+        partial: [◧, ◨, ◩, ◪, ]
+        corners: [◰, ◱, ◲, ◳]
+        grid: [▤, ▥, ▦, ▧, ▨, ▩]
+        _: [◫, ⧄, ⧅, ⧠, ⊞, ⊟, ⊠, ⊡, ⟤ , ⟥ ]

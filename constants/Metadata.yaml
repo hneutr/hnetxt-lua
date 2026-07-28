@@ -1,6 +1,7 @@
 max_length: 120
 comment_prefix: "~"
 subpredicate_sep: "."
+row_element_sep: ","
 tag_prefix: "@"
 default_predicate: tag
 predicate_remap:
