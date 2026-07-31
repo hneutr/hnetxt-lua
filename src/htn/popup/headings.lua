@@ -33,7 +33,7 @@ end
 
 function Item:get_parents(previous_item)
     local parents = previous_item and previous_item.parents:clone():put(previous_item) or List()
-    return parents:filter(function(parent) return parent.level < self.level end)
+    return parents:filter(parent -> parent.level < self.level)
 end
 
 function Item:get_inclusion()
@@ -65,12 +65,12 @@ function Item:highlight(line)
 end
 
 function Item:set_nearest_displayed_parent()
-    local displayed = self.parents:filter(function(p) return p.display end)
+    local displayed = self.parents:filter(p -> p.display)
     self.nearest_displayed_parent = #displayed > 0 and displayed[1] or nil
 end
 
 function Item:get_child_meta(children)
-    local child_vals = Set.union(unpack(children:map(function(child) return child.meta.vals end)))
+    local child_vals = Set.union(unpack(children:map(child -> child.meta.vals)))
     return Heading.Meta(child_vals:vals())
 end
 
@@ -122,7 +122,7 @@ function Item:get_query()
     self.query = self.query or vim.treesitter.query.parse(
         "markdown",
         ("(atx_heading [%s] @hne_heading)"):format(
-            Heading.levels:map(function(l) return l.selector end):join(" ")
+            Heading.levels:map(l -> l.selector):join(" ")
         )
     )
 
@@ -202,7 +202,7 @@ function Choices:update()
         item:set_nearest_displayed_parent()
     end)
 
-    self.items = self.ui.items:filter(function(item) return item.display end)
+    self.items = self.ui.items:filter(item -> item.display)
 
     self.min_item_level = #self.items > 0 and math.min(unpack(self.items:col("level"))) or 0
 
@@ -252,9 +252,7 @@ end
 local Input = Class({}, popup.Input)
 
 function Input:highlight()
-    local signs = Heading.Meta.get_displayable_signs(self.ui.meta):map(function(sign)
-        return {sign .. " ", "Text"}
-    end)
+    local signs = Heading.Meta.get_displayable_signs(self.ui.meta):map(sign -> {sign .. " ", "Text"})
 
     if self.ui.show_wordcounts then
         -- sum displayed items
@@ -388,9 +386,7 @@ function Popup:toggle_meta(field, group)
 end
 
 function Popup:count_words()
-    local line_wordcounts = List(vim.api.nvim_buf_get_lines(self.source.buffer, 0, -1, true)):map(function(l)
-        return #l:split(" ")
-    end)
+    local line_wordcounts = List(vim.api.nvim_buf_get_lines(self.source.buffer, 0, -1, true)):map(l -> #l:split(" "))
 
     self.excluded_ranges:foreach(function(range)
         for i = range[1] + 1, range[2] do

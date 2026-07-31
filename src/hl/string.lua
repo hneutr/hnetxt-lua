@@ -100,11 +100,10 @@ function string.join(sep, strs)
     local joined = ""
     for _, str in ipairs(strs) do
         if #joined > 0 then
-            joined = joined .. sep
+            joined ..= sep
         end
 
-
-        joined = joined .. str
+        joined ..= str
     end
 
     return joined

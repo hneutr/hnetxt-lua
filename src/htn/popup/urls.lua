@@ -61,7 +61,7 @@ end
 local Choices = Class({}, popup.Choices)
 
 function Choices:update()
-    self.items = self.ui.items:filterm("filter"):sorted(function(a, b) return a.score < b.score end)
+    self.items = self.ui.items:filterm("filter"):sorted(|a, b| -> a.score < b.score)
 end
 
 --------------------------------------------------------------------------------
@@ -94,7 +94,7 @@ function Popup:set_data()
         self.global = true
     end
 
-    self.items = DB.urls:get({where = {type = "file"}}):map(function(url) return Item:new(self, url) end)
+    self.items = DB.urls:get({where = {type = "file"}}):map(url -> Item:new(self, url))
 end
 
 function Popup:title() return not self.global and self.project end
