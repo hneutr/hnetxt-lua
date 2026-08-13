@@ -58,9 +58,7 @@ local Popup = Class({
 }, popup.Popup)
 
 function Popup:init()
-    self.items = List(self.conf:keys():sorted():map(function(letter)
-        return Letter:new(self, {letter, self.conf[letter]})
-    end))
+    self.items = List(self.conf:keys():sorted():map(letter -> Letter:new(self, {letter, self.conf[letter]})))
 
     local numbers = List()
     for i = 1, 9 do

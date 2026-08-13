@@ -49,14 +49,14 @@ end
 
 function Component.shell_function(name, lines)
     lines = List.as_list(lines)
-    lines:transform(function(l) return "    " .. l end)
-    lines:put(string.format("function %s() {", name))
+    lines:transform(l -> "    " .. l)
+    lines:put(("function %s() {"):format(name))
     lines:append("}")
     return lines:join("\n")
 end
 
 function Component.shell_alias(lhs, rhs)
-    return string.format('alias %s="%s"', lhs, rhs)
+    return ('alias %s="%s"'):format(lhs, rhs)
 end
 
 --------------------------------------------------------------------------------
@@ -197,9 +197,7 @@ function Command:add_subcomponents()
         self:add_subcomponent(_conf)
     end
 
-    self.conf.commands:sorted(function(a, b)
-        return a.name < b.name
-    end):foreach(Command, self)
+    self.conf.commands:sorted(|a, b| -> a.name < b.name):foreach(Command, self)
 end
 
 --------------------------------------------------------------------------------

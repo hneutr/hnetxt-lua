@@ -42,9 +42,7 @@ M.Url = {
         nargs = "+",
         desc = "get/set a DB.Url field",
         complete = function(lead)
-            return List({"id", "created", "label", "project", "modified"}):filter(function(field)
-                return field:startswith(lead)
-            end)
+            return List({"id", "created", "label", "project", "modified"}):filter(field -> field:startswith(lead))
         end,
     },
 }

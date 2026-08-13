@@ -334,7 +334,7 @@ function M.set_time_or_calculate_sum()
         local fn = string.format([[return function() return %s end]], val)
 
         if pcall(function() val = loadstring(fn)()() or val end) then
-            new_line = string.format("%s: %s", key, tostring(val))
+            new_line = ("%s: %s"):format(key, tostring(val))
         end
     end
 
@@ -445,9 +445,9 @@ function M.sections.goto(direction)
     local row = M.get_cursor().row
 
     if direction == 1 then
-        sections = sections:filter(function(hi) return hi > row end)
+        sections = sections:filter(section_row -> section_row > row)
     else
-        sections = sections:filter(function(hi) return hi < row end):reverse()
+        sections = sections:filter(section_row -> section_row < row):reverse()
     end
 
     if #sections > 0 then

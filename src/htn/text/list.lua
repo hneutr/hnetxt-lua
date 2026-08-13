@@ -96,10 +96,10 @@ function M.mappings()
         end)
     end)
 
-    mappings.n['>>'] = string.format(M.indent_command, 'n', 1)
-    mappings.v['>'] = string.format(M.indent_command, 'v', 1)
-    mappings.n['<<'] = string.format(M.indent_command, 'n', 0)
-    mappings.v['<'] = string.format(M.indent_command, 'v', 0)
+    mappings.n['>>'] = M.indent_command:format('n', 1)
+    mappings.v['>'] = M.indent_command:format('v', 1)
+    mappings.n['<<'] = M.indent_command:format('n', 0)
+    mappings.v['<'] = M.indent_command:format('v', 0)
 
     return mappings
 end

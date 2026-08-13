@@ -64,7 +64,7 @@ function Choices:update()
         items = Dict.keys(items):sorted()
     end
 
-    self.items = List(items):map(function(item) return ItemClass:new(self.ui, item) end):filterm("filter")
+    self.items = List(items):map(item -> ItemClass:new(self.ui, item)):filterm("filter")
 end
 
 --------------------------------------------------------------------------------
@@ -86,12 +86,12 @@ Popup.keymap = List({
     {
         lhs = "<CR>",
         desc = "enter/select",
-        callback = function(ui) ui.cursor.item:select() end,
+        callback = ui -> ui.cursor.item:select(),
     },
     {
         lhs = "<C-l>",
         desc = "enter/select",
-        callback = function(ui) ui.cursor.item:select() end,
+        callback = ui -> ui.cursor.item:select(),
     },
     {
         lhs = "<C-h>",
