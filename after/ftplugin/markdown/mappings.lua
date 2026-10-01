@@ -22,13 +22,15 @@ local mappings = Dict(
             -- headings
             ["<C-.>"] = HeadingPopup(),
             ["<C-,>"] = HeadingPopup({localize = true}),
+            ["<M-,>"] = HeadingPopup({filter = 'create'}),
+            ["<M-.>"] = HeadingPopup({filter = 'change'}),
+            ["<M-/>"] = HeadingPopup({filter = 'all'}),
             ["<C-1>"] = HeadingPopup({level = 1}),
             ["<C-2>"] = HeadingPopup({level = 2}),
             ["<C-3>"] = HeadingPopup({level = 3}),
             ["<C-4>"] = HeadingPopup({level = 4}),
             ["<C-5>"] = HeadingPopup({level = 5}),
             ["<C-6>"] = HeadingPopup({level = 6}),
-            ["<M-.>"] = HeadingPopup({todo = true}),
 
             -- misc
             ["<leader>n"] = ui.open_record_for_today,

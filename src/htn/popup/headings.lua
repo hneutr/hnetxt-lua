@@ -296,8 +296,8 @@ function Popup:init(args)
     self.show_wordcounts = false
     self.meta = Heading.Meta.get_display_defaults()
 
-    if args.todo then
-        self:toggle_meta("filter", "all")
+    if args.filter then
+        self:toggle_meta("filter", args.filter)
     end
 
     self:set_items()

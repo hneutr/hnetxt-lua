@@ -24,6 +24,9 @@ heading:
           - flag: "*"
             sign: 󰎃
             label: add
+          - flag: d
+            sign: 󰚒
+            label: date
           - flag: "!"
             sign: 󰀧
             label: fix
