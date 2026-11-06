@@ -386,7 +386,7 @@ function Popup:toggle_meta(field, group)
 end
 
 function Popup:count_words()
-    local line_wordcounts = List(vim.api.nvim_buf_get_lines(self.source.buffer, 0, -1, true)):map(l -> #l:split(" "))
+    local line_wordcounts = List(vim.api.nvim_buf_get_lines(self.source.buffer, 0, -1, true)):map(l -> l:startswith("> ") ? 0 : #l:split(" "))
 
     self.excluded_ranges:foreach(function(range)
         for i = range[1] + 1, range[2] do

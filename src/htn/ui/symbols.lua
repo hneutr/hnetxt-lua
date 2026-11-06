@@ -18,7 +18,7 @@ return function ()
             {"󰅭 ", ">="},
             {"󰿉 ", "integral"},
             {"󱢍 ", "infinity"},  {"󱢎 ", "infinity (open)"},
-            {"󰏬 ", "pencil"},    {"󰏭 ", "pencil (open)"}    {"󱅄 ", "pencil (shadow)"},
+            {"󰏬 ", "pencil"},    {"󰏭 ", "pencil (open)"},    {"󱅄 ", "pencil (shadow)"},
             {"󰑕 ", "pencil -"},
             {"󰀧 ", "!"},         {"󰳤 ", "! (open)"},
             {"󰞋 ", "?"},
