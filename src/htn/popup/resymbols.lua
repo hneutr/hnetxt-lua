@@ -1,5 +1,10 @@
 local popup = require("htn.popup")
 
+local function read_config()
+    vim.g.test = Conf.symbols
+    print(Conf.flatsymbols)
+end
+
 --------------------------------------------------------------------------------
 --                                   Letter                                   --
 --------------------------------------------------------------------------------
@@ -115,5 +120,7 @@ function Popup:update()
 end
 
 Popup.open = Popup.update
+
+read_config()
 
 return function() Popup:new() end
